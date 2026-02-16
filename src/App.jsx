@@ -1,860 +1,557 @@
 import { useState, useEffect, useRef } from "react";
 
-const GOOGLE_FONTS = `@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&family=Lora:ital,wght@0,400;0,500;1,400&display=swap');`;
+const FONTS = `@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Bebas+Neue&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap');`;
+
+const E_BLUE  = "#00C8FF";
+const E_BLUE2 = "#0EA5E9";
+const E_GLOW  = "rgba(0,200,255,0.18)";
+const BLACK   = "#04070F";
+const DARK    = "#080E1A";
+const DARK2   = "#0C1525";
+const PANEL   = "rgba(255,255,255,0.04)";
+const BORDER  = "rgba(0,200,255,0.18)";
+const BORDER2 = "rgba(255,255,255,0.07)";
+const WHITE   = "#FFFFFF";
+const MUTED   = "rgba(255,255,255,0.5)";
+const DIMMED  = "rgba(255,255,255,0.25)";
+const SYMS    = ["⚛","◈","⬡","△","◎","⊕","⟁","⬢"];
 
 const questions = [
-  {
-    id: 1,
-    text: "When you set a major goal, what's your first instinct?",
-    options: [
-      { text: "Break it into a precise action plan immediately", type: "A" },
-      { text: "Research everything about it thoroughly first", type: "B" },
-      { text: "Talk to people who've already achieved it", type: "C" },
-      { text: "Visualise the end result and what it means to you", type: "D" },
-    ],
-  },
-  {
-    id: 2,
-    text: "What does success genuinely mean to you?",
-    options: [
-      { text: "Hitting concrete milestones and measurable results", type: "A" },
-      { text: "Mastering a skill or deeply understanding something", type: "B" },
-      { text: "Building something meaningful alongside others", type: "C" },
-      { text: "Creating something uniquely yours that didn't exist before", type: "D" },
-    ],
-  },
-  {
-    id: 3,
-    text: "You've been stuck on a project for days. What actually gets you moving?",
-    options: [
-      { text: "Setting a hard deadline with real consequences", type: "A" },
-      { text: "Reframing it as a puzzle I need to solve", type: "B" },
-      { text: "Accountability from someone I respect", type: "C" },
-      { text: "Changing my environment or approach entirely", type: "D" },
-    ],
-  },
-  {
-    id: 4,
-    text: "Which environment brings out your best work?",
-    options: [
-      { text: "Structured, with clear expectations and metrics", type: "A" },
-      { text: "Open, with space to explore and experiment", type: "B" },
-      { text: "Collaborative, with a strong team dynamic", type: "C" },
-      { text: "Autonomous, where I control the vision and execution", type: "D" },
-    ],
-  },
-  {
-    id: 5,
-    text: "What drains you most?",
-    options: [
-      { text: "Lack of progress or wasted effort", type: "A" },
-      { text: "Repetition with no learning or growth", type: "B" },
-      { text: "Working in isolation without connection", type: "C" },
-      { text: "Being told exactly how to do things", type: "D" },
-    ],
-  },
-  {
-    id: 6,
-    text: "Someone criticises your work. Your honest first reaction?",
-    options: [
-      { text: "Evaluate it against the objective — is it valid?", type: "A" },
-      { text: "Ask questions to understand their reasoning", type: "B" },
-      { text: "Consider how it affects my relationship with them", type: "C" },
-      { text: "Feel it deeply but use it as fuel to push further", type: "D" },
-    ],
-  },
-  {
-    id: 7,
-    text: "When learning something new and difficult, you tend to:",
-    options: [
-      { text: "Follow a structured course or proven framework", type: "A" },
-      { text: "Dive deep into source material yourself", type: "B" },
-      { text: "Learn best by discussing or teaching others", type: "C" },
-      { text: "Experiment and learn through doing", type: "D" },
-    ],
-  },
-  {
-    id: 8,
-    text: "Your relationship with long-term goals is best described as:",
-    options: [
-      { text: "I thrive on them — they give me direction and drive", type: "A" },
-      { text: "I like goals that evolve as I learn more", type: "B" },
-      { text: "Goals matter most when shared with others", type: "C" },
-      { text: "My vision is clear; the path is flexible", type: "D" },
-    ],
-  },
-  {
-    id: 9,
-    text: "At the end of a truly productive day, you feel:",
-    options: [
-      { text: "Satisfied — I completed exactly what I planned", type: "A" },
-      { text: "Energised — I understood something better than before", type: "B" },
-      { text: "Fulfilled — I contributed to something beyond myself", type: "C" },
-      { text: "Alive — I made something that didn't exist this morning", type: "D" },
-    ],
-  },
-  {
-    id: 10,
-    text: "The phrase that resonates most deeply with you:",
-    options: [
-      { text: '"Execute with precision. Results are everything."', type: "A" },
-      { text: '"The more I learn, the more I see what\'s possible."', type: "B" },
-      { text: '"We rise by lifting others."', type: "C" },
-      { text: '"I\'d rather create something imperfect than copy something perfect."', type: "D" },
-    ],
-  },
+  {id:1,sym:"⚛",text:"When you set a major goal, what's your first instinct?",opts:[
+    {t:"Design a precise system and track every step",ty:"A"},
+    {t:"Research deeply until I truly understand it",ty:"B"},
+    {t:"Find someone who's done it and learn from them",ty:"C"},
+    {t:"Visualise the person I'll become when I achieve it",ty:"D"},
+  ]},
+  {id:2,sym:"◎",text:"Your honest definition of success:",opts:[
+    {t:"Consistent, measurable results — proof in the numbers",ty:"A"},
+    {t:"Genuine mastery — understanding something at its deepest level",ty:"B"},
+    {t:"Making a meaningful difference to people I care about",ty:"C"},
+    {t:"Creating something original that only I could have made",ty:"D"},
+  ]},
+  {id:3,sym:"△",text:"You've been stuck for three days. What actually breaks the deadlock?",opts:[
+    {t:"I reset my system — break it into smaller daily actions",ty:"A"},
+    {t:"I reframe it as a problem to be solved with better information",ty:"B"},
+    {t:"Someone I respect holds me accountable",ty:"C"},
+    {t:"I change the environment entirely and start fresh",ty:"D"},
+  ]},
+  {id:4,sym:"⬡",text:"Which condition produces your best work?",opts:[
+    {t:"Clear structure, defined metrics, known expectations",ty:"A"},
+    {t:"Freedom to explore, question, and go deep",ty:"B"},
+    {t:"A strong team with shared purpose and mutual trust",ty:"C"},
+    {t:"Full creative autonomy over the vision and execution",ty:"D"},
+  ]},
+  {id:5,sym:"⊕",text:"What depletes your motivation fastest?",opts:[
+    {t:"Effort with no visible progress or measurable result",ty:"A"},
+    {t:"Repetition with no growth or learning",ty:"B"},
+    {t:"Isolation — working without human connection",ty:"C"},
+    {t:"Being handed a script and told to follow it",ty:"D"},
+  ]},
+  {id:6,sym:"⟁",text:"Someone critiques your work sharply. Your real first reaction:",opts:[
+    {t:"I measure it against the objective — is it accurate?",ty:"A"},
+    {t:"I ask questions to understand their reasoning",ty:"B"},
+    {t:"I notice how it affects my relationship with them",ty:"C"},
+    {t:"I feel it intensely — then use the friction as fuel",ty:"D"},
+  ]},
+  {id:7,sym:"◈",text:"When learning something genuinely difficult, you naturally:",opts:[
+    {t:"Follow a proven system or structured curriculum",ty:"A"},
+    {t:"Go straight to source material and build your own understanding",ty:"B"},
+    {t:"Learn by doing it with others or teaching it",ty:"C"},
+    {t:"Experiment, fail, iterate — trial is the teacher",ty:"D"},
+  ]},
+  {id:8,sym:"⬢",text:"Your relationship with long-term goals:",opts:[
+    {t:"I thrive on them — the system is the goal",ty:"A"},
+    {t:"I like goals that evolve as my understanding deepens",ty:"B"},
+    {t:"Goals feel most alive when shared with others",ty:"C"},
+    {t:"My north star is fixed — how I get there is flexible",ty:"D"},
+  ]},
+  {id:9,sym:"⚛",text:"At the end of a high-performance day, you feel:",opts:[
+    {t:"Accomplished — the system ran perfectly",ty:"A"},
+    {t:"Expanded — I understand something I didn't this morning",ty:"B"},
+    {t:"Connected — I contributed to something beyond myself",ty:"C"},
+    {t:"Alive — I made something that didn't exist before",ty:"D"},
+  ]},
+  {id:10,sym:"△",text:"The sentence that wires deepest into your brain:",opts:[
+    {t:'"You do not rise to the level of your goals. You fall to the level of your systems."',ty:"A"},
+    {t:'"The more I learn, the more I realise how much I don\'t know."',ty:"B"},
+    {t:'"Alone we can do so little. Together we can do so much."',ty:"C"},
+    {t:'"The people crazy enough to think they can change the world are the ones who do."',ty:"D"},
+  ]},
 ];
 
-const characterTypes = {
-  A: {
-    name: "The Driven Achiever",
-    archetype: "The Strategist",
-    tagline: "You move with purpose. Every action is deliberate.",
-    description:
-      "You are intrinsically motivated by outcomes and results. You possess a rare ability to translate ambition into systematic action. Where others see obstacles, you see problems to be solved with the right process. Your quantum leap happens when you align your drive with the right strategy.",
-    strengths: ["Goal-setting precision", "Resilience under pressure", "Execution consistency", "Self-discipline"],
-    challenges: [
-      "Perfectionism can stall meaningful progress",
-      "Risk of burnout from relentless pace",
-      "Can undervalue rest and recovery time",
+const TYPES = {
+  A:{sym:"◈",name:"The Systems Architect",arch:"Identity: The Builder",
+    tag:"You don't chase motivation. You engineer it.",
+    hook:"Most people try to motivate themselves. You build systems that make motivation irrelevant.",
+    desc:"Your psychology is wired for precision and process. While others rely on willpower — a depleting resource — you understand intuitively what the Learning Quantum Method has proven through years of behavioural research: sustainable performance follows systems, not intentions. Your quantum edge is the ability to translate ambition into repeatable, compounding architecture. The small improvements add up to extraordinary results. You know this. The question is whether your system is designed for the right identity.",
+    identity:"I am someone who builds systems that work even when I don't feel like it.",
+    atomic:"Your quantum stack needs auditing, not expanding. You likely have good systems — but they may be optimised for the wrong outputs. Identify the ONE behaviour that, if repeated daily, would make everything else easier or unnecessary.",
+    strengths:["Systems design","Execution consistency","Long-horizon thinking","Process optimisation"],
+    blindspots:["Can mistake motion for progress","Perfectionism delays launch","May optimise the wrong thing efficiently"],
+    strategies:[
+      {area:"The Quantum Increment",scenario:"I delay starting when the outcome feels uncertain or the project feels too large.",
+       solution:"Shrink the action until it feels almost embarrassingly small. The goal isn't to write a chapter — it's to open the document. Identity is built by showing up, not by performing. Every small act of showing up is a vote for the person you're becoming."},
+      {area:"Motivation Architecture",scenario:"My drive fluctuates week to week, making long-term projects unreliable.",
+       solution:"Design your environment before you design your schedule. Make the desired behaviour the path of least resistance. Remove friction from what you want to do. Add friction to what you want to stop. Motivation follows the path you've already cleared."},
+      {area:"The Identity Shift",scenario:"I feel frustrated when results don't match effort — I'm doing everything right but it's not working.",
+       solution:"Ask not 'what do I want to achieve?' but 'who do I need to become?' Rewrite your daily actions as identity statements: 'I am someone who reviews progress every Friday.' Outcomes are lagging measures of identity. Build the identity first."},
     ],
-    strategies: [
-      {
-        area: "Overcoming Procrastination",
-        scenario: "I delay starting when the outcome feels uncertain or the task feels too large.",
-        solution:
-          "I will define a 'minimum viable first step' — the smallest possible action that counts as starting. I will time-box my first session to 20 minutes only, removing the pressure of completion. Forward motion, however small, rebuilds momentum.",
-      },
-      {
-        area: "Sustaining Motivation",
-        scenario: "My drive dips when progress isn't immediately visible or measurable.",
-        solution:
-          "I will implement a weekly 'Progress Audit' — a 10-minute review every Friday where I document three specific things I moved forward. Visual proof of momentum fuels my next cycle of effort and resets my motivation baseline.",
-      },
-      {
-        area: "Growth Mindset Practice",
-        scenario: "I feel frustrated and deflated when I don't perform to my own standard.",
-        solution:
-          "I will reframe underperformance as data, not identity. I will ask: 'What did this reveal about my process?' rather than 'What does this say about me?' This single shift transforms setback into strategic intelligence.",
-      },
+    blue:"#00C8FF",glow:"rgba(0,200,255,0.12)"},
+  B:{sym:"◉",name:"The Deep Learner",arch:"Identity: The Scholar",
+    tag:"Your curiosity is a compounding asset.",
+    hook:"Shallow knowledge is everywhere. What you build goes three levels deeper than anyone else in the room.",
+    desc:"You are driven by a rare and powerful force: the need to truly understand. Not surface knowledge — genuine comprehension. This is the foundation of expertise, and expertise is the foundation of irreplaceable value. The research confirms what you feel intuitively: deep work produces disproportionate results. Your challenge isn't capacity — it's converting accumulated understanding into decisive, visible action.",
+    identity:"I am someone who turns deep understanding into decisive, courageous action.",
+    atomic:"Knowledge without deployment is stored potential. Your quantum stack needs a 'publish' step — a regular moment where you translate internal understanding into external output, however imperfect.",
+    strengths:["Intellectual depth","Pattern recognition","Mastery orientation","Analytical precision"],
+    blindspots:["Analysis paralysis before action","'Not ready yet' as avoidance","Over-invests in understanding, under-invests in doing"],
+    strategies:[
+      {area:"The 70% Threshold",scenario:"I over-research and delay acting until I feel truly ready — which rarely comes.",
+       solution:"Set a decision threshold: when you have 70% of the information you want, act. Treat the remaining 30% as field research — data you can only gather by doing. Action is the most advanced form of learning available to you."},
+      {area:"Complexity as Motivation",scenario:"Repetitive or routine tasks drain me rapidly — I lose interest and disengage.",
+       solution:"Find the hidden variable. In every routine task, there is one dimension you could optimise. Make the question 'how could I do this 10% more intelligently?' your daily prompt. Turn execution into experimentation."},
+      {area:"The Output Practice",scenario:"I accumulate knowledge but struggle to show my work or share my thinking.",
+       solution:"Build a weekly 'output ritual' — one piece of thinking made visible. A note, a voice memo, a conversation where you teach what you've learned. The act of explaining is the act of understanding at depth."},
     ],
-    color: "#B8860B",
-    lightColor: "#D4A017",
-    bgColor: "rgba(184,134,11,0.08)",
-    borderColor: "rgba(184,134,11,0.25)",
-    icon: "◈",
-    gradient: "linear-gradient(135deg, #B8860B, #D4A017)",
-  },
-  B: {
-    name: "The Deep Explorer",
-    archetype: "The Intellect",
-    tagline: "Your curiosity is your greatest competitive edge.",
-    description:
-      "You are fuelled by understanding. You don't just want to know what — you need to know why. This depth of thinking allows you to develop mastery that most people never reach. Your quantum leap happens when you convert deep knowledge into decisive, courageous action.",
-    strengths: ["Intellectual depth", "Pattern recognition", "Mastery-focused mindset", "Analytical under pressure"],
-    challenges: [
-      "Analysis paralysis before taking action",
-      "Difficulty with 'good enough' in practice",
-      "Can lose motivation without intellectual stimulation",
+    blue:"#38BDF8",glow:"rgba(56,189,248,0.12)"},
+  C:{sym:"◎",name:"The Relational Catalyst",arch:"Identity: The Connector",
+    tag:"You make everything — and everyone — better.",
+    hook:"While others optimise for outputs, you understand the lever that moves everything: people.",
+    desc:"Your motivation is relational at its core. You are energised by shared purpose, activated by belonging, and sustained by the knowledge that your effort matters to real people. Research consistently shows that social commitment is one of the most powerful forces in behaviour change. Your quantum leap is learning to channel this relational fuel into your own consistent growth — not just the growth of those around you.",
+    identity:"I am someone who builds relationships that hold me accountable to my own growth.",
+    atomic:"Your quantum stack needs a social architecture layer. Every major goal should have one human being attached to it — someone who benefits from your success, or to whom you've made a commitment. Accountability is your performance-enhancing mechanism.",
+    strengths:["Emotional intelligence","Trust-building","Authentic leadership","Sustained effort under social commitment"],
+    blindspots:["Loses personal direction without external anchors","Avoids necessary conflict","Absorbs others' energy and momentum"],
+    strategies:[
+      {area:"The Relational Goal Stack",scenario:"I lose motivation when working in isolation — the drive evaporates without connection.",
+       solution:"Attach every personal goal to a specific person. Write: 'Achieving this allows me to show up better for [name] because [reason].' Share it with them. You have just created the most powerful motivational force in your psychology."},
+      {area:"The Morning Anchor",scenario:"I absorb the emotional weather of those around me — their demotivation becomes mine.",
+       solution:"Create a 10-minute pre-contact ritual each morning before interacting with anyone. Write three intentions. This builds an internal foundation that external moods cannot destabilise. Your identity precedes their influence."},
+      {area:"The Accountability Architecture",scenario:"I need external commitment to sustain effort — and feel this is a weakness.",
+       solution:"It isn't a weakness — it's a feature. Formalise it. Identify one person for a weekly check-in: one win, one struggle, one commitment. You're not removing the need for connection. You're building it intelligently into your growth system."},
     ],
-    strategies: [
-      {
-        area: "Converting Knowledge to Action",
-        scenario: "I over-research and delay acting until I feel completely 'ready'.",
-        solution:
-          "I will apply the 70% Rule — when I have 70% of the information I want, I will act and treat the experience as field research. I will schedule a 'learning deadline' before every major decision, treating action itself as the deepest form of learning.",
-      },
-      {
-        area: "Maintaining Motivation",
-        scenario: "Repetitive tasks feel meaningless and drain my energy rapidly.",
-        solution:
-          "I will find the hidden complexity in routine. For every repetitive task, I will identify one variable to optimise. I will ask: 'How could I do this 10% more intelligently today?' This reframes execution as experimentation.",
-      },
-      {
-        area: "Growth Through Discomfort",
-        scenario: "I struggle when I'm not immediately competent at something new.",
-        solution:
-          "I will embrace the 'beginner's plateau' as confirmation I am in the growth zone. I will journal one new insight per learning session, making growth tangible and cumulative. Struggle is not failure — it is the signal of expansion.",
-      },
+    blue:"#34D399",glow:"rgba(52,211,153,0.12)"},
+  D:{sym:"◇",name:"The Visionary Pioneer",arch:"Identity: The Creator",
+    tag:"You don't follow the map. You draw it.",
+    hook:"Every framework, every system, every method you've ever used — someone like you invented it first.",
+    desc:"You are driven by possibility. You think in futures that don't exist yet. Your motivation comes from creative autonomy, the thrill of the blank canvas, and the deep satisfaction of making something that carries your fingerprint. The research on intrinsic motivation is clear: autonomy, mastery, and purpose are the triumvirate. You have all three in abundance. Your challenge is not creativity — it's building just enough structure to bring your vision fully across the finish line.",
+    identity:"I am someone who brings bold visions into the world with enough structure to complete them.",
+    atomic:"Your quantum stack needs a completion mechanism. You likely have strong starting rituals. Build equally strong finishing rituals — a defined moment where you declare a project 'shipped' and begin the next creative act.",
+    strengths:["Original thinking","Intrinsic drive","Bold risk tolerance","Inspiring through vision"],
+    blindspots:["Motivation drops after the initial spark","Too many projects, too few completions","Structure feels like a cage"],
+    strategies:[
+      {area:"The Evolution Frame",scenario:"My motivation collapses once the exciting creation phase ends and execution begins.",
+       solution:"Reframe completion as the beginning of the next creative act, not the death of this one. Keep an 'Evolution Log' — a live document tracking how your project is changing and improving. The project is never finished. It is always becoming."},
+      {area:"The One Brilliant Thing",scenario:"I scatter energy across multiple ideas simultaneously and make shallow progress on all of them.",
+       solution:"Each week, identify the single most important creative act. Protect 90 uninterrupted minutes for it — first, before anything else. Everything else is secondary until that window is honoured. Constraint creates the conditions for your best work."},
+      {area:"The Separation Protocol",scenario:"My output never matches my internal vision and this gap demotivates me deeply.",
+       solution:"Separate creation from evaluation entirely. During making: no judgement allowed. Schedule a 'critical review' 24 hours after completion with fresh eyes. The inner critic and the inner creator cannot occupy the same creative moment."},
     ],
-    color: "#1B6FA8",
-    lightColor: "#2E8BC0",
-    bgColor: "rgba(27,111,168,0.08)",
-    borderColor: "rgba(27,111,168,0.25)",
-    icon: "◉",
-    gradient: "linear-gradient(135deg, #1B3F6A, #2E8BC0)",
-  },
-  C: {
-    name: "The Collaborative Connector",
-    archetype: "The Catalyst",
-    tagline: "You make everything — and everyone — better.",
-    description:
-      "Your motivation is deeply relational. You are energised by shared purpose, belonging, and the knowledge that your work matters to real people. You have a rare gift: the ability to inspire commitment in others while remaining genuinely self-aware. Your quantum leap happens when you channel connection into consistent personal achievement.",
-    strengths: ["Empathy and emotional intelligence", "Building trust quickly", "Motivating others authentically", "Sustained effort when others depend on you"],
-    challenges: [
-      "Can lose personal direction without external anchors",
-      "May avoid necessary but uncomfortable conflict",
-      "Susceptible to absorbing others' energy and moods",
-    ],
-    strategies: [
-      {
-        area: "Grounding Your Own Goals",
-        scenario: "I lose motivation when working in isolation without a sense of shared purpose.",
-        solution:
-          "I will attach every personal goal to someone I care about. I will write one sentence for each goal answering: 'Who does achieving this allow me to show up better for?' Then I will share this commitment directly with them. Relationship becomes my anchor.",
-      },
-      {
-        area: "Protecting Your Energy",
-        scenario: "I absorb the motivation — and the demotivation — of those around me.",
-        solution:
-          "I will create a 'Morning Anchor' ritual — 10 minutes before interacting with anyone else, I will reaffirm my own intentions for the day in writing. This builds an internal foundation that external moods cannot easily destabilise.",
-      },
-      {
-        area: "Growth Mindset Practice",
-        scenario: "I find it hard to persist through challenges when working alone.",
-        solution:
-          "I will establish a peer accountability partnership — one person I connect with weekly to share one win, one struggle, and one commitment for the following week. I don't remove the need for connection — I build it intelligently into my growth system.",
-      },
-    ],
-    color: "#2E7D52",
-    lightColor: "#3DAA6F",
-    bgColor: "rgba(46,125,82,0.08)",
-    borderColor: "rgba(46,125,82,0.25)",
-    icon: "◎",
-    gradient: "linear-gradient(135deg, #1A5C3A, #3DAA6F)",
-  },
-  D: {
-    name: "The Visionary Creator",
-    archetype: "The Pioneer",
-    tagline: "You don't follow the path. You build it.",
-    description:
-      "You are driven by possibility. You think in futures, not frameworks. Your motivation comes from creative autonomy and the deep satisfaction of making something that carries your fingerprint. You're not built for systems — you're built to redefine them. Your quantum leap happens when you harness your vision with just enough structure to bring it fully into the world.",
-    strengths: ["Original, divergent thinking", "High intrinsic motivation", "Bold risk tolerance", "Ability to inspire others through vision"],
-    challenges: [
-      "Difficulty sustaining execution after the initial spark",
-      "Structure and systems can feel constraining",
-      "Can abandon projects before completion",
-    ],
-    strategies: [
-      {
-        area: "Bridging Vision and Execution",
-        scenario: "My motivation crashes once the exciting 'creation' phase ends.",
-        solution:
-          "I will create an 'Evolution Log' — a living document where I record how the project is changing and improving over time. I will consciously reframe completion as the beginning of the next creative act, not the end of this one. The project never truly finishes.",
-      },
-      {
-        area: "Sustainable Creative Output",
-        scenario: "I have too many ideas and scatter my energy across all of them at once.",
-        solution:
-          "I will apply the 'One Brilliant Thing' rule — each week, I identify the single most important creative act and protect at least 90 uninterrupted minutes for it before anything else. Everything else is secondary until that window is honoured.",
-      },
-      {
-        area: "Growth Mindset Practice",
-        scenario: "I feel demotivated when my output doesn't match my internal vision.",
-        solution:
-          "I will separate creation from evaluation entirely. I will give myself a 'no-judgement zone' during the making phase, and schedule a separate 'critical review' session 24 hours later with fresh perspective. The inner critic and the inner creator cannot occupy the same space at the same time.",
-      },
-    ],
-    color: "#7B3FA0",
-    lightColor: "#A05CC8",
-    bgColor: "rgba(123,63,160,0.08)",
-    borderColor: "rgba(123,63,160,0.25)",
-    icon: "◇",
-    gradient: "linear-gradient(135deg, #4A1A6E, #A05CC8)",
-  },
+    blue:"#A78BFA",glow:"rgba(167,139,250,0.12)"},
 };
 
-const ORIGINAL_PRICE = 27;
-const DISCOUNTED_PRICE = 9;
-const TIMER_SECONDS = 15 * 60;
+const ORIGINAL = 27, DISCOUNTED = 9, TIMER_SECS = 15 * 60;
 
-// ─── LQM Brand Colours ───────────────────────────────────────────────────────
-const NAVY = "#1B2B5E";
-const NAVY_DARK = "#0F1A3D";
-const NAVY_MID = "#1E3170";
-const GOLD = "#B8860B";
-const GOLD_LIGHT = "#D4A850";
-const GOLD_BRIGHT = "#F0C040";
-const WHITE = "#FFFFFF";
-const OFF_WHITE = "#F4F6FA";
-const MUTED = "rgba(27,43,94,0.55)";
+function Particles() {
+  return (
+    <div style={{position:"fixed",inset:0,pointerEvents:"none",zIndex:0,overflow:"hidden"}}>
+      {Array.from({length:16}).map((_,i) => {
+        const sym = SYMS[i % SYMS.length];
+        const left = 5 + (i * 6.2) % 90;
+        const dur = 16 + (i * 3.7) % 18;
+        const delay = -((i * 2.3) % 20);
+        const size = 10 + (i * 1.7) % 14;
+        const opacity = 0.04 + (i * 0.003) % 0.06;
+        return (
+          <div key={i} style={{position:"absolute",left:`${left}%`,bottom:-60,fontSize:size,color:E_BLUE,opacity,animation:`floatUp ${dur}s ${delay}s linear infinite`}}>{sym}</div>
+        );
+      })}
+    </div>
+  );
+}
 
 export default function App() {
   const [phase, setPhase] = useState("landing");
-  const [currentQ, setCurrentQ] = useState(0);
+  const [qIdx, setQIdx] = useState(0);
   const [answers, setAnswers] = useState([]);
-  const [selectedOption, setSelectedOption] = useState(null);
-  const [characterType, setCharacterType] = useState(null);
-  const [timeLeft, setTimeLeft] = useState(TIMER_SECONDS);
-  const [timerStarted, setTimerStarted] = useState(false);
-  const [processingStep, setProcessingStep] = useState(0);
+  const [sel, setSel] = useState(null);
+  const [charType, setCharType] = useState(null);
+  const [timeLeft, setTimeLeft] = useState(TIMER_SECS);
+  const [timerOn, setTimerOn] = useState(false);
+  const [procStep, setProcStep] = useState(0);
   const timerRef = useRef(null);
 
   useEffect(() => {
-    const style = document.createElement("style");
-    style.textContent = GOOGLE_FONTS + `
-      * { box-sizing: border-box; margin: 0; padding: 0; }
-      html, body { background: #F4F6FA; }
-      @keyframes fadeUp { from { opacity:0; transform:translateY(20px);} to { opacity:1; transform:translateY(0);} }
-      @keyframes shimmer { 0%{background-position:-200% center} 100%{background-position:200% center} }
-      @keyframes spin { to { transform: rotate(360deg); } }
-      @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
-      @keyframes sparkle { 0%,100%{transform:scale(1) rotate(0deg); opacity:1} 50%{transform:scale(1.3) rotate(20deg); opacity:0.8} }
-      @keyframes blurIn { from{filter:blur(6px);opacity:0} to{filter:blur(0);opacity:1} }
-      @keyframes slideIn { from{opacity:0;transform:translateX(20px)} to{opacity:1;transform:translateX(0)} }
-      .fade-up { animation: fadeUp 0.6s ease both; }
-      .fade-up-1 { animation: fadeUp 0.6s 0.1s ease both; }
-      .fade-up-2 { animation: fadeUp 0.6s 0.2s ease both; }
-      .fade-up-3 { animation: fadeUp 0.6s 0.35s ease both; }
-      .fade-up-4 { animation: fadeUp 0.6s 0.5s ease both; }
-      .fade-up-5 { animation: fadeUp 0.6s 0.65s ease both; }
-      .shimmer-gold {
-        background: linear-gradient(90deg, ${GOLD} 0%, ${GOLD_BRIGHT} 40%, ${GOLD} 60%, ${GOLD_LIGHT} 100%);
-        background-size: 200% auto;
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        animation: shimmer 3s linear infinite;
-      }
-      .sparkle { animation: sparkle 2.5s ease-in-out infinite; display:inline-block; }
-      .timer-urgent { animation: pulse 1s infinite; }
-      .blur-locked { filter: blur(5px); user-select:none; pointer-events:none; }
+    const s = document.createElement("style");
+    s.textContent = FONTS + `
+      *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+      html,body{background:${BLACK};}
+      @keyframes floatUp{from{transform:translateY(0) rotate(0deg);}to{transform:translateY(-110vh) rotate(360deg);opacity:0;}}
+      @keyframes fadeUp{from{opacity:0;transform:translateY(22px);}to{opacity:1;transform:translateY(0);}}
+      @keyframes glow{0%,100%{text-shadow:0 0 20px ${E_BLUE}88;}50%{text-shadow:0 0 40px ${E_BLUE};}}
+      @keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.45;}}
+      @keyframes spin{to{transform:rotate(360deg);}}
+      @keyframes shimmer{0%{background-position:-200% center;}100%{background-position:200% center;}}
+      @keyframes blurIn{from{filter:blur(8px);opacity:0;}to{filter:blur(0);opacity:1;}}
+      @keyframes scan{0%{transform:translateY(-100%);}100%{transform:translateY(200vh);}}
+      .fu{animation:fadeUp .65s ease both;}
+      .fu1{animation:fadeUp .65s .1s ease both;}
+      .fu2{animation:fadeUp .65s .22s ease both;}
+      .fu3{animation:fadeUp .65s .36s ease both;}
+      .fu4{animation:fadeUp .65s .5s ease both;}
+      .fu5{animation:fadeUp .65s .65s ease both;}
+      .elec{background:linear-gradient(90deg,${E_BLUE} 0%,#fff 40%,${E_BLUE} 60%,${E_BLUE2} 100%);background-size:200% auto;-webkit-background-clip:text;-webkit-text-fill-color:transparent;animation:shimmer 3s linear infinite;}
+      .urgent{animation:pulse 1s infinite;}
+      .blur-lock{filter:blur(5px);user-select:none;pointer-events:none;}
     `;
-    document.head.appendChild(style);
-    return () => document.head.removeChild(style);
+    document.head.appendChild(s);
+    return () => document.head.removeChild(s);
   }, []);
 
   useEffect(() => {
-    if (timerStarted && timeLeft > 0) {
-      timerRef.current = setInterval(() => setTimeLeft((t) => t - 1), 1000);
+    if (timerOn && timeLeft > 0) {
+      timerRef.current = setInterval(() => setTimeLeft(t => t - 1), 1000);
       return () => clearInterval(timerRef.current);
     }
-  }, [timerStarted, timeLeft]);
+  }, [timerOn, timeLeft]);
 
-  const formatTime = (s) => `${Math.floor(s / 60).toString().padStart(2, "0")}:${(s % 60).toString().padStart(2, "0")}`;
-
-  const calculateType = (ans) => {
-    const counts = { A: 0, B: 0, C: 0, D: 0 };
-    ans.forEach((a) => counts[a]++);
-    return Object.entries(counts).sort((a, b) => b[1] - a[1])[0][0];
-  };
-
-  const handleStart = () => {
-    setTimerStarted(true);
-    setPhase("quiz");
-  };
+  const fmt = s => `${Math.floor(s/60).toString().padStart(2,"0")}:${(s%60).toString().padStart(2,"0")}`;
+  const calcType = ans => { const c={A:0,B:0,C:0,D:0}; ans.forEach(a=>c[a]++); return Object.entries(c).sort((a,b)=>b[1]-a[1])[0][0]; };
 
   const handleNext = () => {
-    if (!selectedOption) return;
-    const newAnswers = [...answers, selectedOption];
-    setAnswers(newAnswers);
-    setSelectedOption(null);
-    if (currentQ < questions.length - 1) {
-      setCurrentQ(currentQ + 1);
-    } else {
-      setCharacterType(calculateType(newAnswers));
-      setPhase("processing");
-      let s = 0;
-      const iv = setInterval(() => {
-        s++;
-        setProcessingStep(s);
-        if (s >= 4) { clearInterval(iv); setTimeout(() => setPhase("teaser"), 600); }
-      }, 900);
+    if (!sel) return;
+    const a = [...answers, sel];
+    setAnswers(a); setSel(null);
+    if (qIdx < questions.length - 1) { setQIdx(qIdx + 1); }
+    else {
+      setCharType(calcType(a)); setPhase("processing");
+      let st = 0;
+      const iv = setInterval(() => { st++; setProcStep(st); if(st>=5){clearInterval(iv);setTimeout(()=>setPhase("teaser"),600);} }, 850);
     }
   };
 
   return (
-    <div style={{ minHeight: "100vh", background: OFF_WHITE, fontFamily: "'Montserrat', sans-serif", display: "flex", flexDirection: "column", alignItems: "center", padding: "0 16px 60px", position: "relative" }}>
-      {/* Top navy bar */}
-      <div style={{ width: "100%", background: NAVY_DARK, padding: "12px 24px", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 0 }}>
-        <LQMLogo size="sm" />
+    <div style={{minHeight:"100vh",background:`radial-gradient(ellipse 80% 50% at 50% -10%,rgba(0,200,255,0.07) 0%,transparent 60%),${BLACK}`,fontFamily:"'Space Grotesk',sans-serif",color:WHITE,display:"flex",flexDirection:"column",alignItems:"center",padding:"0 16px 80px",position:"relative",overflow:"hidden"}}>
+      <Particles/>
+      {/* Top bar */}
+      <div style={{width:"100%",borderBottom:`1px solid ${BORDER}`,padding:"12px 24px",display:"flex",alignItems:"center",justifyContent:"center",background:"rgba(4,7,15,0.85)",backdropFilter:"blur(12px)",position:"sticky",top:0,zIndex:100,marginBottom:0}}>
+        <Logo size="sm"/>
       </div>
-
-      <div style={{ width: "100%", maxWidth: 660, position: "relative", zIndex: 1, paddingTop: 36 }}>
-        {phase === "landing" && <LandingPage onStart={handleStart} timeLeft={timeLeft} formatTime={formatTime} />}
-        {phase === "quiz" && (
-          <QuizPage
-            question={questions[currentQ]}
-            index={currentQ}
-            total={questions.length}
-            selected={selectedOption}
-            onSelect={setSelectedOption}
-            onNext={handleNext}
-            timeLeft={timeLeft}
-            formatTime={formatTime}
-          />
-        )}
-        {phase === "processing" && <ProcessingPage step={processingStep} />}
-        {phase === "teaser" && (
-          <TeaserPage
-            type={characterTypes[characterType]}
-            timeLeft={timeLeft}
-            formatTime={formatTime}
-            onUnlock={() => setPhase("paid")}
-          />
-        )}
-        {phase === "paid" && <FullReportPage type={characterTypes[characterType]} />}
+      <div style={{width:"100%",maxWidth:680,position:"relative",zIndex:1,paddingTop:40}}>
+        {phase==="landing"    && <Landing onStart={()=>{setTimerOn(true);setPhase("quiz");}} t={timeLeft} fmt={fmt}/>}
+        {phase==="quiz"       && <Quiz q={questions[qIdx]} idx={qIdx} sel={sel} onSel={setSel} onNext={handleNext} t={timeLeft} fmt={fmt}/>}
+        {phase==="processing" && <Processing step={procStep}/>}
+        {phase==="teaser"     && <Teaser type={TYPES[charType]} t={timeLeft} fmt={fmt} onUnlock={()=>setPhase("paid")}/>}
+        {phase==="paid"       && <Report type={TYPES[charType]}/>}
       </div>
     </div>
   );
 }
 
-// ─── LQM Logo SVG Component ───────────────────────────────────────────────────
-function LQMLogo({ size = "md" }) {
-  const scale = size === "sm" ? 0.55 : size === "lg" ? 1.2 : 1;
+function Logo({size="md"}) {
+  const sc = size==="sm"?.58:size==="lg"?1.25:1;
   return (
-    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
-      <svg width={160 * scale} height={60 * scale} viewBox="0 0 160 60" fill="none" xmlns="http://www.w3.org/2000/svg">
-        {/* L */}
-        <text x="0" y="50" fontFamily="Montserrat, sans-serif" fontWeight="800" fontSize="56" fill={WHITE} letterSpacing="-2">L</text>
-        {/* Q with swoosh */}
-        <text x="42" y="50" fontFamily="Montserrat, sans-serif" fontWeight="800" fontSize="56" fill={WHITE} letterSpacing="-2">Q</text>
-        {/* Swoosh under Q */}
-        <path d="M44 54 Q 70 62 98 52" stroke={GOLD_LIGHT} strokeWidth="2.5" fill="none" strokeLinecap="round"/>
-        {/* M */}
-        <text x="90" y="50" fontFamily="Montserrat, sans-serif" fontWeight="800" fontSize="56" fill={WHITE} letterSpacing="-2">M</text>
-        {/* Sparkle star on M */}
-        <g transform="translate(118, 4)">
-          <line x1="0" y1="-9" x2="0" y2="9" stroke={GOLD_BRIGHT} strokeWidth="1.5" strokeLinecap="round"/>
-          <line x1="-9" y1="0" x2="9" y2="0" stroke={GOLD_BRIGHT} strokeWidth="1.5" strokeLinecap="round"/>
-          <line x1="-6" y1="-6" x2="6" y2="6" stroke="rgba(255,255,255,0.7)" strokeWidth="1" strokeLinecap="round"/>
-          <line x1="6" y1="-6" x2="-6" y2="6" stroke="rgba(255,255,255,0.7)" strokeWidth="1" strokeLinecap="round"/>
-          <circle cx="0" cy="0" r="2" fill={WHITE}/>
-          {/* Glow */}
-          <circle cx="0" cy="0" r="5" fill="rgba(100,180,255,0.2)"/>
-        </g>
-      </svg>
-      <p style={{
-        fontFamily: "'Montserrat', sans-serif",
-        fontSize: 9 * scale,
-        fontWeight: 600,
-        letterSpacing: "0.2em",
-        color: GOLD_LIGHT,
-        textTransform: "uppercase",
-        marginTop: -4 * scale,
-      }}>Learning Quantum Method</p>
+    <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:2}}>
+      <div style={{position:"relative",display:"inline-block"}}>
+        <span style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:52*sc,letterSpacing:3*sc,color:WHITE,lineHeight:1,textShadow:`0 0 30px ${E_BLUE}55`}}>LQM</span>
+        <span style={{position:"absolute",top:-7*sc,right:-4*sc,fontSize:15*sc,color:E_BLUE,textShadow:`0 0 12px ${E_BLUE}`,animation:"glow 2.5s ease-in-out infinite"}}>⚡</span>
+        <svg style={{position:"absolute",bottom:-3*sc,left:0,width:"100%"}} height={5*sc} viewBox="0 0 160 5">
+          <path d="M28 4 Q80 1 132 4" stroke={E_BLUE} strokeWidth="1.5" fill="none" strokeLinecap="round" opacity=".6"/>
+        </svg>
+      </div>
+      <p style={{fontFamily:"'Space Grotesk',sans-serif",fontSize:8*sc,fontWeight:600,letterSpacing:.2*sc+"em",color:"rgba(0,200,255,0.55)",textTransform:"uppercase",marginTop:3*sc}}>Learning Quantum Method</p>
     </div>
   );
 }
 
-// ─── Timer Badge ─────────────────────────────────────────────────────────────
-function TimerBadge({ timeLeft, formatTime }) {
-  const urgent = timeLeft < 180;
+function TimerBadge({t,fmt}) {
+  const urgent = t < 180;
   return (
-    <div className={urgent ? "timer-urgent" : ""} style={{
-      display: "inline-flex", alignItems: "center", gap: 8,
-      background: urgent ? "rgba(180,30,30,0.1)" : `rgba(${27},${43},${94},0.08)`,
-      border: `1px solid ${urgent ? "rgba(180,30,30,0.35)" : "rgba(184,134,11,0.35)"}`,
-      borderRadius: 100, padding: "7px 16px",
-      fontSize: 12, fontWeight: 600, letterSpacing: "0.06em",
-      color: urgent ? "#C0392B" : GOLD,
-    }}>
-      <span style={{ fontSize: 7 }}>●</span>
-      {timeLeft > 0 ? `Special offer expires ${formatTime(timeLeft)}` : "Offer expired"}
+    <div className={urgent?"urgent":""} style={{display:"inline-flex",alignItems:"center",gap:8,background:urgent?"rgba(255,60,60,0.08)":"rgba(0,200,255,0.06)",border:`1px solid ${urgent?"rgba(255,60,60,0.35)":BORDER}`,borderRadius:100,padding:"6px 16px",fontSize:12,fontWeight:600,letterSpacing:".06em",color:urgent?"#FF6B6B":E_BLUE}}>
+      <span>⚡</span>{t>0?`Offer expires ${fmt(t)}`:"Offer expired"}
     </div>
   );
 }
 
-// ─── Card wrapper ─────────────────────────────────────────────────────────────
-function Card({ children, style = {} }) {
+function Panel({children,style={},glow=false}) {
   return (
-    <div style={{
-      background: WHITE,
-      borderRadius: 20,
-      boxShadow: "0 4px 24px rgba(27,43,94,0.10)",
-      padding: "32px 28px",
-      ...style,
-    }}>
+    <div style={{background:PANEL,border:`1px solid ${BORDER2}`,borderRadius:16,padding:"26px 26px",boxShadow:glow?`0 0 40px ${E_GLOW},inset 0 0 40px rgba(0,200,255,0.02)`:"none",...style}}>
       {children}
     </div>
   );
 }
 
-// ─── Landing ─────────────────────────────────────────────────────────────────
-function LandingPage({ onStart, timeLeft, formatTime }) {
+function SLabel({children,color=E_BLUE}) {
   return (
-    <div>
-      {/* Hero */}
-      <Card style={{ textAlign: "center", marginBottom: 20, background: NAVY_DARK, padding: "44px 28px" }}>
-        <div className="fade-up" style={{ marginBottom: 20 }}>
-          <LQMLogo size="lg" />
-        </div>
-        <div className="fade-up-1" style={{ marginBottom: 10 }}>
-          <span style={{
-            fontFamily: "'Montserrat', sans-serif", fontWeight: 800,
-            fontSize: "clamp(26px, 5vw, 40px)", lineHeight: 1.15,
-            color: WHITE, display: "block", marginBottom: 6,
-          }}>
-            Discover What
-          </span>
-          <span className="shimmer-gold" style={{
-            fontFamily: "'Montserrat', sans-serif", fontWeight: 800,
-            fontSize: "clamp(26px, 5vw, 40px)", lineHeight: 1.15, display: "block",
-          }}>
-            Actually Drives You
-          </span>
-        </div>
-        <p className="fade-up-2" style={{
-          fontSize: 15, lineHeight: 1.75, color: "rgba(255,255,255,0.65)",
-          fontWeight: 300, maxWidth: 440, margin: "16px auto 28px",
-        }}>
-          10 questions. Your unique LQM Motivation Profile. A personalised action plan built around the way <em>you</em> are wired — not generic advice.
-        </p>
-        <div className="fade-up-3" style={{ display: "flex", flexWrap: "wrap", gap: 16, justifyContent: "center", marginBottom: 28 }}>
-          {["3-minute assessment", "4 unique profiles", "Personalised growth plan"].map((f) => (
-            <span key={f} style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", display: "flex", alignItems: "center", gap: 6, fontWeight: 500 }}>
-              <span style={{ color: GOLD_LIGHT }}>◆</span>{f}
-            </span>
-          ))}
-        </div>
-        <div className="fade-up-4" style={{ marginBottom: 14 }}>
-          <TimerBadge timeLeft={timeLeft} formatTime={formatTime} />
-        </div>
-        <div className="fade-up-5">
-          <button onClick={onStart} style={btnStyle("gold")} onMouseEnter={btnHover} onMouseLeave={btnLeave}>
-            Begin My Assessment →
-          </button>
-          <p style={{ marginTop: 12, fontSize: 12, color: "rgba(255,255,255,0.3)", fontWeight: 400 }}>No payment required until you see your results</p>
-        </div>
-      </Card>
-
-      {/* Pricing card */}
-      <Card className="fade-up" style={{ border: `1px solid rgba(184,134,11,0.25)`, marginBottom: 20 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
-          <span className="sparkle" style={{ fontSize: 20, color: GOLD }}>✦</span>
-          <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", color: GOLD }}>
-            Introductory Pricing — Limited Time
-          </p>
-        </div>
-        <div style={{ display: "flex", alignItems: "baseline", gap: 12, marginBottom: 6 }}>
-          <span style={{ fontSize: 44, fontWeight: 800, color: NAVY_DARK, fontFamily: "'Montserrat', sans-serif" }}>£{DISCOUNTED_PRICE}</span>
-          <span style={{ fontSize: 22, color: "rgba(27,43,94,0.3)", textDecoration: "line-through" }}>£{ORIGINAL_PRICE}</span>
-          <span style={{ background: "rgba(46,125,82,0.1)", color: "#2E7D52", padding: "3px 10px", borderRadius: 100, fontSize: 12, fontWeight: 700 }}>67% off</span>
-        </div>
-        <p style={{ fontSize: 14, color: MUTED, fontWeight: 300, lineHeight: 1.6 }}>
-          Complete the assessment now to lock in this discounted price. Full personalised report delivered instantly.
-        </p>
-      </Card>
-
-      {/* What you get */}
-      <Card style={{ borderTop: `3px solid ${NAVY}` }}>
-        <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: NAVY, marginBottom: 18 }}>
-          What's in your report
-        </p>
-        {[
-          ["Your LQM Motivation Profile", "Understand your core motivation architecture — how you're wired to learn, grow and perform at your best"],
-          ["Strengths & Blind Spots Analysis", "An honest, personalised breakdown of what gives you your edge and what gets in your way"],
-          ["3 Personalised Growth Strategies", "Scenario-based action plans written specifically for your profile — not generic advice"],
-          ["Motivation Maintenance Plan", "Practical daily and weekly systems to sustain high performance over time"],
-        ].map(([title, desc]) => (
-          <div key={title} style={{ display: "flex", gap: 14, marginBottom: 18, alignItems: "flex-start" }}>
-            <div style={{ width: 8, height: 8, borderRadius: "50%", background: GOLD, marginTop: 6, flexShrink: 0 }} />
-            <div>
-              <p style={{ fontSize: 14, fontWeight: 600, color: NAVY_DARK, marginBottom: 3 }}>{title}</p>
-              <p style={{ fontSize: 13, color: MUTED, fontWeight: 300, lineHeight: 1.6 }}>{desc}</p>
-            </div>
-          </div>
-        ))}
-      </Card>
+    <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:16}}>
+      <p style={{fontSize:10,fontWeight:700,letterSpacing:".14em",textTransform:"uppercase",color,whiteSpace:"nowrap"}}>{children}</p>
+      <div style={{flex:1,height:1,background:`linear-gradient(90deg,${color}44,transparent)`}}/>
     </div>
   );
 }
 
-// ─── Quiz ─────────────────────────────────────────────────────────────────────
-function QuizPage({ question, index, total, selected, onSelect, onNext, timeLeft, formatTime }) {
-  const progress = (index / total) * 100;
+function PrimaryBtn({onClick,children}) {
   return (
-    <div className="slide-in" style={{ animation: "slideIn 0.4s ease both" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-        <span style={{ fontSize: 12, fontWeight: 600, color: MUTED, letterSpacing: "0.08em" }}>QUESTION {index + 1} OF {total}</span>
-        <TimerBadge timeLeft={timeLeft} formatTime={formatTime} />
+    <button onClick={onClick} style={{width:"100%",border:"none",borderRadius:100,padding:"17px",fontSize:15,fontWeight:700,fontFamily:"'Space Grotesk',sans-serif",cursor:"pointer",letterSpacing:".05em",transition:"all .2s ease",display:"block",background:`linear-gradient(135deg,${E_BLUE2},${E_BLUE})`,color:BLACK,boxShadow:`0 6px 24px rgba(0,200,255,0.25)`}}
+      onMouseEnter={e=>{e.currentTarget.style.transform="translateY(-2px)";e.currentTarget.style.boxShadow=`0 12px 40px rgba(0,200,255,0.4)`;}}
+      onMouseLeave={e=>{e.currentTarget.style.transform="translateY(0)";e.currentTarget.style.boxShadow=`0 6px 24px rgba(0,200,255,0.25)`;}}>
+      {children}
+    </button>
+  );
+}
+
+function Landing({onStart,t,fmt}) {
+  return (
+    <div>
+      <div className="fu" style={{textAlign:"center",marginBottom:28,paddingTop:8}}><Logo size="lg"/></div>
+      <div className="fu1" style={{textAlign:"center",marginBottom:10}}>
+        <p style={{fontSize:11,fontWeight:700,letterSpacing:".16em",textTransform:"uppercase",color:E_BLUE,marginBottom:14}}>⚡ Behavioural Intelligence Assessment</p>
+        <h1 style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"clamp(36px,8vw,64px)",lineHeight:1.05,letterSpacing:2,color:WHITE,marginBottom:6}}>
+          You Don't Have A<br/><span className="elec">Motivation Problem.</span>
+        </h1>
+        <h2 style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"clamp(24px,5vw,40px)",lineHeight:1,letterSpacing:2,color:"rgba(255,255,255,0.3)",marginBottom:22}}>You Have A Systems Problem.</h2>
+      </div>
+      <p className="fu2" style={{textAlign:"center",fontFamily:"'Crimson Pro',serif",fontStyle:"italic",fontSize:19,lineHeight:1.75,color:MUTED,maxWidth:500,margin:"0 auto 28px"}}>
+        "Small shifts, consistently honoured, produce quantum results. The habit is not the destination — it is the vehicle." — The LQM Principle
+      </p>
+      <div className="fu3" style={{display:"flex",gap:8,justifyContent:"center",flexWrap:"wrap",marginBottom:28}}>
+        {[["⚛","10-question profile"],["◎","4 behavioural archetypes"],["△","LQM Quantum Method"],["⬡","Personalised systems plan"]].map(([ic,lb])=>(
+          <div key={lb} style={{display:"flex",alignItems:"center",gap:7,fontSize:13,color:DIMMED,fontWeight:500,background:"rgba(255,255,255,0.03)",border:`1px solid ${BORDER2}`,borderRadius:100,padding:"6px 14px"}}>
+            <span style={{color:E_BLUE}}>{ic}</span>{lb}
+          </div>
+        ))}
       </div>
 
-      {/* Progress */}
-      <div style={{ height: 4, background: "rgba(27,43,94,0.1)", borderRadius: 100, marginBottom: 28, overflow: "hidden" }}>
-        <div style={{ height: "100%", width: `${progress}%`, background: `linear-gradient(90deg, ${NAVY}, ${GOLD_LIGHT})`, borderRadius: 100, transition: "width 0.5s ease" }} />
+      <Panel className="fu4" style={{marginBottom:14,borderColor:BORDER}} glow>
+        <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:14}}>
+          <span style={{color:E_BLUE,fontSize:18}}>⚡</span>
+          <p style={{fontSize:10,fontWeight:700,letterSpacing:".14em",textTransform:"uppercase",color:E_BLUE}}>Launch Pricing — Limited Window</p>
+        </div>
+        <div style={{display:"flex",alignItems:"baseline",gap:12,marginBottom:8}}>
+          <span style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:54,letterSpacing:1,color:WHITE}}>£{DISCOUNTED}</span>
+          <span style={{fontSize:22,color:DIMMED,textDecoration:"line-through"}}>£{ORIGINAL}</span>
+          <span style={{background:"rgba(0,200,255,0.1)",border:`1px solid ${BORDER}`,color:E_BLUE,padding:"3px 12px",borderRadius:100,fontSize:12,fontWeight:700}}>67% off</span>
+        </div>
+        <p style={{fontSize:14,color:MUTED,fontWeight:300,lineHeight:1.6}}>Complete the assessment to lock in this price. Full personalised report delivered instantly.</p>
+      </Panel>
+
+      <div className="fu4" style={{textAlign:"center",marginBottom:12}}><TimerBadge t={t} fmt={fmt}/></div>
+      <div className="fu5" style={{textAlign:"center"}}>
+        <PrimaryBtn onClick={onStart}>⚡ Begin My Profile Assessment →</PrimaryBtn>
+        <p style={{marginTop:10,fontSize:12,color:DIMMED}}>No payment required until you see your results</p>
       </div>
 
-      <Card style={{ marginBottom: 0 }}>
-        <h2 style={{ fontFamily: "'Lora', serif", fontSize: "clamp(18px, 3.5vw, 22px)", fontWeight: 500, lineHeight: 1.5, color: NAVY_DARK, marginBottom: 24 }}>
-          {question.text}
-        </h2>
-        <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 24 }}>
-          {question.options.map((opt, i) => {
-            const isSelected = selected === opt.type;
+      <Panel style={{marginTop:26,borderTop:`2px solid rgba(0,200,255,0.2)`}}>
+        <SLabel>What's inside your report</SLabel>
+        {[["⚛","Your Behavioural Archetype","Deep analysis of your unique motivation architecture — how you're wired to learn, decide and perform"],["◈","Strengths & Blind Spot Analysis","An honest breakdown of your psychological edge and the patterns quietly holding you back"],["△","3 LQM Quantum Strategy Cards","Scenario-based systems designed specifically for your profile — not generic advice"],["⬡","Your Identity Statement","The single sentence that, when repeated, rewires how you show up every day"],["◎","Your LQM Behaviour Blueprint","A personalised daily system built around your natural motivation architecture"]].map(([ic,ti,de])=>(
+          <div key={ti} style={{display:"flex",gap:14,marginBottom:16,alignItems:"flex-start"}}>
+            <span style={{color:E_BLUE,fontSize:17,flexShrink:0,marginTop:2}}>{ic}</span>
+            <div><p style={{fontSize:14,fontWeight:600,color:WHITE,marginBottom:3}}>{ti}</p><p style={{fontSize:13,color:MUTED,fontWeight:300,lineHeight:1.6}}>{de}</p></div>
+          </div>
+        ))}
+      </Panel>
+    </div>
+  );
+}
+
+function Quiz({q,idx,sel,onSel,onNext,t,fmt}) {
+  const pct = (idx / questions.length) * 100;
+  return (
+    <div style={{animation:"fadeUp .4s ease both"}}>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:20}}>
+        <span style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:18,letterSpacing:2,color:DIMMED}}>{String(idx+1).padStart(2,"0")} / {String(questions.length).padStart(2,"0")}</span>
+        <TimerBadge t={t} fmt={fmt}/>
+      </div>
+      <div style={{height:2,background:"rgba(255,255,255,0.06)",borderRadius:100,marginBottom:30,overflow:"hidden"}}>
+        <div style={{height:"100%",width:`${pct}%`,background:`linear-gradient(90deg,${E_BLUE2},${E_BLUE})`,borderRadius:100,transition:"width .5s ease",boxShadow:`0 0 12px ${E_BLUE}66`}}/>
+      </div>
+      <Panel glow>
+        <div style={{fontSize:30,color:E_BLUE,marginBottom:14,textShadow:`0 0 20px ${E_BLUE}`}}>{q.sym}</div>
+        <h2 style={{fontFamily:"'Crimson Pro',serif",fontSize:"clamp(19px,3.5vw,25px)",fontWeight:400,lineHeight:1.5,color:WHITE,marginBottom:26}}>{q.text}</h2>
+        <div style={{display:"flex",flexDirection:"column",gap:10,marginBottom:22}}>
+          {q.opts.map((opt,i) => {
+            const isS = sel===opt.ty;
             return (
-              <button
-                key={i}
-                onClick={() => onSelect(opt.type)}
-                style={{
-                  background: isSelected ? `rgba(27,43,94,0.06)` : "rgba(244,246,250,0.7)",
-                  border: `1.5px solid ${isSelected ? NAVY : "rgba(27,43,94,0.12)"}`,
-                  borderRadius: 12, padding: "14px 18px",
-                  textAlign: "left", cursor: "pointer", transition: "all 0.2s ease",
-                  color: isSelected ? NAVY_DARK : "rgba(27,43,94,0.65)",
-                  fontSize: 14, fontFamily: "'Montserrat', sans-serif", fontWeight: isSelected ? 500 : 400,
-                  lineHeight: 1.5, display: "flex", alignItems: "center", gap: 14,
-                }}
-                onMouseEnter={(e) => { if (!isSelected) e.currentTarget.style.borderColor = "rgba(27,43,94,0.3)"; }}
-                onMouseLeave={(e) => { if (!isSelected) e.currentTarget.style.borderColor = "rgba(27,43,94,0.12)"; }}
-              >
-                <span style={{
-                  width: 26, height: 26, borderRadius: "50%",
-                  border: `1.5px solid ${isSelected ? NAVY : "rgba(27,43,94,0.2)"}`,
-                  background: isSelected ? NAVY : "transparent",
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                  flexShrink: 0, fontSize: 11, color: isSelected ? WHITE : "transparent",
-                  fontWeight: 700, transition: "all 0.2s",
-                }}>✓</span>
-                {opt.text}
+              <button key={i} onClick={()=>onSel(opt.ty)} style={{background:isS?"rgba(0,200,255,0.08)":"rgba(255,255,255,0.02)",border:`1.5px solid ${isS?E_BLUE:BORDER2}`,borderRadius:12,padding:"14px 18px",textAlign:"left",cursor:"pointer",transition:"all .2s ease",color:isS?WHITE:MUTED,fontSize:14,fontFamily:"'Space Grotesk',sans-serif",fontWeight:isS?500:400,lineHeight:1.5,display:"flex",alignItems:"center",gap:14,boxShadow:isS?`0 0 20px ${E_GLOW}`:"none"}}
+                onMouseEnter={e=>{if(!isS){e.currentTarget.style.borderColor=BORDER;e.currentTarget.style.color=WHITE;}}}
+                onMouseLeave={e=>{if(!isS){e.currentTarget.style.borderColor=BORDER2;e.currentTarget.style.color=MUTED;}}}>
+                <span style={{width:26,height:26,borderRadius:"50%",border:`1.5px solid ${isS?E_BLUE:BORDER2}`,background:isS?E_BLUE:"transparent",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,fontSize:11,color:isS?BLACK:"transparent",fontWeight:800,transition:"all .2s",boxShadow:isS?`0 0 12px ${E_BLUE}88`:"none"}}>✓</span>
+                {opt.t}
               </button>
             );
           })}
         </div>
-        <button
-          onClick={onNext}
-          disabled={!selected}
-          style={selected ? btnStyle("navy") : btnStyle("disabled")}
-          onMouseEnter={selected ? btnHover : undefined}
-          onMouseLeave={selected ? btnLeave : undefined}
-        >
-          {index < questions.length - 1 ? "Next Question →" : "Reveal My Profile →"}
-        </button>
-      </Card>
+        {sel
+          ? <PrimaryBtn onClick={onNext}>{idx<questions.length-1?"Next Question →":"Reveal My Profile →"}</PrimaryBtn>
+          : <button disabled style={{width:"100%",border:"none",borderRadius:100,padding:"17px",fontSize:15,fontWeight:700,fontFamily:"'Space Grotesk',sans-serif",cursor:"not-allowed",background:"rgba(255,255,255,0.05)",color:DIMMED}}>Select an answer to continue</button>
+        }
+      </Panel>
     </div>
   );
 }
 
-// ─── Processing ───────────────────────────────────────────────────────────────
-function ProcessingPage({ step }) {
-  const steps = ["Analysing your response patterns…", "Mapping your motivation architecture…", "Identifying your growth edge…", "Building your personalised report…"];
+function Processing({step}) {
+  const steps=["Decoding your response patterns…","Mapping your motivation architecture…","Cross-referencing behavioural research…","Identifying your psychological edge…","Generating your personalised system…"];
   return (
-    <div style={{ textAlign: "center", paddingTop: 60 }}>
-      <div style={{ position: "relative", width: 72, height: 72, margin: "0 auto 36px" }}>
-        <div style={{ width: 72, height: 72, borderRadius: "50%", border: `3px solid rgba(27,43,94,0.1)`, borderTop: `3px solid ${NAVY}`, animation: "spin 1s linear infinite" }} />
-        <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%,-50%)", fontSize: 22, color: GOLD }}>✦</div>
+    <div style={{textAlign:"center",paddingTop:60}}>
+      <div style={{position:"relative",width:80,height:80,margin:"0 auto 36px"}}>
+        <div style={{width:80,height:80,borderRadius:"50%",border:"2px solid rgba(0,200,255,0.1)",borderTop:`2px solid ${E_BLUE}`,animation:"spin 1s linear infinite"}}/>
+        <div style={{position:"absolute",top:"50%",left:"50%",transform:"translate(-50%,-50%)",fontSize:28,textShadow:`0 0 20px ${E_BLUE}`}}>⚛</div>
       </div>
-      <h2 style={{ fontFamily: "'Lora', serif", fontSize: 26, fontWeight: 500, marginBottom: 8, color: NAVY_DARK }}>
-        Constructing Your Profile
-      </h2>
-      <p style={{ fontSize: 13, color: MUTED, marginBottom: 36, fontWeight: 300 }}>Learning Quantum Method analysis in progress</p>
-      <Card style={{ maxWidth: 360, margin: "0 auto", textAlign: "left" }}>
-        {steps.map((s, i) => (
-          <div key={i} style={{ display: "flex", gap: 12, alignItems: "center", marginBottom: i < steps.length - 1 ? 16 : 0, opacity: step > i ? 1 : 0.25, transition: "opacity 0.5s ease" }}>
-            <span style={{ color: step > i ? "#2E7D52" : "rgba(27,43,94,0.2)", fontSize: 16, flexShrink: 0 }}>{step > i ? "✓" : "○"}</span>
-            <span style={{ fontSize: 13, color: NAVY_DARK, fontWeight: step > i ? 500 : 300 }}>{s}</span>
+      <h2 style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:32,letterSpacing:2,marginBottom:8,color:WHITE}}>Analysing Your Profile</h2>
+      <p style={{fontFamily:"'Crimson Pro',serif",fontStyle:"italic",fontSize:15,color:DIMMED,marginBottom:36}}>Learning Quantum Method behavioural analysis in progress</p>
+      <Panel style={{maxWidth:400,margin:"0 auto",textAlign:"left"}}>
+        {steps.map((s,i)=>(
+          <div key={i} style={{display:"flex",gap:12,alignItems:"center",marginBottom:i<steps.length-1?14:0,opacity:step>i?1:.2,transition:"opacity .5s ease"}}>
+            <span style={{color:step>i?E_BLUE:DIMMED,fontSize:14,flexShrink:0,textShadow:step>i?`0 0 10px ${E_BLUE}`:"none"}}>{step>i?"⚡":"○"}</span>
+            <span style={{fontSize:13,color:step>i?WHITE:DIMMED,fontWeight:step>i?500:300}}>{s}</span>
           </div>
         ))}
-      </Card>
+      </Panel>
     </div>
   );
 }
 
-// ─── Teaser / Paywall ─────────────────────────────────────────────────────────
-function TeaserPage({ type, timeLeft, formatTime, onUnlock }) {
+function Teaser({type,t,fmt,onUnlock}) {
   return (
-    <div className="fade-up">
-      {/* Profile header */}
-      <Card style={{ textAlign: "center", marginBottom: 16, borderTop: `4px solid ${type.color}` }}>
-        <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: type.color, marginBottom: 14 }}>
-          Your LQM Profile
-        </p>
-        <div style={{ fontSize: 44, marginBottom: 10, color: type.color }}>{type.icon}</div>
-        <h1 style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 800, fontSize: "clamp(22px, 4vw, 32px)", color: NAVY_DARK, marginBottom: 4 }}>
-          {type.name}
-        </h1>
-        <p style={{ fontFamily: "'Lora', serif", fontSize: 16, fontStyle: "italic", color: type.lightColor, marginBottom: 16 }}>
-          The {type.archetype}
-        </p>
-        <div style={{ width: 48, height: 2, background: type.gradient, margin: "0 auto 16px", borderRadius: 100 }} />
-        <p style={{ fontSize: 15, color: MUTED, fontWeight: 400, lineHeight: 1.7 }}>{type.tagline}</p>
-      </Card>
+    <div style={{animation:"fadeUp .6s ease both"}}>
+      <Panel glow style={{textAlign:"center",marginBottom:14,borderColor:`${type.blue}44`}}>
+        <p style={{fontSize:10,fontWeight:700,letterSpacing:".16em",textTransform:"uppercase",color:type.blue,marginBottom:14}}>⚡ Your LQM Behavioural Profile</p>
+        <div style={{fontSize:50,color:type.blue,marginBottom:10,textShadow:`0 0 30px ${type.blue}`}}>{type.sym}</div>
+        <h1 style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"clamp(26px,5vw,40px)",letterSpacing:2,color:WHITE,marginBottom:4}}>{type.name}</h1>
+        <p style={{fontFamily:"'Crimson Pro',serif",fontSize:16,fontStyle:"italic",color:type.blue,marginBottom:18}}>{type.arch}</p>
+        <div style={{width:50,height:2,background:`linear-gradient(90deg,transparent,${type.blue},transparent)`,margin:"0 auto 18px"}}/>
+        <p style={{fontFamily:"'Crimson Pro',serif",fontStyle:"italic",fontSize:17,color:MUTED,lineHeight:1.7,maxWidth:440,margin:"0 auto"}}>"{type.hook}"</p>
+      </Panel>
 
-      {/* Blurred strengths */}
-      <Card style={{ marginBottom: 16, position: "relative", overflow: "hidden", minHeight: 130 }}>
-        <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: NAVY, marginBottom: 14 }}>Your Core Strengths</p>
-        <div className="blur-locked" style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-          {type.strengths.map((s) => (
-            <span key={s} style={{ background: type.bgColor, border: `1px solid ${type.borderColor}`, borderRadius: 100, padding: "6px 14px", fontSize: 13, color: type.color, fontWeight: 500 }}>{s}</span>
-          ))}
+      <Panel style={{marginBottom:12,position:"relative",overflow:"hidden",minHeight:100}}>
+        <SLabel color={type.blue}>Your Identity Statement</SLabel>
+        <div className="blur-lock" style={{background:type.glow,border:`1px solid ${type.blue}33`,borderRadius:10,padding:"14px 18px"}}>
+          <p style={{fontFamily:"'Crimson Pro',serif",fontSize:18,fontStyle:"italic",color:WHITE,lineHeight:1.6}}>"{type.identity}"</p>
         </div>
-        <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: "70%", background: "linear-gradient(to bottom, transparent, white)", display: "flex", alignItems: "flex-end", justifyContent: "center", paddingBottom: 14 }}>
-          <span style={{ fontSize: 13, color: MUTED, fontWeight: 500 }}>🔒 Unlock to reveal</span>
+        <div style={{position:"absolute",bottom:0,left:0,right:0,height:"50%",background:`linear-gradient(to bottom,transparent,${DARK})`,display:"flex",alignItems:"flex-end",justifyContent:"center",paddingBottom:10}}>
+          <span style={{fontSize:13,color:DIMMED}}>🔒 Unlock to reveal</span>
         </div>
-      </Card>
+      </Panel>
 
-      {/* Blurred strategies */}
-      <Card style={{ marginBottom: 20, position: "relative", overflow: "hidden", minHeight: 160 }}>
-        <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: NAVY, marginBottom: 14 }}>Your 3 Personalised Growth Strategies</p>
-        <div className="blur-locked">
-          {type.strategies.map((s) => (
-            <div key={s.area} style={{ marginBottom: 14 }}>
-              <p style={{ fontSize: 13, fontWeight: 600, color: NAVY_DARK, marginBottom: 4 }}>◆ {s.area}</p>
-              <p style={{ fontSize: 12, color: MUTED, fontWeight: 300 }}>{s.scenario}</p>
+      <Panel style={{marginBottom:18,position:"relative",overflow:"hidden",minHeight:170}}>
+        <SLabel color={type.blue}>Your 3 LQM Quantum Strategy Cards</SLabel>
+        <div className="blur-lock">
+          {type.strategies.map((s,i)=>(
+            <div key={i} style={{display:"flex",gap:12,marginBottom:14,alignItems:"flex-start"}}>
+              <span style={{color:type.blue,fontSize:15,flexShrink:0}}>◈</span>
+              <div><p style={{fontSize:13,fontWeight:600,color:WHITE,marginBottom:3}}>{s.area}</p><p style={{fontSize:12,color:MUTED,fontWeight:300}}>{s.scenario}</p></div>
             </div>
           ))}
         </div>
-        <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: "60%", background: "linear-gradient(to bottom, transparent, white)", display: "flex", alignItems: "flex-end", justifyContent: "center", paddingBottom: 14 }}>
-          <span style={{ fontSize: 13, color: MUTED, fontWeight: 500 }}>🔒 3 strategies waiting inside</span>
+        <div style={{position:"absolute",bottom:0,left:0,right:0,height:"60%",background:`linear-gradient(to bottom,transparent,${DARK})`,display:"flex",alignItems:"flex-end",justifyContent:"center",paddingBottom:12}}>
+          <span style={{fontSize:13,color:DIMMED}}>🔒 3 personalised strategy cards inside</span>
         </div>
-      </Card>
+      </Panel>
 
-      {/* CTA */}
-      <Card style={{ border: `1px solid rgba(184,134,11,0.3)`, background: "linear-gradient(135deg, #FFFBF0, #FFF)" }}>
-        <div style={{ display: "flex", justifyContent: "center", marginBottom: 20 }}>
-          <TimerBadge timeLeft={timeLeft} formatTime={formatTime} />
-        </div>
-        <div style={{ textAlign: "center", marginBottom: 22 }}>
-          <div style={{ display: "flex", alignItems: "baseline", gap: 12, justifyContent: "center", marginBottom: 6 }}>
-            <span style={{ fontSize: 48, fontWeight: 800, color: NAVY_DARK }}>£{DISCOUNTED_PRICE}</span>
-            <span style={{ fontSize: 22, color: "rgba(27,43,94,0.3)", textDecoration: "line-through" }}>£{ORIGINAL_PRICE}</span>
+      <Panel glow style={{borderColor:BORDER}}>
+        <div style={{textAlign:"center",marginBottom:18}}><TimerBadge t={t} fmt={fmt}/></div>
+        <div style={{textAlign:"center",marginBottom:20}}>
+          <div style={{display:"flex",alignItems:"baseline",gap:12,justifyContent:"center",marginBottom:6}}>
+            <span style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:54,letterSpacing:1,color:WHITE}}>£{DISCOUNTED}</span>
+            <span style={{fontSize:22,color:DIMMED,textDecoration:"line-through"}}>£{ORIGINAL}</span>
+            <span style={{background:"rgba(0,200,255,0.1)",border:`1px solid ${BORDER}`,color:E_BLUE,padding:"3px 12px",borderRadius:100,fontSize:12,fontWeight:700}}>67% off</span>
           </div>
-          <p style={{ fontSize: 13, color: MUTED, fontWeight: 400 }}>One-time · Instant access · Full personalised report</p>
+          <p style={{fontSize:13,color:DIMMED}}>One-time · Instant access · Full personalised report</p>
         </div>
-        <button onClick={onUnlock} style={btnStyle("gold")} onMouseEnter={btnHover} onMouseLeave={btnLeave}>
-          Unlock My Full Report →
-        </button>
-        <div style={{ display: "flex", gap: 20, justifyContent: "center", flexWrap: "wrap", marginTop: 16 }}>
-          {["Instant access", "Personalised to you", "30-day guarantee"].map((f) => (
-            <span key={f} style={{ fontSize: 12, color: MUTED, display: "flex", alignItems: "center", gap: 5 }}>
-              <span style={{ color: "#2E7D52" }}>✓</span>{f}
-            </span>
+        <PrimaryBtn onClick={onUnlock}>⚡ Unlock My Full Profile Report →</PrimaryBtn>
+        <div style={{display:"flex",gap:20,justifyContent:"center",flexWrap:"wrap",marginTop:14}}>
+          {["Instant access","Built for your profile","30-day guarantee"].map(f=>(
+            <span key={f} style={{fontSize:12,color:DIMMED,display:"flex",alignItems:"center",gap:5}}><span style={{color:E_BLUE}}>✓</span>{f}</span>
           ))}
         </div>
-      </Card>
+      </Panel>
     </div>
   );
 }
 
-// ─── Full Report ──────────────────────────────────────────────────────────────
-function FullReportPage({ type }) {
+function Report({type}) {
   return (
-    <div style={{ animation: "blurIn 0.8s ease both" }}>
-      {/* Header */}
-      <div style={{ background: NAVY_DARK, borderRadius: 20, padding: "40px 28px", textAlign: "center", marginBottom: 20 }}>
-        <div style={{ display: "inline-block", background: "rgba(46,125,82,0.2)", border: "1px solid rgba(46,125,82,0.4)", borderRadius: 100, padding: "6px 18px", fontSize: 12, color: "#6FCF8A", fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 20 }}>
-          ✓ Report Unlocked
-        </div>
-        <div style={{ marginBottom: 4 }}>
-          <LQMLogo size="sm" />
-        </div>
-        <p style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", letterSpacing: "0.12em", textTransform: "uppercase", fontWeight: 600, marginBottom: 20, marginTop: 8 }}>
-          Motivation Profile Report
-        </p>
-        <div style={{ fontSize: 52, color: type.lightColor, marginBottom: 12 }}>{type.icon}</div>
-        <h1 style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 800, fontSize: "clamp(26px, 5vw, 38px)", color: WHITE, marginBottom: 6 }}>
-          {type.name}
-        </h1>
-        <p style={{ fontFamily: "'Lora', serif", fontSize: 18, fontStyle: "italic", color: type.lightColor, marginBottom: 0 }}>
-          The {type.archetype}
-        </p>
+    <div style={{animation:"blurIn .8s ease both"}}>
+      <div style={{background:`linear-gradient(135deg,${DARK2},${BLACK})`,border:`1px solid ${type.blue}33`,borderRadius:20,padding:"40px 28px",textAlign:"center",marginBottom:16,boxShadow:`0 0 60px ${type.glow}`}}>
+        <div style={{display:"inline-block",background:"rgba(0,200,255,0.1)",border:`1px solid ${BORDER}`,borderRadius:100,padding:"5px 14px",fontSize:11,color:E_BLUE,fontWeight:700,letterSpacing:".1em",textTransform:"uppercase",marginBottom:18}}>⚡ Report Unlocked</div>
+        <Logo size="sm"/>
+        <p style={{fontSize:10,color:DIMMED,letterSpacing:".14em",textTransform:"uppercase",fontWeight:600,marginTop:8,marginBottom:22}}>Behavioural Intelligence Report</p>
+        <div style={{fontSize:58,color:type.blue,marginBottom:14,textShadow:`0 0 40px ${type.blue}`}}>{type.sym}</div>
+        <h1 style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"clamp(28px,6vw,48px)",letterSpacing:2,color:WHITE,marginBottom:4}}>{type.name}</h1>
+        <p style={{fontFamily:"'Crimson Pro',serif",fontSize:17,fontStyle:"italic",color:type.blue}}>{type.arch}</p>
       </div>
 
-      {/* Tagline */}
-      <Card style={{ borderLeft: `4px solid ${type.color}`, borderRadius: "0 16px 16px 0", marginBottom: 20, background: type.bgColor }}>
-        <p style={{ fontFamily: "'Lora', serif", fontSize: 18, color: NAVY_DARK, fontStyle: "italic", lineHeight: 1.6, fontWeight: 400 }}>
-          "{type.tagline}"
-        </p>
-      </Card>
+      <Panel style={{borderLeft:`3px solid ${type.blue}`,borderRadius:"0 14px 14px 0",marginBottom:14,background:type.glow}}>
+        <p style={{fontFamily:"'Crimson Pro',serif",fontSize:20,fontStyle:"italic",color:WHITE,lineHeight:1.65}}>"{type.tag}"</p>
+      </Panel>
 
-      {/* Description */}
-      <Card style={{ marginBottom: 20 }}>
-        <SectionLabel>Profile Overview</SectionLabel>
-        <p style={{ fontSize: 15, lineHeight: 1.8, color: "rgba(27,43,94,0.75)", fontWeight: 300 }}>
-          {type.description}
-        </p>
-      </Card>
+      {/* Identity */}
+      <Panel glow style={{marginBottom:14,textAlign:"center",background:`linear-gradient(135deg,${type.glow},rgba(0,0,0,0.3))`}}>
+        <p style={{fontSize:10,fontWeight:700,letterSpacing:".16em",textTransform:"uppercase",color:type.blue,marginBottom:14}}>◈ Your Identity Statement</p>
+        <p style={{fontFamily:"'Crimson Pro',serif",fontSize:21,fontStyle:"italic",color:WHITE,lineHeight:1.65,marginBottom:14}}>"{type.identity}"</p>
+        <p style={{fontSize:12,color:DIMMED,fontWeight:300}}>Repeat this daily. Identity precedes behaviour. Behaviour compounds into results.</p>
+      </Panel>
 
-      {/* Strengths */}
-      <Card style={{ marginBottom: 20 }}>
-        <SectionLabel>Your Core Strengths</SectionLabel>
-        <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
-          {type.strengths.map((s) => (
-            <div key={s} style={{ background: type.bgColor, border: `1px solid ${type.borderColor}`, borderRadius: 100, padding: "8px 18px", fontSize: 13, color: type.color, fontWeight: 600 }}>{s}</div>
+      <Panel style={{marginBottom:14}}>
+        <SLabel color={type.blue}>Profile Overview</SLabel>
+        <p style={{fontFamily:"'Crimson Pro',serif",fontSize:17,lineHeight:1.85,color:"rgba(255,255,255,0.75)",fontWeight:300}}>{type.desc}</p>
+      </Panel>
+
+      <Panel style={{marginBottom:14,borderLeft:`3px solid ${E_BLUE}`,background:"rgba(0,200,255,0.04)"}}>
+        <p style={{fontSize:10,fontWeight:700,letterSpacing:".14em",textTransform:"uppercase",color:E_BLUE,marginBottom:10}}>⚛ LQM Quantum Insight</p>
+        <p style={{fontSize:15,lineHeight:1.8,color:"rgba(255,255,255,0.8)",fontWeight:300}}>{type.atomic}</p>
+      </Panel>
+
+      <Panel style={{marginBottom:14}}>
+        <SLabel color={type.blue}>Core Strengths</SLabel>
+        <div style={{display:"flex",flexWrap:"wrap",gap:10}}>
+          {type.strengths.map(s=>(
+            <div key={s} style={{background:type.glow,border:`1px solid ${type.blue}44`,borderRadius:100,padding:"8px 18px",fontSize:13,color:type.blue,fontWeight:600}}>{s}</div>
           ))}
         </div>
-      </Card>
+      </Panel>
 
-      {/* Blind spots */}
-      <Card style={{ marginBottom: 20 }}>
-        <SectionLabel>Blind Spots to Navigate</SectionLabel>
-        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-          {type.challenges.map((c) => (
-            <div key={c} style={{ display: "flex", gap: 12, alignItems: "flex-start", padding: "12px 16px", background: "rgba(244,246,250,0.8)", border: "1px solid rgba(27,43,94,0.08)", borderRadius: 10 }}>
-              <span style={{ color: "rgba(180,60,60,0.6)", flexShrink: 0, marginTop: 1 }}>△</span>
-              <span style={{ fontSize: 14, color: MUTED, fontWeight: 300, lineHeight: 1.6 }}>{c}</span>
-            </div>
-          ))}
-        </div>
-      </Card>
-
-      {/* Strategies */}
-      <div style={{ marginBottom: 32 }}>
-        <Card style={{ marginBottom: 12 }}>
-          <SectionLabel>Your Personalised Growth & Motivation Plan</SectionLabel>
-          <p style={{ fontSize: 13, color: MUTED, fontWeight: 300, lineHeight: 1.6 }}>
-            The following strategies have been built specifically for your profile. Each one is grounded in your natural motivation architecture.
-          </p>
-        </Card>
-        {type.strategies.map((s, i) => (
-          <Card key={i} style={{ marginBottom: 12, borderTop: `3px solid ${type.color}` }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 18 }}>
-              <div style={{ width: 28, height: 28, borderRadius: "50%", background: type.gradient, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, color: WHITE, fontWeight: 700, flexShrink: 0 }}>
-                {i + 1}
-              </div>
-              <p style={{ fontSize: 13, fontWeight: 700, color: type.color, letterSpacing: "0.06em", textTransform: "uppercase" }}>{s.area}</p>
-            </div>
-            {/* Scenario */}
-            <div style={{ background: OFF_WHITE, border: `1px solid rgba(27,43,94,0.08)`, borderRadius: 10, padding: "14px 16px", marginBottom: 16 }}>
-              <p style={{ fontSize: 11, fontWeight: 700, color: MUTED, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 8 }}>Scenario</p>
-              <p style={{ fontFamily: "'Lora', serif", fontSize: 15, fontStyle: "italic", color: NAVY_DARK, lineHeight: 1.65 }}>
-                "{s.scenario}"
-              </p>
-            </div>
-            {/* Solution */}
-            <div>
-              <p style={{ fontSize: 11, fontWeight: 700, color: NAVY, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 10 }}>Your Strategy</p>
-              <p style={{ fontSize: 14, lineHeight: 1.8, color: "rgba(27,43,94,0.75)", fontWeight: 300 }}>{s.solution}</p>
-            </div>
-          </Card>
+      <Panel style={{marginBottom:18}}>
+        <SLabel color="rgba(255,180,50,0.8)">Blind Spots to Navigate</SLabel>
+        {type.blindspots.map(b=>(
+          <div key={b} style={{display:"flex",gap:12,alignItems:"flex-start",padding:"11px 14px",background:"rgba(255,180,50,0.04)",border:"1px solid rgba(255,180,50,0.1)",borderRadius:10,marginBottom:8}}>
+            <span style={{color:"rgba(255,180,50,0.7)",flexShrink:0,marginTop:1}}>△</span>
+            <span style={{fontSize:14,color:MUTED,fontWeight:300,lineHeight:1.6}}>{b}</span>
+          </div>
         ))}
-      </div>
+      </Panel>
 
-      {/* Footer */}
-      <Card style={{ background: NAVY_DARK, textAlign: "center" }}>
-        <LQMLogo size="sm" />
-        <div style={{ width: 40, height: 1, background: `linear-gradient(90deg, transparent, ${GOLD_LIGHT}, transparent)`, margin: "20px auto" }} />
-        <p style={{ fontFamily: "'Lora', serif", fontSize: 17, fontStyle: "italic", color: "rgba(255,255,255,0.55)", lineHeight: 1.7, marginBottom: 14 }}>
-          "The greatest motivation is not the achievement itself — it is becoming the person capable of it."
-        </p>
-        <p style={{ fontSize: 12, color: "rgba(255,255,255,0.2)", letterSpacing: "0.08em" }}>
-          LQM Motivation Profile · {type.name}
-        </p>
-      </Card>
+      {/* Strategy cards */}
+      <Panel style={{marginBottom:12}}>
+        <SLabel color={type.blue}>Your 3 LQM Quantum Strategy Cards</SLabel>
+        <p style={{fontFamily:"'Crimson Pro',serif",fontStyle:"italic",fontSize:16,color:MUTED,lineHeight:1.65}}>The following systems are built specifically for your behavioural profile.</p>
+      </Panel>
+      {type.strategies.map((s,i)=>(
+        <div key={i} style={{background:PANEL,border:`1px solid ${BORDER2}`,borderTop:`2px solid ${type.blue}`,borderRadius:16,overflow:"hidden",marginBottom:12}}>
+          <div style={{background:type.glow,borderBottom:`1px solid ${type.blue}22`,padding:"14px 22px",display:"flex",alignItems:"center",gap:12}}>
+            <span style={{width:28,height:28,borderRadius:"50%",background:type.blue,display:"flex",alignItems:"center",justifyContent:"center",fontSize:13,color:BLACK,fontWeight:800,flexShrink:0}}>{i+1}</span>
+            <p style={{fontSize:11,fontWeight:700,color:type.blue,letterSpacing:".08em",textTransform:"uppercase"}}>{s.area}</p>
+          </div>
+          <div style={{padding:"20px 22px"}}>
+            <div style={{background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.06)",borderRadius:10,padding:"14px 16px",marginBottom:16}}>
+              <p style={{fontSize:10,fontWeight:700,color:DIMMED,letterSpacing:".1em",textTransform:"uppercase",marginBottom:8}}>The Scenario</p>
+              <p style={{fontFamily:"'Crimson Pro',serif",fontSize:17,fontStyle:"italic",color:"rgba(255,255,255,0.8)",lineHeight:1.65}}>"{s.scenario}"</p>
+            </div>
+            <p style={{fontSize:10,fontWeight:700,color:type.blue,letterSpacing:".1em",textTransform:"uppercase",marginBottom:10}}>Your System</p>
+            <p style={{fontSize:14,lineHeight:1.85,color:"rgba(255,255,255,0.75)",fontWeight:300}}>{s.solution}</p>
+          </div>
+        </div>
+      ))}
+
+      <Panel style={{textAlign:"center",background:`linear-gradient(135deg,${DARK2},${BLACK})`}}>
+        <Logo size="sm"/>
+        <div style={{width:50,height:1,background:`linear-gradient(90deg,transparent,${E_BLUE}55,transparent)`,margin:"18px auto"}}/>
+        <p style={{fontFamily:"'Crimson Pro',serif",fontSize:19,fontStyle:"italic",color:MUTED,lineHeight:1.7,maxWidth:420,margin:"0 auto 12px"}}>"Small shifts, consistently honoured, produce quantum results. The habit is not the destination — it is the vehicle."</p>
+        <p style={{fontSize:11,color:DIMMED,letterSpacing:".06em"}}>— The Learning Quantum Method</p>
+        <div style={{height:1,background:BORDER2,margin:"18px 0"}}/>
+        <p style={{fontSize:11,color:DIMMED,letterSpacing:".1em"}}>LQM Behavioural Intelligence Report · {type.name}</p>
+      </Panel>
     </div>
   );
 }
-
-function SectionLabel({ children }) {
-  return (
-    <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
-      <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: NAVY, whiteSpace: "nowrap" }}>{children}</p>
-      <div style={{ flex: 1, height: 1, background: "rgba(27,43,94,0.08)" }} />
-    </div>
-  );
-}
-
-// ─── Button helpers ───────────────────────────────────────────────────────────
-function btnStyle(variant) {
-  const base = {
-    width: "100%", border: "none", borderRadius: 100,
-    padding: "16px", fontSize: 15, fontWeight: 700,
-    fontFamily: "'Montserrat', sans-serif", cursor: "pointer",
-    letterSpacing: "0.05em", transition: "all 0.2s ease",
-    display: "block",
-  };
-  if (variant === "gold") return { ...base, background: `linear-gradient(135deg, ${GOLD} 0%, ${GOLD_BRIGHT} 100%)`, color: NAVY_DARK, boxShadow: "0 6px 24px rgba(184,134,11,0.3)" };
-  if (variant === "navy") return { ...base, background: `linear-gradient(135deg, ${NAVY_DARK} 0%, ${NAVY_MID} 100%)`, color: WHITE, boxShadow: "0 6px 24px rgba(27,43,94,0.25)" };
-  return { ...base, background: "rgba(27,43,94,0.06)", color: "rgba(27,43,94,0.3)", cursor: "not-allowed" };
-}
-const btnHover = (e) => { e.target.style.transform = "translateY(-2px)"; e.target.style.filter = "brightness(1.08)"; };
-const btnLeave = (e) => { e.target.style.transform = "translateY(0)"; e.target.style.filter = "none"; };
