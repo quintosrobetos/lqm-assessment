@@ -288,7 +288,7 @@ export default function App() {
         {!showLegal && phase==="landing"    && <Landing onStart={()=>{setTimerOn(true);setPhase("quiz");}} t={timeLeft} fmt={fmt}/>}
         {!showLegal && phase==="quiz"       && <Quiz q={questions[qIdx]} idx={qIdx} sel={sel} onSel={setSel} onNext={handleNext} t={timeLeft} fmt={fmt}/>}
         {!showLegal && phase==="processing" && <Processing step={procStep}/>}
-        {!showLegal && phase==="teaser"     && <Teaser type={TYPES[charType]} t={timeLeft} fmt={fmt} onUnlock={()=>setPhase("paid")}/>}
+        {!showLegal && phase==="teaser"     && <Teaser type={TYPES[charType]} t={timeLeft} fmt={fmt} onUnlock={()=>window.open("https://buy.stripe.com/00w8wR50Xber8VZfkka3u00","_blank")}/>}
         {!showLegal && phase==="paid"       && <Report type={TYPES[charType]}/>}
       </div>
       {!showLegal && <Footer onShowLegal={setShowLegal}/>}

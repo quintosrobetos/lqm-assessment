@@ -1,9 +1,1 @@
-import { StrictMode } from 'react' 
-import { createRoot } from 'react-dom/client' 
-import App from './App.jsx' 
- 
-createRoot(document.getElementById('root')).render( 
-  <StrictMode> 
-    <App /> 
-  </StrictMode>, 
-) 
+https://claude.ai/public/artifacts/ac91827b-ce68-4d52-a9ec-8e2b8f7c1e9a
