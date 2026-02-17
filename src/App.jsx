@@ -1,4 +1,21 @@
 import { useState, useEffect, useRef } from "react";
+import NeuralProtocol from "./NeuralProtocol.jsx";
+import QuantumLiving from "./QuantumLiving.jsx";
+
+// ── Stripe Payment Links ───────────────────────────────────────────────────
+const STRIPE_MAIN    = "https://buy.stripe.com/00w8wR50Xber8VZfkka3u00"; // £9 main report
+const STRIPE_NEURAL  = "https://buy.stripe.com/REPLACE_NEURAL_LINK";      // £3 Neural Protocol
+const STRIPE_VITAL   = "https://buy.stripe.com/REPLACE_VITAL_LINK";       // £3 Vital Laws
+
+// ── Unlock helpers (localStorage simulates post-payment state) ────────────
+function getUnlocks() {
+  try { return JSON.parse(localStorage.getItem("lqm_unlocks")||"{}"); } catch { return {}; }
+}
+function setUnlock(key) {
+  const u = getUnlocks(); u[key]=true;
+  localStorage.setItem("lqm_unlocks", JSON.stringify(u));
+}
+
 
 const FONTS = `@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Bebas+Neue&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap');`;
 
@@ -233,7 +250,31 @@ export default function App() {
   const [timerOn,setTimerOn]=useState(false);
   const [procStep,setProcStep]=useState(0);
   const [showLegal,setShowLegal]=useState(null);
+  const [activeAddon,setActiveAddon]=useState(null);
+  const [unlocks,setUnlocks]=useState(getUnlocks);
+  const [showDeliveryGate,setShowDeliveryGate]=useState(false);
+  const [deliveryRef,setDeliveryRef]=useState(null);
+  const [deliveryTs,setDeliveryTs]=useState(null);
   const timerRef=useRef(null);
+
+  function generateDeliveryRef(){
+    const ref="LQM-"+new Date().getFullYear()+"-"+Math.random().toString(36).substring(2,10).toUpperCase();
+    const ts=new Date().toLocaleString("en-GB",{day:"2-digit",month:"short",year:"numeric",hour:"2-digit",minute:"2-digit"});
+    setDeliveryRef(ref); setDeliveryTs(ts);
+    localStorage.setItem("lqm_delivery",JSON.stringify({ref,ts,confirmed:false}));
+    setShowDeliveryGate(true);
+  }
+  function confirmDelivery(){
+    const stored=JSON.parse(localStorage.getItem("lqm_delivery")||"{}");
+    localStorage.setItem("lqm_delivery",JSON.stringify({...stored,confirmed:true}));
+    setShowDeliveryGate(false);
+  }
+
+  function handleUnlockAddon(key) {
+    setUnlock(key);
+    setUnlocks(getUnlocks());
+    setActiveAddon(key);
+  }
 
   useEffect(()=>{
     const s=document.createElement("style");
@@ -279,19 +320,39 @@ export default function App() {
   return(
     <div style={{minHeight:"100vh",background:`radial-gradient(ellipse 90% 45% at 50% -5%,rgba(0,200,255,0.06) 0%,transparent 65%),${BG}`,fontFamily:"'Space Grotesk',sans-serif",color:WHITE,display:"flex",flexDirection:"column",alignItems:"center",padding:"0 16px 80px",position:"relative",overflow:"hidden"}}>
       <Particles/>
-      <div style={{width:"100%",borderBottom:`1px solid ${BORDER}`,padding:"13px 24px",display:"flex",alignItems:"center",justifyContent:"center",background:"rgba(7,15,30,0.88)",backdropFilter:"blur(14px)",position:"sticky",top:0,zIndex:100}}>
-        <Logo size="sm"/>
-      </div>
-      <div style={{width:"100%",maxWidth:680,position:"relative",zIndex:1,paddingTop:40}}>
-        {showLegal==="privacy" && <LegalPage type="privacy" onClose={()=>setShowLegal(null)}/>}
-        {showLegal==="terms" && <LegalPage type="terms" onClose={()=>setShowLegal(null)}/>}
-        {!showLegal && phase==="landing"    && <Landing onStart={()=>{setTimerOn(true);setPhase("quiz");}} t={timeLeft} fmt={fmt}/>}
-        {!showLegal && phase==="quiz"       && <Quiz q={questions[qIdx]} idx={qIdx} sel={sel} onSel={setSel} onNext={handleNext} t={timeLeft} fmt={fmt}/>}
-        {!showLegal && phase==="processing" && <Processing step={procStep}/>}
-        {!showLegal && phase==="teaser"     && <Teaser type={TYPES[charType]} t={timeLeft} fmt={fmt} onUnlock={()=>window.open("https://buy.stripe.com/00w8wR50Xber8VZfkka3u00","_blank")}/>}
-        {!showLegal && phase==="paid"       && <Report type={TYPES[charType]}/>}
-      </div>
-      {!showLegal && <Footer onShowLegal={setShowLegal}/>}
+
+      {/* ── Active Add-on views ── */}
+      {activeAddon==="neural" && unlocks.neural && <NeuralProtocol archetype={charType} onBack={()=>setActiveAddon(null)}/>}
+      {activeAddon==="vital"  && unlocks.vital  && <QuantumLiving  archetype={charType} onBack={()=>setActiveAddon(null)}/>}
+
+      {/* ── Main app ── */}
+      {!activeAddon && <>
+        <div style={{width:"100%",borderBottom:`1px solid ${BORDER}`,padding:"13px 24px",display:"flex",alignItems:"center",justifyContent:"space-between",background:"rgba(7,15,30,0.88)",backdropFilter:"blur(14px)",position:"sticky",top:0,zIndex:100}}>
+          <Logo size="sm"/>
+          {phase==="paid" && (
+            <div style={{display:"flex",gap:8}}>
+              {unlocks.neural && <button onClick={()=>setActiveAddon("neural")} style={{background:"rgba(0,200,255,0.08)",border:`1px solid ${BORDER}`,borderRadius:100,padding:"6px 14px",color:E_BLUE,fontSize:11,fontWeight:700,cursor:"pointer",fontFamily:"'Space Grotesk',sans-serif",letterSpacing:".06em"}}>⚡ Neural</button>}
+              {unlocks.vital  && <button onClick={()=>setActiveAddon("vital")}  style={{background:"rgba(52,211,153,0.08)",border:"1px solid rgba(52,211,153,0.25)",borderRadius:100,padding:"6px 14px",color:"#34D399",fontSize:11,fontWeight:700,cursor:"pointer",fontFamily:"'Space Grotesk',sans-serif",letterSpacing:".06em"}}>🌱 Vital</button>}
+            </div>
+          )}
+        </div>
+        <div style={{width:"100%",maxWidth:680,position:"relative",zIndex:1,paddingTop:40}}>
+          {showLegal==="privacy" && <LegalPage type="privacy" onClose={()=>setShowLegal(null)}/>}
+          {showLegal==="terms"   && <LegalPage type="terms"   onClose={()=>setShowLegal(null)}/>}
+          {!showLegal && phase==="landing"    && <Landing onStart={()=>{setTimerOn(true);setPhase("quiz");}} t={timeLeft} fmt={fmt}/>}
+          {!showLegal && phase==="quiz"       && <Quiz q={questions[qIdx]} idx={qIdx} sel={sel} onSel={setSel} onNext={handleNext} t={timeLeft} fmt={fmt}/>}
+          {!showLegal && phase==="processing" && <Processing step={procStep}/>}
+          {!showLegal && phase==="teaser"     && <Teaser type={TYPES[charType]} t={timeLeft} fmt={fmt} onUnlock={()=>{ generateDeliveryRef(); window.open(STRIPE_MAIN,"_blank"); }}/>}
+          {!showLegal && phase==="paid"       && <>
+            {showDeliveryGate && <DeliveryGate ref_={deliveryRef} ts={deliveryTs} type={TYPES[charType]} onConfirm={confirmDelivery}/>}
+            {!showDeliveryGate && <>
+              <Report type={TYPES[charType]} deliveryRef={deliveryRef} deliveryTs={deliveryTs}/>
+              <AddOnShop unlocks={unlocks} onUnlockNeural={()=>window.open(STRIPE_NEURAL,"_blank")} onUnlockVital={()=>window.open(STRIPE_VITAL,"_blank")} onOpenNeural={()=>setActiveAddon("neural")} onOpenVital={()=>setActiveAddon("vital")} onSimulateNeural={()=>handleUnlockAddon("neural")} onSimulateVital={()=>handleUnlockAddon("vital")}/>
+            </>}
+          </>}
+        </div>
+        {!showLegal && <Footer onShowLegal={setShowLegal}/>}
+      </>}
     </div>
   );
 }
@@ -356,7 +417,7 @@ function Footer({onShowLegal}){
         <button onClick={()=>onShowLegal("terms")} style={{background:"none",border:"none",color:DIMMED,fontSize:12,cursor:"pointer",textDecoration:"underline",fontFamily:"'Space Grotesk',sans-serif"}} onMouseEnter={e=>e.currentTarget.style.color=E_BLUE} onMouseLeave={e=>e.currentTarget.style.color=DIMMED}>Terms & Conditions</button>
       </div>
       <p style={{fontSize:11,color:DIMMED,textAlign:"center"}}>© 2026 Learning Quantum Method. All rights reserved.</p>
-      <p style={{fontSize:10,color:DIMMED,textAlign:"center",maxWidth:500,lineHeight:1.5}}>For questions or support: <a href="mailto:quinton_manuel@hotmail.com" style={{color:E_BLUE,textDecoration:"none"}}>quinton_manuel@hotmail.com</a></p>
+      <p style={{fontSize:10,color:DIMMED,textAlign:"center",maxWidth:500,lineHeight:1.5}}>For questions or support: <a href="mailto:lqm@lqmmethod.com" style={{color:E_BLUE,textDecoration:"none"}}>lqm@lqmmethod.com</a></p>
     </div>
   );
 }
@@ -375,9 +436,104 @@ function LegalPage({type,onClose}){
   );
 }
 
-const PRIVACY_TEXT=`<h1 style="font-family:'Bebas Neue',sans-serif;font-size:36px;color:#00C8FF;margin-bottom:8px;letter-spacing:2px">Privacy Policy</h1><p style="font-size:12px;color:rgba(255,255,255,0.4);margin-bottom:32px">Last updated: 16 February 2026</p><p style="margin-bottom:20px"><strong>Learning Quantum Method (LQM)</strong> is committed to protecting your privacy. This Privacy Policy explains how we collect, use, and protect your personal information.</p><h2 style="font-size:20px;color:#00C8FF;margin:28px 0 12px;font-family:'Space Grotesk',sans-serif;font-weight:600">1. Who We Are</h2><p style="margin-bottom:12px"><strong>Business name:</strong> Learning Quantum Method (LQM)<br/><strong>Contact email:</strong> quinton_manuel@hotmail.com<br/><strong>Website:</strong> https://spiffy-toffee-be06c2.netlify.app</p><h2 style="font-size:20px;color:#00C8FF;margin:28px 0 12px;font-family:'Space Grotesk',sans-serif;font-weight:600">2. What Information We Collect</h2><p style="margin-bottom:12px"><strong>Information you provide:</strong> Name, email address when you purchase<br/><strong>Payment information:</strong> Processed securely by Stripe (we never see card details)<br/><strong>Quiz responses:</strong> Stored temporarily in your browser to generate your report<br/><strong>We do NOT collect:</strong> Sensitive data, children's data, or marketing preferences without consent</p><h2 style="font-size:20px;color:#00C8FF;margin:28px 0 12px;font-family:'Space Grotesk',sans-serif;font-weight:600">3. How We Use Your Information</h2><p style="margin-bottom:12px">We use your information to:<br/>• Deliver your purchased report<br/>• Process payments via Stripe<br/>• Provide customer support<br/>• Improve our service</p><p style="margin-bottom:12px"><strong>Legal basis (UK GDPR):</strong> Contract performance and legitimate interests</p><h2 style="font-size:20px;color:#00C8FF;margin:28px 0 12px;font-family:'Space Grotesk',sans-serif;font-weight:600">4. How We Share Your Information</h2><p style="margin-bottom:12px">We share your data ONLY with <strong>Stripe</strong> (our payment processor) to process payments.<br/>Stripe privacy policy: <a href="https://stripe.com/gb/privacy" style="color:#00C8FF">stripe.com/gb/privacy</a></p><p style="margin-bottom:12px"><strong>We do NOT:</strong> Sell your data, use it for advertising, or share quiz responses</p><h2 style="font-size:20px;color:#00C8FF;margin:28px 0 12px;font-family:'Space Grotesk',sans-serif;font-weight:600">5. How Long We Keep Your Data</h2><p style="margin-bottom:12px">• Purchase records: 7 years (UK tax law requirement)<br/>• Quiz responses: Deleted after report generation<br/>• Browser session: Cleared when you close browser</p><h2 style="font-size:20px;color:#00C8FF;margin:28px 0 12px;font-family:'Space Grotesk',sans-serif;font-weight:600">6. Your Rights Under UK GDPR</h2><p style="margin-bottom:12px">You have the right to:<br/>• <strong>Access</strong> your data<br/>• <strong>Rectify</strong> inaccurate information<br/>• <strong>Erase</strong> your data (subject to legal requirements)<br/>• <strong>Restrict</strong> processing<br/>• <strong>Data portability</strong><br/>• <strong>Object</strong> to processing</p><p style="margin-bottom:12px">Email <strong>quinton_manuel@hotmail.com</strong> to exercise these rights. We respond within 30 days.</p><h2 style="font-size:20px;color:#00C8FF;margin:28px 0 12px;font-family:'Space Grotesk',sans-serif;font-weight:600">7. How We Protect Your Data</h2><p style="margin-bottom:12px">• All payments encrypted by Stripe<br/>• HTTPS encryption on our website<br/>• Limited data access<br/>• We never store card details</p><h2 style="font-size:20px;color:#00C8FF;margin:28px 0 12px;font-family:'Space Grotesk',sans-serif;font-weight:600">8. Cookies</h2><p style="margin-bottom:12px">We use only essential session cookies for the quiz to function. No tracking cookies.</p><h2 style="font-size:20px;color:#00C8FF;margin:28px 0 12px;font-family:'Space Grotesk',sans-serif;font-weight:600">9. Contact Us</h2><p style="margin-bottom:12px">Questions? Email <strong>quinton_manuel@hotmail.com</strong></p><h2 style="font-size:20px;color:#00C8FF;margin:28px 0 12px;font-family:'Space Grotesk',sans-serif;font-weight:600">10. Complaints</h2><p style="margin-bottom:12px">You can complain to the UK Information Commissioner's Office (ICO):<br/>Website: <a href="https://ico.org.uk/make-a-complaint/" style="color:#00C8FF">ico.org.uk/make-a-complaint</a><br/>Phone: 0303 123 1113</p>`;
+const PRIVACY_TEXT=`<h1 style="font-family:'Bebas Neue',sans-serif;font-size:36px;color:#00C8FF;margin-bottom:8px;letter-spacing:2px">Privacy Policy</h1><p style="font-size:12px;color:rgba(255,255,255,0.4);margin-bottom:32px">Last updated: 16 February 2026</p><p style="margin-bottom:20px"><strong>Learning Quantum Method (LQM)</strong> is committed to protecting your privacy. This Privacy Policy explains how we collect, use, and protect your personal information.</p><h2 style="font-size:20px;color:#00C8FF;margin:28px 0 12px;font-family:'Space Grotesk',sans-serif;font-weight:600">1. Who We Are</h2><p style="margin-bottom:12px"><strong>Business name:</strong> Learning Quantum Method (LQM)<br/><strong>Contact email:</strong> lqm@lqmmethod.com<br/><strong>Website:</strong> https://spiffy-toffee-be06c2.netlify.app</p><h2 style="font-size:20px;color:#00C8FF;margin:28px 0 12px;font-family:'Space Grotesk',sans-serif;font-weight:600">2. What Information We Collect</h2><p style="margin-bottom:12px"><strong>Information you provide:</strong> Name, email address when you purchase<br/><strong>Payment information:</strong> Processed securely by Stripe (we never see card details)<br/><strong>Quiz responses:</strong> Stored temporarily in your browser to generate your report<br/><strong>We do NOT collect:</strong> Sensitive data, children's data, or marketing preferences without consent</p><h2 style="font-size:20px;color:#00C8FF;margin:28px 0 12px;font-family:'Space Grotesk',sans-serif;font-weight:600">3. How We Use Your Information</h2><p style="margin-bottom:12px">We use your information to:<br/>• Deliver your purchased report<br/>• Process payments via Stripe<br/>• Provide customer support<br/>• Improve our service</p><p style="margin-bottom:12px"><strong>Legal basis (UK GDPR):</strong> Contract performance and legitimate interests</p><h2 style="font-size:20px;color:#00C8FF;margin:28px 0 12px;font-family:'Space Grotesk',sans-serif;font-weight:600">4. How We Share Your Information</h2><p style="margin-bottom:12px">We share your data ONLY with <strong>Stripe</strong> (our payment processor) to process payments.<br/>Stripe privacy policy: <a href="https://stripe.com/gb/privacy" style="color:#00C8FF">stripe.com/gb/privacy</a></p><p style="margin-bottom:12px"><strong>We do NOT:</strong> Sell your data, use it for advertising, or share quiz responses</p><h2 style="font-size:20px;color:#00C8FF;margin:28px 0 12px;font-family:'Space Grotesk',sans-serif;font-weight:600">5. How Long We Keep Your Data</h2><p style="margin-bottom:12px">• Purchase records: 7 years (UK tax law requirement)<br/>• Quiz responses: Deleted after report generation<br/>• Browser session: Cleared when you close browser</p><h2 style="font-size:20px;color:#00C8FF;margin:28px 0 12px;font-family:'Space Grotesk',sans-serif;font-weight:600">6. Your Rights Under UK GDPR</h2><p style="margin-bottom:12px">You have the right to:<br/>• <strong>Access</strong> your data<br/>• <strong>Rectify</strong> inaccurate information<br/>• <strong>Erase</strong> your data (subject to legal requirements)<br/>• <strong>Restrict</strong> processing<br/>• <strong>Data portability</strong><br/>• <strong>Object</strong> to processing</p><p style="margin-bottom:12px">Email <strong>lqm@lqmmethod.com</strong> to exercise these rights. We respond within 30 days.</p><h2 style="font-size:20px;color:#00C8FF;margin:28px 0 12px;font-family:'Space Grotesk',sans-serif;font-weight:600">7. How We Protect Your Data</h2><p style="margin-bottom:12px">• All payments encrypted by Stripe<br/>• HTTPS encryption on our website<br/>• Limited data access<br/>• We never store card details</p><h2 style="font-size:20px;color:#00C8FF;margin:28px 0 12px;font-family:'Space Grotesk',sans-serif;font-weight:600">8. Cookies</h2><p style="margin-bottom:12px">We use only essential session cookies for the quiz to function. No tracking cookies.</p><h2 style="font-size:20px;color:#00C8FF;margin:28px 0 12px;font-family:'Space Grotesk',sans-serif;font-weight:600">9. Contact Us</h2><p style="margin-bottom:12px">Questions? Email <strong>lqm@lqmmethod.com</strong></p><h2 style="font-size:20px;color:#00C8FF;margin:28px 0 12px;font-family:'Space Grotesk',sans-serif;font-weight:600">10. Complaints</h2><p style="margin-bottom:12px">You can complain to the UK Information Commissioner's Office (ICO):<br/>Website: <a href="https://ico.org.uk/make-a-complaint/" style="color:#00C8FF">ico.org.uk/make-a-complaint</a><br/>Phone: 0303 123 1113</p>`;
 
-const TERMS_TEXT=`<h1 style="font-family:'Bebas Neue',sans-serif;font-size:36px;color:#00C8FF;margin-bottom:8px;letter-spacing:2px">Terms & Conditions</h1><p style="font-size:12px;color:rgba(255,255,255,0.4);margin-bottom:32px">Last updated: 16 February 2026</p><p style="margin-bottom:20px">By using our website and purchasing our report, you agree to these terms.</p><h2 style="font-size:20px;color:#00C8FF;margin:28px 0 12px;font-family:'Space Grotesk',sans-serif;font-weight:600">1. The Service</h2><p style="margin-bottom:12px"><strong>What you receive:</strong> A 10-question behavioural quiz and personalised LQM report with your archetype, identity statement, strengths, blind spots, and 3 strategy cards.</p><p style="margin-bottom:12px"><strong>What this is NOT:</strong> Professional counselling, medical advice, or employment screening.</p><h2 style="font-size:20px;color:#00C8FF;margin:28px 0 12px;font-family:'Space Grotesk',sans-serif;font-weight:600">2. Pricing & Payment</h2><p style="margin-bottom:12px">• Current price: £9.00<br/>• Payment via Stripe<br/>• One-time payment (no subscriptions)<br/>• Prices may change anytime</p><h2 style="font-size:20px;color:#00C8FF;margin:28px 0 12px;font-family:'Space Grotesk',sans-serif;font-weight:600">3. Delivery</h2><p style="margin-bottom:12px">Your report is delivered <strong>instantly on screen</strong> after payment. Save or screenshot it — no email delivery.</p><h2 style="font-size:20px;color:#00C8FF;margin:28px 0 12px;font-family:'Space Grotesk',sans-serif;font-weight:600">4. Refund Policy</h2><p style="margin-bottom:12px"><strong>7-day money-back guarantee.</strong><br/>Email <strong>quinton_manuel@hotmail.com</strong> within 7 days if dissatisfied. Refunds processed in 5-7 business days.</p><p style="margin-bottom:12px"><strong>No refunds if:</strong> You changed your mind after reading the full report or already saved it.</p><h2 style="font-size:20px;color:#00C8FF;margin:28px 0 12px;font-family:'Space Grotesk',sans-serif;font-weight:600">5. Intellectual Property</h2><p style="margin-bottom:12px">All LQM content is copyrighted.<br/><strong>You CAN:</strong> Use your report personally, share insights<br/><strong>You CANNOT:</strong> Republish commercially, create competing products</p><h2 style="font-size:20px;color:#00C8FF;margin:28px 0 12px;font-family:'Space Grotesk',sans-serif;font-weight:600">6. Disclaimer</h2><p style="margin-bottom:12px">The report is for <strong>educational purposes only</strong>. We don't guarantee specific results. You're responsible for your own decisions.</p><h2 style="font-size:20px;color:#00C8FF;margin:28px 0 12px;font-family:'Space Grotesk',sans-serif;font-weight:600">7. Limitation of Liability</h2><p style="margin-bottom:12px">Our maximum liability is limited to £9.00 (the amount you paid).</p><h2 style="font-size:20px;color:#00C8FF;margin:28px 0 12px;font-family:'Space Grotesk',sans-serif;font-weight:600">8. Age Restriction</h2><p style="margin-bottom:12px">You must be 18+ to purchase.</p><h2 style="font-size:20px;color:#00C8FF;margin:28px 0 12px;font-family:'Space Grotesk',sans-serif;font-weight:600">9. Governing Law</h2><p style="margin-bottom:12px">These terms are governed by the laws of England and Wales.</p><h2 style="font-size:20px;color:#00C8FF;margin:28px 0 12px;font-family:'Space Grotesk',sans-serif;font-weight:600">10. Contact</h2><p style="margin-bottom:12px">Email: <strong>quinton_manuel@hotmail.com</strong></p>`;
+const TERMS_TEXT=`<h1 style="font-family:'Bebas Neue',sans-serif;font-size:36px;color:#00C8FF;margin-bottom:8px;letter-spacing:2px">Terms & Conditions</h1><p style="font-size:12px;color:rgba(255,255,255,0.4);margin-bottom:32px">Last updated: 16 February 2026</p><p style="margin-bottom:20px">By using our website and purchasing our report, you agree to these terms.</p><h2 style="font-size:20px;color:#00C8FF;margin:28px 0 12px;font-family:'Space Grotesk',sans-serif;font-weight:600">1. The Service</h2><p style="margin-bottom:12px"><strong>What you receive:</strong> A 10-question behavioural quiz and personalised LQM report with your archetype, identity statement, strengths, blind spots, and 3 strategy cards.</p><p style="margin-bottom:12px"><strong>What this is NOT:</strong> Professional counselling, medical advice, or employment screening.</p><h2 style="font-size:20px;color:#00C8FF;margin:28px 0 12px;font-family:'Space Grotesk',sans-serif;font-weight:600">2. Pricing & Payment</h2><p style="margin-bottom:12px">• Current price: £9.00<br/>• Payment via Stripe<br/>• One-time payment (no subscriptions)<br/>• Prices may change anytime</p><h2 style="font-size:20px;color:#00C8FF;margin:28px 0 12px;font-family:'Space Grotesk',sans-serif;font-weight:600">3. Delivery</h2><p style="margin-bottom:12px">Your report is delivered <strong>instantly on screen</strong> after payment. Save or screenshot it — no email delivery. Digital delivery is confirmed when the report is displayed on screen. A delivery reference number is shown within the report.</p><h2 style="font-size:20px;color:#00C8FF;margin:28px 0 12px;font-family:'Space Grotesk',sans-serif;font-weight:600">4. Refund Policy</h2><p style="margin-bottom:12px"><strong>7-day money-back guarantee.</strong><br/>Email <strong>lqm@lqmmethod.com</strong> within 7 days if dissatisfied. Refunds processed in 5-7 business days.</p><p style="margin-bottom:12px"><strong>No refunds if:</strong> You changed your mind after reading the full report or already saved it.</p><h2 style="font-size:20px;color:#00C8FF;margin:28px 0 12px;font-family:'Space Grotesk',sans-serif;font-weight:600">5. Intellectual Property</h2><p style="margin-bottom:12px">All LQM content is copyrighted.<br/><strong>You CAN:</strong> Use your report personally, share insights<br/><strong>You CANNOT:</strong> Republish commercially, create competing products</p><h2 style="font-size:20px;color:#00C8FF;margin:28px 0 12px;font-family:'Space Grotesk',sans-serif;font-weight:600">6. Disclaimer</h2><p style="margin-bottom:12px">The report is for <strong>educational purposes only</strong>. We don't guarantee specific results. You're responsible for your own decisions.</p><h2 style="font-size:20px;color:#00C8FF;margin:28px 0 12px;font-family:'Space Grotesk',sans-serif;font-weight:600">7. Limitation of Liability</h2><p style="margin-bottom:12px">Our maximum liability is limited to £9.00 (the amount you paid).</p><h2 style="font-size:20px;color:#00C8FF;margin:28px 0 12px;font-family:'Space Grotesk',sans-serif;font-weight:600">8. Age Restriction</h2><p style="margin-bottom:12px">You must be 18+ to purchase.</p><h2 style="font-size:20px;color:#00C8FF;margin:28px 0 12px;font-family:'Space Grotesk',sans-serif;font-weight:600">9. Governing Law</h2><p style="margin-bottom:12px">These terms are governed by the laws of England and Wales.</p><h2 style="font-size:20px;color:#00C8FF;margin:28px 0 12px;font-family:'Space Grotesk',sans-serif;font-weight:600">10. Contact</h2><p style="margin-bottom:12px">Email: <strong>lqm@lqmmethod.com</strong></p>`;
+
+function AddOnShop({unlocks, onUnlockNeural, onUnlockVital, onOpenNeural, onOpenVital, onSimulateNeural, onSimulateVital}) {
+  return (
+    <div style={{marginTop:32}}>
+      {/* Section header */}
+      <div style={{textAlign:"center",marginBottom:24}}>
+        <div style={{height:1,background:`linear-gradient(90deg,transparent,${BORDER},transparent)`,marginBottom:24}}/>
+        <p style={{fontSize:11,fontWeight:700,letterSpacing:".16em",textTransform:"uppercase",color:E_BLUE,marginBottom:10}}>⚡ LQM Add-On Suite</p>
+        <h2 style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"clamp(24px,5vw,38px)",letterSpacing:2,color:WHITE,marginBottom:8}}>Go Deeper. Perform Better.</h2>
+        <p style={{fontFamily:"'Crimson Pro',serif",fontStyle:"italic",fontSize:16,color:MUTED,maxWidth:440,margin:"0 auto",lineHeight:1.7}}>Two powerful extensions to your LQM profile — each unlocked for just £3.</p>
+      </div>
+
+      {/* Neural Protocol card */}
+      <div style={{background:`linear-gradient(145deg,${DARK2},${DARK})`,border:`1px solid ${unlocks.neural?"rgba(0,200,255,0.4)":BORDER2}`,borderTop:`2px solid ${unlocks.neural?E_BLUE:"rgba(0,200,255,0.25)"}`,borderRadius:20,overflow:"hidden",marginBottom:14,boxShadow:unlocks.neural?`0 0 30px rgba(0,200,255,0.08)`:"none"}}>
+        <div style={{padding:"24px 24px 20px"}}>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:16}}>
+            <div>
+              <p style={{fontSize:10,fontWeight:700,color:E_BLUE,letterSpacing:".14em",textTransform:"uppercase",marginBottom:8}}>⚡ Add-On 1</p>
+              <h3 style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:28,letterSpacing:2,color:WHITE,marginBottom:4}}>Neural Protocol</h3>
+              <p style={{fontFamily:"'Crimson Pro',serif",fontStyle:"italic",fontSize:15,color:MUTED}}>Daily brain training — 5 rounds, ~4 minutes</p>
+            </div>
+            <div style={{textAlign:"right",flexShrink:0}}>
+              <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:36,letterSpacing:1,color:WHITE}}>£3</div>
+              <div style={{fontSize:11,color:DIMMED}}>one-time</div>
+            </div>
+          </div>
+          <div style={{display:"flex",flexDirection:"column",gap:8,marginBottom:20}}>
+            {[["⚛","Pattern Lock — sequence recognition & logic"],["◈","Neural Math — mental arithmetic under pressure"],["◎","Focus Filter — selective attention training"],["⬡","Memory Matrix — visual working memory"],["△","Conceptual Bridge — creative reasoning depth"]].map(([ic,tx])=>(
+              <div key={tx} style={{display:"flex",gap:10,alignItems:"center"}}>
+                <span style={{color:E_BLUE,fontSize:13,flexShrink:0}}>{ic}</span>
+                <span style={{fontSize:13,color:MUTED}}>{tx}</span>
+              </div>
+            ))}
+          </div>
+          <div style={{display:"flex",gap:8,alignItems:"center",padding:"10px 14px",background:"rgba(0,200,255,0.04)",border:`1px solid ${BORDER2}`,borderRadius:10,marginBottom:16}}>
+            <span style={{fontSize:14}}>🔥</span>
+            <span style={{fontSize:12,color:DIMMED}}>Streak tracking · XP system · 5 Neural Levels · Daily action cards</span>
+          </div>
+          {unlocks.neural
+            ? <button onClick={onOpenNeural} style={{width:"100%",border:"none",borderRadius:100,padding:"14px",fontSize:14,fontWeight:700,fontFamily:"'Space Grotesk',sans-serif",cursor:"pointer",background:`linear-gradient(135deg,${E_BLUE2},${E_BLUE})`,color:BG,letterSpacing:".05em",display:"flex",alignItems:"center",justifyContent:"center",gap:8}}>
+                ⚡ Open Neural Protocol →
+              </button>
+            : <button onClick={onUnlockNeural} style={{width:"100%",border:"none",borderRadius:100,padding:"14px",fontSize:14,fontWeight:700,fontFamily:"'Space Grotesk',sans-serif",cursor:"pointer",background:`linear-gradient(135deg,${E_BLUE2},${E_BLUE})`,color:BG,letterSpacing:".05em",transition:"all .2s"}}
+                onMouseEnter={e=>e.currentTarget.style.transform="translateY(-2px)"} onMouseLeave={e=>e.currentTarget.style.transform="translateY(0)"}>
+                🔒 Unlock for £3 →
+              </button>
+          }
+        </div>
+      </div>
+
+      {/* Vital Laws card */}
+      <div style={{background:`linear-gradient(145deg,${DARK2},${DARK})`,border:`1px solid ${unlocks.vital?"rgba(52,211,153,0.4)":BORDER2}`,borderTop:`2px solid ${unlocks.vital?"#34D399":"rgba(52,211,153,0.25)"}`,borderRadius:20,overflow:"hidden",marginBottom:28,boxShadow:unlocks.vital?`0 0 30px rgba(52,211,153,0.07)`:"none"}}>
+        <div style={{padding:"24px 24px 20px"}}>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:16}}>
+            <div>
+              <p style={{fontSize:10,fontWeight:700,color:"#34D399",letterSpacing:".14em",textTransform:"uppercase",marginBottom:8}}>🌱 Add-On 2</p>
+              <h3 style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:28,letterSpacing:2,color:WHITE,marginBottom:4}}>The Five Vital Laws</h3>
+              <p style={{fontFamily:"'Crimson Pro',serif",fontStyle:"italic",fontSize:15,color:MUTED}}>Tips on healthy living for the complete you</p>
+            </div>
+            <div style={{textAlign:"right",flexShrink:0}}>
+              <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:36,letterSpacing:1,color:WHITE}}>£3</div>
+              <div style={{fontSize:11,color:DIMMED}}>one-time</div>
+            </div>
+          </div>
+          <div style={{display:"flex",flexDirection:"column",gap:8,marginBottom:20}}>
+            {[["🌙","Law I — Proper Sleep — the quantum rest protocol"],["🌿","Law II — Fresh Air — the oxygen advantage"],["⚖️","Law III — Temperance — the art of enough"],["⚡","Law IV — Exercise — the moving brain"],["🌱","Law V — Simple Nourishment — the quantum plate"]].map(([ic,tx])=>(
+              <div key={tx} style={{display:"flex",gap:10,alignItems:"center"}}>
+                <span style={{fontSize:14,flexShrink:0}}>{ic}</span>
+                <span style={{fontSize:13,color:MUTED}}>{tx}</span>
+              </div>
+            ))}
+          </div>
+          <div style={{display:"flex",gap:8,alignItems:"center",padding:"10px 14px",background:"rgba(52,211,153,0.04)",border:"1px solid rgba(52,211,153,0.15)",borderRadius:10,marginBottom:16}}>
+            <span style={{fontSize:14}}>🌿</span>
+            <span style={{fontSize:12,color:DIMMED}}>Plant-based · Science-backed · Daily practice tracker · LQM-aligned principles</span>
+          </div>
+          {unlocks.vital
+            ? <button onClick={onOpenVital} style={{width:"100%",border:"none",borderRadius:100,padding:"14px",fontSize:14,fontWeight:700,fontFamily:"'Space Grotesk',sans-serif",cursor:"pointer",background:"linear-gradient(135deg,#059669,#34D399)",color:BG,letterSpacing:".05em",display:"flex",alignItems:"center",justifyContent:"center",gap:8}}>
+                🌱 Open Vital Laws →
+              </button>
+            : <button onClick={onUnlockVital} style={{width:"100%",border:"none",borderRadius:100,padding:"14px",fontSize:14,fontWeight:700,fontFamily:"'Space Grotesk',sans-serif",cursor:"pointer",background:"linear-gradient(135deg,#059669,#34D399)",color:BG,letterSpacing:".05em",transition:"all .2s"}}
+                onMouseEnter={e=>e.currentTarget.style.transform="translateY(-2px)"} onMouseLeave={e=>e.currentTarget.style.transform="translateY(0)"}>
+                🔒 Unlock for £3 →
+              </button>
+          }
+        </div>
+      </div>
+
+      {/* Bundle note */}
+      <div style={{textAlign:"center",background:"rgba(255,255,255,0.02)",border:`1px solid ${BORDER2}`,borderRadius:14,padding:"16px 20px",marginBottom:8}}>
+        <p style={{fontSize:13,color:MUTED,lineHeight:1.6}}>Both add-ons together for <strong style={{color:WHITE}}>£6</strong> — or pick what resonates. No subscriptions. Yours forever.</p>
+      </div>
+    </div>
+  );
+}
 
 function Landing({onStart,t,fmt}){
   return(
@@ -536,9 +692,62 @@ function Teaser({type,t,fmt,onUnlock}){
   );
 }
 
-function Report({type}){
+function DeliveryGate({ref_, ts, type, onConfirm}){
+  const [countdown, setCountdown] = useState(5);
+  useEffect(()=>{
+    if(countdown<=0) return;
+    const t=setInterval(()=>setCountdown(c=>c-1),1000);
+    return()=>clearInterval(t);
+  },[countdown]);
+  return(
+    <div style={{position:"fixed",inset:0,background:"rgba(7,15,30,0.97)",backdropFilter:"blur(12px)",zIndex:500,display:"flex",alignItems:"center",justifyContent:"center",padding:20}}>
+      <div style={{width:"100%",maxWidth:480,background:`linear-gradient(145deg,${DARK2},${DARK})`,border:`2px solid rgba(52,211,153,0.4)`,borderRadius:22,padding:"40px 32px",textAlign:"center",boxShadow:"0 0 60px rgba(52,211,153,0.08)"}}>
+        <div style={{fontSize:48,marginBottom:16}}>📋</div>
+        <p style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:28,letterSpacing:2,color:"#34D399",marginBottom:6}}>Report Ready</p>
+        <p style={{fontFamily:"'Crimson Pro',serif",fontStyle:"italic",fontSize:16,color:"rgba(255,255,255,0.6)",marginBottom:28,lineHeight:1.65}}>Your full LQM {type.name} report has been prepared and is ready for delivery.</p>
+
+        <div style={{background:"rgba(52,211,153,0.06)",border:"1px solid rgba(52,211,153,0.2)",borderRadius:14,padding:"18px 20px",marginBottom:24,textAlign:"left"}}>
+          <p style={{fontSize:9,fontWeight:700,color:"rgba(52,211,153,0.7)",letterSpacing:".12em",textTransform:"uppercase",marginBottom:10}}>Delivery Details</p>
+          <div style={{display:"flex",flexDirection:"column",gap:8}}>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+              <span style={{fontSize:12,color:"rgba(255,255,255,0.4)"}}>Reference</span>
+              <span style={{fontSize:12,fontFamily:"monospace",color:"#34D399",fontWeight:700}}>{ref_}</span>
+            </div>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+              <span style={{fontSize:12,color:"rgba(255,255,255,0.4)"}}>Delivered</span>
+              <span style={{fontSize:12,color:"rgba(255,255,255,0.7)"}}>{ts}</span>
+            </div>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+              <span style={{fontSize:12,color:"rgba(255,255,255,0.4)"}}>Profile</span>
+              <span style={{fontSize:12,color:type.blue,fontWeight:600}}>{type.name}</span>
+            </div>
+          </div>
+        </div>
+
+        <p style={{fontSize:12,color:"rgba(255,255,255,0.4)",lineHeight:1.65,marginBottom:22}}>By clicking below you confirm that your full LQM report has been successfully delivered to you on screen. This serves as your delivery receipt. We recommend screenshotting this screen and your report for your records.</p>
+
+        <button onClick={countdown>0?undefined:onConfirm} disabled={countdown>0} style={{width:"100%",border:"none",borderRadius:100,padding:"16px",fontSize:15,fontWeight:700,fontFamily:"'Space Grotesk',sans-serif",cursor:countdown>0?"not-allowed":"pointer",background:countdown>0?"rgba(255,255,255,0.06)":"linear-gradient(135deg,#059669,#34D399)",color:countdown>0?"rgba(255,255,255,0.3)":"#070F1E",letterSpacing:".05em",transition:"all .3s"}}>
+          {countdown>0?`Please read — confirming in ${countdown}s…`:"✓ I Confirm Receipt — View My Report →"}
+        </button>
+        <p style={{fontSize:10,color:"rgba(255,255,255,0.2)",marginTop:12}}>Ref: {ref_} · LQM Terms apply · {ts}</p>
+      </div>
+    </div>
+  );
+}
+
+function Report({type, deliveryRef, deliveryTs}){
   return(
     <div style={{animation:"blurIn .8s ease both"}}>
+
+      {/* ── Delivery confirmation bar ── */}
+      {deliveryRef && <div style={{background:"rgba(52,211,153,0.06)",border:"1px solid rgba(52,211,153,0.25)",borderRadius:12,padding:"10px 18px",marginBottom:14,display:"flex",alignItems:"center",gap:12,flexWrap:"wrap"}}>
+        <span style={{fontSize:14,color:"#34D399",flexShrink:0}}>✓</span>
+        <div style={{flex:1}}>
+          <p style={{fontSize:11,fontWeight:700,color:"#34D399",letterSpacing:".08em"}}>REPORT DELIVERED · {deliveryTs}</p>
+          <p style={{fontSize:10,color:"rgba(255,255,255,0.35)",fontFamily:"monospace",marginTop:2}}>Ref: {deliveryRef}</p>
+        </div>
+        <span style={{fontSize:10,color:"rgba(255,255,255,0.25)"}}>Screenshot for your records</span>
+      </div>}
 
       {/* ── Hero header ── */}
       <div style={{background:`linear-gradient(145deg,${DARK2} 0%,${DARK} 100%)`,border:`1px solid ${type.blue}33`,borderRadius:20,padding:"40px 28px",textAlign:"center",marginBottom:14,boxShadow:`0 0 50px ${type.glow}`}}>
