@@ -276,6 +276,23 @@ export default function App() {
     setActiveAddon(key);
   }
 
+  // Test mode - auto-unlock everything if ?test=true in URL
+  useEffect(()=>{
+    const params = new URLSearchParams(window.location.search);
+    if(params.get('test')==='true'){
+      // Unlock main report
+      if(!localStorage.getItem('lqm_delivery')){
+        localStorage.setItem('lqm_delivery',JSON.stringify({ref:'LQM-2026-TEST'+Math.random().toString(36).substring(2,8).toUpperCase(),ts:new Date().toLocaleString('en-GB',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}),confirmed:true}));
+      }
+      // Unlock both add-ons
+      localStorage.setItem('lqm_unlocks',JSON.stringify({neural:true,vital:true}));
+      // Set to paid phase
+      if(charType && phase==='teaser'){
+        setPhase('paid');
+      }
+    }
+  },[charType,phase]);
+
   useEffect(()=>{
     const s=document.createElement("style");
     s.textContent=FONTS+`
