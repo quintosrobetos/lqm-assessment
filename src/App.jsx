@@ -427,6 +427,18 @@ function PrimaryBtn({onClick,children}){
 }
 
 function Footer({onShowLegal}){
+  function activateTestMode(){
+    // Unlock main report
+    localStorage.setItem('lqm_delivery',JSON.stringify({
+      ref:'LQM-2026-TEST'+Math.random().toString(36).substring(2,8).toUpperCase(),
+      ts:new Date().toLocaleString('en-GB',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}),
+      confirmed:true
+    }));
+    // Unlock both add-ons
+    localStorage.setItem('lqm_unlocks',JSON.stringify({neural:true,vital:true}));
+    alert('✓ TEST MODE ACTIVATED\n\nAll features unlocked!\n\nClick OK then refresh the page (F5) to see everything.');
+  }
+  
   return(
     <div style={{width:"100%",maxWidth:680,marginTop:60,paddingTop:24,borderTop:`1px solid ${BORDER2}`,display:"flex",flexDirection:"column",gap:12,alignItems:"center"}}>
       <div style={{display:"flex",gap:24,flexWrap:"wrap",justifyContent:"center"}}>
@@ -435,6 +447,11 @@ function Footer({onShowLegal}){
       </div>
       <p style={{fontSize:11,color:DIMMED,textAlign:"center"}}>© 2026 Learning Quantum Method. All rights reserved.</p>
       <p style={{fontSize:10,color:DIMMED,textAlign:"center",maxWidth:500,lineHeight:1.5}}>For questions or support: <a href="mailto:lqm@lqmmethod.com" style={{color:E_BLUE,textDecoration:"none"}}>lqm@lqmmethod.com</a></p>
+      
+      {/* TEST MODE BUTTON - Remove before public launch */}
+      <button onClick={activateTestMode} style={{marginTop:16,background:'rgba(251,191,36,0.12)',border:'1px solid rgba(251,191,36,0.35)',borderRadius:8,padding:'10px 20px',color:'#FBBF24',fontSize:12,fontWeight:700,cursor:'pointer',fontFamily:"'Space Grotesk',sans-serif"}}>
+        🔧 TEST MODE — Unlock All Features
+      </button>
     </div>
   );
 }
