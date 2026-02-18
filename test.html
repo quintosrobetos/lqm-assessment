@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LQM Test Mode</title>
+  <style>
+    body {
+      font-family: system-ui, sans-serif;
+      background: #070F1E;
+      color: #fff;
+      padding: 60px 20px;
+      text-align: center;
+    }
+    .box {
+      max-width: 500px;
+      margin: 0 auto;
+      background: rgba(255,255,255,0.05);
+      border: 2px solid #00C8FF;
+      border-radius: 16px;
+      padding: 40px;
+    }
+    h1 {
+      color: #00C8FF;
+      margin-bottom: 20px;
+    }
+    p {
+      font-size: 16px;
+      line-height: 1.6;
+      margin-bottom: 30px;
+      color: rgba(255,255,255,0.8);
+    }
+    .big-button {
+      background: linear-gradient(135deg, #0EA5E9, #00C8FF);
+      border: none;
+      border-radius: 12px;
+      padding: 18px 40px;
+      color: #070F1E;
+      font-weight: 700;
+      font-size: 16px;
+      cursor: pointer;
+      margin: 10px;
+      display: inline-block;
+      text-decoration: none;
+    }
+    .big-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(0,200,255,0.4);
+    }
+    .status {
+      margin-top: 30px;
+      padding: 20px;
+      background: rgba(52,211,153,0.1);
+      border: 1px solid rgba(52,211,153,0.4);
+      border-radius: 12px;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <div class="box">
+    <h1>🔧 LQM Test Mode</h1>
+    <p>Click the button below to activate test mode.<br>All features will be unlocked automatically.</p>
+    
+    <button class="big-button" onclick="activateAndGo()">
+      ⚡ Activate Test Mode & Open App
+    </button>
+
+    <div id="status" style="display:none;" class="status">
+      <p style="margin:0 0 20px 0;"><strong>✓ Test Mode Activated!</strong></p>
+      <p style="margin:0 0 20px 0; font-size:13px;">All features unlocked:<br>
+      • Main Report<br>
+      • Neural Protocol (⚡)<br>
+      • Quantum Living (🌱)</p>
+      <p style="margin:0; font-size:13px; color: rgba(255,255,255,0.6);">Opening app in 2 seconds...</p>
+    </div>
+  </div>
+
+  <script>
+    function activateAndGo() {
+      // Generate test delivery reference
+      const ref = 'LQM-2026-TEST' + Math.random().toString(36).substring(2, 8).toUpperCase();
+      const ts = new Date().toLocaleString('en-GB', {
+        day: '2-digit',
+        month: 'short', 
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+
+      // Set delivery data
+      localStorage.setItem('lqm_delivery', JSON.stringify({
+        ref: ref,
+        ts: ts,
+        confirmed: true
+      }));
+
+      // Unlock both add-ons
+      localStorage.setItem('lqm_unlocks', JSON.stringify({
+        neural: true,
+        vital: true
+      }));
+
+      // Show status
+      document.querySelector('.box p').style.display = 'none';
+      document.querySelector('.big-button').style.display = 'none';
+      document.getElementById('status').style.display = 'block';
+
+      // Redirect to main app after 2 seconds
+      setTimeout(() => {
+        window.location.href = '/';
+      }, 2000);
+    }
+
+    // Auto-activate if ?auto=true in URL
+    window.addEventListener('load', () => {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('auto') === 'true') {
+        activateAndGo();
+      }
+    });
+  </script>
+</body>
+</html>
