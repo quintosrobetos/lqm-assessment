@@ -270,6 +270,23 @@ export default function App() {
     setShowDeliveryGate(false);
   }
 
+  // Check localStorage on mount - if delivery data exists, skip to paid phase
+  useEffect(()=>{
+    const delivery = localStorage.getItem("lqm_delivery");
+    const unlocks = getUnlocks();
+    if(delivery && phase==="landing"){
+      // User has already unlocked - show them the report
+      // We need to simulate completing the quiz first
+      const testAnswers = ["A","B","A","C","D","A","B","C","D","A"];
+      setAnswers(testAnswers);
+      setCharType(calcType(testAnswers));
+      setPhase("paid");
+      const deliveryData = JSON.parse(delivery);
+      setDeliveryRef(deliveryData.ref);
+      setDeliveryTs(deliveryData.ts);
+    }
+  },[]);
+
   function handleUnlockAddon(key) {
     setUnlock(key);
     setUnlocks(getUnlocks());
