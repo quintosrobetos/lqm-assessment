@@ -995,12 +995,17 @@ function NeuralDefense({onComplete, difficulty}){
   const [shapes, setShapes] = useState([]);
   const [particles, setParticles] = useState([]);
   const [waveTime, setWaveTime] = useState(WAVE_DURATION);
+  const [lightningBolts, setLightningBolts] = useState([]); // Visual effect when shooting
+  const [scorePopups, setScorePopups] = useState([]); // Floating score numbers
+  const [screenFlash, setScreenFlash] = useState(null); // Red flash on miss
+  const [shieldActive, setShieldActive] = useState(false); // Shield glow effect
   
   const gameLoopRef = useRef(null);
   const spawnTimerRef = useRef(null);
   const waveTimerRef = useRef(null);
   const reactionTimes = useRef([]);
   const nextId = useRef(0);
+  const nextPopupId = useRef(0);
   
   const SHAPES_POOL = [
     {type:"circle", color:E_BLUE, pts:10},
@@ -1084,12 +1089,21 @@ function NeuralDefense({onComplete, difficulty}){
         const missed = updated.filter(s => s.y > GAME_HEIGHT);
         if(missed.length > 0){
           setMisses(m => m + missed.length);
+          // ❌ SCREEN FLASH on miss
+          setScreenFlash('red');
+          setTimeout(() => setScreenFlash(null), 200);
         }
         return updated.filter(s => s.y <= GAME_HEIGHT);
       });
       
       // Decay particles
       setParticles(prev => prev.map(p => ({...p, life: p.life - 1})).filter(p => p.life > 0));
+      
+      // Decay lightning bolts
+      setLightningBolts(prev => prev.map(l => ({...l, life: l.life - 1, targetY: l.targetY - 20})).filter(l => l.life > 0));
+      
+      // Decay score popups
+      setScorePopups(prev => prev.map(p => ({...p, life: p.life - 1, y: p.y - 2})).filter(p => p.life > 0));
       
       gameLoopRef.current = requestAnimationFrame(gameLoop);
     }
@@ -1112,11 +1126,25 @@ function NeuralDefense({onComplete, difficulty}){
   function handleShoot(){
     if(phase !== "playing") return;
     
-    // Check if shield hits any shape
+    // 🎆 LIGHTNING BOLT EFFECT - Create dramatic shooting visual
     const shieldCenter = shieldX + SHIELD_WIDTH/2;
+    setLightningBolts(prev => [...prev, {
+      id: Math.random(),
+      x: shieldCenter,
+      y: GAME_HEIGHT - 50,
+      targetY: -50,
+      life: 15,
+    }]);
+    
+    // Activate shield glow
+    setShieldActive(true);
+    setTimeout(() => setShieldActive(false), 200);
+    
+    // Check if shield hits any shape
     const shieldTop = GAME_HEIGHT - 50;
     
-    let hit = false;
+    let hitCount = 0;
+    let totalPoints = 0;
     setShapes(prev => {
       const remaining = [];
       prev.forEach(s => {
@@ -1126,26 +1154,54 @@ function NeuralDefense({onComplete, difficulty}){
         // Check if shape is in range and shield is roughly aligned
         if(shapeBottom >= shieldTop - 40 && shapeBottom <= shieldTop + 20 && 
            Math.abs(shapeCenter - shieldCenter) < 60){
-          // HIT!
-          hit = true;
+          // 💥 HIT!
+          hitCount++;
+          totalPoints += s.pts;
           setScore(sc => sc + s.pts);
           setHits(h => h + 1);
           
-          // Track reaction time (time from spawn to hit)
+          // Track reaction time
           const rt = Date.now() - s.spawnTime;
           reactionTimes.current.push(rt);
           
-          // Create particles
-          for(let i=0; i<8; i++){
+          // 🎯 SCORE POPUP - Floating number
+          setScorePopups(p => [...p, {
+            id: nextPopupId.current++,
+            x: s.x + SHAPE_SIZE/2,
+            y: s.y,
+            value: `+${s.pts}`,
+            color: s.color,
+            life: 30,
+          }]);
+          
+          // 💥 EXPLOSION PARTICLES - More dramatic
+          for(let i=0; i<12; i++){
             setParticles(p => [...p, {
               id: Math.random(),
               x: s.x + SHAPE_SIZE/2,
               y: s.y + SHAPE_SIZE/2,
-              vx: (Math.random()-0.5)*4,
-              vy: (Math.random()-0.5)*4,
+              vx: (Math.random()-0.5)*6,
+              vy: (Math.random()-0.5)*6,
               color: s.color,
-              life: 20,
+              life: 25,
             }]);
+          }
+          
+          // 🧠 NEURAL PULSE RINGS - Emanate from hit point
+          for(let i=0; i<3; i++){
+            setTimeout(() => {
+              setParticles(p => [...p, {
+                id: Math.random(),
+                x: s.x + SHAPE_SIZE/2,
+                y: s.y + SHAPE_SIZE/2,
+                vx: 0,
+                vy: 0,
+                color: s.color,
+                life: 20,
+                isPulse: true,
+                pulseSize: i * 10,
+              }]);
+            }, i * 100);
           }
         } else {
           remaining.push(s);
@@ -1192,6 +1248,12 @@ function NeuralDefense({onComplete, difficulty}){
             then <strong style={{color:PURPLE}}>tap to block</strong> before they hit bottom.<br/>
             <span style={{fontSize:14,color:DIMMED}}>3 waves · Increasing speed · Every hit counts</span>
           </p>
+          <div style={{background:"rgba(251,191,36,0.08)",border:"1px solid rgba(251,191,36,0.25)",borderRadius:12,padding:"12px 16px",marginBottom:12}}>
+            <p style={{fontSize:14,color:AMBER,fontWeight:700,marginBottom:4}}>🛡️ Shield Tip:</p>
+            <p style={{fontSize:14,color:MUTED,lineHeight:1.6}}>
+              Click/tap anywhere to shoot. Position your shield under falling shapes - when they're close, they'll be destroyed!
+            </p>
+          </div>
           <div style={{background:"rgba(139,92,246,0.08)",border:"1px solid rgba(139,92,246,0.25)",borderRadius:12,padding:"16px 18px",marginBottom:22}}>
             <p style={{fontSize:14,color:MUTED,lineHeight:1.75}}>
               This trains sustained visual attention and reaction time under continuous pressure — the same skills measured in action game research.
@@ -1246,22 +1308,88 @@ function NeuralDefense({onComplete, difficulty}){
           </div>
         ))}
         
-        {/* Particles */}
-        {particles.map(p => (
-          <div key={p.id} style={{
+        {/* ⚡ LIGHTNING BOLTS - Dramatic shooting effect */}
+        {lightningBolts.map(bolt => (
+          <div key={bolt.id} style={{
             position:"absolute",
-            left:p.x + (p.vx * (20-p.life)),
-            top:p.y + (p.vy * (20-p.life)),
+            left:bolt.x - 2,
+            top:bolt.targetY,
+            bottom:GAME_HEIGHT - bolt.y,
             width:4,
-            height:4,
-            borderRadius:"50%",
-            background:p.color,
-            opacity:p.life/20,
-            pointerEvents:"none"
+            background:`linear-gradient(180deg, ${PURPLE}00, ${PURPLE}FF, ${PURPLE}88)`,
+            boxShadow:`0 0 20px ${PURPLE}, 0 0 40px ${PURPLE}88`,
+            opacity:bolt.life / 15,
+            pointerEvents:"none",
+            animation:"lightning-flicker 0.1s infinite"
           }}/>
         ))}
         
-        {/* Shield */}
+        {/* 🎯 SCORE POPUPS - Floating numbers */}
+        {scorePopups.map(popup => (
+          <div key={popup.id} style={{
+            position:"absolute",
+            left:popup.x - 20,
+            top:popup.y,
+            fontSize:20,
+            fontWeight:800,
+            color:popup.color,
+            opacity:popup.life / 30,
+            pointerEvents:"none",
+            textShadow:`0 0 10px ${popup.color}, 0 0 20px ${popup.color}`,
+            transform:`scale(${1 + (30 - popup.life) / 30 * 0.5})`
+          }}>{popup.value}</div>
+        ))}
+        
+        {/* Particles */}
+        {particles.map(p => {
+          if(p.isPulse) {
+            // 🧠 NEURAL PULSE RINGS
+            const size = 40 + (20 - p.life) * 3 + p.pulseSize;
+            return (
+              <div key={p.id} style={{
+                position:"absolute",
+                left:p.x - size/2,
+                top:p.y - size/2,
+                width:size,
+                height:size,
+                borderRadius:"50%",
+                border:`2px solid ${p.color}`,
+                opacity:p.life / 20,
+                pointerEvents:"none"
+              }}/>
+            );
+          }
+          return (
+            <div key={p.id} style={{
+              position:"absolute",
+              left:p.x + (p.vx * (25-p.life)),
+              top:p.y + (p.vy * (25-p.life)),
+              width:5,
+              height:5,
+              borderRadius:"50%",
+              background:p.color,
+              boxShadow:`0 0 8px ${p.color}`,
+              opacity:p.life/25,
+              pointerEvents:"none"
+            }}/>
+          );
+        })}
+        
+        {/* ❌ SCREEN FLASH on miss */}
+        {screenFlash && (
+          <div style={{
+            position:"absolute",
+            top:0,
+            left:0,
+            right:0,
+            bottom:0,
+            background:"rgba(239,68,68,0.3)",
+            pointerEvents:"none",
+            animation:"screen-shake 0.2s"
+          }}/>
+        )}
+        
+        {/* Shield with glow effect */}
         <div style={{
           position:"absolute",
           left:shieldX,
@@ -1270,16 +1398,34 @@ function NeuralDefense({onComplete, difficulty}){
           height:12,
           background:`linear-gradient(90deg,${PURPLE}44,${PURPLE},${PURPLE}44)`,
           borderRadius:6,
-          boxShadow:`0 0 16px ${PURPLE}88`,
+          boxShadow:shieldActive ? `0 0 30px ${PURPLE}, 0 0 60px ${PURPLE}88` : `0 0 16px ${PURPLE}88`,
           pointerEvents:"none",
-          transition:"left 0.08s linear"
+          transition:"all 0.08s",
+          transform:shieldActive ? "scale(1.1)" : "scale(1)"
         }}/>
         
-        {/* Tap instruction */}
-        <div style={{position:"absolute",bottom:50,left:"50%",transform:"translateX(-50%)",fontSize:15,color:DIMMED,pointerEvents:"none",textAlign:"center"}}>
-          Tap anywhere to shoot
+        {/* Tap instruction with shield tooltip */}
+        <div style={{position:"absolute",bottom:50,left:"50%",transform:"translateX(-50%)",fontSize:13,color:DIMMED,pointerEvents:"none",textAlign:"center"}}>
+          <div style={{marginBottom:4}}>Tap anywhere to shoot</div>
+          <div style={{fontSize:11,color:PURPLE,background:"rgba(139,92,246,0.1)",padding:"4px 8px",borderRadius:6}}>
+            🛡️ Shield blocks incoming shapes
+          </div>
         </div>
       </div>
+      
+      {/* Add CSS keyframes for lightning flicker and screen shake */}
+      <style>{`
+        @keyframes lightning-flicker {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.7; }
+        }
+        @keyframes screen-shake {
+          0%, 100% { transform: translate(0, 0); }
+          25% { transform: translate(-5px, 2px); }
+          50% { transform: translate(5px, -2px); }
+          75% { transform: translate(-3px, -2px); }
+        }
+      `}</style>
     </div>
   );
 }

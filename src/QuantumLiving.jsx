@@ -208,6 +208,19 @@ export default function QuantumLiving({ onBack, archetype }) {
       @keyframes fadeUp{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}
       @keyframes leafFloat{0%{transform:translateY(0) rotate(0deg);}50%{transform:translateY(-20px) rotate(180deg);}100%{transform:translateY(0) rotate(360deg);}}
       @keyframes leafFall{from{transform:translateY(-100px) rotate(0deg);opacity:0;}to{transform:translateY(100vh) rotate(720deg);opacity:0.15;}}
+      
+      /* Animated Law Icons */
+      @keyframes moonGlow{0%,100%{filter:drop-shadow(0 0 8px rgba(129,140,248,0.6));transform:scale(1);}50%{filter:drop-shadow(0 0 16px rgba(129,140,248,0.9));transform:scale(1.05);}}
+      @keyframes leafSway{0%,100%{transform:rotate(-5deg) translateY(0);}50%{transform:rotate(5deg) translateY(-3px);}}
+      @keyframes scalesTilt{0%,100%{transform:rotate(0deg);}25%{transform:rotate(-8deg);}50%{transform:rotate(0deg);}75%{transform:rotate(8deg);}}
+      @keyframes lightningPulse{0%,100%{filter:drop-shadow(0 0 4px rgba(251,191,36,0.6));opacity:1;}50%{filter:drop-shadow(0 0 12px rgba(251,191,36,1));opacity:0.8;}}
+      @keyframes fruitShine{0%,100%{filter:brightness(1) drop-shadow(0 0 4px rgba(52,211,153,0.4));}50%{filter:brightness(1.2) drop-shadow(0 0 8px rgba(52,211,153,0.6));}}
+      
+      .law-icon-0{animation:moonGlow 3s ease-in-out infinite;}
+      .law-icon-1{animation:leafSway 4s ease-in-out infinite;}
+      .law-icon-2{animation:scalesTilt 5s ease-in-out infinite;}
+      .law-icon-3{animation:lightningPulse 2s ease-in-out infinite;}
+      .law-icon-4{animation:fruitShine 3s ease-in-out infinite;}
     `;
     document.head.appendChild(s);
     return () => { const el = document.getElementById(id); if(el) el.remove(); };
@@ -316,7 +329,10 @@ export default function QuantumLiving({ onBack, archetype }) {
               <div style={{width:22,height:22,borderRadius:6,border:`1.5px solid ${checklist[i]?GREEN:BORDER2}`,background:checklist[i]?"rgba(52,211,153,0.15)":"transparent",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,transition:"all .2s"}}>
                 {checklist[i] && <span style={{color:GREEN,fontSize:15,fontWeight:800}}>✓</span>}
               </div>
-              <span style={{fontSize:16,color:checklist[i]?GREEN:MUTED,fontWeight:checklist[i]?600:400,textDecoration:checklist[i]?"none":"none",transition:"color .2s"}}>{LAWS[i].icon} {item}</span>
+              <span style={{fontSize:16,color:checklist[i]?GREEN:MUTED,fontWeight:checklist[i]?600:400,transition:"color .2s"}}>
+                <span className={`law-icon-${i}`} style={{display:"inline-block",marginRight:8}}>{LAWS[i].icon}</span>
+                {item}
+              </span>
             </div>
           ))}
           {allDone && (
@@ -348,7 +364,7 @@ export default function QuantumLiving({ onBack, archetype }) {
             onMouseLeave={e=>{e.currentTarget.style.background=PANEL;e.currentTarget.style.borderColor=BORDER2;}}>
             <div style={{display:"flex",gap:16,alignItems:"flex-start"}}>
               <div style={{width:44,height:44,borderRadius:12,background:law.glow,border:`1px solid ${law.color}44`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
-                <span style={{fontSize:22}}>{law.icon}</span>
+                <span className={`law-icon-${i}`} style={{fontSize:22,display:"inline-block"}}>{law.icon}</span>
               </div>
               <div style={{flex:1}}>
                 <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:4}}>
