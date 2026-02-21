@@ -298,7 +298,7 @@ export default function BrainTraining({ onBack, archetype }){
   const [userData,setUserData]= useState(loadBrain);
   const [dailyAction]         = useState(()=>DAILY_ACTIONS[new Date().getDay()]);
   const [challengeData, setChallengeData] = useState(null);
-  const [showMilestone, setShowMilestone] = useState(null);
+  // const [showMilestone, setShowMilestone] = useState(null); // Disabled for now
   const arch = archetype && ARCHETYPE_DATA[archetype] ? ARCHETYPE_DATA[archetype] : null;
 
   // Initialize 21-day challenge on mount
@@ -374,16 +374,17 @@ export default function BrainTraining({ onBack, archetype }){
           storeBaselineScores("brain", baselineScores);
         }
         
-        // Check for new milestone unlocks
+        // Milestone tracking (popups disabled for now - will add back later)
+        // Track milestone achievements in background
         if(updatedChallenge.currentDay >= 7 && !updatedChallenge.milestones.day_7.unlocked){
-          playMilestoneSound(); // Milestone unlocked!
-          setShowMilestone("day7");
+          playMilestoneSound();
+          // setShowMilestone("day7"); // Disabled - component not ready
         } else if(updatedChallenge.currentDay >= 14 && !updatedChallenge.milestones.day_14.unlocked){
-          playMilestoneSound(); // Milestone unlocked!
-          setShowMilestone("day14");
+          playMilestoneSound();
+          // setShowMilestone("day14"); // Disabled
         } else if(updatedChallenge.currentDay >= 21 && !updatedChallenge.milestones.day_21.unlocked){
-          playMilestoneSound(); // Challenge complete!
-          setShowMilestone("day21");
+          playMilestoneSound();
+          // setShowMilestone("day21"); // Disabled
         }
       }
       
