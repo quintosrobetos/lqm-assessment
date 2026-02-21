@@ -28,8 +28,6 @@ import {
   playLevelUpSound,
   playMilestoneSound
 } from "./sounds";
-import * as challenge from "./challengeHelpers.js";
-import * as analytics from "./firebase.js";
 
 // ── Brand palette ─────────────────────────────────────────────────────────
 const BG      = "#070F1E";
@@ -1290,104 +1288,6 @@ function NeuralDefense({onComplete, difficulty}){
 // ══════════════════════════════════════════════════════════════════════════
 
 // ══════════════════════════════════════════════════════════════════════════
-// MILESTONE SCREENS — Days 7, 14, 21
-// ══════════════════════════════════════════════════════════════════════════
-function MilestoneScreen({milestone, challengeData, archetype, onContinue}) {
-  const currentDay = challenge.getCurrentDay(challengeData);
-  const daysCompleted = challenge.getDaysCompleted(challengeData);
-  const completionRate = challenge.getCompletionRate(challengeData);
-  const overallImprovement = challenge.getOverallImprovement(challengeData);
-  const currentReaction = challenge.getAverageReactionTime(challengeData);
-  const baselineReaction = challenge.getBaselineReactionTime(challengeData);
-  const reactionImprovement = baselineReaction && currentReaction ? 
-    Math.round(((baselineReaction - currentReaction) / baselineReaction) * 100) : 0;
-
-  const milestoneContent = {
-    day7: {
-      emoji: "🔓",
-      title: "WEEK 1 CHECKPOINT",
-      color: E_BLUE,
-      message: "You've completed 7 days. Here's what we're seeing:",
-      insights: [
-        `Completion rate: ${daysCompleted}/7 days (${completionRate}%)`,
-        overallImprovement > 0 ? `Early improvement trends: +${overallImprovement}%` : "Establishing baseline performance",
-        `Total sessions: ${challengeData.totalSessions}`,
-      ],
-      motivation: "Keep going. The next 14 days are where real change happens. Your brain is adapting. You're 33% to transformation."
-    },
-    day14: {
-      emoji: "📈",
-      title: "MIDPOINT ANALYSIS",
-      color: GREEN,
-      message: "Halfway through your 21-Day Transformation:",
-      insights: [
-        reactionImprovement > 0 ? `Reaction time: ${baselineReaction}ms → ${currentReaction}ms (${reactionImprovement}% faster)` : "Building cognitive pathways",
-        `Overall improvement: +${overallImprovement}%`,
-        `You're outperforming ${Math.min(95, 50 + completionRate/2)}% of users at this stage`,
-      ],
-      motivation: `The next 7 days: This is where habit crystallizes. Your brain has built the pathways. Now we strengthen them.`
-    },
-    day21: {
-      emoji: "🏆",
-      title: "TRANSFORMATION COMPLETE",
-      color: VIOLET,
-      message: "21 days. You did it.",
-      insights: [
-        reactionImprovement > 0 ? `Reaction time: ${baselineReaction}ms → ${currentReaction}ms (${reactionImprovement}% improvement)` : `${challengeData.totalSessions} sessions completed`,
-        `Overall cognitive improvement: +${overallImprovement}%`,
-        `Completion rate: ${completionRate}% (${daysCompleted}/21 days)`,
-      ],
-      motivation: "The habit is formed. This is who you are now. You've unlocked your full transformation report."
-    }
-  };
-
-  const content = milestoneContent[milestone];
-  
-  function handleContinue() {
-    challenge.markMilestoneShown(challengeData, milestone);
-    onContinue();
-  }
-
-  return (
-    <div style={{animation:"fadeUp .6s ease both",maxWidth:520,margin:"0 auto"}}>
-      <div style={{textAlign:"center",marginBottom:32}}>
-        <div style={{fontSize:64,marginBottom:16}}>{content.emoji}</div>
-        <div style={{background:`linear-gradient(135deg,${content.color}22,transparent)`,border:`2px solid ${content.color}44`,borderRadius:16,padding:"24px 26px",marginBottom:20}}>
-          <p style={{fontSize:13,fontWeight:700,color:content.color,letterSpacing:".16em",textTransform:"uppercase",marginBottom:10}}>🎯 21-Day Brain Transformation</p>
-          <h2 style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:38,letterSpacing:2,color:WHITE,marginBottom:12}}>{content.title}</h2>
-          <p style={{fontSize:16,color:MUTED,lineHeight:1.75,marginBottom:20}}>{content.message}</p>
-          
-          <div style={{background:"rgba(0,0,0,0.3)",borderRadius:12,padding:"18px 20px",marginBottom:20,textAlign:"left"}}>
-            {content.insights.map((insight, i) => (
-              <div key={i} style={{display:"flex",alignItems:"flex-start",gap:12,marginBottom:i < content.insights.length - 1 ? 12 : 0}}>
-                <span style={{fontSize:18,color:content.color,flexShrink:0}}>•</span>
-                <p style={{fontSize:15,color:WHITE,lineHeight:1.65}}>{insight}</p>
-              </div>
-            ))}
-          </div>
-
-          <p style={{fontFamily:"'Crimson Pro',serif",fontStyle:"italic",fontSize:16,color:MUTED,lineHeight:1.75,marginBottom:20}}>
-            "{content.motivation}"
-          </p>
-
-          {milestone === "day21" && (
-            <div style={{background:"rgba(167,139,250,0.1)",border:"1px solid rgba(167,139,250,0.3)",borderRadius:12,padding:"16px 18px",marginBottom:20}}>
-              <p style={{fontSize:14,color:VIOLET,fontWeight:700,marginBottom:8}}>✨ TRANSFORMATION COMPLETE</p>
-              <p style={{fontSize:14,color:MUTED,lineHeight:1.65}}>
-                You've unlocked your full transformation report with detailed progress analysis and downloadable certificate.
-              </p>
-            </div>
-          )}
-        </div>
-
-        <button onClick={handleContinue} style={{border:"none",borderRadius:100,padding:"16px 48px",fontSize:16,fontWeight:700,fontFamily:"'Space Grotesk',sans-serif",cursor:"pointer",background:`linear-gradient(135deg,${content.color}cc,${content.color})`,color:BG,letterSpacing:".05em"}}>
-          {milestone === "day21" ? "View Transformation Report →" : "Continue Challenge →"}
-        </button>
-      </div>
-    </div>
-  );
-}
-
 function Results({scores,level,newLevel,streak,dailyAction,arch,onBack,onRetry}){
   const total=scores.reduce((a,s)=>a+s.score,0);
   const levelUp=newLevel.name!==level.name;
