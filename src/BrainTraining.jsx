@@ -392,11 +392,6 @@ export default function BrainTraining({ onBack, archetype }){
       setScreen("results");
     }
   }
-      }
-      
-      setScreen("results");
-    }
-  }
 
   function startProtocol(){ setRound(0); setScores([]); setScreen("science"); }
 
