@@ -1,11 +1,11 @@
 import { useState, useEffect, useRef } from "react";
-import NeuralProtocol from "./NeuralProtocol.jsx";
+import BrainTraining from "./BrainTraining.jsx";
 import QuantumLiving from "./QuantumLiving.jsx";
 
 // ── Stripe Payment Links ───────────────────────────────────────────────────
 const STRIPE_MAIN    = "https://buy.stripe.com/00w8wR50Xber8VZfkka3u00"; // £9 main report
-const STRIPE_NEURAL  = "https://buy.stripe.com/REPLACE_NEURAL_LINK";      // £3 Neural Protocol
-const STRIPE_VITAL   = "https://buy.stripe.com/REPLACE_VITAL_LINK";       // £3 Vital Laws
+const STRIPE_BRAIN   = "https://buy.stripe.com/REPLACE_BRAIN_LINK";      // £5 Brain Training
+const STRIPE_VITAL   = "https://buy.stripe.com/REPLACE_VITAL_LINK";      // £5 Quantum Living
 
 // ── Unlock helpers (localStorage simulates post-payment state) ────────────
 function getUnlocks() {
@@ -218,6 +218,7 @@ const questions = [
   {id:8,sym:"⬢",text:"Your relationship with long-term goals:",opts:[{t:"I thrive on them — the system is the goal",ty:"A"},{t:"I like goals that evolve as my understanding deepens",ty:"B"},{t:"Goals feel most alive when shared with others",ty:"C"},{t:"My north star is fixed — how I get there is flexible",ty:"D"}]},
   {id:9,sym:"⚛",text:"At the end of a high-performance day, you feel:",opts:[{t:"Accomplished — the system ran perfectly",ty:"A"},{t:"Expanded — I understand something I didn't this morning",ty:"B"},{t:"Connected — I contributed to something beyond myself",ty:"C"},{t:"Alive — I made something that didn't exist before",ty:"D"}]},
   {id:10,sym:"△",text:"The sentence that wires deepest into your brain:",opts:[{t:'"You do not rise to the level of your goals. You fall to the level of your systems."',ty:"A"},{t:'"The more I learn, the more I realise how much I don\'t know."',ty:"B"},{t:'"Alone we can do so little. Together we can do so much."',ty:"C"},{t:'"The people crazy enough to think they can change the world are the ones who do."',ty:"D"}]},
+  {id:11,sym:"🎨",text:"BONUS: Quick Visual Insight",subtitle:"Look at the image below. What stands out to you first?",isVisual:true,imageUrl:"tree-woman-illusion.jpg",opts:[{t:"The tree structure",ty:"A",visual:"tree"},{t:"The woman's face",ty:"C",visual:"woman"},{t:"Both equally",ty:"neutral",visual:"both"}]},
 ];
 
 const TYPES = {
@@ -251,6 +252,7 @@ export default function App() {
   const [procStep,setProcStep]=useState(0);
   const [showLegal,setShowLegal]=useState(null);
   const [activeAddon,setActiveAddon]=useState(null);
+  const [activeView,setActiveView]=useState("dashboard"); // dashboard, report
   const [unlocks,setUnlocks]=useState(getUnlocks);
   const [showDeliveryGate,setShowDeliveryGate]=useState(false);
   const [deliveryRef,setDeliveryRef]=useState(null);
@@ -356,7 +358,7 @@ export default function App() {
       <Particles/>
 
       {/* ── Active Add-on views ── */}
-      {activeAddon==="neural" && unlocks.neural && <NeuralProtocol archetype={charType} onBack={()=>setActiveAddon(null)}/>}
+      {activeAddon==="neural" && unlocks.neural && <BrainTraining archetype={charType} onBack={()=>setActiveAddon(null)}/>}
       {activeAddon==="vital"  && unlocks.vital  && <QuantumLiving  archetype={charType} onBack={()=>setActiveAddon(null)}/>}
 
       {/* ── Main app ── */}
@@ -365,8 +367,8 @@ export default function App() {
           <Logo size="sm"/>
           {phase==="paid" && (
             <div style={{display:"flex",gap:8}}>
-              {unlocks.neural && <button onClick={()=>setActiveAddon("neural")} style={{background:"rgba(0,200,255,0.08)",border:`1px solid ${BORDER}`,borderRadius:100,padding:"6px 14px",color:E_BLUE,fontSize:11,fontWeight:700,cursor:"pointer",fontFamily:"'Space Grotesk',sans-serif",letterSpacing:".06em"}}>⚡ Neural</button>}
-              {unlocks.vital  && <button onClick={()=>setActiveAddon("vital")}  style={{background:"rgba(52,211,153,0.08)",border:"1px solid rgba(52,211,153,0.25)",borderRadius:100,padding:"6px 14px",color:"#34D399",fontSize:11,fontWeight:700,cursor:"pointer",fontFamily:"'Space Grotesk',sans-serif",letterSpacing:".06em"}}>🌱 Vital</button>}
+              {unlocks.neural && <button onClick={()=>setActiveAddon("neural")} style={{background:"rgba(0,200,255,0.08)",border:`1px solid ${BORDER}`,borderRadius:100,padding:"6px 14px",color:E_BLUE,fontSize:14,fontWeight:700,cursor:"pointer",fontFamily:"'Space Grotesk',sans-serif",letterSpacing:".06em"}}>⚡ Brain</button>}
+              {unlocks.vital  && <button onClick={()=>setActiveAddon("vital")}  style={{background:"rgba(52,211,153,0.08)",border:"1px solid rgba(52,211,153,0.25)",borderRadius:100,padding:"6px 14px",color:"#34D399",fontSize:14,fontWeight:700,cursor:"pointer",fontFamily:"'Space Grotesk',sans-serif",letterSpacing:".06em"}}>🌱 Quantum</button>}
             </div>
           )}
         </div>
@@ -380,8 +382,8 @@ export default function App() {
           {!showLegal && phase==="paid"       && <>
             {showDeliveryGate && <DeliveryGate ref_={deliveryRef} ts={deliveryTs} type={TYPES[charType]} onConfirm={confirmDelivery}/>}
             {!showDeliveryGate && <>
-              <Report type={TYPES[charType]} deliveryRef={deliveryRef} deliveryTs={deliveryTs}/>
-              <AddOnShop unlocks={unlocks} onUnlockNeural={()=>window.open(STRIPE_NEURAL,"_blank")} onUnlockVital={()=>window.open(STRIPE_VITAL,"_blank")} onOpenNeural={()=>setActiveAddon("neural")} onOpenVital={()=>setActiveAddon("vital")} onSimulateNeural={()=>handleUnlockAddon("neural")} onSimulateVital={()=>handleUnlockAddon("vital")}/>
+              <Report type={TYPES[charType]} deliveryRef={deliveryRef} deliveryTs={deliveryTs} visualAnswer={answers[10]}/>
+              <AddOnShop unlocks={unlocks} onUnlockNeural={()=>window.open(STRIPE_BRAIN,"_blank")} onUnlockVital={()=>window.open(STRIPE_VITAL,"_blank")} onOpenNeural={()=>setActiveAddon("neural")} onOpenVital={()=>setActiveAddon("vital")} onSimulateNeural={()=>handleUnlockAddon("neural")} onSimulateVital={()=>handleUnlockAddon("vital")}/>
             </>}
           </>}
         </div>
@@ -410,7 +412,7 @@ function Logo({size="md"}){
 function TimerBadge({t,fmt}){
   const urgent=t<180;
   return(
-    <div className={urgent?"urgent":""} style={{display:"inline-flex",alignItems:"center",gap:8,background:urgent?"rgba(255,60,60,0.08)":"rgba(0,200,255,0.06)",border:`1px solid ${urgent?"rgba(255,60,60,0.35)":BORDER}`,borderRadius:100,padding:"6px 16px",fontSize:12,fontWeight:600,letterSpacing:".06em",color:urgent?"#FF6B6B":E_BLUE}}>
+    <div className={urgent?"urgent":""} style={{display:"inline-flex",alignItems:"center",gap:8,background:urgent?"rgba(255,60,60,0.08)":"rgba(0,200,255,0.06)",border:`1px solid ${urgent?"rgba(255,60,60,0.35)":BORDER}`,borderRadius:100,padding:"6px 16px",fontSize:15,fontWeight:600,letterSpacing:".06em",color:urgent?"#FF6B6B":E_BLUE}}>
       <span>⚡</span>{t>0?`Offer expires ${fmt(t)}`:"Offer expired"}
     </div>
   );
@@ -427,7 +429,7 @@ function Panel({children,style={},glow=false}){
 function SLabel({children,color=E_BLUE}){
   return(
     <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:16}}>
-      <p style={{fontSize:10,fontWeight:700,letterSpacing:".14em",textTransform:"uppercase",color,whiteSpace:"nowrap"}}>{children}</p>
+      <p style={{fontSize:16,fontWeight:700,letterSpacing:".14em",textTransform:"uppercase",color,whiteSpace:"nowrap"}}>{children}</p>
       <div style={{flex:1,height:1,background:`linear-gradient(90deg,${color}44,transparent)`}}/>
     </div>
   );
@@ -435,7 +437,7 @@ function SLabel({children,color=E_BLUE}){
 
 function PrimaryBtn({onClick,children}){
   return(
-    <button onClick={onClick} style={{width:"100%",border:"none",borderRadius:100,padding:"17px",fontSize:15,fontWeight:700,fontFamily:"'Space Grotesk',sans-serif",cursor:"pointer",letterSpacing:".05em",transition:"all .2s ease",display:"block",background:`linear-gradient(135deg,${E_BLUE2},${E_BLUE})`,color:BG,boxShadow:`0 6px 24px rgba(0,200,255,0.22)`}}
+    <button onClick={onClick} style={{width:"100%",border:"none",borderRadius:100,padding:"17px",fontSize:16,fontWeight:700,fontFamily:"'Space Grotesk',sans-serif",cursor:"pointer",letterSpacing:".05em",transition:"all .2s ease",display:"block",background:`linear-gradient(135deg,${E_BLUE2},${E_BLUE})`,color:BG,boxShadow:`0 6px 24px rgba(0,200,255,0.22)`}}
       onMouseEnter={e=>{e.currentTarget.style.transform="translateY(-2px)";e.currentTarget.style.boxShadow=`0 12px 36px rgba(0,200,255,0.38)`;}}
       onMouseLeave={e=>{e.currentTarget.style.transform="translateY(0)";e.currentTarget.style.boxShadow=`0 6px 24px rgba(0,200,255,0.22)`;}}>
       {children}
@@ -459,14 +461,14 @@ function Footer({onShowLegal}){
   return(
     <div style={{width:"100%",maxWidth:680,marginTop:60,paddingTop:24,borderTop:`1px solid ${BORDER2}`,display:"flex",flexDirection:"column",gap:12,alignItems:"center"}}>
       <div style={{display:"flex",gap:24,flexWrap:"wrap",justifyContent:"center"}}>
-        <button onClick={()=>onShowLegal("privacy")} style={{background:"none",border:"none",color:DIMMED,fontSize:12,cursor:"pointer",textDecoration:"underline",fontFamily:"'Space Grotesk',sans-serif"}} onMouseEnter={e=>e.currentTarget.style.color=E_BLUE} onMouseLeave={e=>e.currentTarget.style.color=DIMMED}>Privacy Policy</button>
-        <button onClick={()=>onShowLegal("terms")} style={{background:"none",border:"none",color:DIMMED,fontSize:12,cursor:"pointer",textDecoration:"underline",fontFamily:"'Space Grotesk',sans-serif"}} onMouseEnter={e=>e.currentTarget.style.color=E_BLUE} onMouseLeave={e=>e.currentTarget.style.color=DIMMED}>Terms & Conditions</button>
+        <button onClick={()=>onShowLegal("privacy")} style={{background:"none",border:"none",color:DIMMED,fontSize:15,cursor:"pointer",textDecoration:"underline",fontFamily:"'Space Grotesk',sans-serif"}} onMouseEnter={e=>e.currentTarget.style.color=E_BLUE} onMouseLeave={e=>e.currentTarget.style.color=DIMMED}>Privacy Policy</button>
+        <button onClick={()=>onShowLegal("terms")} style={{background:"none",border:"none",color:DIMMED,fontSize:15,cursor:"pointer",textDecoration:"underline",fontFamily:"'Space Grotesk',sans-serif"}} onMouseEnter={e=>e.currentTarget.style.color=E_BLUE} onMouseLeave={e=>e.currentTarget.style.color=DIMMED}>Terms & Conditions</button>
       </div>
-      <p style={{fontSize:11,color:DIMMED,textAlign:"center"}}>© 2026 Learning Quantum Method. All rights reserved.</p>
-      <p style={{fontSize:10,color:DIMMED,textAlign:"center",maxWidth:500,lineHeight:1.5}}>For questions or support: <a href="mailto:lqm@lqmmethod.com" style={{color:E_BLUE,textDecoration:"none"}}>lqm@lqmmethod.com</a></p>
+      <p style={{fontSize:14,color:DIMMED,textAlign:"center"}}>© 2026 Learning Quantum Method. All rights reserved.</p>
+      <p style={{fontSize:16,color:DIMMED,textAlign:"center",maxWidth:500,lineHeight:1.5}}>For questions or support: <a href="mailto:lqm@lqmmethod.com" style={{color:E_BLUE,textDecoration:"none"}}>lqm@lqmmethod.com</a></p>
       
       {/* TEST MODE BUTTON - Remove before public launch */}
-      <button onClick={activateTestMode} style={{marginTop:16,background:'rgba(251,191,36,0.12)',border:'1px solid rgba(251,191,36,0.35)',borderRadius:8,padding:'10px 20px',color:'#FBBF24',fontSize:12,fontWeight:700,cursor:'pointer',fontFamily:"'Space Grotesk',sans-serif"}}>
+      <button onClick={activateTestMode} style={{marginTop:16,background:'rgba(251,191,36,0.12)',border:'1px solid rgba(251,191,36,0.35)',borderRadius:8,padding:'10px 20px',color:'#FBBF24',fontSize:15,fontWeight:700,cursor:'pointer',fontFamily:"'Space Grotesk',sans-serif"}}>
         🔧 TEST MODE — Unlock All Features
       </button>
     </div>
@@ -477,7 +479,7 @@ function LegalPage({type,onClose}){
   const content = type==="privacy" ? PRIVACY_TEXT : TERMS_TEXT;
   return(
     <div style={{animation:"fadeUp .5s ease both"}}>
-      <button onClick={onClose} style={{marginBottom:20,background:"none",border:`1px solid ${BORDER}`,borderRadius:100,padding:"10px 20px",color:WHITE,fontSize:13,cursor:"pointer",display:"flex",alignItems:"center",gap:8,fontFamily:"'Space Grotesk',sans-serif"}} onMouseEnter={e=>e.currentTarget.style.borderColor=E_BLUE} onMouseLeave={e=>e.currentTarget.style.borderColor=BORDER}>
+      <button onClick={onClose} style={{marginBottom:20,background:"none",border:`1px solid ${BORDER}`,borderRadius:100,padding:"10px 20px",color:WHITE,fontSize:16,cursor:"pointer",display:"flex",alignItems:"center",gap:8,fontFamily:"'Space Grotesk',sans-serif"}} onMouseEnter={e=>e.currentTarget.style.borderColor=E_BLUE} onMouseLeave={e=>e.currentTarget.style.borderColor=BORDER}>
         ← Back
       </button>
       <Panel style={{maxWidth:680}}>
@@ -487,9 +489,9 @@ function LegalPage({type,onClose}){
   );
 }
 
-const PRIVACY_TEXT=`<h1 style="font-family:'Bebas Neue',sans-serif;font-size:36px;color:#00C8FF;margin-bottom:8px;letter-spacing:2px">Privacy Policy</h1><p style="font-size:12px;color:rgba(255,255,255,0.4);margin-bottom:32px">Last updated: 16 February 2026</p><p style="margin-bottom:20px"><strong>Learning Quantum Method (LQM)</strong> is committed to protecting your privacy. This Privacy Policy explains how we collect, use, and protect your personal information.</p><h2 style="font-size:20px;color:#00C8FF;margin:28px 0 12px;font-family:'Space Grotesk',sans-serif;font-weight:600">1. Who We Are</h2><p style="margin-bottom:12px"><strong>Business name:</strong> Learning Quantum Method (LQM)<br/><strong>Contact email:</strong> lqm@lqmmethod.com<br/><strong>Website:</strong> https://spiffy-toffee-be06c2.netlify.app</p><h2 style="font-size:20px;color:#00C8FF;margin:28px 0 12px;font-family:'Space Grotesk',sans-serif;font-weight:600">2. What Information We Collect</h2><p style="margin-bottom:12px"><strong>Information you provide:</strong> Name, email address when you purchase<br/><strong>Payment information:</strong> Processed securely by Stripe (we never see card details)<br/><strong>Quiz responses:</strong> Stored temporarily in your browser to generate your report<br/><strong>We do NOT collect:</strong> Sensitive data, children's data, or marketing preferences without consent</p><h2 style="font-size:20px;color:#00C8FF;margin:28px 0 12px;font-family:'Space Grotesk',sans-serif;font-weight:600">3. How We Use Your Information</h2><p style="margin-bottom:12px">We use your information to:<br/>• Deliver your purchased report<br/>• Process payments via Stripe<br/>• Provide customer support<br/>• Improve our service</p><p style="margin-bottom:12px"><strong>Legal basis (UK GDPR):</strong> Contract performance and legitimate interests</p><h2 style="font-size:20px;color:#00C8FF;margin:28px 0 12px;font-family:'Space Grotesk',sans-serif;font-weight:600">4. How We Share Your Information</h2><p style="margin-bottom:12px">We share your data ONLY with <strong>Stripe</strong> (our payment processor) to process payments.<br/>Stripe privacy policy: <a href="https://stripe.com/gb/privacy" style="color:#00C8FF">stripe.com/gb/privacy</a></p><p style="margin-bottom:12px"><strong>We do NOT:</strong> Sell your data, use it for advertising, or share quiz responses</p><h2 style="font-size:20px;color:#00C8FF;margin:28px 0 12px;font-family:'Space Grotesk',sans-serif;font-weight:600">5. How Long We Keep Your Data</h2><p style="margin-bottom:12px">• Purchase records: 7 years (UK tax law requirement)<br/>• Quiz responses: Deleted after report generation<br/>• Browser session: Cleared when you close browser</p><h2 style="font-size:20px;color:#00C8FF;margin:28px 0 12px;font-family:'Space Grotesk',sans-serif;font-weight:600">6. Your Rights Under UK GDPR</h2><p style="margin-bottom:12px">You have the right to:<br/>• <strong>Access</strong> your data<br/>• <strong>Rectify</strong> inaccurate information<br/>• <strong>Erase</strong> your data (subject to legal requirements)<br/>• <strong>Restrict</strong> processing<br/>• <strong>Data portability</strong><br/>• <strong>Object</strong> to processing</p><p style="margin-bottom:12px">Email <strong>lqm@lqmmethod.com</strong> to exercise these rights. We respond within 30 days.</p><h2 style="font-size:20px;color:#00C8FF;margin:28px 0 12px;font-family:'Space Grotesk',sans-serif;font-weight:600">7. How We Protect Your Data</h2><p style="margin-bottom:12px">• All payments encrypted by Stripe<br/>• HTTPS encryption on our website<br/>• Limited data access<br/>• We never store card details</p><h2 style="font-size:20px;color:#00C8FF;margin:28px 0 12px;font-family:'Space Grotesk',sans-serif;font-weight:600">8. Cookies</h2><p style="margin-bottom:12px">We use only essential session cookies for the quiz to function. No tracking cookies.</p><h2 style="font-size:20px;color:#00C8FF;margin:28px 0 12px;font-family:'Space Grotesk',sans-serif;font-weight:600">9. Contact Us</h2><p style="margin-bottom:12px">Questions? Email <strong>lqm@lqmmethod.com</strong></p><h2 style="font-size:20px;color:#00C8FF;margin:28px 0 12px;font-family:'Space Grotesk',sans-serif;font-weight:600">10. Complaints</h2><p style="margin-bottom:12px">You can complain to the UK Information Commissioner's Office (ICO):<br/>Website: <a href="https://ico.org.uk/make-a-complaint/" style="color:#00C8FF">ico.org.uk/make-a-complaint</a><br/>Phone: 0303 123 1113</p>`;
+const PRIVACY_TEXT=`<h1 style="font-family:'Bebas Neue',sans-serif;font-size:36px;color:#00C8FF;margin-bottom:8px;letter-spacing:2px">Privacy Policy</h1><p style="font-size:12px;color:rgba(255,255,255,0.4);margin-bottom:32px">Last updated: 21 February 2026</p><p style="margin-bottom:20px"><strong>Learning Quantum Method (LQM)</strong> is committed to protecting your privacy. This Privacy Policy explains how we collect, use, and protect your personal information.</p><h2 style="font-size:20px;color:#00C8FF;margin:28px 0 12px;font-family:'Space Grotesk',sans-serif;font-weight:600">1. Who We Are</h2><p style="margin-bottom:12px"><strong>Business name:</strong> Learning Quantum Method (LQM)<br/><strong>Contact email:</strong> lqm@lqmmethod.com<br/><strong>Website:</strong> https://spiffy-toffee-be06c2.netlify.app</p><h2 style="font-size:20px;color:#00C8FF;margin:28px 0 12px;font-family:'Space Grotesk',sans-serif;font-weight:600">2. What Information We Collect</h2><p style="margin-bottom:12px"><strong>Information you provide:</strong> Name, email address when you purchase<br/><strong>Payment information:</strong> Processed securely by Stripe (we never see card details)<br/><strong>Quiz responses:</strong> Stored temporarily in your browser to generate your report<br/><strong>We do NOT collect:</strong> Sensitive data, children's data, or marketing preferences without consent</p><h2 style="font-size:20px;color:#00C8FF;margin:28px 0 12px;font-family:'Space Grotesk',sans-serif;font-weight:600">3. How We Use Your Information</h2><p style="margin-bottom:12px">We use your information to:<br/>• Deliver your purchased report<br/>• Process payments via Stripe<br/>• Provide customer support<br/>• Improve our service</p><p style="margin-bottom:12px"><strong>Legal basis (UK GDPR):</strong> Contract performance and legitimate interests</p><h2 style="font-size:20px;color:#00C8FF;margin:28px 0 12px;font-family:'Space Grotesk',sans-serif;font-weight:600">4. How We Share Your Information</h2><p style="margin-bottom:12px">We share your data ONLY with <strong>Stripe</strong> (our payment processor) to process payments.<br/>Stripe privacy policy: <a href="https://stripe.com/gb/privacy" style="color:#00C8FF">stripe.com/gb/privacy</a></p><p style="margin-bottom:12px"><strong>We do NOT:</strong> Sell your data, use it for advertising, or share quiz responses</p><h2 style="font-size:20px;color:#00C8FF;margin:28px 0 12px;font-family:'Space Grotesk',sans-serif;font-weight:600">5. How Long We Keep Your Data</h2><p style="margin-bottom:12px">• Purchase records: 7 years (UK tax law requirement)<br/>• Quiz responses: Deleted after report generation<br/>• Browser session: Cleared when you close browser</p><h2 style="font-size:20px;color:#00C8FF;margin:28px 0 12px;font-family:'Space Grotesk',sans-serif;font-weight:600">6. Your Rights Under UK GDPR</h2><p style="margin-bottom:12px">You have the right to:<br/>• <strong>Access</strong> your data<br/>• <strong>Rectify</strong> inaccurate information<br/>• <strong>Erase</strong> your data (subject to legal requirements)<br/>• <strong>Restrict</strong> processing<br/>• <strong>Data portability</strong><br/>• <strong>Object</strong> to processing</p><p style="margin-bottom:12px">Email <strong>lqm@lqmmethod.com</strong> to exercise these rights. We respond within 30 days.</p><h2 style="font-size:20px;color:#00C8FF;margin:28px 0 12px;font-family:'Space Grotesk',sans-serif;font-weight:600">7. How We Protect Your Data</h2><p style="margin-bottom:12px">• All payments encrypted by Stripe<br/>• HTTPS encryption on our website<br/>• Limited data access<br/>• We never store card details</p><h2 style="font-size:20px;color:#00C8FF;margin:28px 0 12px;font-family:'Space Grotesk',sans-serif;font-weight:600">8. Cookies</h2><p style="margin-bottom:12px">We use only essential session cookies for the quiz to function. No tracking cookies.</p><h2 style="font-size:20px;color:#00C8FF;margin:28px 0 12px;font-family:'Space Grotesk',sans-serif;font-weight:600">9. Contact Us</h2><p style="margin-bottom:12px">Questions? Email <strong>lqm@lqmmethod.com</strong></p><h2 style="font-size:20px;color:#00C8FF;margin:28px 0 12px;font-family:'Space Grotesk',sans-serif;font-weight:600">10. Complaints</h2><p style="margin-bottom:12px">You can complain to the UK Information Commissioner's Office (ICO):<br/>Website: <a href="https://ico.org.uk/make-a-complaint/" style="color:#00C8FF">ico.org.uk/make-a-complaint</a><br/>Phone: 0303 123 1113</p>`;
 
-const TERMS_TEXT=`<h1 style="font-family:'Bebas Neue',sans-serif;font-size:36px;color:#00C8FF;margin-bottom:8px;letter-spacing:2px">Terms & Conditions</h1><p style="font-size:12px;color:rgba(255,255,255,0.4);margin-bottom:32px">Last updated: 16 February 2026</p><p style="margin-bottom:20px">By using our website and purchasing our report, you agree to these terms.</p><h2 style="font-size:20px;color:#00C8FF;margin:28px 0 12px;font-family:'Space Grotesk',sans-serif;font-weight:600">1. The Service</h2><p style="margin-bottom:12px"><strong>What you receive:</strong> A 10-question behavioural quiz and personalised LQM report with your archetype, identity statement, strengths, blind spots, and 3 strategy cards.</p><p style="margin-bottom:12px"><strong>What this is NOT:</strong> Professional counselling, medical advice, or employment screening.</p><h2 style="font-size:20px;color:#00C8FF;margin:28px 0 12px;font-family:'Space Grotesk',sans-serif;font-weight:600">2. Pricing & Payment</h2><p style="margin-bottom:12px">• Current price: £9.00<br/>• Payment via Stripe<br/>• One-time payment (no subscriptions)<br/>• Prices may change anytime</p><h2 style="font-size:20px;color:#00C8FF;margin:28px 0 12px;font-family:'Space Grotesk',sans-serif;font-weight:600">3. Delivery</h2><p style="margin-bottom:12px">Your report is delivered <strong>instantly on screen</strong> after payment. Save or screenshot it — no email delivery. Digital delivery is confirmed when the report is displayed on screen. A delivery reference number is shown within the report.</p><h2 style="font-size:20px;color:#00C8FF;margin:28px 0 12px;font-family:'Space Grotesk',sans-serif;font-weight:600">4. Refund Policy</h2><p style="margin-bottom:12px"><strong>7-day money-back guarantee.</strong><br/>Email <strong>lqm@lqmmethod.com</strong> within 7 days if dissatisfied. Refunds processed in 5-7 business days.</p><p style="margin-bottom:12px"><strong>No refunds if:</strong> You changed your mind after reading the full report or already saved it.</p><h2 style="font-size:20px;color:#00C8FF;margin:28px 0 12px;font-family:'Space Grotesk',sans-serif;font-weight:600">5. Intellectual Property</h2><p style="margin-bottom:12px">All LQM content is copyrighted.<br/><strong>You CAN:</strong> Use your report personally, share insights<br/><strong>You CANNOT:</strong> Republish commercially, create competing products</p><h2 style="font-size:20px;color:#00C8FF;margin:28px 0 12px;font-family:'Space Grotesk',sans-serif;font-weight:600">6. Disclaimer</h2><p style="margin-bottom:12px">The report is for <strong>educational purposes only</strong>. We don't guarantee specific results. You're responsible for your own decisions.</p><h2 style="font-size:20px;color:#00C8FF;margin:28px 0 12px;font-family:'Space Grotesk',sans-serif;font-weight:600">7. Limitation of Liability</h2><p style="margin-bottom:12px">Our maximum liability is limited to £9.00 (the amount you paid).</p><h2 style="font-size:20px;color:#00C8FF;margin:28px 0 12px;font-family:'Space Grotesk',sans-serif;font-weight:600">8. Age Restriction</h2><p style="margin-bottom:12px">You must be 18+ to purchase.</p><h2 style="font-size:20px;color:#00C8FF;margin:28px 0 12px;font-family:'Space Grotesk',sans-serif;font-weight:600">9. Governing Law</h2><p style="margin-bottom:12px">These terms are governed by the laws of England and Wales.</p><h2 style="font-size:20px;color:#00C8FF;margin:28px 0 12px;font-family:'Space Grotesk',sans-serif;font-weight:600">10. Contact</h2><p style="margin-bottom:12px">Email: <strong>lqm@lqmmethod.com</strong></p>`;
+const TERMS_TEXT=`<h1 style="font-family:'Bebas Neue',sans-serif;font-size:36px;color:#00C8FF;margin-bottom:8px;letter-spacing:2px">Terms & Conditions</h1><p style="font-size:12px;color:rgba(255,255,255,0.4);margin-bottom:32px">Last updated: 21 February 2026</p><p style="margin-bottom:20px">By using our website and purchasing our report, you agree to these terms.</p><h2 style="font-size:20px;color:#00C8FF;margin:28px 0 12px;font-family:'Space Grotesk',sans-serif;font-weight:600">1. The Service</h2><p style="margin-bottom:12px"><strong>What you receive:</strong> An 11-question behavioural quiz (10 core questions + 1 visual bonus question) and personalised LQM report with your archetype, identity statement, strengths, blind spots, and 3 strategy cards.</p><p style="margin-bottom:12px"><strong>Optional add-ons:</strong> Brain Training (6 cognitive challenges with 21-day transformation tracking) and Quantum Living (5 wellness laws with 21-day journey tracking), each £5.00.</p><p style="margin-bottom:12px"><strong>What this is NOT:</strong> Professional counselling, medical advice, or employment screening.</p><h2 style="font-size:20px;color:#00C8FF;margin:28px 0 12px;font-family:'Space Grotesk',sans-serif;font-weight:600">2. Pricing & Payment</h2><p style="margin-bottom:12px">• Main report: £9.00<br/>• Brain Training add-on: £5.00<br/>• Quantum Living add-on: £5.00<br/>• Payment via Stripe<br/>• One-time payments (no subscriptions)<br/>• Prices may change at any time</p><h2 style="font-size:20px;color:#00C8FF;margin:28px 0 12px;font-family:'Space Grotesk',sans-serif;font-weight:600">3. Delivery & Confirmation</h2><p style="margin-bottom:12px">Your report is delivered <strong>instantly on screen</strong> after payment. You will be shown a <strong>Delivery Confirmation Screen</strong> with a unique reference number and timestamp <strong>BEFORE</strong> viewing your report.</p><p style="margin-bottom:12px"><strong>You must confirm receipt</strong> by clicking "I Confirm Receipt" to access your report. This confirmation serves as proof of delivery and creates an audit trail showing you received the digital product.</p><p style="margin-bottom:12px"><strong>Important:</strong> Save or screenshot your report and the delivery reference immediately. No email delivery is provided. The delivery reference number appears at the top of your report for your records.</p><h2 style="font-size:20px;color:#00C8FF;margin:28px 0 12px;font-family:'Space Grotesk',sans-serif;font-weight:600">4. Refund Policy</h2><p style="margin-bottom:12px"><strong>7-day money-back guarantee.</strong><br/>Email <strong>lqm@lqmmethod.com</strong> within 7 days if dissatisfied. Include your delivery reference number. Refunds processed within 5-7 business days.</p><p style="margin-bottom:12px"><strong>No refunds will be issued if:</strong></p><p style="margin-bottom:12px">• You confirmed receipt via the Delivery Confirmation Screen and then claim you "never received" the report<br/>• You already saved, screenshot, or downloaded your report<br/>• You simply changed your mind after reading the full report<br/>• 7 days have passed since purchase</p><p style="margin-bottom:12px"><strong>Audit trail:</strong> Your delivery confirmation (reference number, timestamp, and confirmation click) serves as proof of delivery. Fraudulent refund requests will be declined.</p><h2 style="font-size:20px;color:#00C8FF;margin:28px 0 12px;font-family:'Space Grotesk',sans-serif;font-weight:600">5. Intellectual Property</h2><p style="margin-bottom:12px">All LQM content, including the quiz, reports, Brain Training challenges, Quantum Living laws, and all associated materials, are copyrighted by Learning Quantum Method.</p><p style="margin-bottom:12px"><strong>You CAN:</strong> Use your report personally, share insights with friends<br/><strong>You CANNOT:</strong> Republish commercially, resell, redistribute, or create competing products based on LQM content</p><h2 style="font-size:20px;color:#00C8FF;margin:28px 0 12px;font-family:'Space Grotesk',sans-serif;font-weight:600">6. Disclaimer</h2><p style="margin-bottom:12px">The report is for <strong>educational and informational purposes only</strong>. We do not guarantee specific results, outcomes, or behavioural changes. You are responsible for your own decisions and actions.</p><h2 style="font-size:20px;color:#00C8FF;margin:28px 0 12px;font-family:'Space Grotesk',sans-serif;font-weight:600">7. Limitation of Liability</h2><p style="margin-bottom:12px">Our maximum liability for any claim related to your purchase is limited to the amount you paid (£9.00 for the main report, or the amount paid for add-ons).</p><h2 style="font-size:20px;color:#00C8FF;margin:28px 0 12px;font-family:'Space Grotesk',sans-serif;font-weight:600">8. Age Restriction</h2><p style="margin-bottom:12px">You must be 18 years or older to purchase.</p><h2 style="font-size:20px;color:#00C8FF;margin:28px 0 12px;font-family:'Space Grotesk',sans-serif;font-weight:600">9. Digital Product Nature</h2><p style="margin-bottom:12px">This is a <strong>digital product delivered instantly on screen</strong>. By confirming receipt via the Delivery Confirmation Screen, you acknowledge that:<br/>• You have received the complete digital product<br/>• The delivery is complete and satisfactory<br/>• You understand this creates a binding audit trail<br/>• The standard 14-day cooling-off period for digital content does not apply once you confirm receipt and access the report</p><h2 style="font-size:20px;color:#00C8FF;margin:28px 0 12px;font-family:'Space Grotesk',sans-serif;font-weight:600">10. Governing Law</h2><p style="margin-bottom:12px">These terms are governed by the laws of England and Wales. Any disputes will be subject to the exclusive jurisdiction of the courts of England and Wales.</p><h2 style="font-size:20px;color:#00C8FF;margin:28px 0 12px;font-family:'Space Grotesk',sans-serif;font-weight:600">11. Contact</h2><p style="margin-bottom:12px">For questions, support, or refund requests, email: <strong>lqm@lqmmethod.com</strong></p><p style="margin-bottom:12px">Include your delivery reference number in all correspondence.</p>`;
 
 function AddOnShop({unlocks, onUnlockNeural, onUnlockVital, onOpenNeural, onOpenVital, onSimulateNeural, onSimulateVital}) {
   return (
@@ -497,9 +499,9 @@ function AddOnShop({unlocks, onUnlockNeural, onUnlockVital, onOpenNeural, onOpen
       {/* Section header */}
       <div style={{textAlign:"center",marginBottom:24}}>
         <div style={{height:1,background:`linear-gradient(90deg,transparent,${BORDER},transparent)`,marginBottom:24}}/>
-        <p style={{fontSize:11,fontWeight:700,letterSpacing:".16em",textTransform:"uppercase",color:E_BLUE,marginBottom:10}}>⚡ LQM Add-On Suite</p>
+        <p style={{fontSize:14,fontWeight:700,letterSpacing:".16em",textTransform:"uppercase",color:E_BLUE,marginBottom:10}}>⚡ LQM Add-On Suite</p>
         <h2 style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"clamp(24px,5vw,38px)",letterSpacing:2,color:WHITE,marginBottom:8}}>Go Deeper. Perform Better.</h2>
-        <p style={{fontFamily:"'Crimson Pro',serif",fontStyle:"italic",fontSize:16,color:MUTED,maxWidth:440,margin:"0 auto",lineHeight:1.7}}>Two powerful extensions to your LQM profile — each unlocked for just £3.</p>
+        <p style={{fontFamily:"'Crimson Pro',serif",fontStyle:"italic",fontSize:16,color:MUTED,maxWidth:440,margin:"0 auto",lineHeight:1.7}}>Two powerful extensions to your LQM profile — each unlocked for just £5.</p>
       </div>
 
       {/* Neural Protocol card */}
@@ -507,26 +509,26 @@ function AddOnShop({unlocks, onUnlockNeural, onUnlockVital, onOpenNeural, onOpen
         <div style={{padding:"24px 24px 20px"}}>
           <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:16}}>
             <div>
-              <p style={{fontSize:10,fontWeight:700,color:E_BLUE,letterSpacing:".14em",textTransform:"uppercase",marginBottom:8}}>⚡ Add-On 1</p>
-              <h3 style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:28,letterSpacing:2,color:WHITE,marginBottom:4}}>Neural Protocol</h3>
-              <p style={{fontFamily:"'Crimson Pro',serif",fontStyle:"italic",fontSize:15,color:MUTED}}>Daily brain training — 5 rounds, ~4 minutes</p>
+              <p style={{fontSize:16,fontWeight:700,color:E_BLUE,letterSpacing:".14em",textTransform:"uppercase",marginBottom:8}}>⚡ Add-On 1</p>
+              <h3 style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:28,letterSpacing:2,color:WHITE,marginBottom:4}}>Brain Training</h3>
+              <p style={{fontFamily:"'Crimson Pro',serif",fontStyle:"italic",fontSize:15,color:MUTED}}>Daily cognitive challenges — 6 rounds, ~6-7 minutes</p>
             </div>
             <div style={{textAlign:"right",flexShrink:0}}>
-              <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:36,letterSpacing:1,color:WHITE}}>£3</div>
-              <div style={{fontSize:11,color:DIMMED}}>one-time</div>
+              <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:36,letterSpacing:1,color:WHITE}}>£5</div>
+              <div style={{fontSize:14,color:DIMMED}}>one-time</div>
             </div>
           </div>
           <div style={{display:"flex",flexDirection:"column",gap:8,marginBottom:20}}>
-            {[["⚛","Pattern Lock — sequence recognition & logic"],["◈","Neural Math — mental arithmetic under pressure"],["◎","Focus Filter — selective attention training"],["⬡","Memory Matrix — visual working memory"],["△","Conceptual Bridge — creative reasoning depth"]].map(([ic,tx])=>(
+            {[["🎨","Stroop Challenge — executive function & conflict resolution"],["🧠","2-Back Test — working memory & fluid intelligence"],["🔷","Pattern Matrix — spatial reasoning & abstract logic"],["⚡","Reaction Velocity — processing speed & decision time"],["🔄","Cognitive Switch — mental flexibility & task switching"],["🛡️","Neural Defense — sustained attention & visual tracking"]].map(([ic,tx])=>(
               <div key={tx} style={{display:"flex",gap:10,alignItems:"center"}}>
-                <span style={{color:E_BLUE,fontSize:13,flexShrink:0}}>{ic}</span>
-                <span style={{fontSize:13,color:MUTED}}>{tx}</span>
+                <span style={{color:E_BLUE,fontSize:16,flexShrink:0}}>{ic}</span>
+                <span style={{fontSize:16,color:MUTED}}>{tx}</span>
               </div>
             ))}
           </div>
           <div style={{display:"flex",gap:8,alignItems:"center",padding:"10px 14px",background:"rgba(0,200,255,0.04)",border:`1px solid ${BORDER2}`,borderRadius:10,marginBottom:16}}>
             <span style={{fontSize:14}}>🔥</span>
-            <span style={{fontSize:12,color:DIMMED}}>Streak tracking · XP system · 5 Neural Levels · Daily action cards</span>
+            <span style={{fontSize:15,color:DIMMED}}>Streak tracking · XP system · 5 Neural Levels · Daily action cards</span>
           </div>
           {unlocks.neural
             ? <button onClick={onOpenNeural} style={{width:"100%",border:"none",borderRadius:100,padding:"14px",fontSize:14,fontWeight:700,fontFamily:"'Space Grotesk',sans-serif",cursor:"pointer",background:`linear-gradient(135deg,${E_BLUE2},${E_BLUE})`,color:BG,letterSpacing:".05em",display:"flex",alignItems:"center",justifyContent:"center",gap:8}}>
@@ -534,7 +536,7 @@ function AddOnShop({unlocks, onUnlockNeural, onUnlockVital, onOpenNeural, onOpen
               </button>
             : <button onClick={onUnlockNeural} style={{width:"100%",border:"none",borderRadius:100,padding:"14px",fontSize:14,fontWeight:700,fontFamily:"'Space Grotesk',sans-serif",cursor:"pointer",background:`linear-gradient(135deg,${E_BLUE2},${E_BLUE})`,color:BG,letterSpacing:".05em",transition:"all .2s"}}
                 onMouseEnter={e=>e.currentTarget.style.transform="translateY(-2px)"} onMouseLeave={e=>e.currentTarget.style.transform="translateY(0)"}>
-                🔒 Unlock for £3 →
+                🔒 Unlock for £5 →
               </button>
           }
         </div>
@@ -545,26 +547,26 @@ function AddOnShop({unlocks, onUnlockNeural, onUnlockVital, onOpenNeural, onOpen
         <div style={{padding:"24px 24px 20px"}}>
           <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:16}}>
             <div>
-              <p style={{fontSize:10,fontWeight:700,color:"#34D399",letterSpacing:".14em",textTransform:"uppercase",marginBottom:8}}>🌱 Add-On 2</p>
-              <h3 style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:28,letterSpacing:2,color:WHITE,marginBottom:4}}>The Five Vital Laws</h3>
-              <p style={{fontFamily:"'Crimson Pro',serif",fontStyle:"italic",fontSize:15,color:MUTED}}>Tips on healthy living for the complete you</p>
+              <p style={{fontSize:16,fontWeight:700,color:"#34D399",letterSpacing:".14em",textTransform:"uppercase",marginBottom:8}}>🌱 Add-On 2</p>
+              <h3 style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:28,letterSpacing:2,color:WHITE,marginBottom:4}}>Quantum Living</h3>
+              <p style={{fontFamily:"'Crimson Pro',serif",fontStyle:"italic",fontSize:15,color:MUTED}}>5 Quantum Laws + daily wellness insights</p>
             </div>
             <div style={{textAlign:"right",flexShrink:0}}>
-              <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:36,letterSpacing:1,color:WHITE}}>£3</div>
-              <div style={{fontSize:11,color:DIMMED}}>one-time</div>
+              <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:36,letterSpacing:1,color:WHITE}}>£5</div>
+              <div style={{fontSize:14,color:DIMMED}}>one-time</div>
             </div>
           </div>
           <div style={{display:"flex",flexDirection:"column",gap:8,marginBottom:20}}>
             {[["🌙","Law I — Proper Sleep — the quantum rest protocol"],["🌿","Law II — Fresh Air — the oxygen advantage"],["⚖️","Law III — Temperance — the art of enough"],["⚡","Law IV — Exercise — the moving brain"],["🌱","Law V — Simple Nourishment — the quantum plate"]].map(([ic,tx])=>(
               <div key={tx} style={{display:"flex",gap:10,alignItems:"center"}}>
                 <span style={{fontSize:14,flexShrink:0}}>{ic}</span>
-                <span style={{fontSize:13,color:MUTED}}>{tx}</span>
+                <span style={{fontSize:16,color:MUTED}}>{tx}</span>
               </div>
             ))}
           </div>
           <div style={{display:"flex",gap:8,alignItems:"center",padding:"10px 14px",background:"rgba(52,211,153,0.04)",border:"1px solid rgba(52,211,153,0.15)",borderRadius:10,marginBottom:16}}>
             <span style={{fontSize:14}}>🌿</span>
-            <span style={{fontSize:12,color:DIMMED}}>Plant-based · Science-backed · Daily practice tracker · LQM-aligned principles</span>
+            <span style={{fontSize:15,color:DIMMED}}>Plant-based · Science-backed · Daily practice tracker · LQM-aligned principles</span>
           </div>
           {unlocks.vital
             ? <button onClick={onOpenVital} style={{width:"100%",border:"none",borderRadius:100,padding:"14px",fontSize:14,fontWeight:700,fontFamily:"'Space Grotesk',sans-serif",cursor:"pointer",background:"linear-gradient(135deg,#059669,#34D399)",color:BG,letterSpacing:".05em",display:"flex",alignItems:"center",justifyContent:"center",gap:8}}>
@@ -572,7 +574,7 @@ function AddOnShop({unlocks, onUnlockNeural, onUnlockVital, onOpenNeural, onOpen
               </button>
             : <button onClick={onUnlockVital} style={{width:"100%",border:"none",borderRadius:100,padding:"14px",fontSize:14,fontWeight:700,fontFamily:"'Space Grotesk',sans-serif",cursor:"pointer",background:"linear-gradient(135deg,#059669,#34D399)",color:BG,letterSpacing:".05em",transition:"all .2s"}}
                 onMouseEnter={e=>e.currentTarget.style.transform="translateY(-2px)"} onMouseLeave={e=>e.currentTarget.style.transform="translateY(0)"}>
-                🔒 Unlock for £3 →
+                🔒 Unlock for £5 →
               </button>
           }
         </div>
@@ -580,7 +582,7 @@ function AddOnShop({unlocks, onUnlockNeural, onUnlockVital, onOpenNeural, onOpen
 
       {/* Bundle note */}
       <div style={{textAlign:"center",background:"rgba(255,255,255,0.02)",border:`1px solid ${BORDER2}`,borderRadius:14,padding:"16px 20px",marginBottom:8}}>
-        <p style={{fontSize:13,color:MUTED,lineHeight:1.6}}>Both add-ons together for <strong style={{color:WHITE}}>£6</strong> — or pick what resonates. No subscriptions. Yours forever.</p>
+        <p style={{fontSize:16,color:MUTED,lineHeight:1.6}}>Both add-ons together for <strong style={{color:WHITE}}>£6</strong> — or pick what resonates. No subscriptions. Yours forever.</p>
       </div>
     </div>
   );
@@ -591,14 +593,14 @@ function Landing({onStart,t,fmt}){
     <div>
       <div className="fu" style={{textAlign:"center",marginBottom:28,paddingTop:8}}><Logo size="lg"/></div>
       <div className="fu1" style={{textAlign:"center",marginBottom:10}}>
-        <p style={{fontSize:11,fontWeight:700,letterSpacing:".16em",textTransform:"uppercase",color:E_BLUE,marginBottom:14}}>⚡ Behavioural Intelligence Assessment</p>
+        <p style={{fontSize:14,fontWeight:700,letterSpacing:".16em",textTransform:"uppercase",color:E_BLUE,marginBottom:14}}>⚡ Behavioural Intelligence Assessment</p>
         <h1 style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"clamp(36px,8vw,64px)",lineHeight:1.05,letterSpacing:2,color:WHITE,marginBottom:6}}>You Don't Have A<br/><span className="elec">Motivation Problem.</span></h1>
         <h2 style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"clamp(24px,5vw,40px)",lineHeight:1,letterSpacing:2,color:"rgba(255,255,255,0.28)",marginBottom:22}}>You Have A Systems Problem.</h2>
       </div>
       <p className="fu2" style={{textAlign:"center",fontFamily:"'Crimson Pro',serif",fontStyle:"italic",fontSize:19,lineHeight:1.75,color:MUTED,maxWidth:500,margin:"0 auto 28px"}}>"Small shifts, consistently honoured, produce quantum results. The habit is not the destination — it is the vehicle." — The LQM Principle</p>
       <div className="fu3" style={{display:"flex",gap:8,justifyContent:"center",flexWrap:"wrap",marginBottom:28}}>
         {[["⚛","10-question profile"],["◎","4 behavioural archetypes"],["△","LQM Quantum Method"],["⬡","Personalised systems plan"]].map(([ic,lb])=>(
-          <div key={lb} style={{display:"flex",alignItems:"center",gap:7,fontSize:13,color:DIMMED,fontWeight:500,background:"rgba(255,255,255,0.03)",border:`1px solid ${BORDER2}`,borderRadius:100,padding:"6px 14px"}}>
+          <div key={lb} style={{display:"flex",alignItems:"center",gap:7,fontSize:16,color:DIMMED,fontWeight:500,background:"rgba(255,255,255,0.03)",border:`1px solid ${BORDER2}`,borderRadius:100,padding:"6px 14px"}}>
             <span style={{color:E_BLUE}}>{ic}</span>{lb}
           </div>
         ))}
@@ -606,26 +608,26 @@ function Landing({onStart,t,fmt}){
       <Panel className="fu4" style={{marginBottom:14,borderColor:BORDER}} glow>
         <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:14}}>
           <span style={{color:E_BLUE,fontSize:18}}>⚡</span>
-          <p style={{fontSize:10,fontWeight:700,letterSpacing:".14em",textTransform:"uppercase",color:E_BLUE}}>Launch Pricing — Limited Window</p>
+          <p style={{fontSize:16,fontWeight:700,letterSpacing:".14em",textTransform:"uppercase",color:E_BLUE}}>Launch Pricing — Limited Window</p>
         </div>
         <div style={{display:"flex",alignItems:"baseline",gap:12,marginBottom:8}}>
           <span style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:54,letterSpacing:1,color:WHITE}}>£{DISCOUNTED}</span>
           <span style={{fontSize:22,color:DIMMED,textDecoration:"line-through"}}>£{ORIGINAL}</span>
-          <span style={{background:"rgba(0,200,255,0.1)",border:`1px solid ${BORDER}`,color:E_BLUE,padding:"3px 12px",borderRadius:100,fontSize:12,fontWeight:700}}>67% off</span>
+          <span style={{background:"rgba(0,200,255,0.1)",border:`1px solid ${BORDER}`,color:E_BLUE,padding:"3px 12px",borderRadius:100,fontSize:15,fontWeight:700}}>67% off</span>
         </div>
         <p style={{fontSize:14,color:MUTED,fontWeight:300,lineHeight:1.6}}>Complete the assessment to lock in this price. Full personalised report delivered instantly.</p>
       </Panel>
       <div className="fu4" style={{textAlign:"center",marginBottom:12}}><TimerBadge t={t} fmt={fmt}/></div>
       <div className="fu5" style={{textAlign:"center"}}>
         <PrimaryBtn onClick={onStart}>⚡ Begin My Profile Assessment →</PrimaryBtn>
-        <p style={{marginTop:10,fontSize:12,color:DIMMED}}>No payment required until you see your results</p>
+        <p style={{marginTop:10,fontSize:15,color:DIMMED}}>No payment required until you see your results</p>
       </div>
       <Panel style={{marginTop:26,borderTop:`2px solid rgba(0,200,255,0.18)`}}>
         <SLabel>What's inside your report</SLabel>
         {[["⚛","Your Behavioural Archetype","Deep analysis of your unique motivation architecture — how you're wired to learn, decide and perform"],["◈","Strengths & Blind Spot Analysis","An honest breakdown of your psychological edge and the patterns quietly holding you back"],["△","3 LQM Quantum Strategy Cards","Scenario-based systems designed specifically for your profile"],["⬡","Your Identity Statement","The single sentence that, when repeated, rewires how you show up every day"],["◎","Your LQM Behaviour Blueprint","A personalised daily system built around your natural motivation architecture"]].map(([ic,ti,de])=>(
           <div key={ti} style={{display:"flex",gap:14,marginBottom:16,alignItems:"flex-start"}}>
             <span style={{color:E_BLUE,fontSize:17,flexShrink:0,marginTop:2}}>{ic}</span>
-            <div><p style={{fontSize:14,fontWeight:600,color:WHITE,marginBottom:3}}>{ti}</p><p style={{fontSize:13,color:MUTED,fontWeight:300,lineHeight:1.6}}>{de}</p></div>
+            <div><p style={{fontSize:14,fontWeight:600,color:WHITE,marginBottom:3}}>{ti}</p><p style={{fontSize:16,color:MUTED,fontWeight:300,lineHeight:1.6}}>{de}</p></div>
           </div>
         ))}
       </Panel>
@@ -646,21 +648,63 @@ function Quiz({q,idx,sel,onSel,onNext,t,fmt}){
       </div>
       <Panel glow>
         <div style={{fontSize:28,color:E_BLUE,marginBottom:12,textShadow:`0 0 18px ${E_BLUE}`}}>{q.sym}</div>
-        <h2 style={{fontFamily:"'Crimson Pro',serif",fontSize:"clamp(19px,3.5vw,25px)",fontWeight:400,lineHeight:1.5,color:WHITE,marginBottom:26}}>{q.text}</h2>
+        
+        {/* Visual Bonus Question */}
+        {q.isVisual && (
+          <div style={{marginBottom:20}}>
+            <div style={{display:"inline-block",background:"rgba(251,191,36,0.1)",border:"1px solid rgba(251,191,36,0.3)",borderRadius:100,padding:"6px 16px",marginBottom:16}}>
+              <span style={{fontSize:12,fontWeight:700,color:AMBER,letterSpacing:".12em"}}>VISUAL INSIGHT</span>
+            </div>
+          </div>
+        )}
+        
+        <h2 style={{fontFamily:"'Crimson Pro',serif",fontSize:"clamp(19px,3.5vw,25px)",fontWeight:400,lineHeight:1.5,color:WHITE,marginBottom:q.subtitle?10:26}}>{q.text}</h2>
+        
+        {q.subtitle && (
+          <p style={{fontSize:15,color:MUTED,marginBottom:20,fontStyle:"italic"}}>{q.subtitle}</p>
+        )}
+        
+        {/* Visual Question Image */}
+        {q.isVisual && (
+          <div style={{marginBottom:24,textAlign:"center"}}>
+            <img 
+              src={`/${q.imageUrl}`} 
+              alt="Visual perception test" 
+              style={{
+                maxWidth:"100%",
+                width:380,
+                height:"auto",
+                borderRadius:12,
+                border:`2px solid ${BORDER2}`,
+                boxShadow:`0 4px 20px rgba(0,0,0,0.3)`
+              }}
+              onError={(e) => {
+                // Fallback if image not found
+                e.target.style.display = 'none';
+                e.target.nextSibling.style.display = 'block';
+              }}
+            />
+            <div style={{display:"none",padding:"60px 20px",background:"rgba(255,255,255,0.03)",border:`1px solid ${BORDER2}`,borderRadius:12}}>
+              <p style={{fontSize:14,color:DIMMED,marginBottom:8}}>📁 Image placeholder</p>
+              <p style={{fontSize:12,color:DIMMED,fontStyle:"italic"}}>Place tree-woman-illusion.jpg in the public folder</p>
+            </div>
+          </div>
+        )}
+        
         <div style={{display:"flex",flexDirection:"column",gap:10,marginBottom:22}}>
           {q.opts.map((opt,i)=>{
             const isS=sel===opt.ty;
             return(
-              <button key={i} onClick={()=>onSel(opt.ty)} style={{background:isS?"rgba(0,200,255,0.08)":"rgba(255,255,255,0.025)",border:`1.5px solid ${isS?E_BLUE:BORDER2}`,borderRadius:12,padding:"14px 18px",textAlign:"left",cursor:"pointer",transition:"all .2s ease",color:isS?WHITE:MUTED,fontSize:14,fontFamily:"'Space Grotesk',sans-serif",fontWeight:isS?500:400,lineHeight:1.5,display:"flex",alignItems:"center",gap:14,boxShadow:isS?`0 0 18px ${E_GLOW}`:"none"}}
+              <button key={i} onClick={()=>onSel(opt.ty)} style={{background:isS?"rgba(0,200,255,0.08)":"rgba(255,255,255,0.025)",border:`1.5px solid ${isS?E_BLUE:BORDER2}`,borderRadius:12,padding:"14px 18px",textAlign:"left",cursor:"pointer",transition:"all .2s ease",color:isS?WHITE:MUTED,fontSize:16,fontFamily:"'Space Grotesk',sans-serif",fontWeight:isS?500:400,lineHeight:1.5,display:"flex",alignItems:"center",gap:14,boxShadow:isS?`0 0 18px ${E_GLOW}`:"none"}}
                 onMouseEnter={e=>{if(!isS){e.currentTarget.style.borderColor=BORDER;e.currentTarget.style.color=WHITE;}}}
                 onMouseLeave={e=>{if(!isS){e.currentTarget.style.borderColor=BORDER2;e.currentTarget.style.color=MUTED;}}}>
-                <span style={{width:26,height:26,borderRadius:"50%",border:`1.5px solid ${isS?E_BLUE:BORDER2}`,background:isS?E_BLUE:"transparent",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,fontSize:11,color:isS?BG:"transparent",fontWeight:800,transition:"all .2s"}}>✓</span>
+                <span style={{width:26,height:26,borderRadius:"50%",border:`1.5px solid ${isS?E_BLUE:BORDER2}`,background:isS?E_BLUE:"transparent",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,fontSize:14,color:isS?BG:"transparent",fontWeight:800,transition:"all .2s"}}>✓</span>
                 {opt.t}
               </button>
             );
           })}
         </div>
-        {sel?<PrimaryBtn onClick={onNext}>{idx<questions.length-1?"Next Question →":"Reveal My Profile →"}</PrimaryBtn>:<button disabled style={{width:"100%",border:"none",borderRadius:100,padding:"17px",fontSize:15,fontWeight:700,fontFamily:"'Space Grotesk',sans-serif",cursor:"not-allowed",background:"rgba(255,255,255,0.04)",color:DIMMED}}>Select an answer to continue</button>}
+        {sel?<PrimaryBtn onClick={onNext}>{idx<questions.length-1?"Next Question →":"Reveal My Profile →"}</PrimaryBtn>:<button disabled style={{width:"100%",border:"none",borderRadius:100,padding:"17px",fontSize:16,fontWeight:700,fontFamily:"'Space Grotesk',sans-serif",cursor:"not-allowed",background:"rgba(255,255,255,0.04)",color:DIMMED}}>Select an answer to continue</button>}
       </Panel>
     </div>
   );
@@ -680,7 +724,7 @@ function Processing({step}){
         {steps.map((s,i)=>(
           <div key={i} style={{display:"flex",gap:12,alignItems:"center",marginBottom:i<steps.length-1?14:0,opacity:step>i?1:.2,transition:"opacity .5s ease"}}>
             <span style={{color:step>i?E_BLUE:DIMMED,fontSize:14,flexShrink:0}}>{step>i?"⚡":"○"}</span>
-            <span style={{fontSize:13,color:step>i?WHITE:DIMMED,fontWeight:step>i?500:300}}>{s}</span>
+            <span style={{fontSize:16,color:step>i?WHITE:DIMMED,fontWeight:step>i?500:300}}>{s}</span>
           </div>
         ))}
       </Panel>
@@ -692,7 +736,7 @@ function Teaser({type,t,fmt,onUnlock}){
   return(
     <div style={{animation:"fadeUp .6s ease both"}}>
       <Panel glow style={{textAlign:"center",marginBottom:14,borderColor:`${type.blue}44`}}>
-        <p style={{fontSize:10,fontWeight:700,letterSpacing:".16em",textTransform:"uppercase",color:type.blue,marginBottom:14}}>⚡ Your LQM Behavioural Profile</p>
+        <p style={{fontSize:16,fontWeight:700,letterSpacing:".16em",textTransform:"uppercase",color:type.blue,marginBottom:14}}>⚡ Your LQM Behavioural Profile</p>
         <div style={{fontSize:50,color:type.blue,marginBottom:10}}>{type.sym}</div>
         <h1 style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"clamp(26px,5vw,40px)",letterSpacing:2,color:WHITE,marginBottom:4}}>{type.name}</h1>
         <p style={{fontFamily:"'Crimson Pro',serif",fontSize:16,fontStyle:"italic",color:type.blue,marginBottom:18}}>{type.arch}</p>
@@ -705,7 +749,7 @@ function Teaser({type,t,fmt,onUnlock}){
           <p style={{fontFamily:"'Crimson Pro',serif",fontSize:18,fontStyle:"italic",color:WHITE,lineHeight:1.6}}>"{type.identity}"</p>
         </div>
         <div style={{position:"absolute",bottom:0,left:0,right:0,height:"50%",background:`linear-gradient(to bottom,transparent,${DARK})`,display:"flex",alignItems:"flex-end",justifyContent:"center",paddingBottom:10}}>
-          <span style={{fontSize:13,color:DIMMED}}>🔒 Unlock to reveal</span>
+          <span style={{fontSize:16,color:DIMMED}}>🔒 Unlock to reveal</span>
         </div>
       </Panel>
       <Panel style={{marginBottom:18,position:"relative",overflow:"hidden",minHeight:170}}>
@@ -714,12 +758,12 @@ function Teaser({type,t,fmt,onUnlock}){
           {type.strategies.map((s,i)=>(
             <div key={i} style={{display:"flex",gap:12,marginBottom:14,alignItems:"flex-start"}}>
               <span style={{color:type.blue,fontSize:15,flexShrink:0}}>◈</span>
-              <div><p style={{fontSize:13,fontWeight:600,color:WHITE,marginBottom:3}}>{s.area}</p><p style={{fontSize:12,color:MUTED,fontWeight:300}}>{s.scenario}</p></div>
+              <div><p style={{fontSize:16,fontWeight:600,color:WHITE,marginBottom:3}}>{s.area}</p><p style={{fontSize:15,color:MUTED,fontWeight:300}}>{s.scenario}</p></div>
             </div>
           ))}
         </div>
         <div style={{position:"absolute",bottom:0,left:0,right:0,height:"60%",background:`linear-gradient(to bottom,transparent,${DARK})`,display:"flex",alignItems:"flex-end",justifyContent:"center",paddingBottom:12}}>
-          <span style={{fontSize:13,color:DIMMED}}>🔒 3 personalised strategy cards inside</span>
+          <span style={{fontSize:16,color:DIMMED}}>🔒 3 personalised strategy cards inside</span>
         </div>
       </Panel>
       <Panel glow style={{borderColor:BORDER}}>
@@ -728,14 +772,14 @@ function Teaser({type,t,fmt,onUnlock}){
           <div style={{display:"flex",alignItems:"baseline",gap:12,justifyContent:"center",marginBottom:6}}>
             <span style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:54,letterSpacing:1,color:WHITE}}>£{DISCOUNTED}</span>
             <span style={{fontSize:22,color:DIMMED,textDecoration:"line-through"}}>£{ORIGINAL}</span>
-            <span style={{background:"rgba(0,200,255,0.1)",border:`1px solid ${BORDER}`,color:E_BLUE,padding:"3px 12px",borderRadius:100,fontSize:12,fontWeight:700}}>67% off</span>
+            <span style={{background:"rgba(0,200,255,0.1)",border:`1px solid ${BORDER}`,color:E_BLUE,padding:"3px 12px",borderRadius:100,fontSize:15,fontWeight:700}}>67% off</span>
           </div>
-          <p style={{fontSize:13,color:DIMMED}}>One-time · Instant access · Full personalised report</p>
+          <p style={{fontSize:16,color:DIMMED}}>One-time · Instant access · Full personalised report</p>
         </div>
         <PrimaryBtn onClick={onUnlock}>⚡ Unlock My Full Profile Report →</PrimaryBtn>
         <div style={{display:"flex",gap:20,justifyContent:"center",flexWrap:"wrap",marginTop:14}}>
           {["Instant access","Built for your profile","7-day guarantee"].map(f=>(
-            <span key={f} style={{fontSize:12,color:DIMMED,display:"flex",alignItems:"center",gap:5}}><span style={{color:E_BLUE}}>✓</span>{f}</span>
+            <span key={f} style={{fontSize:15,color:DIMMED,display:"flex",alignItems:"center",gap:5}}><span style={{color:E_BLUE}}>✓</span>{f}</span>
           ))}
         </div>
       </Panel>
@@ -758,35 +802,307 @@ function DeliveryGate({ref_, ts, type, onConfirm}){
         <p style={{fontFamily:"'Crimson Pro',serif",fontStyle:"italic",fontSize:16,color:"rgba(255,255,255,0.6)",marginBottom:28,lineHeight:1.65}}>Your full LQM {type.name} report has been prepared and is ready for delivery.</p>
 
         <div style={{background:"rgba(52,211,153,0.06)",border:"1px solid rgba(52,211,153,0.2)",borderRadius:14,padding:"18px 20px",marginBottom:24,textAlign:"left"}}>
-          <p style={{fontSize:9,fontWeight:700,color:"rgba(52,211,153,0.7)",letterSpacing:".12em",textTransform:"uppercase",marginBottom:10}}>Delivery Details</p>
+          <p style={{fontSize:15,fontWeight:700,color:"rgba(52,211,153,0.7)",letterSpacing:".12em",textTransform:"uppercase",marginBottom:10}}>Delivery Details</p>
           <div style={{display:"flex",flexDirection:"column",gap:8}}>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-              <span style={{fontSize:12,color:"rgba(255,255,255,0.4)"}}>Reference</span>
-              <span style={{fontSize:12,fontFamily:"monospace",color:"#34D399",fontWeight:700}}>{ref_}</span>
+              <span style={{fontSize:15,color:"rgba(255,255,255,0.4)"}}>Reference</span>
+              <span style={{fontSize:15,fontFamily:"monospace",color:"#34D399",fontWeight:700}}>{ref_}</span>
             </div>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-              <span style={{fontSize:12,color:"rgba(255,255,255,0.4)"}}>Delivered</span>
-              <span style={{fontSize:12,color:"rgba(255,255,255,0.7)"}}>{ts}</span>
+              <span style={{fontSize:15,color:"rgba(255,255,255,0.4)"}}>Delivered</span>
+              <span style={{fontSize:15,color:"rgba(255,255,255,0.7)"}}>{ts}</span>
             </div>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-              <span style={{fontSize:12,color:"rgba(255,255,255,0.4)"}}>Profile</span>
-              <span style={{fontSize:12,color:type.blue,fontWeight:600}}>{type.name}</span>
+              <span style={{fontSize:15,color:"rgba(255,255,255,0.4)"}}>Profile</span>
+              <span style={{fontSize:15,color:type.blue,fontWeight:600}}>{type.name}</span>
             </div>
           </div>
         </div>
 
-        <p style={{fontSize:12,color:"rgba(255,255,255,0.4)",lineHeight:1.65,marginBottom:22}}>By clicking below you confirm that your full LQM report has been successfully delivered to you on screen. This serves as your delivery receipt. We recommend screenshotting this screen and your report for your records.</p>
+        <p style={{fontSize:15,color:"rgba(255,255,255,0.4)",lineHeight:1.65,marginBottom:22}}>By clicking below you confirm that your full LQM report has been successfully delivered to you on screen. This serves as your delivery receipt. We recommend screenshotting this screen and your report for your records.</p>
 
-        <button onClick={countdown>0?undefined:onConfirm} disabled={countdown>0} style={{width:"100%",border:"none",borderRadius:100,padding:"16px",fontSize:15,fontWeight:700,fontFamily:"'Space Grotesk',sans-serif",cursor:countdown>0?"not-allowed":"pointer",background:countdown>0?"rgba(255,255,255,0.06)":"linear-gradient(135deg,#059669,#34D399)",color:countdown>0?"rgba(255,255,255,0.3)":"#070F1E",letterSpacing:".05em",transition:"all .3s"}}>
+        <button onClick={countdown>0?undefined:onConfirm} disabled={countdown>0} style={{width:"100%",border:"none",borderRadius:100,padding:"16px",fontSize:16,fontWeight:700,fontFamily:"'Space Grotesk',sans-serif",cursor:countdown>0?"not-allowed":"pointer",background:countdown>0?"rgba(255,255,255,0.06)":"linear-gradient(135deg,#059669,#34D399)",color:countdown>0?"rgba(255,255,255,0.3)":"#070F1E",letterSpacing:".05em",transition:"all .3s"}}>
           {countdown>0?`Please read — confirming in ${countdown}s…`:"✓ I Confirm Receipt — View My Report →"}
         </button>
-        <p style={{fontSize:10,color:"rgba(255,255,255,0.2)",marginTop:12}}>Ref: {ref_} · LQM Terms apply · {ts}</p>
+        <p style={{fontSize:16,color:"rgba(255,255,255,0.2)",marginTop:12}}>Ref: {ref_} · LQM Terms apply · {ts}</p>
       </div>
     </div>
   );
 }
 
-function Report({type, deliveryRef, deliveryTs}){
+// ══════════════════════════════════════════════════════════════════════════
+// DASHBOARD — Home Hub
+// ══════════════════════════════════════════════════════════════════════════
+function Dashboard({type, unlocks, onViewReport, onOpenBrain, onOpenQuantum, onUnlockBrain, onUnlockQuantum}) {
+  const brainData = (() => { try { return JSON.parse(localStorage.getItem("lqm_brain")||"{}"); } catch { return {}; } })();
+  const livingData = (() => { try { return JSON.parse(localStorage.getItem("lqm_living")||"{}"); } catch { return {}; } })();
+  
+  // Load 21-day challenge data
+  const brainChallenge = (() => { try { return JSON.parse(localStorage.getItem("lqm_challenge_brain")||"null"); } catch { return null; } })();
+  const quantumChallenge = (() => { try { return JSON.parse(localStorage.getItem("lqm_challenge_quantum")||"null"); } catch { return null; } })();
+  
+  const brainXP = brainData.totalXP || 0;
+  const brainStreak = brainData.streak || 0;
+  const brainLevel = brainXP >= 500 ? "Advanced" : brainXP >= 250 ? "Proficient" : brainXP >= 100 ? "Developing" : brainXP >= 25 ? "Initiate" : "Beginner";
+  const livingStreak = livingData.streak || 0;
+  
+  // 21-day progress for Brain Training
+  const brainDay = brainChallenge?.currentDay || 0;
+  const brainDaysCompleted = brainChallenge?.daysCompleted?.length || 0;
+  const brainProgress = Math.min(100, Math.round((brainDay / 21) * 100));
+  const brainNextMilestone = brainDay < 7 ? 7 : brainDay < 14 ? 14 : 21;
+  const brainDaysToMilestone = brainNextMilestone - brainDay;
+  
+  // 21-day progress for Quantum Living
+  const quantumDay = quantumChallenge?.currentDay || 0;
+  const quantumDaysCompleted = quantumChallenge?.daysCompleted?.length || 0;
+  const quantumProgress = Math.min(100, Math.round((quantumDay / 21) * 100));
+
+  return (
+    <div style={{animation:"fadeUp .6s ease both"}}>
+      <div style={{textAlign:"center",marginBottom:32}}>
+        <p style={{fontSize:13,fontWeight:700,letterSpacing:".16em",textTransform:"uppercase",color:E_BLUE,marginBottom:12}}>⚡ Your LQM Dashboard</p>
+        <h1 style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"clamp(32px,7vw,52px)",letterSpacing:2,color:WHITE,lineHeight:1.05,marginBottom:8}}>
+          Welcome Back,<br/><span style={{color:type.blue}}>{type.name}</span>
+        </h1>
+        <p style={{fontFamily:"'Crimson Pro',serif",fontStyle:"italic",fontSize:17,color:MUTED,lineHeight:1.7}}>Your complete Learning Quantum Method system — all in one place.</p>
+      </div>
+
+      <div onClick={onViewReport} style={{background:`linear-gradient(145deg,${type.glow},rgba(0,0,0,0.3))`,border:`2px solid ${type.blue}55`,borderRadius:20,padding:"28px 26px",marginBottom:16,cursor:"pointer",transition:"all .25s",boxShadow:`0 4px 20px ${type.glow}`}}
+        onMouseEnter={e=>{e.currentTarget.style.transform="translateY(-3px)";e.currentTarget.style.boxShadow=`0 8px 30px ${type.glow}`;}}
+        onMouseLeave={e=>{e.currentTarget.style.transform="translateY(0)";e.currentTarget.style.boxShadow=`0 4px 20px ${type.glow}`;}}>
+        <div style={{display:"flex",alignItems:"center",gap:20,marginBottom:14}}>
+          <div style={{fontSize:48,filter:`drop-shadow(0 0 12px ${type.blue})`}}>{type.sym}</div>
+          <div style={{flex:1}}>
+            <p style={{fontSize:13,fontWeight:700,color:type.blue,letterSpacing:".12em",textTransform:"uppercase",marginBottom:4}}>📊 Your Profile</p>
+            <h3 style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:28,letterSpacing:2,color:WHITE,marginBottom:2}}>{type.name}</h3>
+            <p style={{fontFamily:"'Crimson Pro',serif",fontStyle:"italic",fontSize:15,color:MUTED}}>{type.arch}</p>
+          </div>
+          <div style={{fontSize:28,color:type.blue}}>→</div>
+        </div>
+        <div style={{padding:"12px 16px",background:"rgba(0,0,0,0.2)",borderRadius:10,border:`1px solid ${type.blue}22`}}>
+          <p style={{fontSize:14,color:MUTED,textAlign:"center"}}>
+            <strong style={{color:WHITE}}>Full behavioural analysis</strong> · Core strengths · Blind spots · Quantum actions
+          </p>
+        </div>
+      </div>
+
+      {/* 21-Day Challenge Progress Widget */}
+      {(brainChallenge || quantumChallenge) && (
+        <div style={{background:`linear-gradient(145deg,${DARK2},${DARK})`,border:`1px solid ${BORDER2}`,borderRadius:18,padding:"24px",marginBottom:20}}>
+          <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:18}}>
+            <div>
+              <p style={{fontSize:13,fontWeight:700,color:E_BLUE,letterSpacing:".12em",textTransform:"uppercase",marginBottom:4}}>🎯 21-Day Transformation</p>
+              <p style={{fontSize:15,color:MUTED}}>Track your daily progress and unlock milestones</p>
+            </div>
+          </div>
+
+          {brainChallenge && unlocks.neural && (
+            <div style={{marginBottom:brainChallenge && quantumChallenge ? 20 : 0}}>
+              <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:10}}>
+                <div style={{display:"flex",alignItems:"center",gap:10}}>
+                  <span style={{fontSize:20}}>⚡</span>
+                  <span style={{fontSize:14,fontWeight:600,color:WHITE}}>Brain Training</span>
+                </div>
+                <span style={{fontSize:13,color:E_BLUE,fontWeight:700}}>Day {brainDay} of 21</span>
+              </div>
+              
+              <div style={{position:"relative",height:8,background:"rgba(255,255,255,0.06)",borderRadius:100,marginBottom:12,overflow:"hidden"}}>
+                <div style={{position:"absolute",left:0,top:0,height:"100%",width:`${brainProgress}%`,background:`linear-gradient(90deg,${E_BLUE2},${E_BLUE})`,borderRadius:100,transition:"width .5s ease"}}/>
+                {/* Milestone markers */}
+                <div style={{position:"absolute",left:"33.33%",top:0,width:2,height:"100%",background:"rgba(255,255,255,0.2)"}}/>
+                <div style={{position:"absolute",left:"66.66%",top:0,width:2,height:"100%",background:"rgba(255,255,255,0.2)"}}/>
+              </div>
+              
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                <div style={{display:"flex",gap:12,fontSize:12}}>
+                  <span style={{color:brainDay >= 7 ? GREEN : DIMMED}}>✓ Day 7</span>
+                  <span style={{color:brainDay >= 14 ? GREEN : DIMMED}}>✓ Day 14</span>
+                  <span style={{color:brainDay >= 21 ? GREEN : DIMMED}}>✓ Day 21</span>
+                </div>
+                {brainDay < 21 && (
+                  <span style={{fontSize:12,color:DIMMED}}>{brainDaysToMilestone} days to next milestone</span>
+                )}
+              </div>
+              
+              <div style={{display:"flex",gap:8,marginTop:12}}>
+                <div style={{flex:1,background:"rgba(0,200,255,0.06)",border:`1px solid ${BORDER2}`,borderRadius:8,padding:"10px",textAlign:"center"}}>
+                  <p style={{fontSize:11,color:DIMMED,marginBottom:2}}>Sessions</p>
+                  <p style={{fontSize:16,fontWeight:700,color:E_BLUE}}>{brainChallenge.sessionsCompleted || 0}</p>
+                </div>
+                <div style={{flex:1,background:"rgba(52,211,153,0.06)",border:"1px solid rgba(52,211,153,0.2)",borderRadius:8,padding:"10px",textAlign:"center"}}>
+                  <p style={{fontSize:11,color:DIMMED,marginBottom:2}}>Days Active</p>
+                  <p style={{fontSize:16,fontWeight:700,color:GREEN}}>{brainDaysCompleted}</p>
+                </div>
+                {brainStreak > 0 && (
+                  <div style={{flex:1,background:"rgba(251,191,36,0.06)",border:"1px solid rgba(251,191,36,0.2)",borderRadius:8,padding:"10px",textAlign:"center"}}>
+                    <p style={{fontSize:11,color:DIMMED,marginBottom:2}}>Streak</p>
+                    <p style={{fontSize:16,fontWeight:700,color:AMBER}}>{brainStreak}🔥</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {quantumChallenge && unlocks.vital && (
+            <div>
+              <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:10}}>
+                <div style={{display:"flex",alignItems:"center",gap:10}}>
+                  <span style={{fontSize:20}}>🌱</span>
+                  <span style={{fontSize:14,fontWeight:600,color:WHITE}}>Quantum Living</span>
+                </div>
+                <span style={{fontSize:13,color:GREEN,fontWeight:700}}>Day {quantumDay} of 21</span>
+              </div>
+              
+              <div style={{position:"relative",height:8,background:"rgba(255,255,255,0.06)",borderRadius:100,marginBottom:12,overflow:"hidden"}}>
+                <div style={{position:"absolute",left:0,top:0,height:"100%",width:`${quantumProgress}%`,background:"linear-gradient(90deg,#059669,#34D399)",borderRadius:100,transition:"width .5s ease"}}/>
+                <div style={{position:"absolute",left:"33.33%",top:0,width:2,height:"100%",background:"rgba(255,255,255,0.2)"}}/>
+                <div style={{position:"absolute",left:"66.66%",top:0,width:2,height:"100%",background:"rgba(255,255,255,0.2)"}}/>
+              </div>
+              
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                <div style={{display:"flex",gap:12,fontSize:12}}>
+                  <span style={{color:quantumDay >= 7 ? GREEN : DIMMED}}>✓ Day 7</span>
+                  <span style={{color:quantumDay >= 14 ? GREEN : DIMMED}}>✓ Day 14</span>
+                  <span style={{color:quantumDay >= 21 ? GREEN : DIMMED}}>✓ Day 21</span>
+                </div>
+              </div>
+              
+              <div style={{display:"flex",gap:8,marginTop:12}}>
+                <div style={{flex:1,background:"rgba(52,211,153,0.06)",border:"1px solid rgba(52,211,153,0.2)",borderRadius:8,padding:"10px",textAlign:"center"}}>
+                  <p style={{fontSize:11,color:DIMMED,marginBottom:2}}>Days Active</p>
+                  <p style={{fontSize:16,fontWeight:700,color:GREEN}}>{quantumDaysCompleted}</p>
+                </div>
+                {livingStreak > 0 && (
+                  <div style={{flex:1,background:"rgba(251,191,36,0.06)",border:"1px solid rgba(251,191,36,0.2)",borderRadius:8,padding:"10px",textAlign:"center"}}>
+                    <p style={{fontSize:11,color:DIMMED,marginBottom:2}}>Streak</p>
+                    <p style={{fontSize:16,fontWeight:700,color:AMBER}}>{livingStreak}🔥</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {!brainChallenge && !quantumChallenge && (
+            <div style={{textAlign:"center",padding:"20px 0"}}>
+              <p style={{fontSize:14,color:DIMMED,lineHeight:1.75}}>
+                Start your first training session to begin the 21-Day Transformation Challenge
+              </p>
+            </div>
+          )}
+        </div>
+      )}
+
+      <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit, minmax(280px, 1fr))",gap:16,marginBottom:16}}>
+        <div style={{background:`linear-gradient(145deg,${DARK2},${DARK})`,border:`2px solid ${unlocks.neural?"rgba(0,200,255,0.4)":BORDER2}`,borderRadius:18,padding:"24px 22px",cursor:"pointer",transition:"all .25s",boxShadow:unlocks.neural?`0 0 25px rgba(0,200,255,0.1)`:"none"}}
+          onClick={unlocks.neural ? onOpenBrain : onUnlockBrain}
+          onMouseEnter={e=>{e.currentTarget.style.transform="translateY(-3px)";e.currentTarget.style.borderColor=unlocks.neural?E_BLUE:"rgba(0,200,255,0.3)";}}
+          onMouseLeave={e=>{e.currentTarget.style.transform="translateY(0)";e.currentTarget.style.borderColor=unlocks.neural?"rgba(0,200,255,0.4)":BORDER2;}}>
+          <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:16}}>
+            <div style={{width:48,height:48,borderRadius:12,background:"rgba(0,200,255,0.1)",border:`1px solid ${BORDER}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:24}}>⚡</div>
+            {unlocks.neural 
+              ? <div style={{padding:"4px 12px",background:"rgba(0,200,255,0.12)",border:`1px solid ${BORDER}`,borderRadius:100,fontSize:12,color:E_BLUE,fontWeight:700}}>UNLOCKED</div>
+              : <div style={{padding:"4px 12px",background:"rgba(251,191,36,0.12)",border:"1px solid rgba(251,191,36,0.3)",borderRadius:100,fontSize:12,color:AMBER,fontWeight:700}}>£5</div>
+            }
+          </div>
+          <h3 style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:24,letterSpacing:2,color:WHITE,marginBottom:6}}>Brain Training</h3>
+          <p style={{fontSize:14,color:MUTED,lineHeight:1.65,marginBottom:16}}>
+            {unlocks.neural ? "6 science-backed cognitive challenges. Train your quantum mind daily." : "Unlock 6 cognitive challenges with XP progression and streak tracking."}
+          </p>
+          {unlocks.neural && (
+            <div style={{display:"flex",flexDirection:"column",gap:8,marginBottom:16}}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"8px 12px",background:"rgba(0,200,255,0.05)",borderRadius:8}}>
+                <span style={{fontSize:13,color:DIMMED}}>Neural Level</span>
+                <span style={{fontSize:14,color:E_BLUE,fontWeight:700}}>{brainLevel}</span>
+              </div>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"8px 12px",background:"rgba(0,200,255,0.05)",borderRadius:8}}>
+                <span style={{fontSize:13,color:DIMMED}}>Total XP</span>
+                <span style={{fontSize:14,color:WHITE,fontWeight:700}}>{brainXP}</span>
+              </div>
+              {brainStreak > 0 && (
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"8px 12px",background:"rgba(251,191,36,0.08)",borderRadius:8}}>
+                  <span style={{fontSize:13,color:AMBER}}>🔥 Streak</span>
+                  <span style={{fontSize:14,color:AMBER,fontWeight:700}}>{brainStreak} days</span>
+                </div>
+              )}
+            </div>
+          )}
+          <button style={{width:"100%",border:"none",borderRadius:100,padding:"12px",fontSize:15,fontWeight:700,fontFamily:"'Space Grotesk',sans-serif",cursor:"pointer",background:unlocks.neural?`linear-gradient(135deg,${E_BLUE2},${E_BLUE})`:"rgba(0,200,255,0.12)",color:unlocks.neural?BG:E_BLUE,letterSpacing:".05em"}}>
+            {unlocks.neural ? "⚡ Start Training →" : "🔒 Unlock for £5 →"}
+          </button>
+        </div>
+
+        <div style={{background:`linear-gradient(145deg,${DARK2},${DARK})`,border:`2px solid ${unlocks.vital?"rgba(52,211,153,0.4)":BORDER2}`,borderRadius:18,padding:"24px 22px",cursor:"pointer",transition:"all .25s",boxShadow:unlocks.vital?`0 0 25px rgba(52,211,153,0.1)`:"none"}}
+          onClick={unlocks.vital ? onOpenQuantum : onUnlockQuantum}
+          onMouseEnter={e=>{e.currentTarget.style.transform="translateY(-3px)";e.currentTarget.style.borderColor=unlocks.vital?"#34D399":"rgba(52,211,153,0.3)";}}
+          onMouseLeave={e=>{e.currentTarget.style.transform="translateY(0)";e.currentTarget.style.borderColor=unlocks.vital?"rgba(52,211,153,0.4)":BORDER2;}}>
+          <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:16}}>
+            <div style={{width:48,height:48,borderRadius:12,background:"rgba(52,211,153,0.1)",border:"1px solid rgba(52,211,153,0.25)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:24}}>🌱</div>
+            {unlocks.vital 
+              ? <div style={{padding:"4px 12px",background:"rgba(52,211,153,0.12)",border:"1px solid rgba(52,211,153,0.3)",borderRadius:100,fontSize:12,color:"#34D399",fontWeight:700}}>UNLOCKED</div>
+              : <div style={{padding:"4px 12px",background:"rgba(251,191,36,0.12)",border:"1px solid rgba(251,191,36,0.3)",borderRadius:100,fontSize:12,color:AMBER,fontWeight:700}}>£5</div>
+            }
+          </div>
+          <h3 style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:24,letterSpacing:2,color:WHITE,marginBottom:6}}>Quantum Living</h3>
+          <p style={{fontSize:14,color:MUTED,lineHeight:1.65,marginBottom:16}}>
+            {unlocks.vital ? "5 Quantum Laws for complete wellbeing. Daily insights and progress tracking." : "Unlock the 5 Laws of holistic wellness with daily insights and checklist."}
+          </p>
+          {unlocks.vital && livingStreak > 0 && (
+            <div style={{marginBottom:16}}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"8px 12px",background:"rgba(251,191,36,0.08)",borderRadius:8}}>
+                <span style={{fontSize:13,color:AMBER}}>🔥 Streak</span>
+                <span style={{fontSize:14,color:AMBER,fontWeight:700}}>{livingStreak} days</span>
+              </div>
+            </div>
+          )}
+          <button style={{width:"100%",border:"none",borderRadius:100,padding:"12px",fontSize:15,fontWeight:700,fontFamily:"'Space Grotesk',sans-serif",cursor:"pointer",background:unlocks.vital?"linear-gradient(135deg,#059669,#34D399)":"rgba(52,211,153,0.12)",color:unlocks.vital?BG:"#34D399",letterSpacing:".05em"}}>
+            {unlocks.vital ? "🌱 Continue Quantum Living →" : "🔒 Unlock for £5 →"}
+          </button>
+        </div>
+      </div>
+
+      <div style={{background:"rgba(0,200,255,0.04)",border:`1px solid ${BORDER2}`,borderRadius:12,padding:"16px 20px",textAlign:"center"}}>
+        <p style={{fontSize:14,color:MUTED,lineHeight:1.75}}>
+          <strong style={{color:WHITE}}>Pro tip:</strong> Use the header buttons (⚡ and 🌱) for quick access from anywhere in your LQM system.
+        </p>
+      </div>
+    </div>
+  );
+}
+function Report({type, deliveryRef, deliveryTs, visualAnswer}){
+  // Visual processing insights
+  const visualInsights = {
+    tree: {
+      icon: "🌳",
+      title: "Big Picture Processing",
+      text: "You noticed the tree structure first, suggesting you naturally see systems, patterns, and the whole before individual elements. This big-picture processing style aligns with strategic thinking and systems design. You tend to step back and see the forest, not just the trees."
+    },
+    woman: {
+      icon: "👤",
+      title: "Detail-First Processing",
+      text: "You noticed the woman's face first, suggesting you naturally focus on specific details, human elements, and individual components before seeing the larger pattern. This detail-oriented processing enhances your ability to spot nuances others miss and connect with people on a deeper level."
+    },
+    both: {
+      icon: "⚖️",
+      title: "Dual-Mode Processing",
+      text: "You saw both the tree and the woman equally, suggesting flexible cognitive processing. You can shift between big-picture strategic thinking and detail-oriented analysis depending on what the situation requires. This adaptability is a significant strength."
+    },
+    neutral: {
+      icon: "⚖️",
+      title: "Balanced Processing",
+      text: "Your visual processing shows balanced attention to both patterns and details. You can zoom in and zoom out as needed, giving you cognitive flexibility across different contexts."
+    }
+  };
+  
+  // Determine which insight to show based on visual answer
+  let visualInsight = null;
+  if (visualAnswer) {
+    const question11 = questions[10]; // The visual question
+    const selectedOption = question11?.opts?.find(opt => opt.ty === visualAnswer);
+    const visualType = selectedOption?.visual || "neutral";
+    visualInsight = visualInsights[visualType];
+  }
+  
   return(
     <div style={{animation:"blurIn .8s ease both"}}>
 
@@ -794,17 +1110,17 @@ function Report({type, deliveryRef, deliveryTs}){
       {deliveryRef && <div style={{background:"rgba(52,211,153,0.06)",border:"1px solid rgba(52,211,153,0.25)",borderRadius:12,padding:"10px 18px",marginBottom:14,display:"flex",alignItems:"center",gap:12,flexWrap:"wrap"}}>
         <span style={{fontSize:14,color:"#34D399",flexShrink:0}}>✓</span>
         <div style={{flex:1}}>
-          <p style={{fontSize:11,fontWeight:700,color:"#34D399",letterSpacing:".08em"}}>REPORT DELIVERED · {deliveryTs}</p>
-          <p style={{fontSize:10,color:"rgba(255,255,255,0.35)",fontFamily:"monospace",marginTop:2}}>Ref: {deliveryRef}</p>
+          <p style={{fontSize:14,fontWeight:700,color:"#34D399",letterSpacing:".08em"}}>REPORT DELIVERED · {deliveryTs}</p>
+          <p style={{fontSize:16,color:"rgba(255,255,255,0.35)",fontFamily:"monospace",marginTop:2}}>Ref: {deliveryRef}</p>
         </div>
-        <span style={{fontSize:10,color:"rgba(255,255,255,0.25)"}}>Screenshot for your records</span>
+        <span style={{fontSize:16,color:"rgba(255,255,255,0.25)"}}>Screenshot for your records</span>
       </div>}
 
       {/* ── Hero header ── */}
       <div style={{background:`linear-gradient(145deg,${DARK2} 0%,${DARK} 100%)`,border:`1px solid ${type.blue}33`,borderRadius:20,padding:"40px 28px",textAlign:"center",marginBottom:14,boxShadow:`0 0 50px ${type.glow}`}}>
-        <div style={{display:"inline-block",background:"rgba(0,200,255,0.08)",border:`1px solid ${BORDER}`,borderRadius:100,padding:"5px 14px",fontSize:11,color:E_BLUE,fontWeight:700,letterSpacing:".1em",textTransform:"uppercase",marginBottom:16}}>⚡ Report Unlocked — For You Only</div>
+        <div style={{display:"inline-block",background:"rgba(0,200,255,0.08)",border:`1px solid ${BORDER}`,borderRadius:100,padding:"5px 14px",fontSize:14,color:E_BLUE,fontWeight:700,letterSpacing:".1em",textTransform:"uppercase",marginBottom:16}}>⚡ Report Unlocked — For You Only</div>
         <Logo size="sm"/>
-        <p style={{fontSize:10,color:DIMMED,letterSpacing:".14em",textTransform:"uppercase",fontWeight:600,marginTop:8,marginBottom:20}}>Behavioural Intelligence Report</p>
+        <p style={{fontSize:16,color:DIMMED,letterSpacing:".14em",textTransform:"uppercase",fontWeight:600,marginTop:8,marginBottom:20}}>Behavioural Intelligence Report</p>
         {/* Archetype illustration */}
         <div style={{padding:"8px 0 16px"}}>
           <ArchetypeIllustration type={Object.keys({A:1,B:2,C:3,D:4}).find(k=>TYPES[k]===type)||"A"}/>
@@ -821,9 +1137,9 @@ function Report({type, deliveryRef, deliveryTs}){
 
       {/* ── Identity statement ── */}
       <Panel glow style={{marginBottom:14,textAlign:"center",background:`linear-gradient(135deg,${type.glow},rgba(0,0,0,0.2))`}}>
-        <p style={{fontSize:10,fontWeight:700,letterSpacing:".16em",textTransform:"uppercase",color:type.blue,marginBottom:14}}>◈ Your Identity Statement</p>
+        <p style={{fontSize:16,fontWeight:700,letterSpacing:".16em",textTransform:"uppercase",color:type.blue,marginBottom:14}}>◈ Your Identity Statement</p>
         <p style={{fontFamily:"'Crimson Pro',serif",fontSize:21,fontStyle:"italic",color:WHITE,lineHeight:1.65,marginBottom:12}}>"{type.identity}"</p>
-        <p style={{fontSize:12,color:DIMMED,fontWeight:300}}>Repeat this daily. Identity precedes behaviour. Behaviour compounds into results.</p>
+        <p style={{fontSize:15,color:DIMMED,fontWeight:300}}>Repeat this daily. Identity precedes behaviour. Behaviour compounds into results.</p>
       </Panel>
 
       {/* ── Overview ── */}
@@ -834,9 +1150,21 @@ function Report({type, deliveryRef, deliveryTs}){
 
       {/* ── LQM Quantum Insight ── */}
       <Panel style={{marginBottom:14,borderLeft:`3px solid ${E_BLUE}`,background:"rgba(0,200,255,0.04)"}}>
-        <p style={{fontSize:10,fontWeight:700,letterSpacing:".14em",textTransform:"uppercase",color:E_BLUE,marginBottom:10}}>⚛ LQM Quantum Insight</p>
+        <p style={{fontSize:16,fontWeight:700,letterSpacing:".14em",textTransform:"uppercase",color:E_BLUE,marginBottom:10}}>⚛ LQM Quantum Insight</p>
         <p style={{fontSize:15,lineHeight:1.8,color:"rgba(255,255,255,0.82)",fontWeight:400}}>{type.atomic}</p>
       </Panel>
+
+      {/* ── Visual Processing Style (if answered bonus question) ── */}
+      {visualInsight && (
+        <Panel style={{marginBottom:14,borderLeft:`3px solid ${AMBER}`,background:"rgba(251,191,36,0.04)"}}>
+          <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:12}}>
+            <span style={{fontSize:24}}>{visualInsight.icon}</span>
+            <p style={{fontSize:16,fontWeight:700,letterSpacing:".14em",textTransform:"uppercase",color:AMBER}}>Visual Processing Style</p>
+          </div>
+          <p style={{fontSize:17,fontWeight:600,color:WHITE,marginBottom:8}}>{visualInsight.title}</p>
+          <p style={{fontSize:15,lineHeight:1.8,color:"rgba(255,255,255,0.82)",fontWeight:400}}>{visualInsight.text}</p>
+        </Panel>
+      )}
 
       {/* ── Strengths with visual bars ── */}
       <Panel style={{marginBottom:14}}>
@@ -862,8 +1190,8 @@ function Report({type, deliveryRef, deliveryTs}){
       {type.strategies.map((s,i)=>(
         <div key={i} style={{background:PANEL,border:`1px solid ${BORDER2}`,borderTop:`2px solid ${type.blue}`,borderRadius:16,overflow:"hidden",marginBottom:12}}>
           <div style={{background:type.glow,borderBottom:`1px solid ${type.blue}22`,padding:"14px 22px",display:"flex",alignItems:"center",gap:12}}>
-            <span style={{width:30,height:30,borderRadius:"50%",background:type.blue,display:"flex",alignItems:"center",justifyContent:"center",fontSize:13,color:BG,fontWeight:800,flexShrink:0}}>{i+1}</span>
-            <p style={{fontSize:11,fontWeight:700,color:type.blue,letterSpacing:".08em",textTransform:"uppercase"}}>{s.area}</p>
+            <span style={{width:30,height:30,borderRadius:"50%",background:type.blue,display:"flex",alignItems:"center",justifyContent:"center",fontSize:16,color:BG,fontWeight:800,flexShrink:0}}>{i+1}</span>
+            <p style={{fontSize:14,fontWeight:700,color:type.blue,letterSpacing:".08em",textTransform:"uppercase"}}>{s.area}</p>
           </div>
           {/* Visual scenario strip */}
           <div style={{background:`linear-gradient(90deg,${type.glow},transparent)`,borderBottom:`1px solid ${type.blue}11`,padding:"14px 22px",display:"flex",gap:12,alignItems:"flex-start"}}>
@@ -871,14 +1199,14 @@ function Report({type, deliveryRef, deliveryTs}){
               {["⟁","◎","◈"][i]}
             </div>
             <div>
-              <p style={{fontSize:10,fontWeight:700,color:DIMMED,letterSpacing:".1em",textTransform:"uppercase",marginBottom:6}}>The Scenario</p>
+              <p style={{fontSize:16,fontWeight:700,color:DIMMED,letterSpacing:".1em",textTransform:"uppercase",marginBottom:6}}>The Scenario</p>
               <p style={{fontFamily:"'Crimson Pro',serif",fontSize:16,fontStyle:"italic",color:"rgba(255,255,255,0.82)",lineHeight:1.65}}>"{s.scenario}"</p>
             </div>
           </div>
           <div style={{padding:"18px 22px"}}>
             <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:10}}>
-              <div style={{width:20,height:20,borderRadius:"50%",background:type.blue,display:"flex",alignItems:"center",justifyContent:"center",fontSize:10,flexShrink:0}}>→</div>
-              <p style={{fontSize:10,fontWeight:700,color:type.blue,letterSpacing:".1em",textTransform:"uppercase"}}>Your Quantum System</p>
+              <div style={{width:20,height:20,borderRadius:"50%",background:type.blue,display:"flex",alignItems:"center",justifyContent:"center",fontSize:16,flexShrink:0}}>→</div>
+              <p style={{fontSize:16,fontWeight:700,color:type.blue,letterSpacing:".1em",textTransform:"uppercase"}}>Your Quantum System</p>
             </div>
             <p style={{fontSize:14,lineHeight:1.9,color:"rgba(255,255,255,0.78)",fontWeight:400}}>{s.solution}</p>
           </div>
@@ -890,9 +1218,9 @@ function Report({type, deliveryRef, deliveryTs}){
         <Logo size="sm"/>
         <div style={{width:50,height:1,background:`linear-gradient(90deg,transparent,${E_BLUE}44,transparent)`,margin:"18px auto"}}/>
         <p style={{fontFamily:"'Crimson Pro',serif",fontSize:19,fontStyle:"italic",color:MUTED,lineHeight:1.7,maxWidth:420,margin:"0 auto 12px"}}>"Small shifts, consistently honoured, produce quantum results. The habit is not the destination — it is the vehicle."</p>
-        <p style={{fontSize:11,color:DIMMED,letterSpacing:".06em"}}>— The Learning Quantum Method</p>
+        <p style={{fontSize:14,color:DIMMED,letterSpacing:".06em"}}>— The Learning Quantum Method</p>
         <div style={{height:1,background:BORDER2,margin:"18px 0"}}/>
-        <p style={{fontSize:11,color:DIMMED,letterSpacing:".1em"}}>LQM Behavioural Intelligence Report · {type.name}</p>
+        <p style={{fontSize:14,color:DIMMED,letterSpacing:".1em"}}>LQM Behavioural Intelligence Report · {type.name}</p>
       </Panel>
     </div>
   );

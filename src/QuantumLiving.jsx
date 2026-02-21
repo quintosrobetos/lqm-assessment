@@ -1,4 +1,15 @@
 import { useState, useEffect } from "react";
+import { 
+  getChallengeData, 
+  enrollInChallenge, 
+  updateChallengeProgress,
+  getStreak,
+  getDaysActive,
+  getCompletionPercentage,
+  isChallengeComplete
+} from "./challenge21";
+import { trackQuantumDay } from "./firebase";
+import { playQuantumSound, playMilestoneSound } from "./sounds";
 
 const E_BLUE  = "#00C8FF";
 const E_BLUE2 = "#0EA5E9";
@@ -9,10 +20,44 @@ const PANEL   = "rgba(255,255,255,0.055)";
 const BORDER  = "rgba(0,200,255,0.18)";
 const BORDER2 = "rgba(255,255,255,0.09)";
 const WHITE   = "#FFFFFF";
-const MUTED   = "rgba(255,255,255,0.62)";
-const DIMMED  = "rgba(255,255,255,0.32)";
+const MUTED   = "rgba(255,255,255,0.72)"; // Improved readability
+const DIMMED  = "rgba(255,255,255,0.40)"; // Improved readability
 const GREEN   = "#34D399";
 const AMBER   = "#FBBF24";
+
+// ── Daily Insights (30 wellness facts, rotates daily) ────────────────────────
+const DAILY_INSIGHTS = [
+  { icon:"🥑", title:"Avocado Power", fact:"Avocados contain more potassium than bananas and are packed with heart-healthy monounsaturated fats that help your body absorb fat-soluble vitamins A, D, E, and K." },
+  { icon:"🧄", title:"Garlic's Secret", fact:"Garlic has been used as a natural antibiotic for thousands of years. Allicin, the compound released when garlic is crushed, has powerful antimicrobial properties that can help fight infections." },
+  { icon:"🫐", title:"Blueberry Brain Boost", fact:"Blueberries are among the most antioxidant-rich foods on Earth. Studies show they can improve memory, reduce oxidative stress, and may delay brain aging by up to 2.5 years." },
+  { icon:"🥦", title:"Broccoli Defense", fact:"Broccoli contains sulforaphane, a compound that activates your body's natural detoxification enzymes and has been shown to have powerful anti-cancer properties." },
+  { icon:"🌶️", title:"Chili Heat Therapy", fact:"Capsaicin in chili peppers triggers endorphin release (natural painkillers), boosts metabolism by up to 25% temporarily, and may help you live longer according to large population studies." },
+  { icon:"🥬", title:"Leafy Green Gold", fact:"Dark leafy greens like kale and spinach contain lutein and zeaxanthin — compounds that accumulate in your retinas and can reduce age-related vision decline by up to 40%." },
+  { icon:"🍓", title:"Strawberry Surprise", fact:"One cup of strawberries provides more vitamin C than an orange — about 150% of your daily needs. Vitamin C is essential for collagen production, immune function, and iron absorption." },
+  { icon:"🥜", title:"Walnut Wisdom", fact:"Walnuts are the only nut that contains significant omega-3 fatty acids (ALA). Just 7 walnuts a day has been shown to improve cognitive function and reduce inflammation." },
+  { icon:"🍠", title:"Sweet Potato Strength", fact:"Sweet potatoes have a lower glycemic index than white potatoes, meaning they provide steady energy without blood sugar spikes. They're also rich in beta-carotene, which your body converts to vitamin A." },
+  { icon:"🥕", title:"Carrot Vision", fact:"The beta-carotene in carrots really does support eye health. Your body converts it to vitamin A, which is essential for the light-sensing cells in your retinas to function properly." },
+  { icon:"☕", title:"Coffee Clarity", fact:"Coffee doesn't just wake you up — studies show 3-4 cups daily is associated with up to 65% lower risk of Alzheimer's disease and significantly reduced risk of depression." },
+  { icon:"🍵", title:"Green Tea Magic", fact:"Green tea contains L-theanine, an amino acid that promotes calm alertness by increasing alpha brain waves. Combined with caffeine, it creates focused relaxation without jitters." },
+  { icon:"🫘", title:"Bean Longevity", fact:"People in Blue Zones (regions where people live longest) eat beans daily. Beans are protein-rich, high in fiber, stabilize blood sugar, and feed beneficial gut bacteria." },
+  { icon:"🥥", title:"Coconut Health", fact:"Coconut water is naturally rich in electrolytes, making it superior to many sports drinks. The MCT fats in coconut can be quickly converted to energy by your liver." },
+  { icon:"🍋", title:"Lemon Fresh Start", fact:"Starting your day with warm lemon water supports liver function, aids digestion, and provides vitamin C. The citric acid helps your body absorb minerals throughout the day." },
+  { icon:"🧅", title:"Onion Layers", fact:"Onions contain quercetin, a powerful antioxidant and anti-inflammatory compound. Red onions have the highest levels. Crying while cutting them releases sulfur compounds with antimicrobial properties." },
+  { icon:"🍄", title:"Mushroom Medicine", fact:"Mushrooms are the only plant source of vitamin D when exposed to sunlight. Some varieties like shiitake and maitake also contain compounds that boost immune function." },
+  { icon:"🌰", title:"Almond Nutrition", fact:"Almonds are incredibly nutrient-dense — high in vitamin E, magnesium, and healthy fats. Just 23 almonds (1 ounce) contains 6g of protein and 3.5g of fiber." },
+  { icon:"🍯", title:"Honey Healing", fact:"Raw honey has natural antibacterial properties and has been used to treat wounds for millennia. It contains antioxidants and enzymes that support gut health. Darker honey has more antioxidants." },
+  { icon:"🥒", title:"Cucumber Hydration", fact:"Cucumbers are 96% water, making them one of the most hydrating foods. They also contain silica, which supports healthy skin, hair, and nails." },
+  { icon:"🫑", title:"Bell Pepper Power", fact:"Red bell peppers contain 3x more vitamin C than green ones and are one of the best sources of beta-carotene. They're technically fruits, not vegetables." },
+  { icon:"🍅", title:"Tomato Science", fact:"Cooking tomatoes actually increases their lycopene content by up to 35%. Lycopene is a powerful antioxidant linked to reduced heart disease and cancer risk." },
+  { icon:"🧈", title:"Healthy Fat Truth", fact:"Your brain is 60% fat. Omega-3 fatty acids (from walnuts, flaxseed, chia) are essential for brain structure and function. Low-fat diets can impair cognitive performance." },
+  { icon:"💧", title:"Water First", fact:"Even 2% dehydration can impair attention, memory, and mood. Most people mistake thirst for hunger. Try drinking water first before reaching for a snack." },
+  { icon:"🌅", title:"Sunlight Vitamin", fact:"Just 10-30 minutes of midday sun provides enough UVB for your body to produce optimal vitamin D. This regulates calcium absorption, immune function, and mood." },
+  { icon:"🚶", title:"Walking Therapy", fact:"A 20-minute walk in nature reduces cortisol by an average of 21%. Walking meetings have been shown to increase creative thinking by up to 60% compared to sitting." },
+  { icon:"🧘", title:"Breath Control", fact:"Deep breathing activates your parasympathetic nervous system (rest mode). Box breathing — 4 counts in, hold 4, out 4, hold 4 — can lower heart rate and anxiety in under 2 minutes." },
+  { icon:"😴", title:"Sleep Cycles", fact:"Each sleep cycle lasts about 90 minutes. Waking between cycles (after 6, 7.5, or 9 hours) feels better than waking mid-cycle. Set alarms accordingly." },
+  { icon:"🔥", title:"Metabolism Truth", fact:"Muscle tissue burns 3x more calories at rest than fat tissue. Strength training is one of the most effective ways to boost your resting metabolic rate long-term." },
+  { icon:"🌿", title:"Plant Protein", fact:"You don't need meat for complete protein. Combinations like beans + rice, or hummus + whole grain provide all essential amino acids. Many athletes thrive on plant-based diets." },
+];
 
 // ── 5 Quantum Laws ────────────────────────────────────────────────────────────
 const LAWS = [
@@ -137,7 +182,36 @@ export default function QuantumLiving({ onBack, archetype }) {
   const [streak, setStreak] = useState(() => {
     try { return JSON.parse(localStorage.getItem("lqm_living")||"{}").streak || 0; } catch{ return 0; }
   });
+  const [challengeData, setChallengeData] = useState(null);
+  const [showMilestone, setShowMilestone] = useState(null);
   const arch = archetype || null;
+  
+  // Initialize 21-day challenge
+  useEffect(() => {
+    let data = getChallengeData("quantum");
+    if (!data) {
+      data = enrollInChallenge("quantum", archetype || "unknown");
+    }
+    setChallengeData(data);
+  }, [archetype]);
+  
+  // Daily Insight - rotates based on day of year
+  const dailyInsight = DAILY_INSIGHTS[Math.floor((new Date().getTime() / 86400000) % DAILY_INSIGHTS.length)];
+
+  // Leaf animation CSS
+  useEffect(()=>{
+    const id = "quantum-living-styles";
+    if(document.getElementById(id)) return;
+    const s = document.createElement("style");
+    s.id = id;
+    s.textContent = `
+      @keyframes fadeUp{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}
+      @keyframes leafFloat{0%{transform:translateY(0) rotate(0deg);}50%{transform:translateY(-20px) rotate(180deg);}100%{transform:translateY(0) rotate(360deg);}}
+      @keyframes leafFall{from{transform:translateY(-100px) rotate(0deg);opacity:0;}to{transform:translateY(100vh) rotate(720deg);opacity:0.15;}}
+    `;
+    document.head.appendChild(s);
+    return () => { const el = document.getElementById(id); if(el) el.remove(); };
+  }, []);
 
   const score = checklist.filter(Boolean).length;
   const allDone = score === 5;
@@ -146,54 +220,103 @@ export default function QuantumLiving({ onBack, archetype }) {
     const n = [...checklist];
     n[i] = !n[i];
     setChecklist(n);
-    if(n.filter(Boolean).length === 5) {
+    
+    const lawsCompleted = n.filter(Boolean).length;
+    
+    if(lawsCompleted === 5) {
       const today = new Date().toISOString().split("T")[0];
       const data = { streak: streak + 1, lastDay: today };
       localStorage.setItem("lqm_living", JSON.stringify(data));
       setStreak(s => s+1);
+      
+      // Play completion sound
+      playQuantumSound();
+      
+      // Update 21-day challenge
+      const updatedChallenge = updateChallengeProgress("quantum");
+      if(updatedChallenge){
+        setChallengeData(updatedChallenge);
+        
+        // Track analytics
+        trackQuantumDay(lawsCompleted, updatedChallenge.daysCompleted?.length || 0);
+        
+        // Check for milestone unlocks
+        if(updatedChallenge.currentDay >= 7 && !updatedChallenge.milestones.day_7.unlocked){
+          playMilestoneSound(); // Milestone unlocked!
+          setShowMilestone("day7");
+        } else if(updatedChallenge.currentDay >= 14 && !updatedChallenge.milestones.day_14.unlocked){
+          playMilestoneSound(); // Milestone unlocked!
+          setShowMilestone("day14");
+        } else if(updatedChallenge.currentDay >= 21 && !updatedChallenge.milestones.day_21.unlocked){
+          playMilestoneSound(); // Challenge complete!
+          setShowMilestone("day21");
+        }
+      }
     }
   }
 
+  // Show milestone if unlocked
+  if (showMilestone) {
+    if(showMilestone === "day7") return <QuantumMilestoneDay7 challengeData={challengeData} onContinue={()=>setShowMilestone(null)}/>;
+    if(showMilestone === "day14") return <QuantumMilestoneDay14 challengeData={challengeData} onContinue={()=>setShowMilestone(null)}/>;
+    if(showMilestone === "day21") return <QuantumMilestoneDay21 challengeData={challengeData} onContinue={()=>setShowMilestone(null)}/>;
+  }
+  
   if (activeLaw !== null) return <LawDetail law={LAWS[activeLaw]} arch={arch} onBack={()=>setActiveLaw(null)}/>;
 
   return (
-    <div style={{minHeight:"100vh",background:`radial-gradient(ellipse 80% 40% at 50% 0%,rgba(52,211,153,0.06) 0%,transparent 60%),${BG}`,fontFamily:"'Space Grotesk',sans-serif",color:WHITE,display:"flex",flexDirection:"column",alignItems:"center",padding:"0 16px 60px"}}>
+    <div style={{minHeight:"100vh",background:`radial-gradient(ellipse 80% 40% at 50% 0%,rgba(52,211,153,0.06) 0%,transparent 60%),${BG}`,fontFamily:"'Space Grotesk',sans-serif",color:WHITE,display:"flex",flexDirection:"column",alignItems:"center",padding:"0 16px 60px",position:"relative",overflow:"hidden"}}>
+      
+      {/* Floating leaves background */}
+      <div style={{position:"fixed",top:0,left:0,width:"100%",height:"100%",pointerEvents:"none",zIndex:0,opacity:0.15}}>
+        {[...Array(8)].map((_,i)=>(
+          <div key={i} style={{
+            position:"absolute",
+            left:`${10 + i*12}%`,
+            top:`${-20 - i*15}%`,
+            fontSize:20 + i*3,
+            animation:`leafFall ${20 + i*4}s linear infinite`,
+            animationDelay:`${i*2.5}s`
+          }}>🍃</div>
+        ))}
+      </div>
+
       {/* Header */}
       <div style={{width:"100%",borderBottom:`1px solid ${BORDER}`,padding:"12px 20px",display:"flex",alignItems:"center",justifyContent:"space-between",background:"rgba(7,15,30,0.9)",backdropFilter:"blur(14px)",position:"sticky",top:0,zIndex:100}}>
-        <button onClick={onBack} style={{background:"none",border:`1px solid ${BORDER}`,borderRadius:100,padding:"8px 16px",color:MUTED,fontSize:12,cursor:"pointer",fontFamily:"'Space Grotesk',sans-serif",display:"flex",alignItems:"center",gap:6}} onMouseEnter={e=>e.currentTarget.style.color=WHITE} onMouseLeave={e=>e.currentTarget.style.color=MUTED}>← Back</button>
+        <button onClick={onBack} style={{background:"none",border:`1px solid ${BORDER}`,borderRadius:100,padding:"8px 16px",color:MUTED,fontSize:15,cursor:"pointer",fontFamily:"'Space Grotesk',sans-serif",display:"flex",alignItems:"center",gap:6}} onMouseEnter={e=>e.currentTarget.style.color=WHITE} onMouseLeave={e=>e.currentTarget.style.color=MUTED}>← Back</button>
         <div style={{display:"flex",alignItems:"center",gap:8}}>
           <span style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:18,letterSpacing:2,color:WHITE}}>LQM</span>
-          <span style={{fontSize:11,color:GREEN,fontWeight:700,letterSpacing:".1em"}}>QUANTUM LIVING</span>
+          <span style={{fontSize:14,color:GREEN,fontWeight:700,letterSpacing:".1em"}}>QUANTUM LIVING</span>
         </div>
-        <div style={{fontSize:11,color:GREEN,fontWeight:700}}>{score}/5 ✓</div>
+        <div style={{fontSize:14,color:GREEN,fontWeight:700}}>{score}/5 ✓</div>
       </div>
 
       <div style={{width:"100%",maxWidth:620,paddingTop:36,zIndex:1}}>
         {/* Hero */}
         <div style={{textAlign:"center",marginBottom:28,animation:"fadeUp .6s ease both"}}>
-          <p style={{fontSize:11,fontWeight:700,letterSpacing:".16em",textTransform:"uppercase",color:GREEN,marginBottom:12}}>🌱 The 5 Quantum Laws of Living</p>
+          <p style={{fontSize:14,fontWeight:700,letterSpacing:".16em",textTransform:"uppercase",color:GREEN,marginBottom:12}}>🌱 The 5 Quantum Laws of Living</p>
           <h1 style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"clamp(32px,7vw,52px)",letterSpacing:2,color:WHITE,lineHeight:1.05,marginBottom:8}}>Complete You.<br/><span style={{color:GREEN}}>Quantum Living.</span></h1>
           <p style={{fontFamily:"'Crimson Pro',serif",fontStyle:"italic",fontSize:17,color:MUTED,lineHeight:1.7,maxWidth:440,margin:"0 auto"}}>"Peak performance is not built in the mind alone. It is built in the whole life — rested, breathed, balanced, moved and nourished."</p>
         </div>
 
         {/* A Note Before You Begin */}
         <div style={{background:"rgba(255,255,255,0.025)",border:`1px solid ${BORDER2}`,borderRadius:14,padding:"16px 20px",marginBottom:20,animation:"fadeUp .6s .05s ease both"}}>
-          <p style={{fontSize:11,fontWeight:700,color:MUTED,letterSpacing:".1em",textTransform:"uppercase",marginBottom:8}}>A Note Before You Begin</p>
-          <p style={{fontSize:13,color:DIMMED,lineHeight:1.75,fontWeight:300}}>The 5 Quantum Laws are educational principles for general wellbeing — not medical advice. If you have any health conditions, injuries, or concerns, please speak with your doctor before making changes to your exercise or lifestyle habits. Everything here is offered in the spirit of thoughtful self-improvement, not prescription.</p>
+          <p style={{fontSize:14,fontWeight:700,color:MUTED,letterSpacing:".1em",textTransform:"uppercase",marginBottom:8}}>A Note Before You Begin</p>
+          <p style={{fontSize:15,color:DIMMED,lineHeight:1.75,fontWeight:300}}>The 5 Quantum Laws are educational principles for general wellbeing — not medical advice. If you have any health conditions, injuries, or concerns, please speak with your doctor before making changes to your exercise or lifestyle habits. Everything here is offered in the spirit of thoughtful self-improvement, not prescription.</p>
         </div>
 
         {/* Daily checklist */}
         <div style={{background:PANEL,border:`1px solid ${allDone?"rgba(52,211,153,0.4)":BORDER2}`,borderRadius:16,padding:"22px 24px",marginBottom:20,boxShadow:allDone?`0 0 30px rgba(52,211,153,0.1)`:"none",animation:"fadeUp .6s .1s ease both"}}>
           <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}>
-            <p style={{fontSize:10,fontWeight:700,color:DIMMED,letterSpacing:".12em",textTransform:"uppercase"}}>Today's Quantum Checklist</p>
-            {streak>0 && <div style={{display:"flex",alignItems:"center",gap:6,fontSize:12,color:AMBER,fontWeight:700}}>🔥 {streak}-day streak</div>}
+            <p style={{fontSize:16,fontWeight:700,color:DIMMED,letterSpacing:".12em",textTransform:"uppercase"}}>Today's Quantum Checklist</p>
+            {streak>0 && <div style={{display:"flex",alignItems:"center",gap:6,fontSize:15,color:AMBER,fontWeight:700}}>🔥 {streak}-day streak</div>}
           </div>
           {CHECKLIST_ITEMS.map((item,i)=>(
             <div key={i} onClick={()=>toggleCheck(i)} style={{display:"flex",gap:12,alignItems:"center",padding:"10px 0",borderBottom:i<CHECKLIST_ITEMS.length-1?`1px solid ${BORDER2}`:"none",cursor:"pointer"}}>
               <div style={{width:22,height:22,borderRadius:6,border:`1.5px solid ${checklist[i]?GREEN:BORDER2}`,background:checklist[i]?"rgba(52,211,153,0.15)":"transparent",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,transition:"all .2s"}}>
-                {checklist[i] && <span style={{color:GREEN,fontSize:12,fontWeight:800}}>✓</span>}
+                {checklist[i] && <span style={{color:GREEN,fontSize:15,fontWeight:800}}>✓</span>}
               </div>
-              <span style={{fontSize:13,color:checklist[i]?GREEN:MUTED,fontWeight:checklist[i]?600:400,textDecoration:checklist[i]?"none":"none",transition:"color .2s"}}>{LAWS[i].icon} {item}</span>
+              <span style={{fontSize:16,color:checklist[i]?GREEN:MUTED,fontWeight:checklist[i]?600:400,textDecoration:checklist[i]?"none":"none",transition:"color .2s"}}>{LAWS[i].icon} {item}</span>
             </div>
           ))}
           {allDone && (
@@ -204,8 +327,21 @@ export default function QuantumLiving({ onBack, archetype }) {
           )}
         </div>
 
+        {/* Daily Insight */}
+        <div style={{background:`linear-gradient(135deg,${GREEN}06,transparent)`,border:`1px solid ${GREEN}33`,borderRadius:16,padding:"22px 24px",marginBottom:20,animation:"fadeUp .6s .15s ease both"}}>
+          <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:12}}>
+            <div style={{fontSize:28}}>{dailyInsight.icon}</div>
+            <div>
+              <p style={{fontSize:16,fontWeight:700,color:GREEN,letterSpacing:".12em",textTransform:"uppercase",marginBottom:2}}>Daily Wellness Insight</p>
+              <p style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:20,letterSpacing:1.5,color:WHITE}}>{dailyInsight.title}</p>
+            </div>
+          </div>
+          <p style={{fontSize:15,color:MUTED,lineHeight:1.8,fontWeight:400}}>{dailyInsight.fact}</p>
+          <p style={{fontSize:15,color:DIMMED,marginTop:12,fontStyle:"italic"}}>A new insight appears here every day — part of your Quantum Living journey.</p>
+        </div>
+
         {/* 5 Laws grid */}
-        <p style={{fontSize:10,fontWeight:700,color:DIMMED,letterSpacing:".12em",textTransform:"uppercase",marginBottom:14,animation:"fadeUp .6s .2s ease both"}}>The 5 Quantum Laws — Tap to explore</p>
+        <p style={{fontSize:16,fontWeight:700,color:DIMMED,letterSpacing:".12em",textTransform:"uppercase",marginBottom:14,animation:"fadeUp .6s .2s ease both"}}>The 5 Quantum Laws — Tap to explore</p>
         {LAWS.map((law,i)=>(
           <div key={i} onClick={()=>setActiveLaw(i)} style={{background:PANEL,border:`1px solid ${BORDER2}`,borderTop:`2px solid ${law.color}`,borderRadius:16,padding:"20px 22px",marginBottom:12,cursor:"pointer",transition:"all .2s",animation:`fadeUp .6s ${.1+i*.08}s ease both`}}
             onMouseEnter={e=>{e.currentTarget.style.background=law.glow;e.currentTarget.style.borderColor=`${law.color}44`;}}
@@ -217,7 +353,7 @@ export default function QuantumLiving({ onBack, archetype }) {
               <div style={{flex:1}}>
                 <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:4}}>
                   <div>
-                    <p style={{fontSize:10,fontWeight:700,color:law.color,letterSpacing:".1em",textTransform:"uppercase",marginBottom:3}}>Law {law.num} · {law.subtitle}</p>
+                    <p style={{fontSize:16,fontWeight:700,color:law.color,letterSpacing:".1em",textTransform:"uppercase",marginBottom:3}}>Law {law.num} · {law.subtitle}</p>
                     <h3 style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:22,letterSpacing:2,color:WHITE}}>{law.title}</h3>
                   </div>
                   <span style={{fontSize:18,color:law.color,opacity:.6,marginTop:2}}>{law.sym}</span>
@@ -230,7 +366,7 @@ export default function QuantumLiving({ onBack, archetype }) {
 
         {/* LQM connection note */}
         <div style={{background:"rgba(0,200,255,0.04)",border:`1px solid ${BORDER}`,borderLeft:`3px solid ${E_BLUE}`,borderRadius:"0 14px 14px 0",padding:"18px 20px",marginTop:8}}>
-          <p style={{fontSize:10,fontWeight:700,color:E_BLUE,letterSpacing:".12em",textTransform:"uppercase",marginBottom:8}}>⚡ The LQM Connection</p>
+          <p style={{fontSize:16,fontWeight:700,color:E_BLUE,letterSpacing:".12em",textTransform:"uppercase",marginBottom:8}}>⚡ The LQM Connection</p>
           <p style={{fontFamily:"'Crimson Pro',serif",fontSize:16,color:MUTED,lineHeight:1.75}}>Your motivation archetype shapes how you live — not just how you work. Each of the 5 Quantum Laws contains specific insights for your profile type. Tap any law to read the LQM-specific guidance for your archetype.</p>
         </div>
       </div>
@@ -270,6 +406,159 @@ const ARCH_LAW_NOTES = {
   ],
 };
 
+// ══════════════════════════════════════════════════════════════════════════
+// 21-DAY QUANTUM LIVING MILESTONES
+// ══════════════════════════════════════════════════════════════════════════
+
+function QuantumMilestoneDay7({challengeData, onContinue}){
+  const streak = getStreak(challengeData);
+  const daysActive = getDaysActive(challengeData);
+  
+  return(
+    <div style={{minHeight:"100vh",background:BG,padding:"60px 20px",display:"flex",alignItems:"center",justifyContent:"center"}}>
+      <div style={{width:"100%",maxWidth:600,animation:"fadeUp .6s ease both"}}>
+        <div style={{textAlign:"center",marginBottom:32}}>
+          <div style={{fontSize:80,marginBottom:16}}>🌱</div>
+          <div style={{display:"inline-block",background:"rgba(52,211,153,0.1)",border:"1px solid rgba(52,211,153,0.3)",borderRadius:100,padding:"8px 20px",marginBottom:16}}>
+            <span style={{fontSize:14,fontWeight:700,color:GREEN,letterSpacing:".12em"}}>DAY 7 MILESTONE REACHED</span>
+          </div>
+          <h1 style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"clamp(36px,8vw,58px)",letterSpacing:2,color:WHITE,marginBottom:12}}>First Week Complete</h1>
+          <p style={{fontFamily:"'Crimson Pro',serif",fontStyle:"italic",fontSize:18,color:MUTED,lineHeight:1.7}}>You've honored the 5 Quantum Laws for 7 days. Wellness habits are taking root.</p>
+        </div>
+
+        <div style={{background:`linear-gradient(145deg,${DARK2},${DARK})`,border:`1px solid ${BORDER2}`,borderRadius:20,padding:"32px 28px",marginBottom:20}}>
+          <div style={{display:"grid",gridTemplateColumns:"repeat(2, 1fr)",gap:16,marginBottom:24}}>
+            <div style={{background:"rgba(52,211,153,0.06)",border:"1px solid rgba(52,211,153,0.2)",borderRadius:12,padding:"18px",textAlign:"center"}}>
+              <p style={{fontSize:13,color:DIMMED,marginBottom:6}}>Days Active</p>
+              <p style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:36,letterSpacing:2,color:GREEN}}>{daysActive}</p>
+            </div>
+            {streak > 0 && (
+              <div style={{background:"rgba(251,191,36,0.06)",border:"1px solid rgba(251,191,36,0.2)",borderRadius:12,padding:"18px",textAlign:"center"}}>
+                <p style={{fontSize:13,color:DIMMED,marginBottom:6}}>Streak</p>
+                <p style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:36,letterSpacing:2,color:AMBER}}>{streak}🔥</p>
+              </div>
+            )}
+          </div>
+
+          <div style={{background:"rgba(52,211,153,0.04)",border:"1px solid rgba(52,211,153,0.2)",borderRadius:12,padding:"20px"}}>
+            <p style={{fontSize:15,color:MUTED,lineHeight:1.8}}>
+              <strong style={{color:WHITE}}>The foundation is set.</strong> Week one builds awareness. Week two builds consistency. Week three makes it permanent. Keep going.
+            </p>
+          </div>
+        </div>
+
+        <button onClick={onContinue} style={{width:"100%",border:"none",borderRadius:100,padding:"16px",fontSize:16,fontWeight:700,fontFamily:"'Space Grotesk',sans-serif",cursor:"pointer",background:"linear-gradient(135deg,#059669,#34D399)",color:WHITE,letterSpacing:".05em"}}>
+          Continue Journey →
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function QuantumMilestoneDay14({challengeData, onContinue}){
+  const streak = getStreak(challengeData);
+  const daysActive = getDaysActive(challengeData);
+  const completion = getCompletionPercentage(challengeData);
+  
+  return(
+    <div style={{minHeight:"100vh",background:BG,padding:"60px 20px",display:"flex",alignItems:"center",justifyContent:"center"}}>
+      <div style={{width:"100%",maxWidth:600,animation:"fadeUp .6s ease both"}}>
+        <div style={{textAlign:"center",marginBottom:32}}>
+          <div style={{fontSize:80,marginBottom:16}}>⚖️</div>
+          <div style={{display:"inline-block",background:"rgba(52,211,153,0.1)",border:"1px solid rgba(52,211,153,0.3)",borderRadius:100,padding:"8px 20px",marginBottom:16}}>
+            <span style={{fontSize:14,fontWeight:700,color:GREEN,letterSpacing:".12em"}}>DAY 14 MILESTONE REACHED</span>
+          </div>
+          <h1 style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"clamp(36px,8vw,58px)",letterSpacing:2,color:WHITE,marginBottom:12}}>Two Weeks Strong</h1>
+          <p style={{fontFamily:"'Crimson Pro',serif",fontStyle:"italic",fontSize:18,color:MUTED,lineHeight:1.7}}>Halfway to transformation. The habit is forming.</p>
+        </div>
+
+        <div style={{background:`linear-gradient(145deg,${DARK2},${DARK})`,border:`2px solid ${GREEN}44`,borderRadius:20,padding:"32px 28px",marginBottom:20,boxShadow:"0 0 30px rgba(52,211,153,0.15)"}}>
+          <div style={{textAlign:"center",marginBottom:28}}>
+            <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:72,letterSpacing:2,color:GREEN,lineHeight:1}}>{completion}%</div>
+            <p style={{fontSize:16,color:MUTED,marginTop:8}}>Challenge completion</p>
+          </div>
+
+          <div style={{display:"grid",gridTemplateColumns:"repeat(2, 1fr)",gap:12,marginBottom:24}}>
+            <div style={{background:"rgba(52,211,153,0.06)",border:"1px solid rgba(52,211,153,0.2)",borderRadius:10,padding:"14px",textAlign:"center"}}>
+              <p style={{fontSize:12,color:DIMMED,marginBottom:4}}>Days Active</p>
+              <p style={{fontSize:24,fontWeight:700,color:GREEN}}>{daysActive}</p>
+            </div>
+            {streak > 0 && (
+              <div style={{background:"rgba(251,191,36,0.06)",border:"1px solid rgba(251,191,36,0.2)",borderRadius:10,padding:"14px",textAlign:"center"}}>
+                <p style={{fontSize:12,color:DIMMED,marginBottom:4}}>Streak</p>
+                <p style={{fontSize:24,fontWeight:700,color:AMBER}}>{streak} days</p>
+              </div>
+            )}
+          </div>
+
+          <div style={{background:"rgba(52,211,153,0.04)",border:"1px solid rgba(52,211,153,0.2)",borderRadius:12,padding:"20px"}}>
+            <p style={{fontSize:15,color:MUTED,lineHeight:1.8}}>
+              <strong style={{color:WHITE}}>Consistency compounds.</strong> The next 7 days are where the 5 Quantum Laws shift from conscious practice to automatic behavior.
+            </p>
+          </div>
+        </div>
+
+        <button onClick={onContinue} style={{width:"100%",border:"none",borderRadius:100,padding:"16px",fontSize:16,fontWeight:700,fontFamily:"'Space Grotesk',sans-serif",cursor:"pointer",background:"linear-gradient(135deg,#059669,#34D399)",color:WHITE,letterSpacing:".05em"}}>
+          Final Week →
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function QuantumMilestoneDay21({challengeData, onContinue}){
+  const streak = getStreak(challengeData);
+  const daysActive = getDaysActive(challengeData);
+  const completion = getCompletionPercentage(challengeData);
+  
+  return(
+    <div style={{minHeight:"100vh",background:BG,padding:"60px 20px",display:"flex",alignItems:"center",justifyContent:"center"}}>
+      <div style={{width:"100%",maxWidth:600,animation:"fadeUp .6s ease both"}}>
+        <div style={{textAlign:"center",marginBottom:32}}>
+          <div style={{fontSize:80,marginBottom:16}}>🏆</div>
+          <div style={{display:"inline-block",background:"linear-gradient(135deg,#059669,#34D399)",borderRadius:100,padding:"8px 20px",marginBottom:16}}>
+            <span style={{fontSize:14,fontWeight:700,color:WHITE,letterSpacing:".12em"}}>21-DAY WELLNESS TRANSFORMATION COMPLETE</span>
+          </div>
+          <h1 style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"clamp(40px,9vw,64px)",letterSpacing:2,color:WHITE,marginBottom:12}}>Transformation Complete</h1>
+          <p style={{fontFamily:"'Crimson Pro',serif",fontStyle:"italic",fontSize:19,color:MUTED,lineHeight:1.7}}>21 days of honoring the 5 Quantum Laws. The habit is formed.</p>
+        </div>
+
+        <div style={{background:`linear-gradient(145deg,rgba(52,211,153,0.15),transparent)`,border:`2px solid ${GREEN}`,borderRadius:20,padding:"36px 32px",marginBottom:24,boxShadow:"0 0 40px rgba(52,211,153,0.2)"}}>
+          <div style={{textAlign:"center",marginBottom:32}}>
+            <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:88,letterSpacing:2,color:GREEN,lineHeight:1}}>{completion}%</div>
+            <p style={{fontSize:17,color:MUTED,marginTop:10}}>Challenge completion rate</p>
+          </div>
+
+          <div style={{display:"grid",gridTemplateColumns:"repeat(2, 1fr)",gap:14,marginBottom:28}}>
+            <div style={{background:"rgba(255,255,255,0.04)",border:`1px solid ${BORDER2}`,borderRadius:12,padding:"16px",textAlign:"center"}}>
+              <p style={{fontSize:13,color:DIMMED,marginBottom:6}}>Days Active</p>
+              <p style={{fontSize:28,fontWeight:700,color:GREEN}}>{daysActive}</p>
+            </div>
+            {streak > 0 && (
+              <div style={{background:"rgba(255,255,255,0.04)",border:`1px solid ${BORDER2}`,borderRadius:12,padding:"16px",textAlign:"center"}}>
+                <p style={{fontSize:13,color:DIMMED,marginBottom:6}}>Final Streak</p>
+                <p style={{fontSize:28,fontWeight:700,color:AMBER}}>{streak}🔥</p>
+              </div>
+            )}
+          </div>
+
+          <div style={{background:"rgba(52,211,153,0.06)",border:"1px solid rgba(52,211,153,0.3)",borderRadius:14,padding:"24px"}}>
+            <p style={{fontFamily:"'Crimson Pro',serif",fontStyle:"italic",fontSize:16,color:WHITE,lineHeight:1.85,textAlign:"center"}}>
+              "Small shifts, consistently honoured, produce quantum results."
+            </p>
+          </div>
+        </div>
+
+        <button onClick={onContinue} style={{width:"100%",border:"none",borderRadius:100,padding:"18px",fontSize:17,fontWeight:700,fontFamily:"'Space Grotesk',sans-serif",cursor:"pointer",background:"linear-gradient(135deg,#059669,#34D399)",color:WHITE,letterSpacing:".05em"}}>
+          Continue Living Quantum →
+        </button>
+        
+        <p style={{fontSize:13,color:DIMMED,textAlign:"center",marginTop:12}}>The 21 days built the habit. Now maintain it for life.</p>
+      </div>
+    </div>
+  );
+}
+
 function LawDetail({ law, arch, onBack }) {
   const archNote = arch && ARCH_LAW_NOTES[arch] ? ARCH_LAW_NOTES[arch][LAWS.indexOf(law)] : null;
   const ARCH_NAMES = {A:"Systems Architect",B:"Deep Learner",C:"Relational Catalyst",D:"Visionary Pioneer"};
@@ -277,8 +566,8 @@ function LawDetail({ law, arch, onBack }) {
   return (
     <div style={{minHeight:"100vh",background:`radial-gradient(ellipse 80% 40% at 50% 0%,${law.glow} 0%,transparent 60%),${BG}`,fontFamily:"'Space Grotesk',sans-serif",color:WHITE,display:"flex",flexDirection:"column",alignItems:"center",padding:"0 16px 60px"}}>
       <div style={{width:"100%",borderBottom:`1px solid ${BORDER}`,padding:"12px 20px",display:"flex",alignItems:"center",justifyContent:"space-between",background:"rgba(7,15,30,0.9)",backdropFilter:"blur(14px)",position:"sticky",top:0,zIndex:100}}>
-        <button onClick={onBack} style={{background:"none",border:`1px solid ${BORDER}`,borderRadius:100,padding:"8px 16px",color:MUTED,fontSize:12,cursor:"pointer",fontFamily:"'Space Grotesk',sans-serif"}} onMouseEnter={e=>e.currentTarget.style.color=WHITE} onMouseLeave={e=>e.currentTarget.style.color=MUTED}>← All Laws</button>
-        <p style={{fontSize:11,fontWeight:700,color:law.color,letterSpacing:".1em",textTransform:"uppercase"}}>Law {law.num}</p>
+        <button onClick={onBack} style={{background:"none",border:`1px solid ${BORDER}`,borderRadius:100,padding:"8px 16px",color:MUTED,fontSize:15,cursor:"pointer",fontFamily:"'Space Grotesk',sans-serif"}} onMouseEnter={e=>e.currentTarget.style.color=WHITE} onMouseLeave={e=>e.currentTarget.style.color=MUTED}>← All Laws</button>
+        <p style={{fontSize:14,fontWeight:700,color:law.color,letterSpacing:".1em",textTransform:"uppercase"}}>Law {law.num}</p>
         <span style={{fontSize:20,color:law.color}}>{law.sym}</span>
       </div>
 
@@ -286,7 +575,7 @@ function LawDetail({ law, arch, onBack }) {
         {/* Hero */}
         <div style={{background:`linear-gradient(145deg,${DARK2},${DARK})`,border:`1px solid ${law.color}44`,borderRadius:20,padding:"36px 28px",textAlign:"center",marginBottom:16,boxShadow:`0 0 50px ${law.glow}`,animation:"fadeUp .6s ease both"}}>
           <div style={{fontSize:52,marginBottom:12}}>{law.icon}</div>
-          <p style={{fontSize:10,fontWeight:700,color:law.color,letterSpacing:".14em",textTransform:"uppercase",marginBottom:10}}>Quantum Law {law.num} · {law.subtitle}</p>
+          <p style={{fontSize:16,fontWeight:700,color:law.color,letterSpacing:".14em",textTransform:"uppercase",marginBottom:10}}>Quantum Law {law.num} · {law.subtitle}</p>
           <h1 style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"clamp(28px,6vw,44px)",letterSpacing:2,color:WHITE,marginBottom:4}}>{law.title}</h1>
           <div style={{width:50,height:2,background:`linear-gradient(90deg,transparent,${law.color},transparent)`,margin:"16px auto"}}/>
           <p style={{fontFamily:"'Crimson Pro',serif",fontStyle:"italic",fontSize:19,color:law.color,lineHeight:1.65}}>"{law.principle}"</p>
@@ -294,29 +583,29 @@ function LawDetail({ law, arch, onBack }) {
 
         {/* The Truth */}
         <div style={{background:PANEL,border:`1px solid ${BORDER2}`,borderRadius:16,padding:"24px",marginBottom:14,animation:"fadeUp .6s .1s ease both"}}>
-          <p style={{fontSize:10,fontWeight:700,color:DIMMED,letterSpacing:".12em",textTransform:"uppercase",marginBottom:12}}>The Truth</p>
+          <p style={{fontSize:16,fontWeight:700,color:DIMMED,letterSpacing:".12em",textTransform:"uppercase",marginBottom:12}}>The Truth</p>
           <p style={{fontFamily:"'Crimson Pro',serif",fontSize:17,lineHeight:1.85,color:"rgba(255,255,255,0.8)",fontWeight:300}}>{law.truth}</p>
         </div>
 
         {/* Quantum Edge */}
         <div style={{background:law.glow,border:`1px solid ${law.color}33`,borderLeft:`3px solid ${law.color}`,borderRadius:"0 14px 14px 0",padding:"18px 20px",marginBottom:14,animation:"fadeUp .6s .15s ease both"}}>
-          <p style={{fontSize:10,fontWeight:700,color:law.color,letterSpacing:".12em",textTransform:"uppercase",marginBottom:8}}>⚡ Quantum Edge</p>
+          <p style={{fontSize:16,fontWeight:700,color:law.color,letterSpacing:".12em",textTransform:"uppercase",marginBottom:8}}>⚡ Quantum Edge</p>
           <p style={{fontFamily:"'Crimson Pro',serif",fontSize:16,color:MUTED,lineHeight:1.75}}>{law.quantumEdge}</p>
         </div>
 
         {/* Daily Practice */}
         <div style={{background:"rgba(0,200,255,0.04)",border:`1px solid ${BORDER}`,borderRadius:16,padding:"22px",marginBottom:14,animation:"fadeUp .6s .2s ease both"}}>
-          <p style={{fontSize:10,fontWeight:700,color:E_BLUE,letterSpacing:".12em",textTransform:"uppercase",marginBottom:10}}>◈ Daily Practice</p>
+          <p style={{fontSize:16,fontWeight:700,color:E_BLUE,letterSpacing:".12em",textTransform:"uppercase",marginBottom:10}}>◈ Daily Practice</p>
           <p style={{fontSize:15,lineHeight:1.8,color:"rgba(255,255,255,0.82)",fontWeight:400}}>{law.dailyPractice}</p>
         </div>
 
         {/* 4 Practices */}
-        <p style={{fontSize:10,fontWeight:700,color:DIMMED,letterSpacing:".12em",textTransform:"uppercase",marginBottom:12,animation:"fadeUp .6s .25s ease both"}}>4 Quantum Practices</p>
+        <p style={{fontSize:16,fontWeight:700,color:DIMMED,letterSpacing:".12em",textTransform:"uppercase",marginBottom:12,animation:"fadeUp .6s .25s ease both"}}>4 Quantum Practices</p>
         {law.practices.map((p,i)=>(
           <div key={i} style={{background:PANEL,border:`1px solid ${BORDER2}`,borderTop:`2px solid ${law.color}88`,borderRadius:14,padding:"18px 20px",marginBottom:10,animation:`fadeUp .6s ${.28+i*.06}s ease both`}}>
             <div style={{display:"flex",gap:10,alignItems:"center",marginBottom:8}}>
-              <div style={{width:24,height:24,borderRadius:"50%",background:law.color,display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,color:BG,fontWeight:800,flexShrink:0}}>{i+1}</div>
-              <p style={{fontSize:13,fontWeight:700,color:law.color,letterSpacing:".06em"}}>{p.title}</p>
+              <div style={{width:24,height:24,borderRadius:"50%",background:law.color,display:"flex",alignItems:"center",justifyContent:"center",fontSize:14,color:BG,fontWeight:800,flexShrink:0}}>{i+1}</div>
+              <p style={{fontSize:16,fontWeight:700,color:law.color,letterSpacing:".06em"}}>{p.title}</p>
             </div>
             <p style={{fontSize:14,lineHeight:1.8,color:MUTED,fontWeight:300}}>{p.desc}</p>
           </div>
@@ -324,7 +613,7 @@ function LawDetail({ law, arch, onBack }) {
 
         {/* Things to avoid */}
         <div style={{background:"rgba(255,160,40,0.04)",border:"1px solid rgba(255,160,40,0.15)",borderRadius:16,padding:"20px 22px",marginBottom:14,animation:"fadeUp .6s .5s ease both"}}>
-          <p style={{fontSize:10,fontWeight:700,color:"rgba(255,180,50,0.8)",letterSpacing:".12em",textTransform:"uppercase",marginBottom:12}}>△ Patterns to Avoid</p>
+          <p style={{fontSize:16,fontWeight:700,color:"rgba(255,180,50,0.8)",letterSpacing:".12em",textTransform:"uppercase",marginBottom:12}}>△ Patterns to Avoid</p>
           {law.avoid.map((a,i)=>(
             <div key={i} style={{display:"flex",gap:10,alignItems:"flex-start",marginBottom:i<law.avoid.length-1?10:0}}>
               <span style={{color:"rgba(255,180,50,0.6)",flexShrink:0,marginTop:2,fontSize:13}}>◦</span>
@@ -336,12 +625,12 @@ function LawDetail({ law, arch, onBack }) {
         {/* Personalised archetype note */}
         {archNote ? (
           <div style={{background:`linear-gradient(135deg,${ARCH_COLORS[arch]}0a,transparent)`,border:`1px solid ${ARCH_COLORS[arch]}33`,borderLeft:`3px solid ${ARCH_COLORS[arch]}`,borderRadius:"0 14px 14px 0",padding:"20px 22px",animation:"fadeUp .6s .55s ease both"}}>
-            <p style={{fontSize:10,fontWeight:700,color:ARCH_COLORS[arch],letterSpacing:".12em",textTransform:"uppercase",marginBottom:10}}>⚛ {ARCH_NAMES[arch]} — This Law Applied to You</p>
+            <p style={{fontSize:16,fontWeight:700,color:ARCH_COLORS[arch],letterSpacing:".12em",textTransform:"uppercase",marginBottom:10}}>⚛ {ARCH_NAMES[arch]} — This Law Applied to You</p>
             <p style={{fontFamily:"'Crimson Pro',serif",fontStyle:"italic",fontSize:16,color:MUTED,lineHeight:1.8}}>{archNote}</p>
           </div>
         ) : (
           <div style={{background:`linear-gradient(135deg,rgba(0,200,255,0.06),rgba(0,200,255,0.02))`,border:`1px solid ${E_BLUE}33`,borderRadius:16,padding:"20px 22px",animation:"fadeUp .6s .55s ease both"}}>
-            <p style={{fontSize:10,fontWeight:700,color:E_BLUE,letterSpacing:".12em",textTransform:"uppercase",marginBottom:10}}>⚛ LQM Archetype Note</p>
+            <p style={{fontSize:16,fontWeight:700,color:E_BLUE,letterSpacing:".12em",textTransform:"uppercase",marginBottom:10}}>⚛ LQM Archetype Note</p>
             <p style={{fontFamily:"'Crimson Pro',serif",fontStyle:"italic",fontSize:16,color:MUTED,lineHeight:1.75}}>{law.lqmNote}</p>
           </div>
         )}
