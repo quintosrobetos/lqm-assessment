@@ -29,6 +29,55 @@ import {
   playMilestoneSound
 } from "./sounds";
 
+// ── Gameplay sound effects ──
+function playShootSound() {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const oscillator = ctx.createOscillator();
+    const gainNode = ctx.createGain();
+    oscillator.connect(gainNode);
+    gainNode.connect(ctx.destination);
+    oscillator.frequency.setValueAtTime(300, ctx.currentTime);
+    oscillator.frequency.exponentialRampToValueAtTime(150, ctx.currentTime + 0.1);
+    gainNode.gain.setValueAtTime(0.15, ctx.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.1);
+    oscillator.start(ctx.currentTime);
+    oscillator.stop(ctx.currentTime + 0.1);
+  } catch (e) {}
+}
+
+function playHitSound() {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const oscillator = ctx.createOscillator();
+    const gainNode = ctx.createGain();
+    oscillator.connect(gainNode);
+    gainNode.connect(ctx.destination);
+    oscillator.frequency.setValueAtTime(800, ctx.currentTime);
+    oscillator.frequency.exponentialRampToValueAtTime(1200, ctx.currentTime + 0.08);
+    gainNode.gain.setValueAtTime(0.2, ctx.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.15);
+    oscillator.start(ctx.currentTime);
+    oscillator.stop(ctx.currentTime + 0.15);
+  } catch (e) {}
+}
+
+function playMissSound() {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const oscillator = ctx.createOscillator();
+    const gainNode = ctx.createGain();
+    oscillator.connect(gainNode);
+    gainNode.connect(ctx.destination);
+    oscillator.frequency.setValueAtTime(200, ctx.currentTime);
+    oscillator.frequency.exponentialRampToValueAtTime(100, ctx.currentTime + 0.2);
+    gainNode.gain.setValueAtTime(0.15, ctx.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.2);
+    oscillator.start(ctx.currentTime);
+    oscillator.stop(ctx.currentTime + 0.2);
+  } catch (e) {}
+}
+
 // ── Brand palette ─────────────────────────────────────────────────────────
 const BG      = "#070F1E";
 const DARK    = "#0D1830";
@@ -412,7 +461,7 @@ export default function BrainTraining({ onBack, archetype }){
 
       <div style={{width:"100%",maxWidth:560,padding:"32px 20px 0"}}>
         {screen==="difficulty" && <DifficultySelection onSelect={(d)=>{setDifficulty(d);setScreen("intro");}}/>}
-        {screen==="intro"     && <Intro onStart={startProtocol} xp={totalXP} streak={streak} level={level} userData={userData} difficulty={difficulty}/>}
+        {screen==="intro"     && <Intro onStart={startProtocol} onQuickPlay={()=>{setRound(5);setScores([]);setScreen("challenge");}} xp={totalXP} streak={streak} level={level} userData={userData} difficulty={difficulty} challengeData={challengeData}/>}
         {screen==="science"   && <ScienceCard card={SCIENCE_CARDS[round]} round={round} onBegin={()=>setScreen("challenge")}/>}
         {screen==="challenge" && round===0 && <StroopChallenge   key="s" difficulty={DIFFICULTY[difficulty]} onComplete={handleRoundComplete}/>}
         {screen==="challenge" && round===1 && <NBackChallenge    key="n" difficulty={DIFFICULTY[difficulty]} onComplete={handleRoundComplete}/>}
@@ -427,9 +476,16 @@ export default function BrainTraining({ onBack, archetype }){
 }
 
 // ── Intro ─────────────────────────────────────────────────────────────────
-function Intro({onStart,xp,streak,level,userData}){
+function Intro({onStart,onQuickPlay,xp,streak,level,userData,challengeData}){
   const nextLevel=LEVELS.find(l=>l.min>xp);
   const pct=nextLevel?Math.min(100,((xp-level.min)/(nextLevel.min-level.min))*100):100;
+  
+  // 21-day challenge progress
+  const currentDay = challengeData?.currentDay || 0;
+  const daysCompleted = challengeData?.daysCompleted?.length || 0;
+  const completionPct = currentDay > 0 ? Math.round((daysCompleted / currentDay) * 100) : 0;
+  const isEnrolled = challengeData && challengeData.enrolled;
+  
   const rounds=[
     {icon:"🎨",name:"Stroop Challenge",tag:"Executive Function",brain:"Prefrontal cortex"},
     {icon:"🧠",name:"2-Back Test",tag:"Working Memory",brain:"Dorsolateral prefrontal"},
@@ -445,6 +501,34 @@ function Intro({onStart,xp,streak,level,userData}){
         <h1 style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"clamp(32px,7vw,52px)",letterSpacing:2,color:WHITE,lineHeight:1.05,marginBottom:8}}>Train Your<br/><span style={{color:E_BLUE}}>Quantum Mind</span></h1>
         <p style={{fontFamily:"'Crimson Pro',serif",fontStyle:"italic",fontSize:16,color:MUTED,lineHeight:1.7}}>"The exercised brain builds new neural pathways throughout life. Consistency compounds."</p>
       </div>
+
+      {/* 21-DAY CHALLENGE DASHBOARD */}
+      {isEnrolled && (
+        <div className="fu0" style={{background:`linear-gradient(135deg,rgba(0,200,255,0.08),rgba(0,200,255,0.03))`,border:`1px solid ${E_BLUE}33`,borderRadius:16,padding:"16px 20px",marginBottom:14}}>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
+            <div>
+              <p style={{fontSize:14,fontWeight:700,color:E_BLUE,letterSpacing:".12em",textTransform:"uppercase",marginBottom:2}}>📅 21-Day Transformation</p>
+              <p style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:22,letterSpacing:2,color:WHITE}}>Day {currentDay} of 21</p>
+            </div>
+            <div style={{textAlign:"right"}}>
+              <p style={{fontSize:14,color:DIMMED,marginBottom:2}}>Completion</p>
+              <p style={{fontSize:20,fontWeight:700,color:GREEN}}>{completionPct}%</p>
+            </div>
+          </div>
+          <div style={{height:6,background:"rgba(255,255,255,0.06)",borderRadius:100,overflow:"hidden"}}>
+            <div style={{height:"100%",width:`${(currentDay/21)*100}%`,background:`linear-gradient(90deg,${E_BLUE},${GREEN})`,borderRadius:100}}/>
+          </div>
+          {currentDay >= 7 && (
+            <p style={{fontSize:13,color:GREEN,marginTop:8,fontWeight:600}}>✓ Week 1 milestone reached!</p>
+          )}
+          {currentDay >= 14 && (
+            <p style={{fontSize:13,color:GREEN,marginTop:4,fontWeight:600}}>✓ Week 2 milestone reached!</p>
+          )}
+          {currentDay >= 21 && (
+            <p style={{fontSize:13,color:AMBER,marginTop:4,fontWeight:700}}>🏆 21-Day Transformation Complete!</p>
+          )}
+        </div>
+      )}
 
       <div className="fu1" style={{background:`linear-gradient(135deg,${DARK2},${DARK})`,border:`1px solid ${level.color}33`,borderRadius:16,padding:"18px 22px",marginBottom:14}}>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
@@ -483,10 +567,17 @@ function Intro({onStart,xp,streak,level,userData}){
         ))}
       </div>
 
-      <button className="fu3" onClick={onStart} style={{width:"100%",border:"none",borderRadius:100,padding:"16px",fontSize:16,fontWeight:700,fontFamily:"'Space Grotesk',sans-serif",cursor:"pointer",letterSpacing:".05em",background:`linear-gradient(135deg,${E_BLUE2},${E_BLUE})`,color:BG,boxShadow:`0 6px 28px rgba(0,200,255,0.2)`,transition:"all .2s"}}
+      <button className="fu3" onClick={onStart} style={{width:"100%",border:"none",borderRadius:100,padding:"16px",fontSize:16,fontWeight:700,fontFamily:"'Space Grotesk',sans-serif",cursor:"pointer",letterSpacing:".05em",background:`linear-gradient(135deg,${E_BLUE2},${E_BLUE})`,color:BG,boxShadow:`0 6px 28px rgba(0,200,255,0.2)`,transition:"all .2s",marginBottom:10}}
         onMouseEnter={e=>{e.currentTarget.style.transform="translateY(-2px)";e.currentTarget.style.boxShadow=`0 12px 36px rgba(0,200,255,0.32)`;}}
         onMouseLeave={e=>{e.currentTarget.style.transform="translateY(0)";e.currentTarget.style.boxShadow=`0 6px 28px rgba(0,200,255,0.2)`;}}>
-        ⚡ Begin Protocol →
+        ⚡ Begin Full Protocol →
+      </button>
+      
+      {/* QUICK PLAY NEURAL DEFENSE BUTTON */}
+      <button className="fu4" onClick={onQuickPlay} style={{width:"100%",border:`1.5px solid ${PURPLE}66`,borderRadius:100,padding:"14px",fontSize:15,fontWeight:600,fontFamily:"'Space Grotesk',sans-serif",cursor:"pointer",letterSpacing:".05em",background:"transparent",color:PURPLE,transition:"all .2s"}}
+        onMouseEnter={e=>{e.currentTarget.style.background=`${PURPLE}11`;e.currentTarget.style.borderColor=PURPLE;}}
+        onMouseLeave={e=>{e.currentTarget.style.background="transparent";e.currentTarget.style.borderColor=`${PURPLE}66`;}}>
+        🛡️ Quick Play: Neural Defense Only
       </button>
     </div>
   );
@@ -1089,6 +1180,8 @@ function NeuralDefense({onComplete, difficulty}){
         const missed = updated.filter(s => s.y > GAME_HEIGHT);
         if(missed.length > 0){
           setMisses(m => m + missed.length);
+          // 🔊 MISS SOUND
+          playMissSound();
           // ❌ SCREEN FLASH on miss
           setScreenFlash('red');
           setTimeout(() => setScreenFlash(null), 200);
@@ -1126,6 +1219,9 @@ function NeuralDefense({onComplete, difficulty}){
   function handleShoot(){
     if(phase !== "playing") return;
     
+    // 🔊 SHOOT SOUND
+    playShootSound();
+    
     // 🎆 LIGHTNING BOLT EFFECT - Create dramatic shooting visual
     const shieldCenter = shieldX + SHIELD_WIDTH/2;
     setLightningBolts(prev => [...prev, {
@@ -1159,6 +1255,9 @@ function NeuralDefense({onComplete, difficulty}){
           totalPoints += s.pts;
           setScore(sc => sc + s.pts);
           setHits(h => h + 1);
+          
+          // 🔊 HIT SOUND
+          playHitSound();
           
           // Track reaction time
           const rt = Date.now() - s.spawnTime;
