@@ -578,7 +578,7 @@ function StroopChallenge({onComplete, difficulty}){
   const [fb,      setFb]     = useState(null);
   const [started, setSt]     = useState(false);
   const startRef  = useRef(null);
-  rtimes    = useRef([]);
+  const rtimes    = useRef([]);
 
   useEffect(()=>{
     if(!started) return;
