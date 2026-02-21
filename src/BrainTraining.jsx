@@ -392,17 +392,6 @@ export default function BrainTraining({ onBack, archetype }){
       setScreen("results");
     }
   }
-        } else if(updatedChallenge.currentDay >= 14 && !updatedChallenge.milestones.day_14.unlocked){
-          setShowMilestone("day14");
-        } else if(updatedChallenge.currentDay >= 21 && !updatedChallenge.milestones.day_21.unlocked){
-          setShowMilestone("day21");
-        }
-      }
-      
-      setScreen("results");
-    }
-  }
-        analytics.trackStreakAchieved(newStreak, "brain_training");
       }
       
       setScreen("results");
