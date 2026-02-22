@@ -94,6 +94,7 @@ const GREEN   = "#34D399";
 const AMBER   = "#FBBF24";
 const RED     = "#F87171";
 const VIOLET  = "#A78BFA";
+const PURPLE  = "#8B5CF6";
 
 // ── Difficulty settings ───────────────────────────────────────────────────
 const DIFFICULTY = {
@@ -1066,7 +1067,6 @@ function NeuralDefense({onComplete, difficulty}){
   const GAME_HEIGHT = 500;
   const SHIELD_WIDTH = 60;
   const SHAPE_SIZE = 36;
-  const PURPLE = "#8B5CF6";
   
   // Difficulty settings
   const WAVE_DURATION = difficulty?.defense?.waveDuration || 30; // seconds per wave
