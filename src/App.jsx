@@ -34,7 +34,8 @@ const MUTED   = "rgba(255,255,255,0.62)";
 const DIMMED  = "rgba(255,255,255,0.32)";
 const AMBER   = "#FBBF24";             // amber/gold accent colour
 const GREEN   = "#22C55E";             // green accent colour
-const PURPLE  = "#A855F7";             // purple accent colour const SYMS    = ["⚛","◈","⬡","△","◎","⊕","⟁","⬢"];
+const PURPLE  = "#A855F7";             // purple accent colour 
+const SYMS    = ["⚛","◈","⬡","△","◎","⊕","⟁","⬢"];
 
 // ── Archetype SVG Illustrations ───────────────────────────────────────────────
 function ArchetypeIllustration({ type: t }) {
