@@ -39,6 +39,138 @@ const SYMS    = ["⚛","◈","⬡","△","◎","⊕","⟁","⬢"];
 
 // ── Archetype SVG Illustrations ───────────────────────────────────────────────
 function ArchetypeIllustration({ type: t }) {
+  const ARCH_COLORS = {A:"#00C8FF", B:"#38BDF8", C:"#34D399", D:"#A78BFA"};
+  const c = ARCH_COLORS[t] || "#00C8FF";
+
+  // Inject spinning animation styles once
+  if(typeof document !== "undefined"){
+    const id = "arch-spin-styles";
+    if(!document.getElementById(id)){
+      const s = document.createElement("style");
+      s.id = id;
+      s.textContent = `
+        @keyframes archSpin1{from{transform-origin:100px 70px;transform:rotate(0deg);}to{transform-origin:100px 70px;transform:rotate(360deg);}}
+        @keyframes archSpin2{from{transform-origin:100px 70px;transform:rotate(0deg);}to{transform-origin:100px 70px;transform:rotate(-360deg);}}
+        @keyframes archSpin3{from{transform-origin:100px 70px;transform:rotate(45deg);}to{transform-origin:100px 70px;transform:rotate(405deg);}}
+        @keyframes archPulse{0%,100%{opacity:0.9;r:10;}50%{opacity:1;r:12;}}
+        @keyframes archGlow{0%,100%{opacity:0.15;}50%{opacity:0.35;}}
+        .arch-ring1{animation:archSpin1 8s linear infinite;}
+        .arch-ring2{animation:archSpin2 14s linear infinite;}
+        .arch-ring3{animation:archSpin3 5s linear infinite;}
+        .arch-glow{animation:archGlow 3s ease-in-out infinite;}
+      `;
+      document.head.appendChild(s);
+    }
+  }
+
+  const dashArray = (r) => {
+    const circ = 2 * Math.PI * r;
+    return `${circ * 0.6} ${circ * 0.4}`;
+  };
+
+  return (
+    <svg viewBox="0 0 200 140" style={{width:"100%", maxWidth:340, display:"block", margin:"0 auto", overflow:"visible"}}>
+      <defs>
+        <radialGradient id={`rg${t}`} cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stopColor={c} stopOpacity="0.35"/>
+          <stop offset="100%" stopColor={c} stopOpacity="0"/>
+        </radialGradient>
+        <filter id={`gf${t}`}>
+          <feGaussianBlur stdDeviation="3" result="blur"/>
+          <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+        </filter>
+      </defs>
+
+      {/* Background glow */}
+      <ellipse cx="100" cy="70" rx="55" ry="45" fill={`url(#rg${t})`} className="arch-glow"/>
+
+      {/* Blueprint grid — subtle */}
+      {[30,60,90,120,150,170].map(x=><line key={`v${x}`} x1={x} y1="10" x2={x} y2="130" stroke={c} strokeWidth="0.25" opacity="0.12"/>)}
+      {[25,45,65,85,105,120].map(y=><line key={`h${y}`} x1="10" y1={y} x2="190" y2={y} stroke={c} strokeWidth="0.25" opacity="0.12"/>)}
+
+      {/* Corner markers */}
+      {[[15,15],[185,15],[15,125],[185,125]].map(([x,y],i)=>(
+        <circle key={i} cx={x} cy={y} r="2.5" fill={c} opacity="0.5"/>
+      ))}
+
+      {/* Outer static ring */}
+      <circle cx="100" cy="70" r="48" fill="none" stroke={c} strokeWidth="0.5" opacity="0.2"/>
+
+      {/* Spinning ring 1 — large, slow, dashed */}
+      <g className="arch-ring1">
+        <circle cx="100" cy="70" r="40" fill="none" stroke="white" strokeWidth="1.2"
+          strokeDasharray={dashArray(40)} opacity="0.35"/>
+        {/* Orbiting dot on ring 1 */}
+        <circle cx="100" cy="30" r="3.5" fill="white" opacity="0.7"/>
+      </g>
+
+      {/* Spinning ring 2 — medium, reverse, different dash */}
+      <g className="arch-ring2">
+        <circle cx="100" cy="70" r="28" fill="none" stroke="white" strokeWidth="1"
+          strokeDasharray={dashArray(28)} opacity="0.45"/>
+        <circle cx="100" cy="42" r="3" fill="white" opacity="0.8"/>
+        <circle cx="128" cy="70" r="2.5" fill="white" opacity="0.6"/>
+      </g>
+
+      {/* Spinning ring 3 — small, fast, nearly solid */}
+      <g className="arch-ring3">
+        <circle cx="100" cy="70" r="16" fill="none" stroke="white" strokeWidth="1.5"
+          strokeDasharray={dashArray(16)} opacity="0.55"/>
+        <circle cx="100" cy="54" r="2.5" fill={c} opacity="1"/>
+      </g>
+
+      {/* Axis lines (static) */}
+      <line x1="100" y1="22" x2="100" y2="118" stroke={c} strokeWidth="0.6" opacity="0.3"/>
+      <line x1="52" y1="70" x2="148" y2="70" stroke={c} strokeWidth="0.6" opacity="0.3"/>
+
+      {/* Centre core */}
+      <circle cx="100" cy="70" r="10" fill={c} opacity="0.15"/>
+      <circle cx="100" cy="70" r="6" fill={c} opacity="0.5"/>
+      <circle cx="100" cy="70" r="3" fill="white" opacity="0.9"/>
+    </svg>
+  );
+}
+import { useState, useEffect, useRef } from "react";
+import BrainTraining from "./BrainTraining.jsx";
+import QuantumLiving from "./QuantumLiving.jsx";
+
+// ── Stripe Payment Links ───────────────────────────────────────────────────
+const STRIPE_MAIN    = "https://buy.stripe.com/00w8wR50Xber8VZfkka3u00"; // £9 main report
+const STRIPE_BRAIN   = "https://buy.stripe.com/8x2eVfgJF4Q37RVb44a3u02";      // £5 Brain Training
+const STRIPE_VITAL   = "https://buy.stripe.com/eVq5kF651gyLgorc88a3u03";      // £5 Quantum Living
+
+// ── Unlock helpers (localStorage simulates post-payment state) ────────────
+function getUnlocks() {
+  try { return JSON.parse(localStorage.getItem("lqm_unlocks")||"{}"); } catch { return {}; }
+}
+function setUnlock(key) {
+  const u = getUnlocks(); u[key]=true;
+  localStorage.setItem("lqm_unlocks", JSON.stringify(u));
+}
+
+
+const FONTS = `@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Bebas+Neue&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap');`;
+
+// ── Palette — softer, more breathable dark ────────────────────────────────────
+const E_BLUE  = "#00C8FF";
+const E_BLUE2 = "#0EA5E9";
+const E_GLOW  = "rgba(0,200,255,0.15)";
+const BG      = "#070F1E";          // softer than pure black
+const DARK    = "#0D1830";          // panels/cards
+const DARK2   = "#111E38";          // elevated surfaces
+const PANEL   = "rgba(255,255,255,0.055)";
+const BORDER  = "rgba(0,200,255,0.18)";
+const BORDER2 = "rgba(255,255,255,0.09)";
+const WHITE   = "#FFFFFF";
+const MUTED   = "rgba(255,255,255,0.62)";
+const DIMMED  = "rgba(255,255,255,0.32)";
+const AMBER   = "#FBBF24";             // amber/gold accent colour
+const GREEN   = "#22C55E";             // green accent colour
+const PURPLE  = "#A855F7";             // purple accent colour
+const SYMS    = ["⚛","◈","⬡","△","◎","⊕","⟁","⬢"];
+
+// ── Archetype SVG Illustrations ───────────────────────────────────────────────
+function ArchetypeIllustration({ type: t }) {
   if (t === "A") return (
     <svg viewBox="0 0 200 140" style={{ width: "100%", maxWidth: 340, display: "block", margin: "0 auto" }}>
       <defs>

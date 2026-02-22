@@ -676,6 +676,7 @@ function StroopChallenge({onComplete, difficulty}){
   const [started, setSt]     = useState(false);
   const startRef  = useRef(null);
   const rtimes    = useRef([]);
+  const scoreRef  = useRef(0); // ref to avoid stale closure in finish()
 
   useEffect(()=>{
     if(!started) return;
@@ -684,14 +685,14 @@ function StroopChallenge({onComplete, difficulty}){
     return()=>clearInterval(t);
   },[tLeft,started]);
 
-  function finish(){ const avg=rtimes.current.length?Math.round(rtimes.current.reduce((a,b)=>a+b,0)/rtimes.current.length):0; onComplete(score,"Stroop Challenge",avg); }
+  function finish(){ const avg=rtimes.current.length?Math.round(rtimes.current.reduce((a,b)=>a+b,0)/rtimes.current.length):0; onComplete(scoreRef.current,"Stroop Challenge",avg); }
 
   function handleAnswer(colorName){
     if(fb||!started) return;
     const rt=Date.now()-startRef.current; rtimes.current.push(rt);
     const ok=colorName===items[idx].inkName;
     const pts=ok?Math.max(5,Math.floor(28-(rt/110))):0;
-    setScore(s=>s+pts); setTotal(t=>t+1); if(ok)setCor(c=>c+1);
+    scoreRef.current += pts; setScore(scoreRef.current); setTotal(t=>t+1); if(ok)setCor(c=>c+1);
     setFb({ok,pts});
     setTimeout(()=>{ setFb(null); const next=idx+1; if(next>=items.length||tLeft<=1){finish();}else{setIdx(next);startRef.current=Date.now();} },400);
   }
@@ -753,13 +754,14 @@ function NBackChallenge({onComplete, difficulty}){
   const [fb,      setFb]     = useState(null);
   const [phase,   setPhase]  = useState("ready");
   const [responded,setResp]  = useState(false);
+  const scoreRef = useRef(0);
   const idxRef = useRef(0); const respRef = useRef(false);
 
   function runSequence(){
     setPhase("running"); idxRef.current=0; setCur(0); respRef.current=false; setResp(false);
     function step(){
       const i=idxRef.current;
-      if(i>=seq.length){ setTimeout(()=>onComplete(score,"2-Back Test",null),500); return; }
+      if(i>=seq.length){ setTimeout(()=>onComplete(scoreRef.current,"2-Back Test",null),500); return; }
       setCur(i); setPhase("show"); respRef.current=false; setResp(false);
       setTimeout(()=>{
         setPhase("isi"); idxRef.current=i+1;
@@ -774,7 +776,7 @@ function NBackChallenge({onComplete, difficulty}){
     respRef.current=true; setResp(true);
     const isMatch=seq[cur].isMatch;
     const pts=isMatch?30:-5;
-    setScore(s=>Math.max(0,s+pts)); if(isMatch)setHits(h=>h+1);
+    scoreRef.current = Math.max(0, scoreRef.current + pts); setScore(scoreRef.current); if(isMatch)setHits(h=>h+1);
     setFb({ok:isMatch,pts:Math.abs(pts)});
     setTimeout(()=>setFb(null),500);
   }
@@ -1167,12 +1169,12 @@ function NeuralDefense({onComplete, difficulty}){
     clearInterval(waveTimerRef.current);
     if(gameLoopRef.current) cancelAnimationFrame(gameLoopRef.current);
     
-    const accuracy = hits+misses > 0 ? Math.round((hits/(hits+misses))*100) : 0;
+    const accuracy = hitsRef.current+misses > 0 ? Math.round((hitsRef.current/(hitsRef.current+misses))*100) : 0;
     const avgReaction = reactionTimes.current.length > 0 
       ? Math.round(reactionTimes.current.reduce((a,b)=>a+b,0) / reactionTimes.current.length) 
       : 0;
     
-    onComplete(score, "Neural Defense", avgReaction, accuracy);
+    onComplete(scoreRef.current, "Neural Defense", avgReaction, accuracy);
   }
 
   // Game loop - move shapes and check collisions
@@ -1271,8 +1273,10 @@ function NeuralDefense({onComplete, difficulty}){
           // 💥 HIT!
           hitCount++;
           totalPoints += s.pts;
-          setScore(sc => sc + s.pts);
-          setHits(h => h + 1);
+          scoreRef.current += s.pts;
+          setScore(scoreRef.current);
+          hitsRef.current += 1;
+          setHits(hitsRef.current);
           
           // 🔊 HIT SOUND
           playHitSound();
