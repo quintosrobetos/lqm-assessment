@@ -2,81 +2,62 @@ import { useState, useEffect, useRef } from "react";
 import BrainTraining from "./BrainTraining.jsx";
 import QuantumLiving from "./QuantumLiving.jsx";
 
-// ── Stripe Payment Links ───────────────────────────────────────────────────
-const STRIPE_MAIN    = "https://buy.stripe.com/00w8wR50Xber8VZfkka3u00"; // £9 main report
-const STRIPE_BRAIN   = "https://buy.stripe.com/8x2eVfgJF4Q37RVb44a3u02";      // £5 Brain Training
-const STRIPE_VITAL   = "https://buy.stripe.com/eVq5kF651gyLgorc88a3u03";      // £5 Quantum Living
+const STRIPE_MAIN  = "https://buy.stripe.com/00w8wR50Xber8VZfkka3u00";
+const STRIPE_BRAIN = "https://buy.stripe.com/8x2eVfgJF4Q37RVb44a3u02";
+const STRIPE_VITAL = "https://buy.stripe.com/eVq5kF651gyLgorc88a3u03";
 
-// ── Unlock helpers (localStorage simulates post-payment state) ────────────
-function getUnlocks() {
-  try { return JSON.parse(localStorage.getItem("lqm_unlocks")||"{}"); } catch { return {}; }
-}
-function setUnlock(key) {
-  const u = getUnlocks(); u[key]=true;
-  localStorage.setItem("lqm_unlocks", JSON.stringify(u));
-}
+function getUnlocks() { try { return JSON.parse(localStorage.getItem("lqm_unlocks")||"{}"); } catch { return {}; } }
+function setUnlock(key) { const u=getUnlocks(); u[key]=true; localStorage.setItem("lqm_unlocks",JSON.stringify(u)); }
 
+const FONTS=`@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Bebas+Neue&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap');`;
+const E_BLUE="#00C8FF",E_BLUE2="#0EA5E9",E_GLOW="rgba(0,200,255,0.15)";
+const BG="#070F1E",DARK="#0D1830",DARK2="#111E38",PANEL="rgba(255,255,255,0.055)";
+const BORDER="rgba(0,200,255,0.18)",BORDER2="rgba(255,255,255,0.09)";
+const WHITE="#FFFFFF",MUTED="rgba(255,255,255,0.62)",DIMMED="rgba(255,255,255,0.32)";
+const AMBER="#FBBF24",GREEN="#22C55E",PURPLE="#A855F7";
+const SYMS=["⚛","◈","⬡","△","◎","⊕","⟁","⬢"];
+const RED="#EF4444";
 
-const FONTS = `@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Bebas+Neue&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap');`;
-
-// ── Palette — softer, more breathable dark ────────────────────────────────────
-const E_BLUE  = "#00C8FF";
-const E_BLUE2 = "#0EA5E9";
-const E_GLOW  = "rgba(0,200,255,0.15)";
-const BG      = "#070F1E";          // softer than pure black
-const DARK    = "#0D1830";          // panels/cards
-const DARK2   = "#111E38";          // elevated surfaces
-const PANEL   = "rgba(255,255,255,0.055)";
-const BORDER  = "rgba(0,200,255,0.18)";
-const BORDER2 = "rgba(255,255,255,0.09)";
-const WHITE   = "#FFFFFF";
-const MUTED   = "rgba(255,255,255,0.62)";
-const DIMMED  = "rgba(255,255,255,0.32)";
-const AMBER   = "#FBBF24";             // amber/gold accent colour
-const GREEN   = "#22C55E";             // green accent colour
-const PURPLE  = "#A855F7";             // purple accent colour
-const SYMS    = ["⚛","◈","⬡","△","◎","⊕","⟁","⬢"];
-
-// ── Archetype SVG Illustrations ───────────────────────────────────────────────
+// ── Spinning Archetype Illustration ────────────────────────────────────────
 function ArchetypeIllustration({ type: t }) {
-  const ARCH_COLORS = {A:"#00C8FF", B:"#38BDF8", C:"#34D399", D:"#A78BFA"};
+  const ARCH_COLORS = {A:"#00C8FF",B:"#38BDF8",C:"#34D399",D:"#A78BFA"};
   const c = ARCH_COLORS[t] || "#00C8FF";
-  const id = `ag${t}`;
+  const uid = `lqm_${t}`;
   const css = `
-    .lqm-r1{transform-origin:100px 70px;animation:lqmSpin1 9s linear infinite;}
-    .lqm-r2{transform-origin:100px 70px;animation:lqmSpin2 15s linear infinite;}
-    .lqm-r3{transform-origin:100px 70px;animation:lqmSpin3 5s linear infinite;}
-    @keyframes lqmSpin1{from{transform:rotate(0deg);}to{transform:rotate(360deg);}}
-    @keyframes lqmSpin2{from{transform:rotate(0deg);}to{transform:rotate(-360deg);}}
-    @keyframes lqmSpin3{from{transform:rotate(45deg);}to{transform:rotate(405deg);}}
+    #${uid}_r1 { transform-box:fill-box; transform-origin:center; animation:${uid}_s1 9s linear infinite; }
+    #${uid}_r2 { transform-box:fill-box; transform-origin:center; animation:${uid}_s2 15s linear infinite; }
+    #${uid}_r3 { transform-box:fill-box; transform-origin:center; animation:${uid}_s3 5s linear infinite; }
+    @keyframes ${uid}_s1 { from{transform:rotate(0deg);} to{transform:rotate(360deg);} }
+    @keyframes ${uid}_s2 { from{transform:rotate(0deg);} to{transform:rotate(-360deg);} }
+    @keyframes ${uid}_s3 { from{transform:rotate(45deg);} to{transform:rotate(405deg);} }
   `;
   return (
     <svg viewBox="0 0 200 140" style={{width:"100%",maxWidth:340,display:"block",margin:"0 auto"}}>
       <style>{css}</style>
       <defs>
-        <radialGradient id={id} cx="50%" cy="50%" r="50%">
+        <radialGradient id={`${uid}_g`} cx="50%" cy="50%" r="50%">
           <stop offset="0%" stopColor={c} stopOpacity="0.3"/>
           <stop offset="100%" stopColor={c} stopOpacity="0"/>
         </radialGradient>
       </defs>
-      <ellipse cx="100" cy="70" rx="55" ry="45" fill={`url(#${id})`} opacity="0.8"/>
+      <ellipse cx="100" cy="70" rx="55" ry="45" fill={`url(#${uid}_g)`} opacity="0.8"/>
       {[35,65,100,135,165].map(x=><line key={`v${x}`} x1={x} y1="15" x2={x} y2="125" stroke={c} strokeWidth="0.3" opacity="0.15"/>)}
       {[25,50,70,90,115].map(y=><line key={`h${y}`} x1="15" y1={y} x2="185" y2={y} stroke={c} strokeWidth="0.3" opacity="0.15"/>)}
       {[[18,18],[182,18],[18,122],[182,122]].map(([x,y],i)=>(
         <circle key={i} cx={x} cy={y} r="2.5" fill={c} opacity="0.5"/>
       ))}
       <circle cx="100" cy="70" r="50" fill="none" stroke={c} strokeWidth="0.4" opacity="0.2"/>
-      <g className="lqm-r1">
+      <g id={`${uid}_r1`}>
         <circle cx="100" cy="70" r="40" fill="none" stroke="white" strokeWidth="1.5" strokeDasharray="42 22" opacity="0.5"/>
         <circle cx="100" cy="30" r="4.5" fill="white" opacity="0.9"/>
         <circle cx="140" cy="70" r="3" fill="white" opacity="0.65"/>
       </g>
-      <g className="lqm-r2">
+      <g id={`${uid}_r2`}>
         <circle cx="100" cy="70" r="28" fill="none" stroke="white" strokeWidth="1.2" strokeDasharray="30 16" opacity="0.55"/>
         <circle cx="100" cy="42" r="4" fill="white" opacity="0.95"/>
         <circle cx="72" cy="70" r="3" fill={c} opacity="1"/>
       </g>
-      <g className="lqm-r3">
+      <g id={`${uid}_r3`}>
         <circle cx="100" cy="70" r="16" fill="none" stroke="white" strokeWidth="1.8" strokeDasharray="18 10" opacity="0.65"/>
         <circle cx="100" cy="54" r="3.5" fill={c} opacity="1"/>
       </g>
@@ -88,103 +69,17 @@ function ArchetypeIllustration({ type: t }) {
     </svg>
   );
 }
-function getUnlocks() {
-  try { return JSON.parse(localStorage.getItem("lqm_unlocks")||"{}"); } catch { return {}; }
-}
-function setUnlock(key) {
-  const u = getUnlocks(); u[key]=true;
-  localStorage.setItem("lqm_unlocks", JSON.stringify(u));
+
+function StrengthBars({strengths,color}){
+  const widths=[95,88,82,76];
+  return <div style={{marginTop:8}}>{strengths.map((s,i)=>(<div key={i} style={{marginBottom:14}}><div style={{display:"flex",justifyContent:"space-between",marginBottom:6}}><span style={{fontSize:13,fontWeight:600,color:WHITE}}>{s}</span><span style={{fontSize:11,color,fontWeight:700}}>{widths[i]}%</span></div><div style={{height:6,background:"rgba(255,255,255,0.06)",borderRadius:100,overflow:"hidden"}}><div style={{height:"100%",width:`${widths[i]}%`,background:`linear-gradient(90deg,${color}88,${color})`,borderRadius:100,boxShadow:`0 0 8px ${color}66`}}/></div></div>))}</div>;
 }
 
-
-const FONTS = `@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Bebas+Neue&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap');`;
-
-// ── Palette — softer, more breathable dark ────────────────────────────────────
-const E_BLUE  = "#00C8FF";
-const E_BLUE2 = "#0EA5E9";
-const E_GLOW  = "rgba(0,200,255,0.15)";
-const BG      = "#070F1E";          // softer than pure black
-const DARK    = "#0D1830";          // panels/cards
-const DARK2   = "#111E38";          // elevated surfaces
-const PANEL   = "rgba(255,255,255,0.055)";
-const BORDER  = "rgba(0,200,255,0.18)";
-const BORDER2 = "rgba(255,255,255,0.09)";
-const WHITE   = "#FFFFFF";
-const MUTED   = "rgba(255,255,255,0.62)";
-const DIMMED  = "rgba(255,255,255,0.32)";
-const AMBER   = "#FBBF24";             // amber/gold accent colour
-const GREEN   = "#22C55E";             // green accent colour
-const PURPLE  = "#A855F7";             // purple accent colour
-const SYMS    = ["⚛","◈","⬡","△","◎","⊕","⟁","⬢"];
-
-// ── Archetype SVG Illustrations ───────────────────────────────────────────────
-function getUnlocks() {
-  try { return JSON.parse(localStorage.getItem("lqm_unlocks")||"{}"); } catch { return {}; }
-}
-function setUnlock(key) {
-  const u = getUnlocks(); u[key]=true;
-  localStorage.setItem("lqm_unlocks", JSON.stringify(u));
+function BlindSpotCard({text,index,color}){
+  const icons=["⚠","◎","△"];
+  return <div style={{display:"flex",gap:16,alignItems:"flex-start",padding:"16px 18px",background:"rgba(255,160,40,0.06)",border:"1px solid rgba(255,160,40,0.2)",borderRadius:12,marginBottom:10,borderLeft:"3px solid rgba(255,160,40,0.5)"}}><div style={{width:32,height:32,borderRadius:"50%",background:"rgba(255,160,40,0.12)",border:"1px solid rgba(255,160,40,0.3)",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,fontSize:14}}>{icons[index]}</div><div><p style={{fontSize:15,fontWeight:700,color:"rgba(255,200,80,0.95)",lineHeight:1.5,marginBottom:2}}>{text}</p><p style={{fontSize:12,color:"rgba(255,200,80,0.5)",fontWeight:400}}>Awareness is the first step to navigation</p></div></div>;
 }
 
-
-const FONTS = `@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Bebas+Neue&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap');`;
-
-// ── Palette — softer, more breathable dark ────────────────────────────────────
-const E_BLUE  = "#00C8FF";
-const E_BLUE2 = "#0EA5E9";
-const E_GLOW  = "rgba(0,200,255,0.15)";
-const BG      = "#070F1E";          // softer than pure black
-const DARK    = "#0D1830";          // panels/cards
-const DARK2   = "#111E38";          // elevated surfaces
-const PANEL   = "rgba(255,255,255,0.055)";
-const BORDER  = "rgba(0,200,255,0.18)";
-const BORDER2 = "rgba(255,255,255,0.09)";
-const WHITE   = "#FFFFFF";
-const MUTED   = "rgba(255,255,255,0.62)";
-const DIMMED  = "rgba(255,255,255,0.32)";
-const AMBER   = "#FBBF24";             // amber/gold accent colour
-const GREEN   = "#22C55E";             // green accent colour
-const PURPLE  = "#A855F7";             // purple accent colour
-const SYMS    = ["⚛","◈","⬡","△","◎","⊕","⟁","⬢"];
-
-// ── Archetype SVG Illustrations ───────────────────────────────────────────────
-
-function StrengthBars({ strengths, color }) {
-  const widths = [95, 88, 82, 76];
-  return (
-    <div style={{ marginTop: 8 }}>
-      {strengths.map((s, i) => (
-        <div key={i} style={{ marginBottom: 14 }}>
-          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
-            <span style={{ fontSize: 13, fontWeight: 600, color: WHITE }}>{s}</span>
-            <span style={{ fontSize: 11, color, fontWeight: 700 }}>{widths[i]}%</span>
-          </div>
-          <div style={{ height: 6, background: "rgba(255,255,255,0.06)", borderRadius: 100, overflow: "hidden" }}>
-            <div style={{ height: "100%", width: `${widths[i]}%`, background: `linear-gradient(90deg,${color}88,${color})`, borderRadius: 100, boxShadow: `0 0 8px ${color}66` }}/>
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-// ── Blind Spot Visual Card ─────────────────────────────────────────────────────
-function BlindSpotCard({ text, index, color }) {
-  const icons = ["⚠", "◎", "△"];
-  return (
-    <div style={{ display: "flex", gap: 16, alignItems: "flex-start", padding: "16px 18px", background: "rgba(255,160,40,0.06)", border: "1px solid rgba(255,160,40,0.2)", borderRadius: 12, marginBottom: 10, borderLeft: "3px solid rgba(255,160,40,0.5)" }}>
-      <div style={{ width: 32, height: 32, borderRadius: "50%", background: "rgba(255,160,40,0.12)", border: "1px solid rgba(255,160,40,0.3)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, fontSize: 14 }}>
-        {icons[index]}
-      </div>
-      <div>
-        <p style={{ fontSize: 15, fontWeight: 700, color: "rgba(255,200,80,0.95)", lineHeight: 1.5, marginBottom: 2 }}>{text}</p>
-        <p style={{ fontSize: 12, color: "rgba(255,200,80,0.5)", fontWeight: 400 }}>Awareness is the first step to navigation</p>
-      </div>
-    </div>
-  );
-}
-
-// ── Questions ──────────────────────────────────────────────────────────────────
 const questions = [
   {id:1,sym:"⚛",text:"When you set a major goal, what's your first instinct?",opts:[{t:"Design a precise system and track every step",ty:"A"},{t:"Research deeply until I truly understand it",ty:"B"},{t:"Find someone who's done it and learn from them",ty:"C"},{t:"Visualise the person I'll become when I achieve it",ty:"D"}]},
   {id:2,sym:"◎",text:"Your honest definition of success:",opts:[{t:"Consistent, measurable results — proof in the numbers",ty:"A"},{t:"Genuine mastery — understanding something at its deepest level",ty:"B"},{t:"Making a meaningful difference to people I care about",ty:"C"},{t:"Creating something original that only I could have made",ty:"D"}]},
@@ -205,6 +100,7 @@ const TYPES = {
   C:{sym:"◎",name:"The Relational Catalyst",arch:"Identity: The Connector",tag:"You make everything — and everyone — better.",hook:"While others optimise for outputs, you understand the lever that moves everything: people.",desc:"Your motivation is relational at its core. You are energised by shared purpose, activated by belonging, and sustained by the knowledge that your effort matters to real people. LQM research consistently shows that social commitment is one of the most powerful forces in behaviour change. Your quantum leap is learning to channel this relational fuel into your own consistent growth — not just the growth of those around you.",identity:"I am someone who builds relationships that hold me accountable to my own growth.",atomic:"Your quantum stack needs a social architecture layer. Every major goal should have one human being attached to it — someone who benefits from your success, or to whom you've made a commitment. Accountability is your performance-enhancing mechanism.",strengths:["Emotional Intelligence","Trust-Building","Authentic Leadership","Sustained Effort Under Commitment"],blindspots:["Loses personal direction without external anchors — others' goals become your own","Avoids necessary conflict — keeps the peace at the cost of progress","Absorbs others' energy — their demotivation can become yours"],strategies:[{area:"The Relational Goal Stack",scenario:"I lose motivation when working in isolation — the drive evaporates without connection.",solution:"Attach every personal goal to a specific person. Write: 'Achieving this allows me to show up better for [name] because [reason].' Share it with them. You have just created the most powerful motivational force in your psychology."},{area:"The Morning Anchor",scenario:"I absorb the emotional weather of those around me — their demotivation becomes mine.",solution:"Create a 10-minute pre-contact ritual each morning before interacting with anyone. Write three intentions. This builds an internal foundation that external moods cannot destabilise. Your identity precedes their influence."},{area:"The Accountability Architecture",scenario:"I need external commitment to sustain effort — and feel this is a weakness.",solution:"It isn't a weakness — it's a feature. Formalise it. Identify one person for a weekly check-in: one win, one struggle, one commitment. You're not removing the need for connection. You're building it intelligently into your growth system."}],blue:"#34D399",glow:"rgba(52,211,153,0.1)"},
   D:{sym:"◇",name:"The Visionary Pioneer",arch:"Identity: The Creator",tag:"You don't follow the map. You draw it.",hook:"Every framework, every system, every method you've ever used — someone like you invented it first.",desc:"You are driven by possibility. You think in futures that don't exist yet. Your motivation comes from creative autonomy, the thrill of the blank canvas, and the deep satisfaction of making something that carries your fingerprint. The LQM research on intrinsic motivation is clear: autonomy, mastery, and purpose are the triumvirate. You have all three in abundance. Your challenge is not creativity — it's building just enough structure to bring your vision fully across the finish line.",identity:"I am someone who brings bold visions into the world with enough structure to complete them.",atomic:"Your quantum stack needs a completion mechanism. You likely have strong starting rituals. Build equally strong finishing rituals — a defined moment where you declare a project 'shipped' and begin the next creative act.",strengths:["Original Thinking","Intrinsic Drive","Bold Risk Tolerance","Inspiring Through Vision"],blindspots:["Motivation drops after the initial spark — the build phase feels less alive","Too many projects open, too few completed — beginnings are exciting, endings are work","Structure feels like a cage — but without it, the vision never fully lands"],strategies:[{area:"The Evolution Frame",scenario:"My motivation collapses once the exciting creation phase ends and execution begins.",solution:"Reframe completion as the beginning of the next creative act, not the death of this one. Keep an 'Evolution Log' — a live document tracking how your project is changing and improving. The project is never finished. It is always becoming."},{area:"The One Brilliant Thing",scenario:"I scatter energy across multiple ideas simultaneously and make shallow progress on all of them.",solution:"Each week, identify the single most important creative act. Protect 90 uninterrupted minutes for it — first, before anything else. Everything else is secondary until that window is honoured. Constraint creates the conditions for your best work."},{area:"The Separation Protocol",scenario:"My output never matches my internal vision and this gap demotivates me deeply.",solution:"Separate creation from evaluation entirely. During making: no judgement allowed. Schedule a 'critical review' 24 hours after completion with fresh eyes. The inner critic and the inner creator cannot occupy the same creative moment."}],blue:"#A78BFA",glow:"rgba(167,139,250,0.1)"},
 };
+
 
 const ORIGINAL = 27, DISCOUNTED = 9, TIMER_SECS = 15 * 60;
 
