@@ -41,24 +41,17 @@ const SYMS    = ["⚛","◈","⬡","△","◎","⊕","⟁","⬢"];
 function ArchetypeIllustration({ type: t }) {
   const ARCH_COLORS = {A:"#00C8FF", B:"#38BDF8", C:"#34D399", D:"#A78BFA"};
   const c = ARCH_COLORS[t] || "#00C8FF";
-  const r1Ref = useRef(null);
-  const r2Ref = useRef(null);
-  const r3Ref = useRef(null);
-  const frameRef = useRef(null);
-  const anglesRef = useRef({a1:0, a2:0, a3:45});
+  const [a1, setA1] = useState(0);
+  const [a2, setA2] = useState(0);
+  const [a3, setA3] = useState(45);
 
   useEffect(()=>{
-    function tick(){
-      anglesRef.current.a1 = (anglesRef.current.a1 + 0.4) % 360;
-      anglesRef.current.a2 = (anglesRef.current.a2 - 0.25 + 360) % 360;
-      anglesRef.current.a3 = (anglesRef.current.a3 + 0.7) % 360;
-      if(r1Ref.current) r1Ref.current.setAttribute("transform", `rotate(${anglesRef.current.a1} 100 70)`);
-      if(r2Ref.current) r2Ref.current.setAttribute("transform", `rotate(${anglesRef.current.a2} 100 70)`);
-      if(r3Ref.current) r3Ref.current.setAttribute("transform", `rotate(${anglesRef.current.a3} 100 70)`);
-      frameRef.current = requestAnimationFrame(tick);
-    }
-    frameRef.current = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(frameRef.current);
+    const iv = setInterval(()=>{
+      setA1(a => (a + 0.8) % 360);
+      setA2(a => (a - 0.5 + 360) % 360);
+      setA3(a => (a + 1.4) % 360);
+    }, 16);
+    return () => clearInterval(iv);
   }, []);
 
   const id = `ag${t}`;
@@ -70,47 +63,36 @@ function ArchetypeIllustration({ type: t }) {
           <stop offset="100%" stopColor={c} stopOpacity="0"/>
         </radialGradient>
       </defs>
-
-      {/* Glow */}
       <ellipse cx="100" cy="70" rx="55" ry="45" fill={`url(#${id})`} opacity="0.8"/>
-
-      {/* Grid */}
       {[35,65,100,135,165].map(x=><line key={`v${x}`} x1={x} y1="15" x2={x} y2="125" stroke={c} strokeWidth="0.3" opacity="0.15"/>)}
       {[25,50,70,90,115].map(y=><line key={`h${y}`} x1="15" y1={y} x2="185" y2={y} stroke={c} strokeWidth="0.3" opacity="0.15"/>)}
-
-      {/* Corner dots */}
       {[[18,18],[182,18],[18,122],[182,122]].map(([x,y],i)=>(
         <circle key={i} cx={x} cy={y} r="2.5" fill={c} opacity="0.5"/>
       ))}
-
-      {/* Outer static ring */}
       <circle cx="100" cy="70" r="50" fill="none" stroke={c} strokeWidth="0.4" opacity="0.2"/>
 
-      {/* RING 1 — slow clockwise */}
-      <g ref={r1Ref}>
-        <circle cx="100" cy="70" r="40" fill="none" stroke="white" strokeWidth="1.2" strokeDasharray="42 22" opacity="0.4"/>
-        <circle cx="100" cy="30" r="4" fill="white" opacity="0.85"/>
+      {/* Ring 1 - slow clockwise */}
+      <g transform={`rotate(${a1} 100 70)`}>
+        <circle cx="100" cy="70" r="40" fill="none" stroke="white" strokeWidth="1.2" strokeDasharray="42 22" opacity="0.45"/>
+        <circle cx="100" cy="30" r="4" fill="white" opacity="0.9"/>
         <circle cx="140" cy="70" r="2.5" fill="white" opacity="0.6"/>
       </g>
 
-      {/* RING 2 — counter-clockwise */}
-      <g ref={r2Ref}>
-        <circle cx="100" cy="70" r="28" fill="none" stroke="white" strokeWidth="1" strokeDasharray="28 18" opacity="0.5"/>
+      {/* Ring 2 - counter clockwise */}
+      <g transform={`rotate(${a2} 100 70)`}>
+        <circle cx="100" cy="70" r="28" fill="none" stroke="white" strokeWidth="1" strokeDasharray="30 16" opacity="0.55"/>
         <circle cx="100" cy="42" r="3.5" fill="white" opacity="0.9"/>
-        <circle cx="72" cy="70" r="2.5" fill={c} opacity="0.9"/>
+        <circle cx="72" cy="70" r="2.5" fill={c} opacity="0.95"/>
       </g>
 
-      {/* RING 3 — fast */}
-      <g ref={r3Ref}>
-        <circle cx="100" cy="70" r="16" fill="none" stroke="white" strokeWidth="1.5" strokeDasharray="18 12" opacity="0.6"/>
+      {/* Ring 3 - fast */}
+      <g transform={`rotate(${a3} 100 70)`}>
+        <circle cx="100" cy="70" r="16" fill="none" stroke="white" strokeWidth="1.5" strokeDasharray="18 10" opacity="0.65"/>
         <circle cx="100" cy="54" r="3" fill={c} opacity="1"/>
       </g>
 
-      {/* Axis */}
-      <line x1="100" y1="22" x2="100" y2="118" stroke={c} strokeWidth="0.6" opacity="0.25"/>
-      <line x1="52" y1="70" x2="148" y2="70" stroke={c} strokeWidth="0.6" opacity="0.25"/>
-
-      {/* Core */}
+      <line x1="100" y1="22" x2="100" y2="118" stroke={c} strokeWidth="0.6" opacity="0.2"/>
+      <line x1="52" y1="70" x2="148" y2="70" stroke={c} strokeWidth="0.6" opacity="0.2"/>
       <circle cx="100" cy="70" r="9" fill={c} opacity="0.2"/>
       <circle cx="100" cy="70" r="5.5" fill={c} opacity="0.6"/>
       <circle cx="100" cy="70" r="2.5" fill="white" opacity="1"/>
