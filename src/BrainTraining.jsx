@@ -1105,6 +1105,8 @@ function NeuralDefense({onComplete, difficulty}){
   const reactionTimes = useRef([]);
   const nextId = useRef(0);
   const nextPopupId = useRef(0);
+  const scoreRef = useRef(0);
+  const hitsRef = useRef(0);
   
   const SHAPES_POOL = [
     {type:"circle", color:E_BLUE, pts:10},
@@ -1116,8 +1118,8 @@ function NeuralDefense({onComplete, difficulty}){
   function startGame(){
     setPhase("playing");
     setWave(1);
-    setScore(0);
-    setHits(0);
+    setScore(0); scoreRef.current = 0;
+    setHits(0); hitsRef.current = 0;
     setMisses(0);
     setWaveTime(WAVE_DURATION);
     setShapes([]);
