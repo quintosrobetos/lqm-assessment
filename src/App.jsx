@@ -41,6 +41,115 @@ const SYMS    = ["⚛","◈","⬡","△","◎","⊕","⟁","⬢"];
 function ArchetypeIllustration({ type: t }) {
   const ARCH_COLORS = {A:"#00C8FF", B:"#38BDF8", C:"#34D399", D:"#A78BFA"};
   const c = ARCH_COLORS[t] || "#00C8FF";
+  const id = `ag${t}`;
+  return (
+    <svg viewBox="0 0 200 140" style={{width:"100%",maxWidth:340,display:"block",margin:"0 auto",overflow:"visible"}}>
+      <defs>
+        <radialGradient id={id} cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stopColor={c} stopOpacity="0.3"/>
+          <stop offset="100%" stopColor={c} stopOpacity="0"/>
+        </radialGradient>
+      </defs>
+
+      {/* Background glow */}
+      <ellipse cx="100" cy="70" rx="55" ry="45" fill={`url(#${id})`}>
+        <animate attributeName="opacity" values="0.5;1;0.5" dur="3s" repeatCount="indefinite"/>
+      </ellipse>
+
+      {/* Blueprint grid */}
+      {[35,65,100,135,165].map(x=><line key={`v${x}`} x1={x} y1="15" x2={x} y2="125" stroke={c} strokeWidth="0.3" opacity="0.15"/>)}
+      {[25,50,70,90,115].map(y=><line key={`h${y}`} x1="15" y1={y} x2="185" y2={y} stroke={c} strokeWidth="0.3" opacity="0.15"/>)}
+
+      {/* Corner dots */}
+      {[[18,18],[182,18],[18,122],[182,122]].map(([x,y],i)=>(
+        <circle key={i} cx={x} cy={y} r="2.5" fill={c} opacity="0.5"/>
+      ))}
+
+      {/* Static outer reference ring */}
+      <circle cx="100" cy="70" r="50" fill="none" stroke={c} strokeWidth="0.4" opacity="0.2"/>
+
+      {/* RING 1 — slow clockwise spin */}
+      <g>
+        <animateTransform attributeName="transform" type="rotate" from="0 100 70" to="360 100 70" dur="9s" repeatCount="indefinite"/>
+        <circle cx="100" cy="70" r="40" fill="none" stroke="white" strokeWidth="1.2"
+          strokeDasharray="42 22" opacity="0.4"/>
+        <circle cx="100" cy="30" r="4" fill="white" opacity="0.85"/>
+        <circle cx="140" cy="70" r="2.5" fill="white" opacity="0.55"/>
+      </g>
+
+      {/* RING 2 — counter-clockwise, medium */}
+      <g>
+        <animateTransform attributeName="transform" type="rotate" from="0 100 70" to="-360 100 70" dur="15s" repeatCount="indefinite"/>
+        <circle cx="100" cy="70" r="28" fill="none" stroke="white" strokeWidth="1"
+          strokeDasharray="28 18" opacity="0.5"/>
+        <circle cx="100" cy="42" r="3.5" fill="white" opacity="0.9"/>
+        <circle cx="72" cy="70" r="2.5" fill={c} opacity="0.9"/>
+      </g>
+
+      {/* RING 3 — fast clockwise, small */}
+      <g>
+        <animateTransform attributeName="transform" type="rotate" from="45 100 70" to="405 100 70" dur="5s" repeatCount="indefinite"/>
+        <circle cx="100" cy="70" r="16" fill="none" stroke="white" strokeWidth="1.5"
+          strokeDasharray="18 12" opacity="0.6"/>
+        <circle cx="100" cy="54" r="3" fill={c} opacity="1"/>
+      </g>
+
+      {/* Axis cross */}
+      <line x1="100" y1="22" x2="100" y2="118" stroke={c} strokeWidth="0.6" opacity="0.25"/>
+      <line x1="52" y1="70" x2="148" y2="70" stroke={c} strokeWidth="0.6" opacity="0.25"/>
+
+      {/* Centre core */}
+      <circle cx="100" cy="70" r="9" fill={c} opacity="0.2"/>
+      <circle cx="100" cy="70" r="5.5" fill={c} opacity="0.6"/>
+      <circle cx="100" cy="70" r="2.5" fill="white" opacity="1">
+        <animate attributeName="r" values="2.5;3.5;2.5" dur="2s" repeatCount="indefinite"/>
+      </circle>
+    </svg>
+  );
+}
+import { useState, useEffect, useRef } from "react";
+import BrainTraining from "./BrainTraining.jsx";
+import QuantumLiving from "./QuantumLiving.jsx";
+
+// ── Stripe Payment Links ───────────────────────────────────────────────────
+const STRIPE_MAIN    = "https://buy.stripe.com/00w8wR50Xber8VZfkka3u00"; // £9 main report
+const STRIPE_BRAIN   = "https://buy.stripe.com/8x2eVfgJF4Q37RVb44a3u02";      // £5 Brain Training
+const STRIPE_VITAL   = "https://buy.stripe.com/eVq5kF651gyLgorc88a3u03";      // £5 Quantum Living
+
+// ── Unlock helpers (localStorage simulates post-payment state) ────────────
+function getUnlocks() {
+  try { return JSON.parse(localStorage.getItem("lqm_unlocks")||"{}"); } catch { return {}; }
+}
+function setUnlock(key) {
+  const u = getUnlocks(); u[key]=true;
+  localStorage.setItem("lqm_unlocks", JSON.stringify(u));
+}
+
+
+const FONTS = `@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Bebas+Neue&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap');`;
+
+// ── Palette — softer, more breathable dark ────────────────────────────────────
+const E_BLUE  = "#00C8FF";
+const E_BLUE2 = "#0EA5E9";
+const E_GLOW  = "rgba(0,200,255,0.15)";
+const BG      = "#070F1E";          // softer than pure black
+const DARK    = "#0D1830";          // panels/cards
+const DARK2   = "#111E38";          // elevated surfaces
+const PANEL   = "rgba(255,255,255,0.055)";
+const BORDER  = "rgba(0,200,255,0.18)";
+const BORDER2 = "rgba(255,255,255,0.09)";
+const WHITE   = "#FFFFFF";
+const MUTED   = "rgba(255,255,255,0.62)";
+const DIMMED  = "rgba(255,255,255,0.32)";
+const AMBER   = "#FBBF24";             // amber/gold accent colour
+const GREEN   = "#22C55E";             // green accent colour
+const PURPLE  = "#A855F7";             // purple accent colour
+const SYMS    = ["⚛","◈","⬡","△","◎","⊕","⟁","⬢"];
+
+// ── Archetype SVG Illustrations ───────────────────────────────────────────────
+function ArchetypeIllustration({ type: t }) {
+  const ARCH_COLORS = {A:"#00C8FF", B:"#38BDF8", C:"#34D399", D:"#A78BFA"};
+  const c = ARCH_COLORS[t] || "#00C8FF";
 
   // Inject spinning animation styles once
   if(typeof document !== "undefined"){
