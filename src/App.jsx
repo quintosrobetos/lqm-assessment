@@ -744,7 +744,7 @@ function AddOnShop({unlocks, onUnlockNeural, onUnlockVital, onOpenNeural, onOpen
 
       {/* Bundle note */}
       <div style={{textAlign:"center",background:"rgba(255,255,255,0.02)",border:`1px solid ${BORDER2}`,borderRadius:14,padding:"16px 20px",marginBottom:8}}>
-        <p style={{fontSize:16,color:MUTED,lineHeight:1.6}}>Both add-ons together for <strong style={{color:WHITE}}>£6</strong> — or pick what resonates. No subscriptions. Yours forever.</p>
+        <p style={{fontSize:16,color:MUTED,lineHeight:1.6}}>Each add-on is <strong style={{color:WHITE}}>£5</strong> — £10 for both. No subscriptions. Yours forever.</p>
       </div>
     </div>
   );

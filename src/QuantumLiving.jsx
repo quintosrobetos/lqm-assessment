@@ -185,20 +185,60 @@ export default function QuantumLiving({ onBack, archetype }) {
   const [challengeData, setChallengeData] = useState(null);
   const [showMilestone, setShowMilestone] = useState(null);
   const arch = archetype || null;
-  
-  // Initialize 21-day challenge
+
+  const ARCH_NAMES  = {A:"Systems Architect", B:"Deep Learner", C:"Relational Catalyst", D:"Visionary Pioneer"};
+  const ARCH_COLORS = {A:"#00C8FF", B:"#38BDF8", C:"#34D399", D:"#A78BFA"};
+  const archColor   = arch ? ARCH_COLORS[arch] : E_BLUE;
+  const archName    = arch ? ARCH_NAMES[arch]  : "Your Archetype";
+
+  // Which law is featured today — rotates through 5 on a 5-day cycle
+  const todayLawIdx = Math.floor(new Date().getTime() / 86400000) % 5;
+  const todayLaw    = LAWS[todayLawIdx];
+  const todayArchNote = arch && ARCH_LAW_NOTES[arch] ? ARCH_LAW_NOTES[arch][todayLawIdx] : null;
+
+  // Daily archetype-specific micro-tip (rotates independently each day)
+  const ARCH_DAILY = {
+    A: [
+      "Schedule your outdoor break the same way you schedule a meeting — 20 minutes, same time daily. Consistency is your system.",
+      "Sleep is your system's maintenance window. No great architecture runs without downtime. Protect 8 hours tonight.",
+      "Batch your meals for the week tonight. One decision, seven days of optimal fuel. This is how you eat like a Systems Architect.",
+      "Build a movement trigger: every time you close your laptop, stand up and walk for 5 minutes. Habit stacking is your edge.",
+      "Your temperance practice today: identify one thing you are overdoing and one thing you are underdoing. Rebalance one of them.",
+    ],
+    B: [
+      "Your best insight this week is waiting at the end of a 20-minute outdoor walk. Leave the podcast. Think with your feet.",
+      "The research you're chasing at midnight will be there at 6am — rested. Set a hard stop tonight.",
+      "For every 3 things you read today, apply or share one. That is your temperance in action.",
+      "Movement is cognitive enhancement. A 20-minute walk before your deep work session will improve it measurably.",
+      "Simplify today's eating: one meal with no screen, no decision — just presence and whole food.",
+    ],
+    C: [
+      "Invite someone to walk with you today. Fresh air + connection = double the return on 20 minutes.",
+      "Before bed tonight: write one thing resolved and one thing you choose to release until tomorrow. Clear the relational slate.",
+      "You cannot pour from empty. Protecting your energy today is not selfish — it is the prerequisite to giving well.",
+      "Find a movement partner this week. Group exercise transforms obligation into connection for your archetype.",
+      "Eat one meal today with someone you care about, fully present, no phones. This is nourishment in every sense.",
+    ],
+    D: [
+      "Take your thinking outside today. Novel environments activate novel neural pathways — your next idea is outdoors.",
+      "Set a hard stop for creative work tonight — same time as last night. Your best vision comes from a rested brain.",
+      "Sustainable intensity outlasts explosive bursts. Where are you burning too hot right now?",
+      "Change your movement route today. New environment, new stimulation — design movement the way you design everything.",
+      "Prepare your food environment now so when flow is interrupted, the best choice is the obvious choice.",
+    ],
+  };
+  const dailyArchTip = arch && ARCH_DAILY[arch]
+    ? ARCH_DAILY[arch][Math.floor(new Date().getTime() / 86400000) % 5]
+    : null;
+
+  // Initialize challenge
   useEffect(() => {
     let data = getChallengeData("quantum");
-    if (!data) {
-      data = enrollInChallenge("quantum", archetype || "unknown");
-    }
+    if (!data) data = enrollInChallenge("quantum", archetype || "unknown");
     setChallengeData(data);
   }, [archetype]);
-  
-  // Daily Insight - rotates based on day of year
-  const dailyInsight = DAILY_INSIGHTS[Math.floor((new Date().getTime() / 86400000) % DAILY_INSIGHTS.length)];
 
-  // Leaf animation CSS
+  // Animations
   useEffect(()=>{
     const id = "quantum-living-styles";
     if(document.getElementById(id)) return;
@@ -206,16 +246,12 @@ export default function QuantumLiving({ onBack, archetype }) {
     s.id = id;
     s.textContent = `
       @keyframes fadeUp{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}
-      @keyframes leafFloat{0%{transform:translateY(0) rotate(0deg);}50%{transform:translateY(-20px) rotate(180deg);}100%{transform:translateY(0) rotate(360deg);}}
-      @keyframes leafFall{from{transform:translateY(-100px) rotate(0deg);opacity:0;}to{transform:translateY(100vh) rotate(720deg);opacity:0.15;}}
-      
-      /* Animated Law Icons */
+      @keyframes leafFall{from{transform:translateY(-100px) rotate(0deg);opacity:0;}to{transform:translateY(100vh) rotate(720deg);opacity:0.12;}}
       @keyframes moonGlow{0%,100%{filter:drop-shadow(0 0 8px rgba(129,140,248,0.6));transform:scale(1);}50%{filter:drop-shadow(0 0 16px rgba(129,140,248,0.9));transform:scale(1.05);}}
       @keyframes leafSway{0%,100%{transform:rotate(-5deg) translateY(0);}50%{transform:rotate(5deg) translateY(-3px);}}
       @keyframes scalesTilt{0%,100%{transform:rotate(0deg);}25%{transform:rotate(-8deg);}50%{transform:rotate(0deg);}75%{transform:rotate(8deg);}}
       @keyframes lightningPulse{0%,100%{filter:drop-shadow(0 0 4px rgba(251,191,36,0.6));opacity:1;}50%{filter:drop-shadow(0 0 12px rgba(251,191,36,1));opacity:0.8;}}
       @keyframes fruitShine{0%,100%{filter:brightness(1) drop-shadow(0 0 4px rgba(52,211,153,0.4));}50%{filter:brightness(1.2) drop-shadow(0 0 8px rgba(52,211,153,0.6));}}
-      
       .law-icon-0{animation:moonGlow 3s ease-in-out infinite;}
       .law-icon-1{animation:leafSway 4s ease-in-out infinite;}
       .law-icon-2{animation:scalesTilt 5s ease-in-out infinite;}
@@ -226,164 +262,186 @@ export default function QuantumLiving({ onBack, archetype }) {
     return () => { const el = document.getElementById(id); if(el) el.remove(); };
   }, []);
 
-  const score = checklist.filter(Boolean).length;
+  const score   = checklist.filter(Boolean).length;
   const allDone = score === 5;
 
   function toggleCheck(i) {
     const n = [...checklist];
     n[i] = !n[i];
     setChecklist(n);
-    
-    const lawsCompleted = n.filter(Boolean).length;
-    
-    if(lawsCompleted === 5) {
+    if(n.filter(Boolean).length === 5) {
       const today = new Date().toISOString().split("T")[0];
-      const data = { streak: streak + 1, lastDay: today };
-      localStorage.setItem("lqm_living", JSON.stringify(data));
-      setStreak(s => s+1);
-      
-      // Play completion sound
+      localStorage.setItem("lqm_living", JSON.stringify({ streak: streak + 1, lastDay: today }));
+      setStreak(s => s + 1);
       playQuantumSound();
-      
-      // Update 21-day challenge
-      const updatedChallenge = updateChallengeProgress("quantum");
-      if(updatedChallenge){
-        setChallengeData(updatedChallenge);
-        
-        // Track analytics
-        trackQuantumDay(lawsCompleted, updatedChallenge.daysCompleted?.length || 0);
-        
-        // Check for milestone unlocks
-        if(updatedChallenge.currentDay >= 7 && !updatedChallenge.milestones.day_7.unlocked){
-          playMilestoneSound(); // Milestone unlocked!
-          setShowMilestone("day7");
-        } else if(updatedChallenge.currentDay >= 14 && !updatedChallenge.milestones.day_14.unlocked){
-          playMilestoneSound(); // Milestone unlocked!
-          setShowMilestone("day14");
-        } else if(updatedChallenge.currentDay >= 21 && !updatedChallenge.milestones.day_21.unlocked){
-          playMilestoneSound(); // Challenge complete!
-          setShowMilestone("day21");
-        }
+      const updated = updateChallengeProgress("quantum");
+      if(updated){
+        setChallengeData(updated);
+        trackQuantumDay(5, updated.daysCompleted?.length || 0);
+        if(updated.currentDay >= 7  && !updated.milestones.day_7.unlocked)  { playMilestoneSound(); setShowMilestone("day7");  }
+        else if(updated.currentDay >= 14 && !updated.milestones.day_14.unlocked) { playMilestoneSound(); setShowMilestone("day14"); }
+        else if(updated.currentDay >= 21 && !updated.milestones.day_21.unlocked) { playMilestoneSound(); setShowMilestone("day21"); }
       }
     }
   }
 
-  // Show milestone if unlocked
-  if (showMilestone) {
-    if(showMilestone === "day7") return <QuantumMilestoneDay7 challengeData={challengeData} onContinue={()=>setShowMilestone(null)}/>;
-    if(showMilestone === "day14") return <QuantumMilestoneDay14 challengeData={challengeData} onContinue={()=>setShowMilestone(null)}/>;
-    if(showMilestone === "day21") return <QuantumMilestoneDay21 challengeData={challengeData} onContinue={()=>setShowMilestone(null)}/>;
-  }
-  
   if (activeLaw !== null) return <LawDetail law={LAWS[activeLaw]} arch={arch} onBack={()=>setActiveLaw(null)}/>;
 
   return (
-    <div style={{minHeight:"100vh",background:`radial-gradient(ellipse 80% 40% at 50% 0%,rgba(52,211,153,0.06) 0%,transparent 60%),${BG}`,fontFamily:"'Space Grotesk',sans-serif",color:WHITE,display:"flex",flexDirection:"column",alignItems:"center",padding:"0 16px 60px",position:"relative",overflow:"hidden"}}>
-      
-      {/* Floating leaves background */}
-      <div style={{position:"fixed",top:0,left:0,width:"100%",height:"100%",pointerEvents:"none",zIndex:0,opacity:0.15}}>
-        {[...Array(8)].map((_,i)=>(
-          <div key={i} style={{
-            position:"absolute",
-            left:`${10 + i*12}%`,
-            top:`${-20 - i*15}%`,
-            fontSize:20 + i*3,
-            animation:`leafFall ${20 + i*4}s linear infinite`,
-            animationDelay:`${i*2.5}s`
-          }}>🍃</div>
+    <div style={{minHeight:"100vh", background:`radial-gradient(ellipse 80% 40% at 50% 0%,rgba(52,211,153,0.06) 0%,transparent 60%),${BG}`, fontFamily:"'Space Grotesk',sans-serif", color:WHITE, display:"flex", flexDirection:"column", alignItems:"center", padding:"0 16px 60px", position:"relative", overflow:"hidden"}}>
+
+      {/* Floating leaves */}
+      <div style={{position:"fixed",top:0,left:0,width:"100%",height:"100%",pointerEvents:"none",zIndex:0,opacity:0.12}}>
+        {[...Array(6)].map((_,i)=>(
+          <div key={i} style={{position:"absolute",left:`${10+i*16}%`,top:`${-20-i*15}%`,fontSize:18+i*3,animation:`leafFall ${22+i*4}s linear infinite`,animationDelay:`${i*3}s`}}>🍃</div>
         ))}
       </div>
 
       {/* Header */}
       <div style={{width:"100%",borderBottom:`1px solid ${BORDER}`,padding:"12px 20px",display:"flex",alignItems:"center",justifyContent:"space-between",background:"rgba(7,15,30,0.9)",backdropFilter:"blur(14px)",position:"sticky",top:0,zIndex:100}}>
-        <button onClick={onBack} style={{background:"none",border:`1px solid ${BORDER}`,borderRadius:100,padding:"8px 16px",color:MUTED,fontSize:15,cursor:"pointer",fontFamily:"'Space Grotesk',sans-serif",display:"flex",alignItems:"center",gap:6}} onMouseEnter={e=>e.currentTarget.style.color=WHITE} onMouseLeave={e=>e.currentTarget.style.color=MUTED}>← Back</button>
+        <button onClick={onBack} style={{background:"none",border:`1px solid ${BORDER}`,borderRadius:100,padding:"8px 16px",color:MUTED,fontSize:15,cursor:"pointer",fontFamily:"'Space Grotesk',sans-serif"}} onMouseEnter={e=>e.currentTarget.style.color=WHITE} onMouseLeave={e=>e.currentTarget.style.color=MUTED}>← Back</button>
         <div style={{display:"flex",alignItems:"center",gap:8}}>
           <span style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:18,letterSpacing:2,color:WHITE}}>LQM</span>
           <span style={{fontSize:14,color:GREEN,fontWeight:700,letterSpacing:".1em"}}>QUANTUM LIVING</span>
         </div>
-        <div style={{fontSize:14,color:GREEN,fontWeight:700}}>{score}/5 ✓</div>
+        <div style={{fontSize:14,color:allDone?GREEN:MUTED,fontWeight:700}}>{score}/5 ✓</div>
       </div>
 
-      <div style={{width:"100%",maxWidth:620,paddingTop:36,zIndex:1}}>
-        {/* Hero */}
-        <div style={{textAlign:"center",marginBottom:28,animation:"fadeUp .6s ease both"}}>
-          <p style={{fontSize:14,fontWeight:700,letterSpacing:".16em",textTransform:"uppercase",color:GREEN,marginBottom:12}}>🌱 The 5 Quantum Laws of Living</p>
-          <h1 style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"clamp(32px,7vw,52px)",letterSpacing:2,color:WHITE,lineHeight:1.05,marginBottom:8}}>Complete You.<br/><span style={{color:GREEN}}>Quantum Living.</span></h1>
-          <p style={{fontFamily:"'Crimson Pro',serif",fontStyle:"italic",fontSize:17,color:MUTED,lineHeight:1.7,maxWidth:440,margin:"0 auto"}}>"Peak performance is not built in the mind alone. It is built in the whole life — rested, breathed, balanced, moved and nourished."</p>
-        </div>
+      <div style={{width:"100%",maxWidth:620,paddingTop:28,zIndex:1}}>
 
-        {/* A Note Before You Begin */}
-        <div style={{background:"rgba(255,255,255,0.025)",border:`1px solid ${BORDER2}`,borderRadius:14,padding:"16px 20px",marginBottom:20,animation:"fadeUp .6s .05s ease both"}}>
-          <p style={{fontSize:14,fontWeight:700,color:MUTED,letterSpacing:".1em",textTransform:"uppercase",marginBottom:8}}>A Note Before You Begin</p>
-          <p style={{fontSize:15,color:DIMMED,lineHeight:1.75,fontWeight:300}}>The 5 Quantum Laws are educational principles for general wellbeing — not medical advice. If you have any health conditions, injuries, or concerns, please speak with your doctor before making changes to your exercise or lifestyle habits. Everything here is offered in the spirit of thoughtful self-improvement, not prescription.</p>
-        </div>
-
-        {/* Daily checklist */}
-        <div style={{background:PANEL,border:`1px solid ${allDone?"rgba(52,211,153,0.4)":BORDER2}`,borderRadius:16,padding:"22px 24px",marginBottom:20,boxShadow:allDone?`0 0 30px rgba(52,211,153,0.1)`:"none",animation:"fadeUp .6s .1s ease both"}}>
-          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}>
-            <p style={{fontSize:16,fontWeight:700,color:DIMMED,letterSpacing:".12em",textTransform:"uppercase"}}>Today's Quantum Checklist</p>
-            {streak>0 && <div style={{display:"flex",alignItems:"center",gap:6,fontSize:15,color:AMBER,fontWeight:700}}>🔥 {streak}-day streak</div>}
+        {/* ── ARCHETYPE HEADER ── */}
+        {arch && (
+          <div style={{textAlign:"center",marginBottom:24,animation:"fadeUp .5s ease both"}}>
+            <div style={{display:"inline-block",background:`${archColor}12`,border:`1px solid ${archColor}44`,borderRadius:100,padding:"5px 16px",marginBottom:12}}>
+              <span style={{fontSize:12,fontWeight:700,color:archColor,letterSpacing:".14em",textTransform:"uppercase"}}>🌿 Quantum Living — {archName}</span>
+            </div>
+            <h1 style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"clamp(26px,5vw,40px)",letterSpacing:2,color:WHITE,lineHeight:1.1,marginBottom:6}}>Your Daily<br/><span style={{color:GREEN}}>Living Practice</span></h1>
+            <p style={{fontFamily:"'Crimson Pro',serif",fontStyle:"italic",fontSize:15,color:MUTED,lineHeight:1.65,maxWidth:380,margin:"0 auto"}}>"Peak performance is built in the whole life — rested, breathed, balanced, moved and nourished."</p>
           </div>
-          {CHECKLIST_ITEMS.map((item,i)=>(
-            <div key={i} onClick={()=>toggleCheck(i)} style={{display:"flex",gap:12,alignItems:"center",padding:"10px 0",borderBottom:i<CHECKLIST_ITEMS.length-1?`1px solid ${BORDER2}`:"none",cursor:"pointer"}}>
-              <div style={{width:22,height:22,borderRadius:6,border:`1.5px solid ${checklist[i]?GREEN:BORDER2}`,background:checklist[i]?"rgba(52,211,153,0.15)":"transparent",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,transition:"all .2s"}}>
-                {checklist[i] && <span style={{color:GREEN,fontSize:15,fontWeight:800}}>✓</span>}
+        )}
+
+        {/* ── TODAY'S FEATURED LAW ── */}
+        <div style={{background:`linear-gradient(145deg,${todayLaw.color}12,${DARK2})`,border:`2px solid ${todayLaw.color}55`,borderRadius:20,padding:"24px",marginBottom:16,animation:"fadeUp .5s .05s ease both",boxShadow:`0 0 40px ${todayLaw.color}10`}}>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
+            <div style={{background:`${todayLaw.color}18`,border:`1px solid ${todayLaw.color}44`,borderRadius:100,padding:"4px 12px"}}>
+              <span style={{fontSize:12,fontWeight:700,color:todayLaw.color,letterSpacing:".12em",textTransform:"uppercase"}}>⭐ Today's Focus Law</span>
+            </div>
+            <span style={{fontSize:22,opacity:.7}}><span className={`law-icon-${todayLawIdx}`} style={{display:"inline-block"}}>{todayLaw.icon}</span></span>
+          </div>
+
+          <p style={{fontSize:13,fontWeight:700,color:todayLaw.color,letterSpacing:".1em",textTransform:"uppercase",marginBottom:4}}>Law {todayLaw.num} · {todayLaw.subtitle}</p>
+          <h2 style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:32,letterSpacing:2,color:WHITE,marginBottom:10}}>{todayLaw.title}</h2>
+          <p style={{fontFamily:"'Crimson Pro',serif",fontStyle:"italic",fontSize:16,color:todayLaw.color,lineHeight:1.6,marginBottom:16}}>"{todayLaw.principle}"</p>
+
+          {/* Today's practice */}
+          <div style={{background:"rgba(255,255,255,0.04)",border:`1px solid rgba(255,255,255,0.08)`,borderRadius:12,padding:"14px 16px",marginBottom:todayArchNote?14:0}}>
+            <p style={{fontSize:13,fontWeight:700,color:DIMMED,letterSpacing:".1em",textTransform:"uppercase",marginBottom:8}}>◈ Today's Practice</p>
+            <p style={{fontSize:14,color:MUTED,lineHeight:1.75}}>{todayLaw.dailyPractice}</p>
+          </div>
+
+          {/* Archetype-specific note for today's law */}
+          {todayArchNote && (
+            <div style={{background:`${archColor}0c`,border:`1px solid ${archColor}33`,borderLeft:`3px solid ${archColor}`,borderRadius:"0 10px 10px 0",padding:"12px 14px"}}>
+              <p style={{fontSize:12,fontWeight:700,color:archColor,letterSpacing:".1em",textTransform:"uppercase",marginBottom:6}}>⚛ {archName} — Applied to You</p>
+              <p style={{fontFamily:"'Crimson Pro',serif",fontStyle:"italic",fontSize:14,color:MUTED,lineHeight:1.7}}>{todayArchNote}</p>
+            </div>
+          )}
+
+          <button onClick={()=>setActiveLaw(todayLawIdx)} style={{width:"100%",marginTop:14,border:`1px solid ${todayLaw.color}44`,borderRadius:100,padding:"11px",fontSize:13,fontWeight:700,background:`${todayLaw.color}12`,color:todayLaw.color,cursor:"pointer",fontFamily:"'Space Grotesk',sans-serif",letterSpacing:".06em"}}
+            onMouseEnter={e=>e.currentTarget.style.background=`${todayLaw.color}22`}
+            onMouseLeave={e=>e.currentTarget.style.background=`${todayLaw.color}12`}>
+            Read the Full Law — 4 Practices, Science & More →
+          </button>
+        </div>
+
+        {/* ── DAILY ARCHETYPE TIP ── */}
+        {dailyArchTip && (
+          <div style={{background:`${archColor}08`,border:`1px solid ${archColor}33`,borderRadius:14,padding:"16px 18px",marginBottom:16,animation:"fadeUp .5s .1s ease both"}}>
+            <p style={{fontSize:12,fontWeight:700,color:archColor,letterSpacing:".12em",textTransform:"uppercase",marginBottom:8}}>💡 Your Tip Today — {archName}</p>
+            <p style={{fontSize:14,color:MUTED,lineHeight:1.7}}>{dailyArchTip}</p>
+          </div>
+        )}
+
+        {/* ── DAILY CHECKLIST ── */}
+        <div style={{background:PANEL,border:`1px solid ${allDone?"rgba(52,211,153,0.5)":BORDER2}`,borderRadius:16,padding:"20px 22px",marginBottom:16,boxShadow:allDone?`0 0 30px rgba(52,211,153,0.1)`:"none",animation:"fadeUp .5s .15s ease both"}}>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
+            <p style={{fontSize:15,fontWeight:700,color:DIMMED,letterSpacing:".12em",textTransform:"uppercase"}}>Today's Checklist</p>
+            <div style={{display:"flex",alignItems:"center",gap:10}}>
+              {streak > 0 && <span style={{fontSize:13,color:AMBER,fontWeight:700}}>🔥 {streak} days</span>}
+              <span style={{fontSize:13,fontWeight:700,color:allDone?GREEN:DIMMED}}>{score}/5</span>
+            </div>
+          </div>
+          {LAWS.map((law,i)=>(
+            <div key={i} onClick={()=>toggleCheck(i)} style={{display:"flex",gap:12,alignItems:"center",padding:"11px 0",borderBottom:i<4?`1px solid ${BORDER2}`:"none",cursor:"pointer"}}>
+              <div style={{width:24,height:24,borderRadius:7,border:`1.5px solid ${checklist[i]?law.color:BORDER2}`,background:checklist[i]?`${law.color}20`:"transparent",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,transition:"all .2s"}}>
+                {checklist[i] && <span style={{color:law.color,fontSize:14,fontWeight:800}}>✓</span>}
               </div>
-              <span style={{fontSize:16,color:checklist[i]?GREEN:MUTED,fontWeight:checklist[i]?600:400,transition:"color .2s"}}>
-                <span className={`law-icon-${i}`} style={{display:"inline-block",marginRight:8}}>{LAWS[i].icon}</span>
-                {item}
-              </span>
+              <div style={{flex:1}}>
+                <span style={{fontSize:15,color:checklist[i]?WHITE:MUTED,fontWeight:checklist[i]?600:400,transition:"color .2s"}}>
+                  <span className={`law-icon-${i}`} style={{display:"inline-block",marginRight:8,fontSize:16}}>{law.icon}</span>
+                  {law.title}
+                  {i === todayLawIdx && <span style={{marginLeft:8,fontSize:11,fontWeight:700,color:law.color,background:`${law.color}18`,padding:"2px 8px",borderRadius:100}}>Today's Focus</span>}
+                </span>
+                <p style={{fontSize:12,color:DIMMED,marginTop:2,marginLeft:32}}>{law.subtitle}</p>
+              </div>
             </div>
           ))}
           {allDone && (
-            <div style={{marginTop:14,padding:"12px 16px",background:"rgba(52,211,153,0.08)",border:"1px solid rgba(52,211,153,0.3)",borderRadius:10,textAlign:"center"}}>
-              <p style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:18,letterSpacing:2,color:GREEN}}>⚡ All 5 Laws Honoured Today</p>
-              <p style={{fontFamily:"'Crimson Pro',serif",fontStyle:"italic",fontSize:14,color:MUTED,marginTop:4}}>"Small shifts, consistently honoured, produce quantum results."</p>
+            <div style={{marginTop:14,padding:"14px 16px",background:"rgba(52,211,153,0.08)",border:"1px solid rgba(52,211,153,0.3)",borderRadius:10,textAlign:"center"}}>
+              <p style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:20,letterSpacing:2,color:GREEN,marginBottom:4}}>⚡ All 5 Laws Honoured Today</p>
+              <p style={{fontFamily:"'Crimson Pro',serif",fontStyle:"italic",fontSize:14,color:MUTED}}>"Small shifts, consistently honoured, produce quantum results."</p>
+              {showMilestone==="day7"  && <div style={{marginTop:10,padding:"10px",background:"rgba(52,211,153,0.12)",borderRadius:8}}><p style={{color:GREEN,fontWeight:700}}>🌱 Week 1 Complete! You have built the foundation.</p></div>}
+              {showMilestone==="day14" && <div style={{marginTop:10,padding:"10px",background:"rgba(52,211,153,0.12)",borderRadius:8}}><p style={{color:GREEN,fontWeight:700}}>🌿 Week 2 Complete! The habit is forming.</p></div>}
+              {showMilestone==="day21" && <div style={{marginTop:10,padding:"10px",background:"rgba(52,211,153,0.15)",borderRadius:8}}><p style={{color:GREEN,fontWeight:700}}>🌳 21 Days Complete! You have transformed your daily living.</p></div>}
             </div>
           )}
         </div>
 
-        {/* Daily Insight */}
-        <div style={{background:`linear-gradient(135deg,${GREEN}06,transparent)`,border:`1px solid ${GREEN}33`,borderRadius:16,padding:"22px 24px",marginBottom:20,animation:"fadeUp .6s .15s ease both"}}>
-          <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:12}}>
-            <div style={{fontSize:28}}>{dailyInsight.icon}</div>
-            <div>
-              <p style={{fontSize:16,fontWeight:700,color:GREEN,letterSpacing:".12em",textTransform:"uppercase",marginBottom:2}}>Daily Wellness Insight</p>
-              <p style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:20,letterSpacing:1.5,color:WHITE}}>{dailyInsight.title}</p>
+        {/* ── 21-DAY PROGRESS ── */}
+        {challengeData && (
+          <div style={{background:"rgba(52,211,153,0.04)",border:"1px solid rgba(52,211,153,0.2)",borderRadius:16,padding:"18px 20px",marginBottom:16,animation:"fadeUp .5s .2s ease both"}}>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
+              <p style={{fontSize:14,fontWeight:700,color:GREEN,letterSpacing:".1em",textTransform:"uppercase"}}>🌿 21-Day Challenge</p>
+              <span style={{fontSize:13,color:AMBER,fontWeight:700}}>Day {challengeData.currentDay||1} of 21</span>
+            </div>
+            <div style={{height:7,background:"rgba(255,255,255,0.06)",borderRadius:100,overflow:"hidden",marginBottom:12}}>
+              <div style={{height:"100%",width:`${((challengeData.currentDay||1)/21)*100}%`,background:"linear-gradient(90deg,rgba(52,211,153,0.6),#34D399)",borderRadius:100,transition:"width .8s ease"}}/>
+            </div>
+            <div style={{display:"flex",justifyContent:"space-around",marginBottom:12}}>
+              {[{d:7,icon:"🌱",label:"Week 1"},{d:14,icon:"🌿",label:"Week 2"},{d:21,icon:"🌳",label:"Complete"}].map(m=>(
+                <div key={m.d} style={{textAlign:"center"}}>
+                  <div style={{fontSize:20,marginBottom:2,opacity:(challengeData.currentDay||0)>=m.d?1:0.25}}>{m.icon}</div>
+                  <p style={{fontSize:10,fontWeight:700,color:(challengeData.currentDay||0)>=m.d?GREEN:DIMMED}}>{m.label}</p>
+                </div>
+              ))}
+            </div>
+            <div style={{display:"flex",justifyContent:"space-between",padding:"10px 14px",background:"rgba(255,255,255,0.03)",borderRadius:10}}>
+              <span style={{fontSize:13,color:MUTED}}>✅ {challengeData.sessionsCompleted||0} days completed</span>
+              <span style={{fontSize:13,color:AMBER,fontWeight:700}}>🔥 {streak} day streak</span>
             </div>
           </div>
-          <p style={{fontSize:15,color:MUTED,lineHeight:1.8,fontWeight:400}}>{dailyInsight.fact}</p>
-          <p style={{fontSize:15,color:DIMMED,marginTop:12,fontStyle:"italic"}}>A new insight appears here every day — part of your Quantum Living journey.</p>
-        </div>
+        )}
 
-        {/* 5 Laws grid */}
-        <p style={{fontSize:16,fontWeight:700,color:DIMMED,letterSpacing:".12em",textTransform:"uppercase",marginBottom:14,animation:"fadeUp .6s .2s ease both"}}>The 5 Quantum Laws — Tap to explore</p>
+        {/* ── ALL 5 LAWS — secondary ── */}
+        <p style={{fontSize:13,fontWeight:700,color:DIMMED,letterSpacing:".14em",textTransform:"uppercase",marginBottom:12,animation:"fadeUp .5s .25s ease both"}}>All 5 Quantum Laws — Tap to explore</p>
         {LAWS.map((law,i)=>(
-          <div key={i} onClick={()=>setActiveLaw(i)} style={{background:PANEL,border:`1px solid ${BORDER2}`,borderTop:`2px solid ${law.color}`,borderRadius:16,padding:"20px 22px",marginBottom:12,cursor:"pointer",transition:"all .2s",animation:`fadeUp .6s ${.1+i*.08}s ease both`}}
-            onMouseEnter={e=>{e.currentTarget.style.background=law.glow;e.currentTarget.style.borderColor=`${law.color}44`;}}
-            onMouseLeave={e=>{e.currentTarget.style.background=PANEL;e.currentTarget.style.borderColor=BORDER2;}}>
-            <div style={{display:"flex",gap:16,alignItems:"flex-start"}}>
-              <div style={{width:44,height:44,borderRadius:12,background:law.glow,border:`1px solid ${law.color}44`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
-                <span className={`law-icon-${i}`} style={{fontSize:22,display:"inline-block"}}>{law.icon}</span>
-              </div>
-              <div style={{flex:1}}>
-                <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:4}}>
-                  <div>
-                    <p style={{fontSize:16,fontWeight:700,color:law.color,letterSpacing:".1em",textTransform:"uppercase",marginBottom:3}}>Law {law.num} · {law.subtitle}</p>
-                    <h3 style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:22,letterSpacing:2,color:WHITE}}>{law.title}</h3>
-                  </div>
-                  <span style={{fontSize:18,color:law.color,opacity:.6,marginTop:2}}>{law.sym}</span>
-                </div>
-                <p style={{fontFamily:"'Crimson Pro',serif",fontStyle:"italic",fontSize:14,color:MUTED,lineHeight:1.6,marginTop:4}}>"{law.principle.substring(0,80)}..."</p>
-              </div>
+          <div key={i} onClick={()=>setActiveLaw(i)}
+            style={{background:i===todayLawIdx?`${law.color}0a`:PANEL, border:`1px solid ${i===todayLawIdx?law.color+"44":BORDER2}`, borderLeft:`3px solid ${law.color}`, borderRadius:14, padding:"14px 16px", marginBottom:8, cursor:"pointer", transition:"all .2s", animation:`fadeUp .5s ${.28+i*.06}s ease both`, display:"flex", alignItems:"center", gap:14}}
+            onMouseEnter={e=>{e.currentTarget.style.background=law.glow;}}
+            onMouseLeave={e=>{e.currentTarget.style.background=i===todayLawIdx?`${law.color}0a`:PANEL;}}>
+            <span className={`law-icon-${i}`} style={{fontSize:24,display:"inline-block",flexShrink:0}}>{law.icon}</span>
+            <div style={{flex:1}}>
+              <p style={{fontSize:13,fontWeight:700,color:law.color,letterSpacing:".08em",textTransform:"uppercase",marginBottom:2}}>Law {law.num} · {law.subtitle}</p>
+              <p style={{fontSize:15,fontWeight:700,color:WHITE}}>{law.title}</p>
             </div>
+            {i===todayLawIdx && <span style={{fontSize:11,fontWeight:700,color:law.color,background:`${law.color}18`,padding:"3px 10px",borderRadius:100,flexShrink:0}}>Today</span>}
+            <span style={{color:DIMMED,fontSize:16}}>→</span>
           </div>
         ))}
 
-        {/* LQM connection note */}
-        <div style={{background:"rgba(0,200,255,0.04)",border:`1px solid ${BORDER}`,borderLeft:`3px solid ${E_BLUE}`,borderRadius:"0 14px 14px 0",padding:"18px 20px",marginTop:8}}>
-          <p style={{fontSize:16,fontWeight:700,color:E_BLUE,letterSpacing:".12em",textTransform:"uppercase",marginBottom:8}}>⚡ The LQM Connection</p>
-          <p style={{fontFamily:"'Crimson Pro',serif",fontSize:16,color:MUTED,lineHeight:1.75}}>Your motivation archetype shapes how you live — not just how you work. Each of the 5 Quantum Laws contains specific insights for your profile type. Tap any law to read the LQM-specific guidance for your archetype.</p>
+        {/* Disclaimer */}
+        <div style={{marginTop:16,padding:"14px 18px",background:"rgba(255,255,255,0.02)",border:`1px solid ${BORDER2}`,borderRadius:12}}>
+          <p style={{fontSize:12,color:DIMMED,lineHeight:1.6}}>The 5 Quantum Laws are educational principles for general wellbeing — not medical advice. Please consult a doctor before making changes to exercise or health habits.</p>
         </div>
       </div>
     </div>

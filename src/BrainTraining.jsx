@@ -30,51 +30,56 @@ import {
 } from "./sounds";
 
 // ── Gameplay sound effects ──
+// Shared audio context - created once to prevent browser blocking
+let _audioCtx = null;
+function getAudioCtx() {
+  if (!_audioCtx || _audioCtx.state === "closed") {
+    _audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  }
+  if (_audioCtx.state === "suspended") _audioCtx.resume();
+  return _audioCtx;
+}
+
 function playShootSound() {
   try {
-    const ctx = new (window.AudioContext || window.webkitAudioContext)();
-    const oscillator = ctx.createOscillator();
-    const gainNode = ctx.createGain();
-    oscillator.connect(gainNode);
-    gainNode.connect(ctx.destination);
-    oscillator.frequency.setValueAtTime(300, ctx.currentTime);
-    oscillator.frequency.exponentialRampToValueAtTime(150, ctx.currentTime + 0.1);
-    gainNode.gain.setValueAtTime(0.15, ctx.currentTime);
-    gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.1);
-    oscillator.start(ctx.currentTime);
-    oscillator.stop(ctx.currentTime + 0.1);
+    const ctx = getAudioCtx();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.frequency.setValueAtTime(300, ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(150, ctx.currentTime + 0.1);
+    gain.gain.setValueAtTime(0.15, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.1);
+    osc.start(ctx.currentTime); osc.stop(ctx.currentTime + 0.1);
   } catch (e) {}
 }
 
 function playHitSound() {
   try {
-    const ctx = new (window.AudioContext || window.webkitAudioContext)();
-    const oscillator = ctx.createOscillator();
-    const gainNode = ctx.createGain();
-    oscillator.connect(gainNode);
-    gainNode.connect(ctx.destination);
-    oscillator.frequency.setValueAtTime(800, ctx.currentTime);
-    oscillator.frequency.exponentialRampToValueAtTime(1200, ctx.currentTime + 0.08);
-    gainNode.gain.setValueAtTime(0.2, ctx.currentTime);
-    gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.15);
-    oscillator.start(ctx.currentTime);
-    oscillator.stop(ctx.currentTime + 0.15);
+    const ctx = getAudioCtx();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.type = "sine";
+    osc.frequency.setValueAtTime(600, ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(1000, ctx.currentTime + 0.08);
+    gain.gain.setValueAtTime(0.2, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.15);
+    osc.start(ctx.currentTime); osc.stop(ctx.currentTime + 0.15);
   } catch (e) {}
 }
 
 function playMissSound() {
   try {
-    const ctx = new (window.AudioContext || window.webkitAudioContext)();
-    const oscillator = ctx.createOscillator();
-    const gainNode = ctx.createGain();
-    oscillator.connect(gainNode);
-    gainNode.connect(ctx.destination);
-    oscillator.frequency.setValueAtTime(200, ctx.currentTime);
-    oscillator.frequency.exponentialRampToValueAtTime(100, ctx.currentTime + 0.2);
-    gainNode.gain.setValueAtTime(0.15, ctx.currentTime);
-    gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.2);
-    oscillator.start(ctx.currentTime);
-    oscillator.stop(ctx.currentTime + 0.2);
+    const ctx = getAudioCtx();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.frequency.setValueAtTime(200, ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(80, ctx.currentTime + 0.2);
+    gain.gain.setValueAtTime(0.12, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.2);
+    osc.start(ctx.currentTime); osc.stop(ctx.currentTime + 0.2);
   } catch (e) {}
 }
 
@@ -470,7 +475,7 @@ export default function BrainTraining({ onBack, archetype }){
         {screen==="challenge" && round===3 && <ReactionChallenge key="r" difficulty={DIFFICULTY[difficulty]} onComplete={handleRoundComplete}/>}
         {screen==="challenge" && round===4 && <SwitchChallenge   key="sw" difficulty={DIFFICULTY[difficulty]} onComplete={handleRoundComplete}/>}
         {screen==="challenge" && round===5 && <NeuralDefense     key="nd" difficulty={DIFFICULTY[difficulty]} onComplete={handleRoundComplete}/>}
-        {screen==="results"   && <Results scores={scores} level={level} newLevel={getLevel(totalXP)} streak={streak} dailyAction={dailyAction} arch={arch} onBack={onBack} onRetry={()=>{setRound(0);setScores([]);setScreen("science");}}/>}
+        {screen==="results"   && <Results scores={scores} level={level} newLevel={getLevel(totalXP)} streak={streak} dailyAction={dailyAction} arch={arch} challengeData={challengeData} onBack={onBack} onRetry={()=>{setRound(0);setScores([]);setScreen("science");}}/>}
       </div>
     </div>
   );
@@ -1077,7 +1082,8 @@ function NeuralDefense({onComplete, difficulty}){
   const FALL_SPEED_WAVE2 = difficulty?.defense?.fallWave2 || 3.5;
   const FALL_SPEED_WAVE3 = difficulty?.defense?.fallWave3 || 4.8;
   
-  const [phase, setPhase] = useState("ready"); // ready, playing, complete
+  const [phase, setPhase] = useState("ready"); // ready, playing, between, complete
+  const [betweenWave, setBetweenWave] = useState(0); // wave just completed
   const [wave, setWave] = useState(1);
   const [score, setScore] = useState(0);
   const [hits, setHits] = useState(0);
@@ -1236,20 +1242,32 @@ function NeuralDefense({onComplete, difficulty}){
     setShieldActive(true);
     setTimeout(() => setShieldActive(false), 200);
     
-    // Check if shield hits any shape
-    const shieldTop = GAME_HEIGHT - 50;
+    // Check if shield hits any shape - hit the closest shape to shield
+    const shieldTop = GAME_HEIGHT - 60;
     
     let hitCount = 0;
     let totalPoints = 0;
     setShapes(prev => {
       const remaining = [];
+      // Find the best target: prioritise shapes near shield horizontally, lowest on screen
+      let bestTarget = null;
+      let bestScore = -1;
+      prev.forEach(s => {
+        const shapeCenter = s.x + SHAPE_SIZE/2;
+        const horizDist = Math.abs(shapeCenter - shieldCenter);
+        const vertScore = s.y; // lower = better (closer to shield)
+        if(horizDist < 100) {
+          const score = vertScore - horizDist * 0.5;
+          if(score > bestScore) { bestScore = score; bestTarget = s; }
+        }
+      });
       prev.forEach(s => {
         const shapeCenter = s.x + SHAPE_SIZE/2;
         const shapeBottom = s.y + SHAPE_SIZE;
+        const isTarget = bestTarget && s.id === bestTarget.id;
         
-        // Check if shape is in range and shield is roughly aligned
-        if(shapeBottom >= shieldTop - 40 && shapeBottom <= shieldTop + 20 && 
-           Math.abs(shapeCenter - shieldCenter) < 60){
+        // Hit if it's our best target
+        if(isTarget){
           // 💥 HIT!
           hitCount++;
           totalPoints += s.pts;
@@ -1325,6 +1343,12 @@ function NeuralDefense({onComplete, difficulty}){
     setShieldX(Math.max(0, Math.min(GAME_WIDTH - SHIELD_WIDTH, x)));
   }
 
+  function handleTouchEnd(e){
+    if(phase !== "playing") return;
+    // Fire shoot on tap (touchend = tap on mobile)
+    handleShoot();
+  }
+
   // Render shape SVG
   function renderShape(type, color, size){
     if(type==="circle") return <div style={{width:size,height:size,borderRadius:"50%",background:color,boxShadow:`0 0 12px ${color}88`}}/>;
@@ -1358,9 +1382,42 @@ function NeuralDefense({onComplete, difficulty}){
               This trains sustained visual attention and reaction time under continuous pressure — the same skills measured in action game research.
             </p>
           </div>
-          <button onClick={startGame} style={{border:"none",borderRadius:100,padding:"14px 40px",fontSize:16,fontWeight:700,fontFamily:"'Space Grotesk',sans-serif",cursor:"pointer",background:`linear-gradient(135deg,${PURPLE}cc,${PURPLE})`,color:WHITE,letterSpacing:".05em"}}>
-            Start Defense →
+          <button onClick={startGame} style={{border:"none",borderRadius:100,padding:"14px 40px",fontSize:16,fontWeight:700,fontFamily:"'Space Grotesk',sans-serif",cursor:"pointer",background:`linear-gradient(135deg,${PURPLE}cc,${PURPLE})`,color:WHITE,letterSpacing:".05em",boxShadow:`0 6px 28px ${PURPLE}44`,animation:"pulse 2s infinite"}}>
+            ⚡ Launch Defense →
           </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Between-wave celebration screen
+  if(phase === "between"){
+    return(
+      <div style={{textAlign:"center",padding:"40px 20px",animation:"fadeUp .3s ease both"}}>
+        <RoundProgress round={6}/>
+        <div style={{background:`linear-gradient(135deg,${PURPLE}18,rgba(0,200,255,0.08))`,border:`2px solid ${PURPLE}66`,borderRadius:20,padding:"36px 28px",marginTop:16}}>
+          <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:52,letterSpacing:3,color:PURPLE,marginBottom:4}}>WAVE {betweenWave}</div>
+          <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:28,letterSpacing:2,color:GREEN,marginBottom:20}}>COMPLETE ✓</div>
+          <div style={{display:"flex",justifyContent:"center",gap:24,marginBottom:24}}>
+            <div style={{textAlign:"center"}}>
+              <p style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:36,color:WHITE}}>{hits}</p>
+              <p style={{fontSize:12,color:DIMMED,letterSpacing:".1em"}}>HITS</p>
+            </div>
+            <div style={{width:1,background:BORDER2}}/>
+            <div style={{textAlign:"center"}}>
+              <p style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:36,color:WHITE}}>{score}</p>
+              <p style={{fontSize:12,color:DIMMED,letterSpacing:".1em"}}>POINTS</p>
+            </div>
+            <div style={{width:1,background:BORDER2}}/>
+            <div style={{textAlign:"center"}}>
+              <p style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:36,color:RED}}>{misses}</p>
+              <p style={{fontSize:12,color:DIMMED,letterSpacing:".1em"}}>MISSED</p>
+            </div>
+          </div>
+          <p style={{fontSize:15,color:AMBER,fontWeight:700,letterSpacing:".08em"}}>⚡ WAVE {betweenWave+1} INCOMING — GET READY</p>
+          <div style={{height:4,background:"rgba(255,255,255,0.06)",borderRadius:100,overflow:"hidden",marginTop:16}}>
+            <div style={{height:"100%",background:`linear-gradient(90deg,${PURPLE},${E_BLUE})`,animation:"waveLoad 2.5s linear forwards",borderRadius:100}}/>
+          </div>
         </div>
       </div>
     );
@@ -1370,14 +1427,38 @@ function NeuralDefense({onComplete, difficulty}){
     <div>
       <RoundProgress round={6}/>
       
-      {/* Game stats */}
-      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
-        <div>
-          <p style={{fontSize:16,fontWeight:700,color:DIMMED,letterSpacing:".1em",textTransform:"uppercase",marginBottom:3}}>Wave {wave}/3</p>
-          <p style={{fontSize:15,color:MUTED}}>{hits} hits · {score} pts</p>
+      {/* 🎮 DRAMATIC GAME HUD */}
+      <div style={{background:"rgba(7,15,30,0.95)",border:`2px solid ${waveTime<=5?"rgba(239,68,68,0.6)":waveTime<=10?"rgba(251,191,36,0.4)":"rgba(139,92,246,0.3)"}`,borderRadius:14,padding:"12px 16px",marginBottom:10,boxShadow:waveTime<=5?`0 0 20px rgba(239,68,68,0.3)`:waveTime<=10?`0 0 15px rgba(251,191,36,0.2)`:"none",transition:"all .3s"}}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+          {/* Left: Wave + Hits */}
+          <div>
+            <div style={{display:"flex",gap:6,alignItems:"center",marginBottom:4}}>
+              {[1,2,3].map(w=>(
+                <div key={w} style={{width:28,height:6,borderRadius:3,background:w<=wave?`linear-gradient(90deg,${PURPLE},${E_BLUE})`:BORDER2,transition:"all .3s"}}/>
+              ))}
+              <span style={{fontSize:12,color:DIMMED,fontWeight:700,marginLeft:4}}>WAVE {wave}/3</span>
+            </div>
+            <div style={{display:"flex",gap:12,alignItems:"center"}}>
+              <span style={{fontSize:13,color:MUTED}}>🎯 <strong style={{color:GREEN}}>{hits}</strong> hits</span>
+              <span style={{fontSize:13,color:MUTED}}>❌ <strong style={{color:RED}}>{misses}</strong> missed</span>
+            </div>
+          </div>
+          {/* Centre: Score */}
+          <div style={{textAlign:"center"}}>
+            <p style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:32,letterSpacing:2,color:WHITE,lineHeight:1}}>{score}</p>
+            <p style={{fontSize:11,color:DIMMED,letterSpacing:".1em"}}>POINTS</p>
+          </div>
+          {/* Right: Countdown clock */}
+          <div style={{textAlign:"right"}}>
+            <div style={{background:waveTime<=5?"rgba(239,68,68,0.15)":waveTime<=10?"rgba(251,191,36,0.1)":"rgba(139,92,246,0.1)",border:`2px solid ${waveTime<=5?"rgba(239,68,68,0.7)":waveTime<=10?AMBER:PURPLE}`,borderRadius:10,padding:"6px 12px",minWidth:58,textAlign:"center"}}>
+              <p style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:28,letterSpacing:1,color:waveTime<=5?RED:waveTime<=10?AMBER:PURPLE,lineHeight:1,animation:waveTime<=5?"screen-shake .2s infinite":"none"}}>{waveTime}</p>
+              <p style={{fontSize:10,color:DIMMED,letterSpacing:".1em"}}>SECS</p>
+            </div>
+          </div>
         </div>
-        <div style={{background:waveTime<=10?"rgba(239,68,68,0.1)":"rgba(139,92,246,0.1)",border:`1px solid ${waveTime<=10?"rgba(239,68,68,0.3)":"rgba(139,92,246,0.3)"}`,borderRadius:8,padding:"6px 14px"}}>
-          <span style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:20,letterSpacing:1,color:waveTime<=10?RED:PURPLE}}>{waveTime}s</span>
+        {/* Wave progress bar */}
+        <div style={{marginTop:8,height:4,background:"rgba(255,255,255,0.05)",borderRadius:100,overflow:"hidden"}}>
+          <div style={{height:"100%",background:waveTime<=5?`linear-gradient(90deg,${RED},#FF6B6B)`:waveTime<=10?`linear-gradient(90deg,${AMBER},#FDE68A)`:`linear-gradient(90deg,${PURPLE},${E_BLUE})`,width:`${(waveTime/WAVE_DURATION)*100}%`,transition:"width 1s linear",borderRadius:100}}/>
         </div>
       </div>
 
@@ -1385,6 +1466,7 @@ function NeuralDefense({onComplete, difficulty}){
       <div 
         onMouseMove={handleMouseMove}
         onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
         onClick={handleShoot}
         style={{
           position:"relative",
@@ -1534,7 +1616,7 @@ function NeuralDefense({onComplete, difficulty}){
 // ══════════════════════════════════════════════════════════════════════════
 
 // ══════════════════════════════════════════════════════════════════════════
-function Results({scores,level,newLevel,streak,dailyAction,arch,onBack,onRetry}){
+function Results({scores,level,newLevel,streak,dailyAction,arch,challengeData,onBack,onRetry}){
   const total=scores.reduce((a,s)=>a+s.score,0);
   const levelUp=newLevel.name!==level.name;
   const grade=total>=540?"Quantum Elite":total>=420?"Elite":total>=300?"Sharp":total>=180?"Developing":"Initiate";
@@ -1625,13 +1707,36 @@ function Results({scores,level,newLevel,streak,dailyAction,arch,onBack,onRetry})
         </div>
       </div>
 
-      <div style={{background:"rgba(255,255,255,0.02)",border:`1px solid ${BORDER2}`,borderRadius:14,padding:"14px 18px",marginBottom:18,display:"flex",gap:12,alignItems:"center"}}>
-        <span style={{fontSize:18}}>🔔</span>
-        <div>
-          <p style={{fontSize:16,fontWeight:600,color:WHITE,marginBottom:2}}>Build the daily habit</p>
-          <p style={{fontSize:15,color:DIMMED,lineHeight:1.5}}>Return tomorrow to keep your streak. Consistent daily training is where neuroplasticity compounds.</p>
+      {/* 21-Day Challenge Progress */}
+      {challengeData && (
+        <div style={{background:"rgba(0,200,255,0.04)",border:`1px solid ${BORDER}`,borderRadius:16,padding:"18px 20px",marginBottom:14}}>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
+            <p style={{fontSize:15,fontWeight:700,color:E_BLUE,letterSpacing:".1em",textTransform:"uppercase"}}>🧠 21-Day Neural Challenge</p>
+            <span style={{fontSize:13,color:AMBER,fontWeight:700}}>Day {challengeData.currentDay || 1} of 21</span>
+          </div>
+          {/* Progress bar */}
+          <div style={{height:8,background:"rgba(255,255,255,0.06)",borderRadius:100,overflow:"hidden",marginBottom:12}}>
+            <div style={{height:"100%",width:`${((challengeData.currentDay||1)/21)*100}%`,background:`linear-gradient(90deg,${E_BLUE2},${E_BLUE})`,borderRadius:100,transition:"width .6s ease"}}/>
+          </div>
+          {/* Milestones */}
+          <div style={{display:"flex",justifyContent:"space-between",marginBottom:14}}>
+            {[{day:7,label:"Week 1",icon:"⭐"},{day:14,label:"Week 2",icon:"🌟"},{day:21,label:"Complete",icon:"🏆"}].map(m=>(
+              <div key={m.day} style={{textAlign:"center",flex:1}}>
+                <div style={{fontSize:20,marginBottom:3,opacity:(challengeData.currentDay||0)>=m.day?1:0.3}}>{m.icon}</div>
+                <p style={{fontSize:11,color:(challengeData.currentDay||0)>=m.day?E_BLUE:DIMMED,fontWeight:700}}>{m.label}</p>
+                <p style={{fontSize:10,color:DIMMED}}>Day {m.day}</p>
+              </div>
+            ))}
+          </div>
+          <div style={{background:"rgba(255,255,255,0.03)",borderRadius:10,padding:"10px 14px",display:"flex",alignItems:"center",gap:10}}>
+            <span style={{fontSize:20}}>🔥</span>
+            <div>
+              <p style={{fontSize:14,fontWeight:600,color:WHITE,marginBottom:2}}>Streak: {streak} day{streak!==1?"s":""}</p>
+              <p style={{fontSize:13,color:DIMMED,lineHeight:1.4}}>Return tomorrow to keep building. Each session rewires your neural pathways — consistency is where transformation happens.</p>
+            </div>
+          </div>
         </div>
-      </div>
+      )}
 
       <div style={{display:"flex",gap:10}}>
         <button onClick={onRetry} style={{flex:1,border:`1px solid ${BORDER}`,borderRadius:100,padding:"14px",fontSize:14,fontWeight:700,background:"rgba(255,255,255,0.03)",color:MUTED,cursor:"pointer",fontFamily:"'Space Grotesk',sans-serif",transition:"all .15s"}}
