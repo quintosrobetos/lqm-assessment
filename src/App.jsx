@@ -4,8 +4,8 @@ import QuantumLiving from "./QuantumLiving.jsx";
 
 // ── Stripe Payment Links ───────────────────────────────────────────────────
 const STRIPE_MAIN    = "https://buy.stripe.com/00w8wR50Xber8VZfkka3u00"; // £9 main report
-const STRIPE_BRAIN   = "https://buy.stripe.com/REPLACE_BRAIN_LINK";      // £5 Brain Training
-const STRIPE_VITAL   = "https://buy.stripe.com/REPLACE_VITAL_LINK";      // £5 Quantum Living
+const STRIPE_BRAIN   = "https://buy.stripe.com/8x2eVfgJF4Q37RVb44a3u02";      // £5 Brain Training
+const STRIPE_VITAL   = "https://buy.stripe.com/eVq5kF651gyLgorc88a3u03";      // £5 Quantum Living
 
 // ── Unlock helpers (localStorage simulates post-payment state) ────────────
 function getUnlocks() {
