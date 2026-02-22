@@ -41,9 +41,29 @@ const SYMS    = ["⚛","◈","⬡","△","◎","⊕","⟁","⬢"];
 function ArchetypeIllustration({ type: t }) {
   const ARCH_COLORS = {A:"#00C8FF", B:"#38BDF8", C:"#34D399", D:"#A78BFA"};
   const c = ARCH_COLORS[t] || "#00C8FF";
+  const r1Ref = useRef(null);
+  const r2Ref = useRef(null);
+  const r3Ref = useRef(null);
+  const frameRef = useRef(null);
+  const anglesRef = useRef({a1:0, a2:0, a3:45});
+
+  useEffect(()=>{
+    function tick(){
+      anglesRef.current.a1 = (anglesRef.current.a1 + 0.4) % 360;
+      anglesRef.current.a2 = (anglesRef.current.a2 - 0.25 + 360) % 360;
+      anglesRef.current.a3 = (anglesRef.current.a3 + 0.7) % 360;
+      if(r1Ref.current) r1Ref.current.setAttribute("transform", `rotate(${anglesRef.current.a1} 100 70)`);
+      if(r2Ref.current) r2Ref.current.setAttribute("transform", `rotate(${anglesRef.current.a2} 100 70)`);
+      if(r3Ref.current) r3Ref.current.setAttribute("transform", `rotate(${anglesRef.current.a3} 100 70)`);
+      frameRef.current = requestAnimationFrame(tick);
+    }
+    frameRef.current = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(frameRef.current);
+  }, []);
+
   const id = `ag${t}`;
   return (
-    <svg viewBox="0 0 200 140" style={{width:"100%",maxWidth:340,display:"block",margin:"0 auto",overflow:"visible"}}>
+    <svg viewBox="0 0 200 140" style={{width:"100%",maxWidth:340,display:"block",margin:"0 auto"}}>
       <defs>
         <radialGradient id={id} cx="50%" cy="50%" r="50%">
           <stop offset="0%" stopColor={c} stopOpacity="0.3"/>
@@ -51,12 +71,10 @@ function ArchetypeIllustration({ type: t }) {
         </radialGradient>
       </defs>
 
-      {/* Background glow */}
-      <ellipse cx="100" cy="70" rx="55" ry="45" fill={`url(#${id})`}>
-        <animate attributeName="opacity" values="0.5;1;0.5" dur="3s" repeatCount="indefinite"/>
-      </ellipse>
+      {/* Glow */}
+      <ellipse cx="100" cy="70" rx="55" ry="45" fill={`url(#${id})`} opacity="0.8"/>
 
-      {/* Blueprint grid */}
+      {/* Grid */}
       {[35,65,100,135,165].map(x=><line key={`v${x}`} x1={x} y1="15" x2={x} y2="125" stroke={c} strokeWidth="0.3" opacity="0.15"/>)}
       {[25,50,70,90,115].map(y=><line key={`h${y}`} x1="15" y1={y} x2="185" y2={y} stroke={c} strokeWidth="0.3" opacity="0.15"/>)}
 
@@ -65,58 +83,40 @@ function ArchetypeIllustration({ type: t }) {
         <circle key={i} cx={x} cy={y} r="2.5" fill={c} opacity="0.5"/>
       ))}
 
-      {/* Static outer reference ring */}
+      {/* Outer static ring */}
       <circle cx="100" cy="70" r="50" fill="none" stroke={c} strokeWidth="0.4" opacity="0.2"/>
 
-      {/* RING 1 — slow clockwise spin */}
-      <g>
-        <animateTransform attributeName="transform" type="rotate" from="0 100 70" to="360 100 70" dur="9s" repeatCount="indefinite"/>
-        <circle cx="100" cy="70" r="40" fill="none" stroke="white" strokeWidth="1.2"
-          strokeDasharray="42 22" opacity="0.4"/>
+      {/* RING 1 — slow clockwise */}
+      <g ref={r1Ref}>
+        <circle cx="100" cy="70" r="40" fill="none" stroke="white" strokeWidth="1.2" strokeDasharray="42 22" opacity="0.4"/>
         <circle cx="100" cy="30" r="4" fill="white" opacity="0.85"/>
-        <circle cx="140" cy="70" r="2.5" fill="white" opacity="0.55"/>
+        <circle cx="140" cy="70" r="2.5" fill="white" opacity="0.6"/>
       </g>
 
-      {/* RING 2 — counter-clockwise, medium */}
-      <g>
-        <animateTransform attributeName="transform" type="rotate" from="0 100 70" to="-360 100 70" dur="15s" repeatCount="indefinite"/>
-        <circle cx="100" cy="70" r="28" fill="none" stroke="white" strokeWidth="1"
-          strokeDasharray="28 18" opacity="0.5"/>
+      {/* RING 2 — counter-clockwise */}
+      <g ref={r2Ref}>
+        <circle cx="100" cy="70" r="28" fill="none" stroke="white" strokeWidth="1" strokeDasharray="28 18" opacity="0.5"/>
         <circle cx="100" cy="42" r="3.5" fill="white" opacity="0.9"/>
         <circle cx="72" cy="70" r="2.5" fill={c} opacity="0.9"/>
       </g>
 
-      {/* RING 3 — fast clockwise, small */}
-      <g>
-        <animateTransform attributeName="transform" type="rotate" from="45 100 70" to="405 100 70" dur="5s" repeatCount="indefinite"/>
-        <circle cx="100" cy="70" r="16" fill="none" stroke="white" strokeWidth="1.5"
-          strokeDasharray="18 12" opacity="0.6"/>
+      {/* RING 3 — fast */}
+      <g ref={r3Ref}>
+        <circle cx="100" cy="70" r="16" fill="none" stroke="white" strokeWidth="1.5" strokeDasharray="18 12" opacity="0.6"/>
         <circle cx="100" cy="54" r="3" fill={c} opacity="1"/>
       </g>
 
-      {/* Axis cross */}
+      {/* Axis */}
       <line x1="100" y1="22" x2="100" y2="118" stroke={c} strokeWidth="0.6" opacity="0.25"/>
       <line x1="52" y1="70" x2="148" y2="70" stroke={c} strokeWidth="0.6" opacity="0.25"/>
 
-      {/* Centre core */}
+      {/* Core */}
       <circle cx="100" cy="70" r="9" fill={c} opacity="0.2"/>
       <circle cx="100" cy="70" r="5.5" fill={c} opacity="0.6"/>
-      <circle cx="100" cy="70" r="2.5" fill="white" opacity="1">
-        <animate attributeName="r" values="2.5;3.5;2.5" dur="2s" repeatCount="indefinite"/>
-      </circle>
+      <circle cx="100" cy="70" r="2.5" fill="white" opacity="1"/>
     </svg>
   );
 }
-import { useState, useEffect, useRef } from "react";
-import BrainTraining from "./BrainTraining.jsx";
-import QuantumLiving from "./QuantumLiving.jsx";
-
-// ── Stripe Payment Links ───────────────────────────────────────────────────
-const STRIPE_MAIN    = "https://buy.stripe.com/00w8wR50Xber8VZfkka3u00"; // £9 main report
-const STRIPE_BRAIN   = "https://buy.stripe.com/8x2eVfgJF4Q37RVb44a3u02";      // £5 Brain Training
-const STRIPE_VITAL   = "https://buy.stripe.com/eVq5kF651gyLgorc88a3u03";      // £5 Quantum Living
-
-// ── Unlock helpers (localStorage simulates post-payment state) ────────────
 function getUnlocks() {
   try { return JSON.parse(localStorage.getItem("lqm_unlocks")||"{}"); } catch { return {}; }
 }
@@ -147,108 +147,6 @@ const PURPLE  = "#A855F7";             // purple accent colour
 const SYMS    = ["⚛","◈","⬡","△","◎","⊕","⟁","⬢"];
 
 // ── Archetype SVG Illustrations ───────────────────────────────────────────────
-function ArchetypeIllustration({ type: t }) {
-  const ARCH_COLORS = {A:"#00C8FF", B:"#38BDF8", C:"#34D399", D:"#A78BFA"};
-  const c = ARCH_COLORS[t] || "#00C8FF";
-
-  // Inject spinning animation styles once
-  if(typeof document !== "undefined"){
-    const id = "arch-spin-styles";
-    if(!document.getElementById(id)){
-      const s = document.createElement("style");
-      s.id = id;
-      s.textContent = `
-        @keyframes archSpin1{from{transform-origin:100px 70px;transform:rotate(0deg);}to{transform-origin:100px 70px;transform:rotate(360deg);}}
-        @keyframes archSpin2{from{transform-origin:100px 70px;transform:rotate(0deg);}to{transform-origin:100px 70px;transform:rotate(-360deg);}}
-        @keyframes archSpin3{from{transform-origin:100px 70px;transform:rotate(45deg);}to{transform-origin:100px 70px;transform:rotate(405deg);}}
-        @keyframes archPulse{0%,100%{opacity:0.9;r:10;}50%{opacity:1;r:12;}}
-        @keyframes archGlow{0%,100%{opacity:0.15;}50%{opacity:0.35;}}
-        .arch-ring1{animation:archSpin1 8s linear infinite;}
-        .arch-ring2{animation:archSpin2 14s linear infinite;}
-        .arch-ring3{animation:archSpin3 5s linear infinite;}
-        .arch-glow{animation:archGlow 3s ease-in-out infinite;}
-      `;
-      document.head.appendChild(s);
-    }
-  }
-
-  const dashArray = (r) => {
-    const circ = 2 * Math.PI * r;
-    return `${circ * 0.6} ${circ * 0.4}`;
-  };
-
-  return (
-    <svg viewBox="0 0 200 140" style={{width:"100%", maxWidth:340, display:"block", margin:"0 auto", overflow:"visible"}}>
-      <defs>
-        <radialGradient id={`rg${t}`} cx="50%" cy="50%" r="50%">
-          <stop offset="0%" stopColor={c} stopOpacity="0.35"/>
-          <stop offset="100%" stopColor={c} stopOpacity="0"/>
-        </radialGradient>
-        <filter id={`gf${t}`}>
-          <feGaussianBlur stdDeviation="3" result="blur"/>
-          <feComposite in="SourceGraphic" in2="blur" operator="over"/>
-        </filter>
-      </defs>
-
-      {/* Background glow */}
-      <ellipse cx="100" cy="70" rx="55" ry="45" fill={`url(#rg${t})`} className="arch-glow"/>
-
-      {/* Blueprint grid — subtle */}
-      {[30,60,90,120,150,170].map(x=><line key={`v${x}`} x1={x} y1="10" x2={x} y2="130" stroke={c} strokeWidth="0.25" opacity="0.12"/>)}
-      {[25,45,65,85,105,120].map(y=><line key={`h${y}`} x1="10" y1={y} x2="190" y2={y} stroke={c} strokeWidth="0.25" opacity="0.12"/>)}
-
-      {/* Corner markers */}
-      {[[15,15],[185,15],[15,125],[185,125]].map(([x,y],i)=>(
-        <circle key={i} cx={x} cy={y} r="2.5" fill={c} opacity="0.5"/>
-      ))}
-
-      {/* Outer static ring */}
-      <circle cx="100" cy="70" r="48" fill="none" stroke={c} strokeWidth="0.5" opacity="0.2"/>
-
-      {/* Spinning ring 1 — large, slow, dashed */}
-      <g className="arch-ring1">
-        <circle cx="100" cy="70" r="40" fill="none" stroke="white" strokeWidth="1.2"
-          strokeDasharray={dashArray(40)} opacity="0.35"/>
-        {/* Orbiting dot on ring 1 */}
-        <circle cx="100" cy="30" r="3.5" fill="white" opacity="0.7"/>
-      </g>
-
-      {/* Spinning ring 2 — medium, reverse, different dash */}
-      <g className="arch-ring2">
-        <circle cx="100" cy="70" r="28" fill="none" stroke="white" strokeWidth="1"
-          strokeDasharray={dashArray(28)} opacity="0.45"/>
-        <circle cx="100" cy="42" r="3" fill="white" opacity="0.8"/>
-        <circle cx="128" cy="70" r="2.5" fill="white" opacity="0.6"/>
-      </g>
-
-      {/* Spinning ring 3 — small, fast, nearly solid */}
-      <g className="arch-ring3">
-        <circle cx="100" cy="70" r="16" fill="none" stroke="white" strokeWidth="1.5"
-          strokeDasharray={dashArray(16)} opacity="0.55"/>
-        <circle cx="100" cy="54" r="2.5" fill={c} opacity="1"/>
-      </g>
-
-      {/* Axis lines (static) */}
-      <line x1="100" y1="22" x2="100" y2="118" stroke={c} strokeWidth="0.6" opacity="0.3"/>
-      <line x1="52" y1="70" x2="148" y2="70" stroke={c} strokeWidth="0.6" opacity="0.3"/>
-
-      {/* Centre core */}
-      <circle cx="100" cy="70" r="10" fill={c} opacity="0.15"/>
-      <circle cx="100" cy="70" r="6" fill={c} opacity="0.5"/>
-      <circle cx="100" cy="70" r="3" fill="white" opacity="0.9"/>
-    </svg>
-  );
-}
-import { useState, useEffect, useRef } from "react";
-import BrainTraining from "./BrainTraining.jsx";
-import QuantumLiving from "./QuantumLiving.jsx";
-
-// ── Stripe Payment Links ───────────────────────────────────────────────────
-const STRIPE_MAIN    = "https://buy.stripe.com/00w8wR50Xber8VZfkka3u00"; // £9 main report
-const STRIPE_BRAIN   = "https://buy.stripe.com/8x2eVfgJF4Q37RVb44a3u02";      // £5 Brain Training
-const STRIPE_VITAL   = "https://buy.stripe.com/eVq5kF651gyLgorc88a3u03";      // £5 Quantum Living
-
-// ── Unlock helpers (localStorage simulates post-payment state) ────────────
 function getUnlocks() {
   try { return JSON.parse(localStorage.getItem("lqm_unlocks")||"{}"); } catch { return {}; }
 }
@@ -279,142 +177,7 @@ const PURPLE  = "#A855F7";             // purple accent colour
 const SYMS    = ["⚛","◈","⬡","△","◎","⊕","⟁","⬢"];
 
 // ── Archetype SVG Illustrations ───────────────────────────────────────────────
-function ArchetypeIllustration({ type: t }) {
-  if (t === "A") return (
-    <svg viewBox="0 0 200 140" style={{ width: "100%", maxWidth: 340, display: "block", margin: "0 auto" }}>
-      <defs>
-        <linearGradient id="gA1" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#00C8FF" stopOpacity="0.9"/>
-          <stop offset="100%" stopColor="#0EA5E9" stopOpacity="0.4"/>
-        </linearGradient>
-      </defs>
-      {/* Blueprint grid */}
-      {[20,40,60,80,100,120,140,160,180].map(x => <line key={`v${x}`} x1={x} y1="10" x2={x} y2="130" stroke="#00C8FF" strokeWidth="0.3" opacity="0.2"/>)}
-      {[20,40,60,80,100,120].map(y => <line key={`h${y}`} x1="10" y1={y} x2="190" y2={y} stroke="#00C8FF" strokeWidth="0.3" opacity="0.2"/>)}
-      {/* Central system diagram */}
-      <circle cx="100" cy="70" r="35" fill="none" stroke="#00C8FF" strokeWidth="1.5" opacity="0.6"/>
-      <circle cx="100" cy="70" r="22" fill="none" stroke="#00C8FF" strokeWidth="1" opacity="0.4"/>
-      <circle cx="100" cy="70" r="10" fill="url(#gA1)" opacity="0.8"/>
-      {/* Nodes */}
-      {[[100,35],[135,70],[100,105],[65,70]].map(([x,y],i) => (
-        <g key={i}>
-          <line x1="100" y1="70" x2={x} y2={y} stroke="#00C8FF" strokeWidth="1" opacity="0.5"/>
-          <circle cx={x} cy={y} r="5" fill="#00C8FF" opacity="0.9"/>
-        </g>
-      ))}
-      {/* Corner markers */}
-      {[[15,15],[185,15],[15,125],[185,125]].map(([x,y],i) => (
-        <g key={i}>
-          <circle cx={x} cy={y} r="2" fill="#00C8FF" opacity="0.6"/>
-        </g>
-      ))}
-      {/* Label */}
-      <text x="100" y="145" textAnchor="middle" fill="#00C8FF" fontSize="8" opacity="0.5" fontFamily="monospace">SYSTEM ARCHITECTURE</text>
-    </svg>
-  );
 
-  if (t === "B") return (
-    <svg viewBox="0 0 200 140" style={{ width: "100%", maxWidth: 340, display: "block", margin: "0 auto" }}>
-      <defs>
-        <linearGradient id="gB1" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#38BDF8" stopOpacity="0.9"/>
-          <stop offset="100%" stopColor="#0EA5E9" stopOpacity="0.3"/>
-        </linearGradient>
-      </defs>
-      {/* Concentric knowledge rings */}
-      {[55,42,30,18,8].map((r,i) => (
-        <circle key={i} cx="100" cy="70" r={r} fill="none" stroke="#38BDF8" strokeWidth={i===0?"1.5":"1"} opacity={0.15 + i*0.12} strokeDasharray={i%2===0?"none":"4 3"}/>
-      ))}
-      {/* Atom electrons */}
-      <ellipse cx="100" cy="70" rx="55" ry="22" fill="none" stroke="#38BDF8" strokeWidth="1" opacity="0.4" transform="rotate(0 100 70)"/>
-      <ellipse cx="100" cy="70" rx="55" ry="22" fill="none" stroke="#38BDF8" strokeWidth="1" opacity="0.4" transform="rotate(60 100 70)"/>
-      <ellipse cx="100" cy="70" rx="55" ry="22" fill="none" stroke="#38BDF8" strokeWidth="1" opacity="0.4" transform="rotate(120 100 70)"/>
-      {/* Nucleus */}
-      <circle cx="100" cy="70" r="8" fill="url(#gB1)"/>
-      <circle cx="100" cy="70" r="3" fill="#fff" opacity="0.9"/>
-      {/* Electron dots */}
-      <circle cx="155" cy="70" r="4" fill="#38BDF8" opacity="0.9"/>
-      <circle cx="72" cy="22" r="4" fill="#38BDF8" opacity="0.9"/>
-      <circle cx="72" cy="118" r="4" fill="#38BDF8" opacity="0.9"/>
-      <text x="100" y="145" textAnchor="middle" fill="#38BDF8" fontSize="8" opacity="0.5" fontFamily="monospace">DEEP LEARNING ENGINE</text>
-    </svg>
-  );
-
-  if (t === "C") return (
-    <svg viewBox="0 0 200 140" style={{ width: "100%", maxWidth: 340, display: "block", margin: "0 auto" }}>
-      <defs>
-        <linearGradient id="gC1" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#34D399" stopOpacity="0.9"/>
-          <stop offset="100%" stopColor="#059669" stopOpacity="0.4"/>
-        </linearGradient>
-      </defs>
-      {/* Network connections */}
-      {[[100,70],[55,35],[145,35],[40,90],[160,90],[100,115]].map(([x,y],i,arr) => 
-        arr.slice(i+1).map(([x2,y2],j) => (
-          <line key={`${i}-${j}`} x1={x} y1={y} x2={x2} y2={y2} stroke="#34D399" strokeWidth="1" opacity="0.2"/>
-        ))
-      )}
-      {/* Node connections highlighted */}
-      {[[55,35],[145,35],[40,90],[160,90],[100,115]].map(([x,y],i) => (
-        <line key={i} x1="100" y1="70" x2={x} y2={y} stroke="#34D399" strokeWidth="1.5" opacity="0.6"/>
-      ))}
-      {/* Nodes */}
-      {[[55,35],[145,35],[40,90],[160,90],[100,115]].map(([x,y],i) => (
-        <g key={i}>
-          <circle cx={x} cy={y} r="8" fill="rgba(52,211,153,0.15)" stroke="#34D399" strokeWidth="1.5"/>
-          <circle cx={x} cy={y} r="3" fill="#34D399" opacity="0.9"/>
-        </g>
-      ))}
-      {/* Central hub */}
-      <circle cx="100" cy="70" r="14" fill="url(#gC1)" opacity="0.9"/>
-      <circle cx="100" cy="70" r="5" fill="#fff" opacity="0.8"/>
-      <text x="100" y="145" textAnchor="middle" fill="#34D399" fontSize="8" opacity="0.5" fontFamily="monospace">RELATIONAL NETWORK</text>
-    </svg>
-  );
-
-  // D — Visionary
-  return (
-    <svg viewBox="0 0 200 140" style={{ width: "100%", maxWidth: 340, display: "block", margin: "0 auto" }}>
-      <defs>
-        <linearGradient id="gD1" x1="0%" y1="100%" x2="100%" y2="0%">
-          <stop offset="0%" stopColor="#A78BFA" stopOpacity="0.9"/>
-          <stop offset="100%" stopColor="#7C3AED" stopOpacity="0.4"/>
-        </linearGradient>
-        <radialGradient id="gD2" cx="50%" cy="50%">
-          <stop offset="0%" stopColor="#A78BFA" stopOpacity="0.3"/>
-          <stop offset="100%" stopColor="#A78BFA" stopOpacity="0"/>
-        </radialGradient>
-      </defs>
-      {/* Horizon glow */}
-      <ellipse cx="100" cy="105" rx="80" ry="15" fill="url(#gD2)"/>
-      {/* Constellation stars */}
-      {[[30,25],[60,15],[90,35],[130,20],[155,40],[170,25],[50,55],[80,65],[115,50],[145,60]].map(([x,y],i) => (
-        <circle key={i} cx={x} cy={y} r={i%3===0?2:1} fill="#A78BFA" opacity={0.4+i*0.05}/>
-      ))}
-      {/* Constellation lines */}
-      {[[30,25,60,15],[60,15,90,35],[90,35,130,20],[130,20,155,40],[50,55,80,65],[80,65,115,50],[115,50,145,60]].map(([x1,y1,x2,y2],i) => (
-        <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} stroke="#A78BFA" strokeWidth="0.5" opacity="0.3"/>
-      ))}
-      {/* Compass */}
-      <circle cx="100" cy="75" r="28" fill="none" stroke="#A78BFA" strokeWidth="1" opacity="0.4"/>
-      <circle cx="100" cy="75" r="20" fill="none" stroke="#A78BFA" strokeWidth="0.5" opacity="0.25"/>
-      {[0,45,90,135,180,225,270,315].map((angle,i) => {
-        const rad = (angle * Math.PI) / 180;
-        const x = 100 + 28 * Math.sin(rad);
-        const y = 75 - 28 * Math.cos(rad);
-        return <circle key={i} cx={x} cy={y} r={i%2===0?2:1} fill="#A78BFA" opacity={i%2===0?0.8:0.4}/>;
-      })}
-      <line x1="100" y1="48" x2="100" y2="72" stroke="#A78BFA" strokeWidth="2" opacity="0.9" strokeLinecap="round"/>
-      <line x1="100" y1="78" x2="100" y2="102" stroke="#A78BFA" strokeWidth="1" opacity="0.4" strokeLinecap="round"/>
-      <line x1="73" y1="75" x2="97" y2="75" stroke="#A78BFA" strokeWidth="1" opacity="0.4" strokeLinecap="round"/>
-      <line x1="103" y1="75" x2="127" y2="75" stroke="#A78BFA" strokeWidth="1" opacity="0.4" strokeLinecap="round"/>
-      <circle cx="100" cy="75" r="4" fill="url(#gD1)"/>
-      <text x="100" y="145" textAnchor="middle" fill="#A78BFA" fontSize="8" opacity="0.5" fontFamily="monospace">VISIONARY COMPASS</text>
-    </svg>
-  );
-}
-
-// ── Strength Bar Visual ────────────────────────────────────────────────────────
 function StrengthBars({ strengths, color }) {
   const widths = [95, 88, 82, 76];
   return (
