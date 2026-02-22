@@ -41,22 +41,18 @@ const SYMS    = ["⚛","◈","⬡","△","◎","⊕","⟁","⬢"];
 function ArchetypeIllustration({ type: t }) {
   const ARCH_COLORS = {A:"#00C8FF", B:"#38BDF8", C:"#34D399", D:"#A78BFA"};
   const c = ARCH_COLORS[t] || "#00C8FF";
-  const [a1, setA1] = useState(0);
-  const [a2, setA2] = useState(0);
-  const [a3, setA3] = useState(45);
-
-  useEffect(()=>{
-    const iv = setInterval(()=>{
-      setA1(a => (a + 0.8) % 360);
-      setA2(a => (a - 0.5 + 360) % 360);
-      setA3(a => (a + 1.4) % 360);
-    }, 16);
-    return () => clearInterval(iv);
-  }, []);
-
   const id = `ag${t}`;
+  const css = `
+    .lqm-r1{transform-origin:100px 70px;animation:lqmSpin1 9s linear infinite;}
+    .lqm-r2{transform-origin:100px 70px;animation:lqmSpin2 15s linear infinite;}
+    .lqm-r3{transform-origin:100px 70px;animation:lqmSpin3 5s linear infinite;}
+    @keyframes lqmSpin1{from{transform:rotate(0deg);}to{transform:rotate(360deg);}}
+    @keyframes lqmSpin2{from{transform:rotate(0deg);}to{transform:rotate(-360deg);}}
+    @keyframes lqmSpin3{from{transform:rotate(45deg);}to{transform:rotate(405deg);}}
+  `;
   return (
     <svg viewBox="0 0 200 140" style={{width:"100%",maxWidth:340,display:"block",margin:"0 auto"}}>
+      <style>{css}</style>
       <defs>
         <radialGradient id={id} cx="50%" cy="50%" r="50%">
           <stop offset="0%" stopColor={c} stopOpacity="0.3"/>
@@ -70,27 +66,20 @@ function ArchetypeIllustration({ type: t }) {
         <circle key={i} cx={x} cy={y} r="2.5" fill={c} opacity="0.5"/>
       ))}
       <circle cx="100" cy="70" r="50" fill="none" stroke={c} strokeWidth="0.4" opacity="0.2"/>
-
-      {/* Ring 1 - slow clockwise */}
-      <g transform={`rotate(${a1} 100 70)`}>
-        <circle cx="100" cy="70" r="40" fill="none" stroke="white" strokeWidth="1.2" strokeDasharray="42 22" opacity="0.45"/>
-        <circle cx="100" cy="30" r="4" fill="white" opacity="0.9"/>
-        <circle cx="140" cy="70" r="2.5" fill="white" opacity="0.6"/>
+      <g className="lqm-r1">
+        <circle cx="100" cy="70" r="40" fill="none" stroke="white" strokeWidth="1.5" strokeDasharray="42 22" opacity="0.5"/>
+        <circle cx="100" cy="30" r="4.5" fill="white" opacity="0.9"/>
+        <circle cx="140" cy="70" r="3" fill="white" opacity="0.65"/>
       </g>
-
-      {/* Ring 2 - counter clockwise */}
-      <g transform={`rotate(${a2} 100 70)`}>
-        <circle cx="100" cy="70" r="28" fill="none" stroke="white" strokeWidth="1" strokeDasharray="30 16" opacity="0.55"/>
-        <circle cx="100" cy="42" r="3.5" fill="white" opacity="0.9"/>
-        <circle cx="72" cy="70" r="2.5" fill={c} opacity="0.95"/>
+      <g className="lqm-r2">
+        <circle cx="100" cy="70" r="28" fill="none" stroke="white" strokeWidth="1.2" strokeDasharray="30 16" opacity="0.55"/>
+        <circle cx="100" cy="42" r="4" fill="white" opacity="0.95"/>
+        <circle cx="72" cy="70" r="3" fill={c} opacity="1"/>
       </g>
-
-      {/* Ring 3 - fast */}
-      <g transform={`rotate(${a3} 100 70)`}>
-        <circle cx="100" cy="70" r="16" fill="none" stroke="white" strokeWidth="1.5" strokeDasharray="18 10" opacity="0.65"/>
-        <circle cx="100" cy="54" r="3" fill={c} opacity="1"/>
+      <g className="lqm-r3">
+        <circle cx="100" cy="70" r="16" fill="none" stroke="white" strokeWidth="1.8" strokeDasharray="18 10" opacity="0.65"/>
+        <circle cx="100" cy="54" r="3.5" fill={c} opacity="1"/>
       </g>
-
       <line x1="100" y1="22" x2="100" y2="118" stroke={c} strokeWidth="0.6" opacity="0.2"/>
       <line x1="52" y1="70" x2="148" y2="70" stroke={c} strokeWidth="0.6" opacity="0.2"/>
       <circle cx="100" cy="70" r="9" fill={c} opacity="0.2"/>
