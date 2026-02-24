@@ -20,52 +20,212 @@ const RED="#EF4444";
 
 // ── Spinning Archetype Illustration ────────────────────────────────────────
 function ArchetypeIllustration({ type: t }) {
-  const ARCH_COLORS = {A:"#00C8FF",B:"#38BDF8",C:"#34D399",D:"#A78BFA"};
-  const c = ARCH_COLORS[t] || "#00C8FF";
   const uid = `lqm_${t}`;
+
+  // ── A: SYSTEMS ARCHITECT — blueprint grid, circuit board, precise geometry ──
+  if(t === "A") {
+    const c = "#00C8FF";
+    const css = `
+      #${uid}_pulse { animation:${uid}_bp 3s ease-in-out infinite; }
+      #${uid}_scan  { animation:${uid}_sc 4s linear infinite; }
+      @keyframes ${uid}_bp { 0%,100%{opacity:0.6;} 50%{opacity:1;} }
+      @keyframes ${uid}_sc { from{transform:translateX(-80px);} to{transform:translateX(80px);} }
+    `;
+    return (
+      <svg viewBox="0 0 200 140" style={{width:"100%",maxWidth:340,display:"block",margin:"0 auto"}}>
+        <style>{css}</style>
+        <defs>
+          <radialGradient id={`${uid}_g`} cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stopColor={c} stopOpacity="0.2"/>
+            <stop offset="100%" stopColor={c} stopOpacity="0"/>
+          </radialGradient>
+          <clipPath id={`${uid}_clip`}><rect x="30" y="20" width="140" height="100"/></clipPath>
+        </defs>
+        {/* Blueprint background grid */}
+        <rect x="30" y="20" width="140" height="100" fill={`url(#${uid}_g)`} rx="4"/>
+        {[45,60,75,90,105,120,135,150].map(x=><line key={`v${x}`} x1={x} y1="20" x2={x} y2="120" stroke={c} strokeWidth="0.4" opacity="0.2"/>)}
+        {[35,50,65,80,95,110].map(y=><line key={`h${y}`} x1="30" y1={y} x2="170" y2={y} stroke={c} strokeWidth="0.4" opacity="0.2"/>)}
+        {/* Circuit nodes */}
+        {[[60,50],[100,50],[140,50],[60,90],[100,90],[140,90]].map(([x,y],i)=>(
+          <circle key={i} cx={x} cy={y} r="3.5" fill="none" stroke={c} strokeWidth="1.2" opacity="0.5"/>
+        ))}
+        {/* Circuit traces */}
+        <polyline points="60,50 100,50 100,70 140,70 140,90" fill="none" stroke={c} strokeWidth="1.5" opacity="0.4"/>
+        <polyline points="60,90 60,70 100,70 100,50" fill="none" stroke={c} strokeWidth="1.5" opacity="0.25"/>
+        {/* Scan line */}
+        <g id={`${uid}_scan`} clipPath={`url(#${uid}_clip)`}>
+          <line x1="100" y1="20" x2="100" y2="120" stroke={c} strokeWidth="1.5" opacity="0.35"/>
+        </g>
+        {/* Central processor */}
+        <rect x="84" y="54" width="32" height="32" rx="4" fill={`${c}18`} stroke={c} strokeWidth="1.5" opacity="0.8"/>
+        <rect x="90" y="60" width="20" height="20" rx="2" fill={`${c}33`} stroke={c} strokeWidth="1"/>
+        {/* Pins */}
+        {[62,70,78].map(y=><line key={`lp${y}`} x1="84" y1={y} x2="78" y2={y} stroke={c} strokeWidth="1.2" opacity="0.7"/>)}
+        {[62,70,78].map(y=><line key={`rp${y}`} x1="116" y1={y} x2="122" y2={y} stroke={c} strokeWidth="1.2" opacity="0.7"/>)}
+        {/* Pulse core */}
+        <circle id={`${uid}_pulse`} cx="100" cy="70" r="4" fill={c} opacity="0.8"/>
+        <circle cx="100" cy="70" r="2" fill="white" opacity="1"/>
+        {/* Corner marks */}
+        {[[30,20],[170,20],[30,120],[170,120]].map(([x,y],i)=>(
+          <g key={i}>
+            <line x1={x} y1={y} x2={x+(i%2?-8:8)} y2={y} stroke={c} strokeWidth="1.5" opacity="0.6"/>
+            <line x1={x} y1={y} x2={x} y2={y+(i>1?-8:8)} stroke={c} strokeWidth="1.5" opacity="0.6"/>
+          </g>
+        ))}
+      </svg>
+    );
+  }
+
+  // ── B: DEEP LEARNER — open book, layered knowledge, neural depth ──
+  if(t === "B") {
+    const c = "#38BDF8";
+    const css = `
+      #${uid}_page { animation:${uid}_turn 6s ease-in-out infinite; transform-origin:100px 75px; transform-box:fill-box; }
+      #${uid}_glow { animation:${uid}_gl 4s ease-in-out infinite; }
+      @keyframes ${uid}_turn { 0%,100%{transform:scaleX(1);} 50%{transform:scaleX(0.92);} }
+      @keyframes ${uid}_gl   { 0%,100%{opacity:0.5;} 50%{opacity:0.9;} }
+    `;
+    return (
+      <svg viewBox="0 0 200 140" style={{width:"100%",maxWidth:340,display:"block",margin:"0 auto"}}>
+        <style>{css}</style>
+        <defs>
+          <radialGradient id={`${uid}_g`} cx="50%" cy="60%" r="55%">
+            <stop offset="0%" stopColor={c} stopOpacity="0.25"/>
+            <stop offset="100%" stopColor={c} stopOpacity="0"/>
+          </radialGradient>
+        </defs>
+        <ellipse cx="100" cy="75" rx="70" ry="50" fill={`url(#${uid}_g)`}/>
+        {/* Book spine */}
+        <rect x="97" y="30" width="6" height="85" rx="2" fill={`${c}55`}/>
+        {/* Left page */}
+        <g id={`${uid}_page`}>
+          <path d="M97,32 C80,32 45,38 38,75 C45,112 80,118 97,118 Z" fill={`${c}12`} stroke={c} strokeWidth="1.2" opacity="0.7"/>
+          {[45,55,65,75,85,95].map((y,i)=>(
+            <line key={i} x1={42+i*1.5} y1={y} x2={90} y2={y} stroke={c} strokeWidth="0.8" opacity={0.2+i*0.05}/>
+          ))}
+          {/* Knowledge glow dot */}
+          <circle id={`${uid}_glow`} cx="65" cy="72" r="5" fill={c} opacity="0.7"/>
+          <circle cx="65" cy="72" r="2.5" fill="white" opacity="0.9"/>
+        </g>
+        {/* Right page */}
+        <path d="M103,32 C120,32 155,38 162,75 C155,112 120,118 103,118 Z" fill={`${c}0d`} stroke={c} strokeWidth="1" opacity="0.5"/>
+        {[45,55,65,75,85,95].map((y,i)=>(
+          <line key={i} x1="110" y1={y} x2={158-i*1.5} y2={y} stroke={c} strokeWidth="0.8" opacity="0.15"/>
+        ))}
+        {/* Neural connections above */}
+        {[[70,22],[100,15],[130,22]].map(([x,y],i)=>(
+          <g key={i}>
+            <circle cx={x} cy={y} r="3" fill={c} opacity="0.6"/>
+            <line x1={x} y1={y} x2="100" y2="32" stroke={c} strokeWidth="0.8" opacity="0.3"/>
+          </g>
+        ))}
+        <circle cx="100" cy="15" r="5" fill={`${c}33`} stroke={c} strokeWidth="1.2" opacity="0.8"/>
+        <circle cx="100" cy="15" r="2" fill={c} opacity="1"/>
+      </svg>
+    );
+  }
+
+  // ── C: RELATIONAL CATALYST — human network, warm connections, nodes ──
+  if(t === "C") {
+    const c = "#34D399";
+    const css = `
+      #${uid}_n1 { animation:${uid}_p1 3s ease-in-out infinite; }
+      #${uid}_n2 { animation:${uid}_p2 3.5s ease-in-out infinite; }
+      #${uid}_n3 { animation:${uid}_p3 4s ease-in-out infinite; }
+      #${uid}_n4 { animation:${uid}_p4 2.8s ease-in-out infinite; }
+      @keyframes ${uid}_p1 { 0%,100%{opacity:0.7;transform:scale(1);} 50%{opacity:1;transform:scale(1.15);} }
+      @keyframes ${uid}_p2 { 0%,100%{opacity:0.5;transform:scale(1);} 50%{opacity:0.9;transform:scale(1.1);} }
+      @keyframes ${uid}_p3 { 0%,100%{opacity:0.6;transform:scale(1);} 60%{opacity:1;transform:scale(1.12);} }
+      @keyframes ${uid}_p4 { 0%,100%{opacity:0.4;transform:scale(1);} 40%{opacity:0.85;transform:scale(1.1);} }
+    `;
+    const nodes = [{x:100,y:68,r:10,id:`${uid}_n1`},{x:60,y:45,r:7,id:`${uid}_n2`},{x:140,y:45,r:7,id:`${uid}_n3`},{x:68,y:100,r:6.5,id:`${uid}_n4`},{x:132,y:100,r:6.5,id:null},{x:45,y:78,r:5,id:null},{x:155,y:78,r:5,id:null}];
+    const edges = [[0,1],[0,2],[0,3],[0,4],[1,2],[1,5],[2,6],[3,4]];
+    return (
+      <svg viewBox="0 0 200 140" style={{width:"100%",maxWidth:340,display:"block",margin:"0 auto"}}>
+        <style>{css}</style>
+        <defs>
+          <radialGradient id={`${uid}_g`} cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stopColor={c} stopOpacity="0.2"/>
+            <stop offset="100%" stopColor={c} stopOpacity="0"/>
+          </radialGradient>
+        </defs>
+        <ellipse cx="100" cy="70" rx="65" ry="48" fill={`url(#${uid}_g)`}/>
+        {/* Connection lines */}
+        {edges.map(([a,b],i)=>(
+          <line key={i} x1={nodes[a].x} y1={nodes[a].y} x2={nodes[b].x} y2={nodes[b].y}
+            stroke={c} strokeWidth="1" opacity="0.25"/>
+        ))}
+        {/* Nodes */}
+        {nodes.map((n,i)=>(
+          <g key={i} id={n.id||undefined} style={{transformOrigin:`${n.x}px ${n.y}px`,transformBox:"fill-box"}}>
+            <circle cx={n.x} cy={n.y} r={n.r+4} fill={`${c}0d`}/>
+            <circle cx={n.x} cy={n.y} r={n.r} fill={`${c}22`} stroke={c} strokeWidth={i===0?2:1.2} opacity={0.8}/>
+            {/* Person icon inside node */}
+            <circle cx={n.x} cy={n.y-n.r*0.22} r={n.r*0.28} fill={c} opacity="0.9"/>
+            <path d={`M${n.x-n.r*0.4},${n.y+n.r*0.45} Q${n.x},${n.y+n.r*0.1} ${n.x+n.r*0.4},${n.y+n.r*0.45}`} fill={c} opacity="0.7"/>
+          </g>
+        ))}
+        {/* Central glow */}
+        <circle cx="100" cy="68" r="4" fill={c} opacity="0.9"/>
+        <circle cx="100" cy="68" r="2" fill="white" opacity="1"/>
+      </svg>
+    );
+  }
+
+  // ── D: VISIONARY PIONEER — comet, starburst, expansive radial energy ──
+  const c = "#A78BFA";
   const css = `
-    #${uid}_r1 { transform-box:fill-box; transform-origin:center; animation:${uid}_s1 9s linear infinite; }
-    #${uid}_r2 { transform-box:fill-box; transform-origin:center; animation:${uid}_s2 15s linear infinite; }
-    #${uid}_r3 { transform-box:fill-box; transform-origin:center; animation:${uid}_s3 5s linear infinite; }
-    @keyframes ${uid}_s1 { from{transform:rotate(0deg);} to{transform:rotate(360deg);} }
-    @keyframes ${uid}_s2 { from{transform:rotate(0deg);} to{transform:rotate(-360deg);} }
-    @keyframes ${uid}_s3 { from{transform:rotate(45deg);} to{transform:rotate(405deg);} }
+    #${uid}_comet { animation:${uid}_cm 4s ease-in-out infinite; }
+    #${uid}_burst { animation:${uid}_br 6s linear infinite; transform-origin:100px 70px; transform-box:fill-box; }
+    @keyframes ${uid}_cm { 0%,100%{opacity:0.7;transform:translate(0,0);} 50%{opacity:1;transform:translate(3px,-4px);} }
+    @keyframes ${uid}_br { from{transform:rotate(0deg);} to{transform:rotate(360deg);} }
   `;
+  const rays = Array.from({length:12},(_,i)=>i*(360/12));
   return (
     <svg viewBox="0 0 200 140" style={{width:"100%",maxWidth:340,display:"block",margin:"0 auto"}}>
       <style>{css}</style>
       <defs>
         <radialGradient id={`${uid}_g`} cx="50%" cy="50%" r="50%">
-          <stop offset="0%" stopColor={c} stopOpacity="0.3"/>
+          <stop offset="0%" stopColor={c} stopOpacity="0.35"/>
+          <stop offset="100%" stopColor={c} stopOpacity="0"/>
+        </radialGradient>
+        <radialGradient id={`${uid}_g2`} cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stopColor="#ffffff" stopOpacity="0.15"/>
           <stop offset="100%" stopColor={c} stopOpacity="0"/>
         </radialGradient>
       </defs>
-      <ellipse cx="100" cy="70" rx="55" ry="45" fill={`url(#${uid}_g)`} opacity="0.8"/>
-      {[35,65,100,135,165].map(x=><line key={`v${x}`} x1={x} y1="15" x2={x} y2="125" stroke={c} strokeWidth="0.3" opacity="0.15"/>)}
-      {[25,50,70,90,115].map(y=><line key={`h${y}`} x1="15" y1={y} x2="185" y2={y} stroke={c} strokeWidth="0.3" opacity="0.15"/>)}
-      {[[18,18],[182,18],[18,122],[182,122]].map(([x,y],i)=>(
-        <circle key={i} cx={x} cy={y} r="2.5" fill={c} opacity="0.5"/>
+      <ellipse cx="100" cy="70" rx="75" ry="55" fill={`url(#${uid}_g)`}/>
+      {/* Slow rotating starburst */}
+      <g id={`${uid}_burst`}>
+        {rays.map((angle,i)=>{
+          const rad = angle*(Math.PI/180);
+          const innerR = 22, outerR = i%3===0?55:i%3===1?42:32;
+          return <line key={i}
+            x1={100+Math.cos(rad)*innerR} y1={70+Math.sin(rad)*innerR}
+            x2={100+Math.cos(rad)*outerR} y2={70+Math.sin(rad)*outerR}
+            stroke={c} strokeWidth={i%3===0?1:0.6} opacity={i%3===0?0.5:0.25}/>;
+        })}
+      </g>
+      {/* Comet trail */}
+      <g id={`${uid}_comet`}>
+        <line x1="38" y1="28" x2="95" y2="65" stroke={c} strokeWidth="1.5" opacity="0.4" strokeLinecap="round"/>
+        <line x1="42" y1="32" x2="93" y2="67" stroke="white" strokeWidth="0.8" opacity="0.3"/>
+        {[0.85,0.65,0.45,0.25].map((op,i)=>(
+          <circle key={i} cx={38+i*14} cy={28+i*9} r={1.5-i*0.2} fill="white" opacity={op}/>
+        ))}
+      </g>
+      {/* Orbit rings */}
+      <circle cx="100" cy="70" r="38" fill="none" stroke={c} strokeWidth="0.8" opacity="0.2" strokeDasharray="5 8"/>
+      <circle cx="100" cy="70" r="22" fill="none" stroke={c} strokeWidth="0.8" opacity="0.3" strokeDasharray="4 6"/>
+      {/* Stars scattered */}
+      {[[148,30],[160,55],[155,95],[130,118],[68,118],[42,92],[35,52],[55,25]].map(([x,y],i)=>(
+        <circle key={i} cx={x} cy={y} r={i%2?1.5:1} fill={c} opacity={0.3+i*0.05}/>
       ))}
-      <circle cx="100" cy="70" r="50" fill="none" stroke={c} strokeWidth="0.4" opacity="0.2"/>
-      <g id={`${uid}_r1`}>
-        <circle cx="100" cy="70" r="40" fill="none" stroke="white" strokeWidth="1.5" strokeDasharray="42 22" opacity="0.5"/>
-        <circle cx="100" cy="30" r="4.5" fill="white" opacity="0.9"/>
-        <circle cx="140" cy="70" r="3" fill="white" opacity="0.65"/>
-      </g>
-      <g id={`${uid}_r2`}>
-        <circle cx="100" cy="70" r="28" fill="none" stroke="white" strokeWidth="1.2" strokeDasharray="30 16" opacity="0.55"/>
-        <circle cx="100" cy="42" r="4" fill="white" opacity="0.95"/>
-        <circle cx="72" cy="70" r="3" fill={c} opacity="1"/>
-      </g>
-      <g id={`${uid}_r3`}>
-        <circle cx="100" cy="70" r="16" fill="none" stroke="white" strokeWidth="1.8" strokeDasharray="18 10" opacity="0.65"/>
-        <circle cx="100" cy="54" r="3.5" fill={c} opacity="1"/>
-      </g>
-      <line x1="100" y1="22" x2="100" y2="118" stroke={c} strokeWidth="0.6" opacity="0.2"/>
-      <line x1="52" y1="70" x2="148" y2="70" stroke={c} strokeWidth="0.6" opacity="0.2"/>
-      <circle cx="100" cy="70" r="9" fill={c} opacity="0.2"/>
-      <circle cx="100" cy="70" r="5.5" fill={c} opacity="0.6"/>
-      <circle cx="100" cy="70" r="2.5" fill="white" opacity="1"/>
+      {/* Central star */}
+      <circle cx="100" cy="70" r="12" fill={`url(#${uid}_g2)`}/>
+      <circle cx="100" cy="70" r="7" fill={`${c}55`} stroke={c} strokeWidth="1.5"/>
+      <circle cx="100" cy="70" r="3.5" fill={c} opacity="0.9"/>
+      <circle cx="100" cy="70" r="1.5" fill="white" opacity="1"/>
     </svg>
   );
 }
@@ -402,6 +562,16 @@ function Hub({type, unlocks, onOpenNeural, onOpenVital, onViewReport, onUnlockNe
   const quantumStreak = livingData.streak || 0;
   const brainXP = brainData.totalXP || 0;
 
+  // Active session save point (today only)
+  const activeSession = (() => {
+    try {
+      const s = JSON.parse(localStorage.getItem("lqm_brain_session")||"null");
+      const today = new Date().toISOString().split("T")[0];
+      if(s && s.date === today && s.round > 0 && s.round < 6) return s;
+    } catch{}
+    return null;
+  })();
+
   return (
     <div style={{animation:"fadeUp .5s ease both", paddingBottom:20}}>
       {/* Welcome banner */}
@@ -417,12 +587,47 @@ function Hub({type, unlocks, onOpenNeural, onOpenVital, onViewReport, onUnlockNe
         </p>
       </div>
 
-      {/* Quick stats bar */}
-      <div style={{display:"flex", gap:8, marginBottom:24, justifyContent:"center", flexWrap:"wrap"}}>
+      {/* Quick stats + XP level card */}
+      <div style={{display:"flex", gap:8, marginBottom:16, justifyContent:"center", flexWrap:"wrap"}}>
         {brainStreak > 0 && <div style={{background:"rgba(0,200,255,0.08)", border:`1px solid ${BORDER}`, borderRadius:100, padding:"6px 14px", fontSize:13, color:E_BLUE, fontWeight:700}}>⚡ {brainStreak} day brain streak</div>}
         {quantumStreak > 0 && <div style={{background:"rgba(52,211,153,0.08)", border:"1px solid rgba(52,211,153,0.25)", borderRadius:100, padding:"6px 14px", fontSize:13, color:"#34D399", fontWeight:700}}>🌿 {quantumStreak} day living streak</div>}
-        {brainXP > 0 && <div style={{background:"rgba(251,191,36,0.08)", border:"1px solid rgba(251,191,36,0.25)", borderRadius:100, padding:"6px 14px", fontSize:13, color:AMBER, fontWeight:700}}>⭐ {brainXP} XP</div>}
       </div>
+      {brainXP > 0 && (() => {
+        const LVLS = [
+          {name:"Initiate",    min:0,    next:300,  color:"#64748B"},
+          {name:"Analyst",     min:300,  next:700,  color:"#38BDF8"},
+          {name:"Strategist",  min:700,  next:1400, color:"#34D399"},
+          {name:"Architect",   min:1400, next:2500, color:"#FBBF24"},
+          {name:"Quantum Mind",min:2500, next:null, color:"#A78BFA"},
+        ];
+        const lvl = [...LVLS].reverse().find(l=>brainXP>=l.min)||LVLS[0];
+        const nextLvl = LVLS[LVLS.indexOf(lvl)+1];
+        const pct = nextLvl ? Math.round(((brainXP-lvl.min)/(nextLvl.min-lvl.min))*100) : 100;
+        const xpToNext = nextLvl ? nextLvl.min - brainXP : 0;
+        const lastXP = brainData.lastSessionXP || 0;
+        return (
+          <div style={{background:`${lvl.color}0d`,border:`1px solid ${lvl.color}33`,borderRadius:14,padding:"14px 18px",marginBottom:16}}>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
+              <div style={{display:"flex",alignItems:"center",gap:8}}>
+                <span style={{fontSize:16}}>⭐</span>
+                <p style={{fontSize:14,fontWeight:700,color:lvl.color}}>{lvl.name}</p>
+                {lastXP > 0 && <span style={{fontSize:12,color:GREEN,fontWeight:700}}>+{lastXP} last session</span>}
+              </div>
+              <p style={{fontSize:14,fontWeight:800,color:AMBER}}>{brainXP} XP</p>
+            </div>
+            <div style={{height:7,background:"rgba(255,255,255,0.06)",borderRadius:100,overflow:"hidden",marginBottom:6}}>
+              <div style={{height:"100%",width:`${pct}%`,background:`linear-gradient(90deg,${lvl.color}88,${lvl.color})`,borderRadius:100,transition:"width 1s ease",boxShadow:`0 0 8px ${lvl.color}44`}}/>
+            </div>
+            <div style={{display:"flex",justifyContent:"space-between"}}>
+              <p style={{fontSize:12,color:DIMMED}}>{pct}% through {lvl.name}</p>
+              {nextLvl
+                ? <p style={{fontSize:12,color:lvl.color,fontWeight:600}}>{xpToNext} XP to {nextLvl.name} →</p>
+                : <p style={{fontSize:12,color:"#A78BFA",fontWeight:700}}>⚡ MAX LEVEL — Quantum Mind</p>
+              }
+            </div>
+          </div>
+        );
+      })()}
 
       {/* ── My Report Card ── */}
       <div onClick={onViewReport} style={{background:`linear-gradient(135deg,${type.blue}12,${DARK2})`, border:`1px solid ${type.blue}44`, borderTop:`2px solid ${type.blue}`, borderRadius:18, padding:"20px 22px", marginBottom:12, cursor:"pointer", transition:"all .2s"}}
@@ -453,8 +658,23 @@ function Hub({type, unlocks, onOpenNeural, onOpenVital, onViewReport, onUnlockNe
               <p style={{fontSize:13, fontWeight:700, color:E_BLUE, letterSpacing:".12em", textTransform:"uppercase", marginBottom:3}}>Brain Training</p>
               <p style={{fontSize:18, fontWeight:700, color:WHITE, marginBottom:4}}>Neural Protocol</p>
               {unlocks.neural ? (<>
-                <p style={{fontSize:13, color:DIMMED, marginBottom:10}}>6 cognitive challenges · XP system · 21-day journey</p>
-                {/* Progress bar */}
+                {activeSession ? (
+                  <div style={{background:"rgba(0,200,255,0.06)",border:"1px solid rgba(0,200,255,0.3)",borderRadius:10,padding:"10px 14px",marginBottom:10}}>
+                    <p style={{fontSize:12,fontWeight:700,color:E_BLUE,letterSpacing:".1em",textTransform:"uppercase",marginBottom:6}}>⚡ Session in progress today</p>
+                    <div style={{display:"flex",gap:4,marginBottom:8}}>
+                      {[0,1,2,3,4,5].map(i=>(
+                        <div key={i} style={{flex:1,height:6,borderRadius:3,background:i<activeSession.round?"rgba(0,200,255,0.8)":"rgba(255,255,255,0.08)",transition:"background .3s"}}/>
+                      ))}
+                    </div>
+                    <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                      <p style={{fontSize:13,color:MUTED}}>{activeSession.round}/6 rounds complete</p>
+                      <button onClick={e=>{e.stopPropagation();onOpenNeural();}} style={{background:E_BLUE,color:BG,fontWeight:800,fontSize:12,borderRadius:100,padding:"5px 14px",border:"none",cursor:"pointer",fontFamily:"'Space Grotesk',sans-serif"}}>Resume →</button>
+                    </div>
+                  </div>
+                ) : (
+                  <p style={{fontSize:13, color:DIMMED, marginBottom:10}}>6 cognitive challenges · XP system · 21-day journey</p>
+                )}
+                {/* 21-day progress bar */}
                 <div style={{marginBottom:6}}>
                   <div style={{display:"flex", justifyContent:"space-between", marginBottom:4}}>
                     <span style={{fontSize:12, color:DIMMED}}>21-Day Challenge</span>
