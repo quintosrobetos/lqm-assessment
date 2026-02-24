@@ -71,7 +71,8 @@ const LAWS = [
     icon: "🌙",
     principle: "Sleep is not recovery from life. Sleep is where life is built.",
     truth: "Every cognitive function, emotional regulation, hormonal balance, and physical repair depends on the quality of your sleep. The brain consolidates learning, flushes toxins, and resets motivation architecture during deep sleep. A tired brain is a reactive brain — not a responsive one.",
-    dailyPractice: "Set a consistent sleep window — same time to bed, same time to rise. Seven to nine hours is not a luxury. It is the non-negotiable foundation of your quantum performance. Protect it as fiercely as your most important appointment.",
+    dailyPractice: "Tonight, set your sleep window — the same time to bed as last night, the same time to rise tomorrow. Seven to nine hours is not a luxury. It is the foundation everything else runs on. Protect tonight as fiercely as your most important appointment.",
+    todaySummary: "Set your sleep window tonight — same time to bed, same time to rise.",
     quantumEdge: "People who sleep 7–9 hours consistently outperform those who sleep less across every measurable cognitive and emotional metric. Sleep is not the opposite of productivity. It is its engine.",
     practices: [
       { title:"The Wind-Down Protocol", desc:"One hour before sleep: no screens, dim lights, lower room temperature. Your brain needs a runway, not an emergency landing." },
@@ -92,7 +93,8 @@ const LAWS = [
     icon: "🌿",
     principle: "The body is designed for oxygen-rich environments. Most people are living in chronic low-grade oxygen debt.",
     truth: "Fresh air isn't simply pleasant — it's neurologically essential. Oxygen is the primary fuel for your brain. Poor indoor air quality, reduced time outside, and shallow breathing patterns deprive your prefrontal cortex — the seat of focus, decision-making, and emotional regulation — of its primary resource.",
-    dailyPractice: "Spend a minimum of 20 minutes daily in fresh, outdoor air. Move your body while you do it. Open windows at home and at work. Breathe consciously — slowly, deeply, through your nose where possible.",
+    dailyPractice: "Step outside today for at least 20 minutes of fresh air. Move while you do it. Open a window at home right now. Breathe slowly, deeply, through your nose. Today's air is today's fuel.",
+    todaySummary: "Get outside today for 20 minutes of fresh air and movement.",
     quantumEdge: "Studies consistently show that time outdoors in natural environments reduces cortisol, improves focus by up to 20%, and enhances creative thinking. The Quantum Mind needs clean air the way an engine needs clean fuel.",
     practices: [
       { title:"The Morning Walk", desc:"20 minutes of walking in fresh air before the day's demands begin. Not a podcast walk — a present walk. Notice your surroundings. Breathe deliberately." },
@@ -113,7 +115,8 @@ const LAWS = [
     icon: "⚖️",
     principle: "True balance is not just physical and mental. It is the alignment of body, mind and spirit — the complete you.",
     truth: "Temperance is the art of doing enough — not too much, not too little. It governs everything: work, rest, stimulation, consumption, digital engagement, and spiritual wellbeing. The most enduring performers in history have not simply managed their time and energy — they have anchored themselves in something greater than performance itself. Belief, faith, and a sense of divine purpose are not separate from peak living. They are foundational to it. When the inner life is nourished alongside the outer life, the whole person operates from a place of genuine strength rather than striving.",
-    dailyPractice: "Audit your patterns of excess. Where are you overdoing it — work, screen time, stimulants, negative self-talk, social media? Then audit your patterns of deficiency. What are you under-investing in — rest, stillness, connection, your faith? Temperance is not abstinence. It is the wisdom to know what truly sustains you — and to choose it daily.",
+    dailyPractice: "Today, notice one thing you are overdoing — screen time, rushing, negative self-talk. Then notice one thing you are under-doing — rest, stillness, a real conversation. Pick one of those and rebalance it today. Not tomorrow. Today.",
+    todaySummary: "Spot one excess and one deficit in your life today. Rebalance one of them.",
     quantumEdge: "The nervous system cannot sustain constant activation. Chronic overstimulation leads to burnout, inflammation, and cognitive decline. The Quantum Mind operates in cycles — intense focus followed by genuine recovery. People with a strong sense of faith and spiritual grounding consistently show greater resilience, lower anxiety, and stronger recovery from adversity. Build your life in rhythms, not red lines — and let your belief be the bedrock beneath those rhythms.",
     practices: [
       { title:"The Stillness Practice", desc:"Begin or end your day with a period of quiet — not to empty the mind, but to bring it before something greater. Whether through prayer, reading scripture, or simply sitting in grateful silence, stillness anchors the whole day differently to those who never stop." },
@@ -134,7 +137,8 @@ const LAWS = [
     icon: "⚡",
     principle: "The body in motion produces a brain in flow. Physical training is cognitive training.",
     truth: "Exercise is not a vanity practice. It is neuroscience in action. Physical movement triggers the release of BDNF — Brain-Derived Neurotrophic Factor — which accelerates the growth of new neural connections. It also regulates mood, reduces anxiety, improves sleep quality, and increases the capacity for sustained focus. Moving your body is one of the highest-return investments available to you.",
-    dailyPractice: "Move your body deliberately every day — not as punishment, not as obligation, but as the single most powerful cognitive and emotional upgrade available to you without cost. Walk, run, lift, swim, dance, stretch. The modality matters less than the consistency.",
+    dailyPractice: "Move your body today — not as punishment, not as obligation, but as the most powerful upgrade available to you right now at zero cost. Walk, run, lift, swim, dance, stretch. Pick one. Do it today. The modality matters far less than the doing.",
+    todaySummary: "Move your body today — walk, run, lift, swim or stretch. Pick one and do it.",
     quantumEdge: "A single session of moderate aerobic exercise improves focus and working memory for up to 2 hours afterwards. Regular exercisers show significantly better stress regulation, emotional resilience, and creative output. You cannot optimise your mind while neglecting your body.",
     practices: [
       { title:"The Daily Movement Non-Negotiable", desc:"30 minutes of deliberate physical movement every day. Not optional. This is maintenance, not heroism. A walk counts. Consistency beats intensity." },
@@ -155,7 +159,8 @@ const LAWS = [
     icon: "🌱",
     principle: "The body performs at the level of the fuel it receives. Complexity in diet creates complexity in function.",
     truth: "The most well-researched diets in the world share one characteristic: they are built around whole, unprocessed plant foods. Fruits, vegetables, legumes, grains, nuts, and seeds provide everything the human brain and body require to function at their highest capacity. Simple, close-to-source food creates stable energy, clear cognition, and sustained physical vitality.",
-    dailyPractice: "Fill at least two-thirds of every plate with fruits and vegetables in their whole form. Eat foods as close to their natural state as possible. The simpler your food, the cleaner and more stable your energy. Choose whole over processed at every opportunity.",
+    dailyPractice: "At your next meal today, fill at least two-thirds of your plate with whole fruits or vegetables. Choose one food today that is as close to its natural state as possible. The simpler you eat today, the cleaner your energy will feel by this evening.",
+    todaySummary: "At your next meal, fill two-thirds of your plate with whole, natural food.",
     quantumEdge: "The gut-brain connection is one of the most significant discoveries in modern neuroscience. Your gut microbiome — fed primarily by plant fibre and variety — directly influences neurotransmitter production, mood regulation, and cognitive clarity. What you eat today shapes how your brain performs tomorrow.",
     practices: [
       { title:"The Rainbow Rule", desc:"Aim for at least 5 different colours of fruit and vegetables each day. Colour diversity signals nutrient diversity. Make your plate visually striking — nature designed it that way." },
@@ -406,8 +411,9 @@ export default function QuantumLiving({ onBack, archetype }) {
                 }
               </div>
               <div style={{flex:1}}>
-                <p style={{fontSize:17, fontWeight:700, color:checklist[todayLawIdx]?todayLaw.color:WHITE, marginBottom:2, transition:"color .2s"}}>{todayLaw.title}</p>
-                <p style={{fontSize:13, color:MUTED}}>{todayLaw.subtitle} · {todayLaw.dailyPractice.substring(0,60)}...</p>
+                <p style={{fontSize:17, fontWeight:700, color:checklist[todayLawIdx]?todayLaw.color:WHITE, marginBottom:4, transition:"color .2s"}}>{todayLaw.title}</p>
+                <p style={{fontSize:14, color:MUTED, lineHeight:1.55, marginBottom:6}}>{todayLaw.todaySummary}</p>
+                <p style={{fontSize:12, color:todayLaw.color, opacity:.8, fontStyle:"italic"}}>↓ Full practice guide below</p>
               </div>
               {!checklist[todayLawIdx] && <div style={{
                 background:todayLaw.color, color:BG, fontWeight:800, fontSize:13,
