@@ -546,14 +546,14 @@ function Hub({type, unlocks, onOpenNeural, onOpenVital, onViewReport, onUnlockNe
           </div>
           <p style={{fontSize:16, color:WHITE, lineHeight:1.65, fontWeight:500}}>
             {unlocks.neural && unlocks.vital
-              ? "Open Brain Training for today's session, then tick all 5 Quantum Laws. Both actions together log your daily streak on both 21-day journeys."
+              ? "Complete today's Brain Training session + tick today's Focus Law in Quantum Living. Each one independently logs your daily streak on its 21-day journey."
               : unlocks.neural
-              ? "Open Brain Training and complete today's session to keep your streak alive and log your 21-day progress."
-              : "Open Quantum Living and tick all 5 laws today to keep your streak alive and log your 21-day progress."}
+              ? "Complete today's Brain Training session to keep your streak alive and log your 21-day progress."
+              : "Tick today's Focus Law in Quantum Living to log your streak. The other 4 laws earn bonus points but don't affect your streak."}
           </p>
           <div style={{marginTop:12,display:"flex",gap:8,flexWrap:"wrap"}}>
             {unlocks.neural && <span style={{fontSize:12,color:E_BLUE,fontWeight:700,background:"rgba(0,200,255,0.1)",padding:"4px 12px",borderRadius:100}}>⚡ ~7 min Brain Training</span>}
-            {unlocks.vital  && <span style={{fontSize:12,color:"#34D399",fontWeight:700,background:"rgba(52,211,153,0.1)",padding:"4px 12px",borderRadius:100}}>🌿 5 Quantum Laws</span>}
+            {unlocks.vital  && <span style={{fontSize:12,color:"#34D399",fontWeight:700,background:"rgba(52,211,153,0.1)",padding:"4px 12px",borderRadius:100}}>🌿 Today's Focus Law</span>}
           </div>
         </div>
       )}
@@ -1148,9 +1148,12 @@ function ReportSection({title, icon, color, preview, children, defaultOpen=false
           <span style={{fontSize:20}}>{icon}</span>
           <p style={{fontSize:15, fontWeight:700, color:open?color:WHITE, letterSpacing:".06em", transition:"color .2s"}}>{title}</p>
         </div>
-        <div style={{display:"flex", alignItems:"center", gap:10}}>
+        <div style={{display:"flex", alignItems:"center", gap:8}}>
           {!open && <p style={{fontSize:13, color:color, opacity:.7, fontStyle:"italic"}}>{preview}</p>}
-          <span style={{fontSize:18, color:color, transform:open?"rotate(180deg)":"rotate(0deg)", transition:"transform .3s", display:"block"}}>↓</span>
+          <div style={{display:"flex", alignItems:"center", gap:5, background:`${color}15`, border:`1px solid ${color}44`, borderRadius:100, padding:"4px 10px"}}>
+            <span style={{fontSize:12, color:color, fontWeight:700}}>{open ? "Close" : "Open"}</span>
+            <span style={{fontSize:14, color:color, transform:open?"rotate(180deg)":"rotate(0deg)", transition:"transform .3s", display:"block", lineHeight:1}}>↓</span>
+          </div>
         </div>
       </div>
       {open && (
