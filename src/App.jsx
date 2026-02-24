@@ -642,37 +642,78 @@ function Hub({type, unlocks, onOpenNeural, onOpenVital, onViewReport, onUnlockNe
       </div>
       {brainXP > 0 && (() => {
         const LVLS = [
-          {name:"Initiate",    min:0,    next:300,  color:"#64748B"},
-          {name:"Analyst",     min:300,  next:700,  color:"#38BDF8"},
-          {name:"Strategist",  min:700,  next:1400, color:"#34D399"},
-          {name:"Architect",   min:1400, next:2500, color:"#FBBF24"},
-          {name:"Quantum Mind",min:2500, next:null, color:"#A78BFA"},
+          {name:"Initiate",    min:0,    color:"#64748B"},
+          {name:"Analyst",     min:300,  color:"#38BDF8"},
+          {name:"Strategist",  min:700,  color:"#34D399"},
+          {name:"Architect",   min:1400, color:"#FBBF24"},
+          {name:"Quantum Mind",min:2500, color:"#A78BFA"},
+        ];
+        const SCORE_TIERS = [
+          {label:"Initiate",   min:0,   max:179, color:"#64748B"},
+          {label:"Developing", min:180, max:299, color:"#FBBF24"},
+          {label:"Sharp",      min:300, max:419, color:"#38BDF8"},
+          {label:"Elite",      min:420, max:539, color:"#34D399"},
+          {label:"Quantum",    min:540, max:720, color:"#A78BFA"},
         ];
         const lvl = [...LVLS].reverse().find(l=>brainXP>=l.min)||LVLS[0];
         const nextLvl = LVLS[LVLS.indexOf(lvl)+1];
         const pct = nextLvl ? Math.round(((brainXP-lvl.min)/(nextLvl.min-lvl.min))*100) : 100;
         const xpToNext = nextLvl ? nextLvl.min - brainXP : 0;
         const lastXP = brainData.lastSessionXP || 0;
+        const lastScore = brainData.lastSessionScore || 0;
+        const bestScore = brainData.bestSessionScore || 0;
+        const sessionCount = brainData.sessionCount || 0;
+        const scoreTier = SCORE_TIERS.find(t=>lastScore>=t.min && lastScore<=t.max) || SCORE_TIERS[0];
+        const bestTier  = SCORE_TIERS.find(t=>bestScore>=t.min && bestScore<=t.max) || SCORE_TIERS[0];
+        const scoreVsBest = lastScore > 0 && lastScore === bestScore ? "🏆 Personal Best!" : lastScore > 0 && bestScore > 0 ? `${bestScore - lastScore} below your best` : null;
         return (
-          <div style={{background:`${lvl.color}0d`,border:`1px solid ${lvl.color}33`,borderRadius:14,padding:"14px 18px",marginBottom:16}}>
+          <div style={{background:`${lvl.color}0d`,border:`1px solid ${lvl.color}33`,borderRadius:16,padding:"16px 18px",marginBottom:16}}>
+            {/* Level + XP row */}
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
               <div style={{display:"flex",alignItems:"center",gap:8}}>
                 <span style={{fontSize:16}}>⭐</span>
-                <p style={{fontSize:14,fontWeight:700,color:lvl.color}}>{lvl.name}</p>
-                {lastXP > 0 && <span style={{fontSize:12,color:GREEN,fontWeight:700}}>+{lastXP} last session</span>}
+                <p style={{fontSize:15,fontWeight:700,color:lvl.color}}>{lvl.name}</p>
+                {lastXP > 0 && <span style={{fontSize:12,color:GREEN,fontWeight:700,background:"rgba(52,211,153,0.1)",padding:"2px 8px",borderRadius:100}}>+{lastXP} XP last session</span>}
               </div>
-              <p style={{fontSize:14,fontWeight:800,color:AMBER}}>{brainXP} XP</p>
+              <p style={{fontSize:15,fontWeight:800,color:AMBER}}>{brainXP} XP total</p>
             </div>
+            {/* XP progress bar */}
             <div style={{height:7,background:"rgba(255,255,255,0.06)",borderRadius:100,overflow:"hidden",marginBottom:6}}>
               <div style={{height:"100%",width:`${pct}%`,background:`linear-gradient(90deg,${lvl.color}88,${lvl.color})`,borderRadius:100,transition:"width 1s ease",boxShadow:`0 0 8px ${lvl.color}44`}}/>
             </div>
-            <div style={{display:"flex",justifyContent:"space-between"}}>
-              <p style={{fontSize:12,color:DIMMED}}>{pct}% through {lvl.name}</p>
+            <div style={{display:"flex",justifyContent:"space-between",marginBottom:lastScore>0?12:0}}>
+              <p style={{fontSize:12,color:DIMMED}}>{pct}% to next level</p>
               {nextLvl
-                ? <p style={{fontSize:12,color:lvl.color,fontWeight:600}}>{xpToNext} XP to {nextLvl.name} →</p>
-                : <p style={{fontSize:12,color:"#A78BFA",fontWeight:700}}>⚡ MAX LEVEL — Quantum Mind</p>
-              }
+                ? <p style={{fontSize:12,color:lvl.color,fontWeight:600}}>{xpToNext} XP → {nextLvl.name}</p>
+                : <p style={{fontSize:12,color:"#A78BFA",fontWeight:700}}>⚡ MAX LEVEL</p>}
             </div>
+            {/* Score benchmarks — only show if they've done at least 1 session */}
+            {lastScore > 0 && (
+              <div style={{borderTop:"1px solid rgba(255,255,255,0.06)",paddingTop:12,display:"flex",gap:10,flexWrap:"wrap"}}>
+                <div style={{flex:1,background:"rgba(255,255,255,0.03)",borderRadius:10,padding:"10px 12px",minWidth:120}}>
+                  <p style={{fontSize:11,color:DIMMED,letterSpacing:".08em",textTransform:"uppercase",marginBottom:4}}>Last Session</p>
+                  <p style={{fontSize:18,fontWeight:800,color:scoreTier.color,marginBottom:2}}>{lastScore}</p>
+                  <p style={{fontSize:11,fontWeight:700,color:scoreTier.color}}>{scoreTier.label}</p>
+                </div>
+                <div style={{flex:1,background:"rgba(255,255,255,0.03)",borderRadius:10,padding:"10px 12px",minWidth:120}}>
+                  <p style={{fontSize:11,color:DIMMED,letterSpacing:".08em",textTransform:"uppercase",marginBottom:4}}>Personal Best</p>
+                  <p style={{fontSize:18,fontWeight:800,color:bestTier.color,marginBottom:2}}>{bestScore}</p>
+                  <p style={{fontSize:11,fontWeight:700,color:bestTier.color}}>{bestTier.label}</p>
+                </div>
+                {sessionCount > 0 && (
+                  <div style={{flex:1,background:"rgba(255,255,255,0.03)",borderRadius:10,padding:"10px 12px",minWidth:120}}>
+                    <p style={{fontSize:11,color:DIMMED,letterSpacing:".08em",textTransform:"uppercase",marginBottom:4}}>Sessions</p>
+                    <p style={{fontSize:18,fontWeight:800,color:WHITE,marginBottom:2}}>{sessionCount}</p>
+                    <p style={{fontSize:11,color:DIMMED}}>completed</p>
+                  </div>
+                )}
+                {scoreVsBest && (
+                  <div style={{width:"100%",textAlign:"center",padding:"6px 0 2px"}}>
+                    <p style={{fontSize:13,fontWeight:700,color:lastScore===bestScore?"#FBBF24":DIMMED}}>{scoreVsBest}</p>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         );
       })()}
@@ -929,15 +970,20 @@ function Landing({onStart,t,fmt}){
     <div>
       <div className="fu" style={{textAlign:"center",marginBottom:28,paddingTop:8}}><Logo size="lg"/></div>
       <div className="fu1" style={{textAlign:"center",marginBottom:10}}>
-        <p style={{fontSize:14,fontWeight:700,letterSpacing:".16em",textTransform:"uppercase",color:E_BLUE,marginBottom:14}}>⚡ Behavioural Intelligence Assessment</p>
+        <p style={{fontSize:14,fontWeight:700,letterSpacing:".16em",textTransform:"uppercase",color:E_BLUE,marginBottom:14}}>⚡ Free 5-Minute Profile</p>
         <h1 style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"clamp(36px,8vw,64px)",lineHeight:1.05,letterSpacing:2,color:WHITE,marginBottom:6}}>You Don't Have A<br/><span className="elec">Motivation Problem.</span></h1>
         <h2 style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"clamp(24px,5vw,40px)",lineHeight:1,letterSpacing:2,color:"rgba(255,255,255,0.28)",marginBottom:22}}>You Have A Systems Problem.</h2>
       </div>
-      <p className="fu2" style={{textAlign:"center",fontFamily:"'Crimson Pro',serif",fontStyle:"italic",fontSize:19,lineHeight:1.75,color:MUTED,maxWidth:500,margin:"0 auto 28px"}}>"Small shifts, consistently honoured, produce quantum results. The habit is not the destination — it is the vehicle." — The LQM Principle</p>
+
       <div className="fu3" style={{display:"flex",gap:8,justifyContent:"center",flexWrap:"wrap",marginBottom:28}}>
-        {[["⚛","10-question profile"],["◎","4 behavioural archetypes"],["△","LQM Quantum Method"],["⬡","Personalised systems plan"]].map(([ic,lb])=>(
-          <div key={lb} style={{display:"flex",alignItems:"center",gap:7,fontSize:16,color:DIMMED,fontWeight:500,background:"rgba(255,255,255,0.03)",border:`1px solid ${BORDER2}`,borderRadius:100,padding:"6px 14px"}}>
-            <span style={{color:E_BLUE}}>{ic}</span>{lb}
+        {[
+          ["◈","Know exactly why you keep self-sabotaging"],
+          ["⚡","Get the one habit that changes everything for your type"],
+          ["◎","Understand how you're actually wired — in 5 minutes"],
+          ["△","Walk away with a system, not just an insight"],
+        ].map(([ic,lb])=>(
+          <div key={lb} style={{display:"flex",alignItems:"center",gap:7,fontSize:14,color:"rgba(255,255,255,0.7)",fontWeight:500,background:"rgba(255,255,255,0.03)",border:`1px solid ${BORDER2}`,borderRadius:100,padding:"7px 14px"}}>
+            <span style={{color:E_BLUE,fontSize:13}}>{ic}</span>{lb}
           </div>
         ))}
       </div>

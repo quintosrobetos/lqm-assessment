@@ -407,7 +407,16 @@ export default function BrainTraining({ onBack, archetype }){
       const newStreak=userData.lastDay===yesterday?streak+1:userData.lastDay===today?streak:1;
       const bonus=Math.floor(total*(newStreak*0.05));
       const final=total+bonus;
-      const updated={totalXP:totalXP+final,streak:newStreak,lastDay:today,bestScore:Math.max(final,userData.bestScore||0)};
+      const updated={
+        totalXP: totalXP+final,
+        streak: newStreak,
+        lastDay: today,
+        bestScore: Math.max(final, userData.bestScore||0),
+        lastSessionXP: final,           // XP earned this session (with streak bonus)
+        lastSessionScore: total,        // Raw score this session (out of ~720)
+        bestSessionScore: Math.max(total, userData.bestSessionScore||0), // Personal best raw score
+        sessionCount: (userData.sessionCount||0) + 1, // Total sessions completed
+      };
       
       // Check for level up
       const oldLevel = getLevel(totalXP);
