@@ -1647,9 +1647,37 @@ function Results({scores,level,newLevel,streak,dailyAction,arch,challengeData,on
       <div style={{background:`linear-gradient(145deg,${DARK2},${DARK})`,border:`1px solid ${gradeColor}22`,borderRadius:20,padding:"30px 24px",textAlign:"center",marginBottom:14}}>
         <p style={{fontSize:15,fontWeight:700,color:DIMMED,letterSpacing:".14em",textTransform:"uppercase",marginBottom:10}}>Brain Training Complete</p>
         <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:72,letterSpacing:2,color:gradeColor,lineHeight:1,marginBottom:4}}>{total}</div>
-        <p style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:18,letterSpacing:4,color:gradeColor,marginBottom:8}}>{grade}</p>
-        {avgMs&&<p style={{fontSize:16,color:MUTED,marginBottom:10}}>Avg reaction time: <strong style={{color:WHITE}}>{avgMs}ms</strong>{avgMs<270?"  ⚡":avgMs<370?"  ✓":""}</p>}
-        {streak>0&&<div style={{display:"inline-flex",alignItems:"center",gap:8,background:"rgba(251,191,36,0.06)",border:"1px solid rgba(251,191,36,0.16)",borderRadius:100,padding:"6px 14px",fontSize:14,color:AMBER,fontWeight:600}}>🔥 {streak}-day streak · +{streak*5}% bonus</div>}
+        <p style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:18,letterSpacing:4,color:gradeColor,marginBottom:4}}>{grade}</p>
+        <p style={{fontSize:14,color:MUTED,marginBottom:14}}>
+          {total>=540?"You scored in the top 5% of LQM users — exceptional across all 6 cognitive domains."
+          :total>=420?"You scored in the top 20% of LQM users — strong performance across most domains."
+          :total>=300?"You scored in the top 45% of LQM users — solid baseline with clear room to grow."
+          :total>=180?"You are in the early development phase — consistent training will move you up quickly."
+          :"First session benchmark recorded. Every session from here builds your baseline."}
+        </p>
+        {/* Benchmark grid */}
+        <div style={{display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:6,marginBottom:14}}>
+          {[
+            {label:"Initiate",range:"0–179",min:0,max:179},
+            {label:"Developing",range:"180–299",min:180,max:299},
+            {label:"Sharp",range:"300–419",min:300,max:419},
+            {label:"Elite",range:"420–539",min:420,max:539},
+            {label:"Quantum Elite",range:"540+",min:540,max:720},
+          ].map((tier,i)=>{
+            const isYou = total>=tier.min && total<=tier.max;
+            const isPast = total>tier.max;
+            const col = i===4?VIOLET:i===3?E_BLUE:i===2?GREEN:i===1?AMBER:DIMMED;
+            return(
+              <div key={i} style={{borderRadius:10,padding:"8px 4px",border:`1.5px solid ${isYou?col:isPast?col+"44":"rgba(255,255,255,0.06)"}`,background:isYou?col+"18":"transparent",transition:"all .3s"}}>
+                <div style={{fontSize:isYou?16:14,marginBottom:3}}>{isPast?"✓":isYou?"◉":"○"}</div>
+                <p style={{fontSize:10,fontWeight:700,color:isYou?col:isPast?col+"88":DIMMED,lineHeight:1.2}}>{tier.label}</p>
+                <p style={{fontSize:9,color:"rgba(255,255,255,0.25)"}}>{tier.range}</p>
+              </div>
+            );
+          })}
+        </div>
+        {avgMs&&<p style={{fontSize:14,color:MUTED,marginBottom:10}}>Avg reaction: <strong style={{color:WHITE}}>{avgMs}ms</strong> — {avgMs<270?"⚡ Exceptional speed":avgMs<370?"✓ Above average":avgMs<500?"Average range":"Room to improve"}</p>}
+        {streak>0&&<div style={{display:"inline-flex",alignItems:"center",gap:8,background:"rgba(251,191,36,0.06)",border:"1px solid rgba(251,191,36,0.16)",borderRadius:100,padding:"6px 14px",fontSize:14,color:AMBER,fontWeight:600}}>🔥 {streak}-day streak · +{streak*5}% bonus XP</div>}
       </div>
 
       {/* Breakdown */}

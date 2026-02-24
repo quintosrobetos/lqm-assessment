@@ -183,7 +183,19 @@ const CHECKLIST_ITEMS = [
 
 export default function QuantumLiving({ onBack, archetype }) {
   const [activeLaw, setActiveLaw] = useState(null);
-  const [checklist, setChecklist] = useState([false,false,false,false,false]);
+  const todayKey = new Date().toISOString().split("T")[0]; // "2026-02-25"
+
+  const [checklist, setChecklist] = useState(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem("lqm_living") || "{}");
+      // Only restore ticks if they were saved TODAY
+      if(saved.checklistDate === todayKey && Array.isArray(saved.checklist)) {
+        return saved.checklist;
+      }
+    } catch{}
+    return [false,false,false,false,false];
+  });
+
   const [streak, setStreak] = useState(() => {
     try { return JSON.parse(localStorage.getItem("lqm_living")||"{}").streak || 0; } catch{ return 0; }
   });
@@ -274,13 +286,37 @@ export default function QuantumLiving({ onBack, archetype }) {
   const allDone = score === 5;
 
   function toggleCheck(i) {
+    // Focus law: once ticked, lock it — cannot un-tick (streak is logged)
+    if(i === todayLawIdx && checklist[i] === true) return;
+
     const n = [...checklist];
     n[i] = !n[i];
     setChecklist(n);
-    // Streak only triggers when TODAY'S FOCUS LAW is ticked
+
+    // Always persist checklist state with today's date
+    try {
+      const saved = JSON.parse(localStorage.getItem("lqm_living") || "{}");
+      localStorage.setItem("lqm_living", JSON.stringify({
+        ...saved,
+        checklist: n,
+        checklistDate: todayKey
+      }));
+    } catch{}
+
+    // Streak only triggers when TODAY'S FOCUS LAW is first ticked
     if(i === todayLawIdx && n[i] === true) {
-      const today = new Date().toISOString().split("T")[0];
-      localStorage.setItem("lqm_living", JSON.stringify({ streak: streak + 1, lastDay: today }));
+      try {
+        const saved = JSON.parse(localStorage.getItem("lqm_living") || "{}");
+        // Guard: don't double-count if already logged today
+        if(saved.lastDay === todayKey) return;
+        localStorage.setItem("lqm_living", JSON.stringify({
+          ...saved,
+          checklist: n,
+          checklistDate: todayKey,
+          streak: streak + 1,
+          lastDay: todayKey
+        }));
+      } catch{}
       setStreak(s => s + 1);
       playQuantumSound();
       const updated = updateChallengeProgress("quantum");
@@ -313,7 +349,15 @@ export default function QuantumLiving({ onBack, archetype }) {
           <span style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:18,letterSpacing:2,color:WHITE}}>LQM</span>
           <span style={{fontSize:14,color:GREEN,fontWeight:700,letterSpacing:".1em"}}>QUANTUM LIVING</span>
         </div>
-        <div style={{fontSize:14,color:allDone?GREEN:MUTED,fontWeight:700}}>{score}/5 ✓</div>
+        <div style={{display:"flex",gap:8,alignItems:"center"}}>
+          <span style={{fontSize:13,fontWeight:700,color:checklist[todayLawIdx]?GREEN:MUTED}}>
+            {checklist[todayLawIdx]?"1":"0"}/1 🔥
+          </span>
+          <span style={{fontSize:12,color:DIMMED}}>+</span>
+          <span style={{fontSize:13,fontWeight:700,color:AMBER}}>
+            {checklist.filter((v,i)=>v && i!==todayLawIdx).length}/4 ⭐
+          </span>
+        </div>
       </div>
 
       <div style={{width:"100%",maxWidth:620,paddingTop:28,zIndex:1}}>
@@ -416,10 +460,21 @@ export default function QuantumLiving({ onBack, archetype }) {
                 <p style={{fontSize:12, color:todayLaw.color, opacity:.8, fontStyle:"italic"}}>↓ Full practice guide below</p>
               </div>
               {!checklist[todayLawIdx] && <div style={{
-                background:todayLaw.color, color:BG, fontWeight:800, fontSize:13,
-                borderRadius:100, padding:"6px 14px", flexShrink:0, letterSpacing:".05em",
-                animation:"focusGlow 2s ease-in-out infinite"
-              }}>TAP TO TICK</div>}
+                background:todayLaw.color,
+                color:BG,
+                fontWeight:800,
+                fontSize:13,
+                borderRadius:100,
+                padding:"8px 16px",
+                flexShrink:0,
+                letterSpacing:".05em",
+                border:`2px solid ${todayLaw.color}`,
+                boxShadow:`0 0 12px ${todayLaw.color}55`,
+                animation:"focusGlow 2s ease-in-out infinite",
+                cursor:"pointer",
+                userSelect:"none",
+                whiteSpace:"nowrap"
+              }}>✓ TAP TO TICK</div>}
             </div>
             {checklist[todayLawIdx] && (
               <div style={{marginTop:10, padding:"10px 14px", background:"rgba(52,211,153,0.08)", borderRadius:10, display:"flex", alignItems:"center", gap:8}}>
