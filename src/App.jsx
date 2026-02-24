@@ -9,6 +9,24 @@ const STRIPE_VITAL = "https://buy.stripe.com/eVq5kF651gyLgorc88a3u03";
 function getUnlocks() { try { return JSON.parse(localStorage.getItem("lqm_unlocks")||"{}"); } catch { return {}; } }
 function setUnlock(key) { const u=getUnlocks(); u[key]=true; localStorage.setItem("lqm_unlocks",JSON.stringify(u)); }
 
+// ── Device token — binds purchase to the original browser/device ──────────
+function getOrCreateDeviceToken(){
+  let token = localStorage.getItem("lqm_device_token");
+  if(!token){
+    token = "LQM-DEV-" + Date.now().toString(36).toUpperCase() + "-" + Math.random().toString(36).substring(2,10).toUpperCase();
+    localStorage.setItem("lqm_device_token", token);
+  }
+  return token;
+}
+function getDeliveryToken(){
+  try { return JSON.parse(localStorage.getItem("lqm_delivery")||"{}").deviceToken || null; } catch { return null; }
+}
+function isValidDevice(){
+  const deliveryToken = getDeliveryToken();
+  if(!deliveryToken) return true; // No purchase yet — always valid
+  return deliveryToken === localStorage.getItem("lqm_device_token");
+}
+
 const FONTS=`@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Bebas+Neue&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap');`;
 const E_BLUE="#00C8FF",E_BLUE2="#0EA5E9",E_GLOW="rgba(0,200,255,0.15)";
 const BG="#070F1E",DARK="#0D1830",DARK2="#111E38",PANEL="rgba(255,255,255,0.055)";
@@ -302,8 +320,9 @@ export default function App() {
   function generateDeliveryRef(){
     const ref="LQM-"+new Date().getFullYear()+"-"+Math.random().toString(36).substring(2,10).toUpperCase();
     const ts=new Date().toLocaleString("en-GB",{day:"2-digit",month:"short",year:"numeric",hour:"2-digit",minute:"2-digit"});
+    const deviceToken = getOrCreateDeviceToken(); // Bind to this device
     setDeliveryRef(ref); setDeliveryTs(ts);
-    localStorage.setItem("lqm_delivery",JSON.stringify({ref,ts,confirmed:false}));
+    localStorage.setItem("lqm_delivery",JSON.stringify({ref,ts,confirmed:false,deviceToken}));
     setShowDeliveryGate(true);
   }
   function confirmDelivery(){
@@ -314,16 +333,19 @@ export default function App() {
 
   // Check localStorage on mount - if delivery data exists, skip to paid phase
   useEffect(()=>{
+    getOrCreateDeviceToken(); // Ensure device token exists on every load
     const delivery = localStorage.getItem("lqm_delivery");
-    const unlocks = getUnlocks();
     if(delivery && phase==="landing"){
-      // User has already unlocked - show them the report
-      // We need to simulate completing the quiz first
+      const deliveryData = JSON.parse(delivery);
+      // Device token check — if purchase was on a different device, block
+      if(deliveryData.deviceToken && deliveryData.deviceToken !== localStorage.getItem("lqm_device_token")){
+        setPhase("wrong_device");
+        return;
+      }
       const testAnswers = ["A","B","A","C","D","A","B","C","D","A"];
       setAnswers(testAnswers);
       setCharType(calcType(testAnswers));
       setPhase("paid");
-      const deliveryData = JSON.parse(delivery);
       setDeliveryRef(deliveryData.ref);
       setDeliveryTs(deliveryData.ts);
     }
@@ -341,7 +363,7 @@ export default function App() {
     if(params.get('test')==='true'){
       // Unlock main report
       if(!localStorage.getItem('lqm_delivery')){
-        localStorage.setItem('lqm_delivery',JSON.stringify({ref:'LQM-2026-TEST'+Math.random().toString(36).substring(2,8).toUpperCase(),ts:new Date().toLocaleString('en-GB',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}),confirmed:true}));
+        localStorage.setItem('lqm_delivery',JSON.stringify({ref:'LQM-2026-TEST'+Math.random().toString(36).substring(2,8).toUpperCase(),ts:new Date().toLocaleString('en-GB',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}),confirmed:true,deviceToken:getOrCreateDeviceToken()}));
       }
       // Unlock both add-ons
       localStorage.setItem('lqm_unlocks',JSON.stringify({neural:true,vital:true}));
@@ -417,6 +439,7 @@ export default function App() {
         <div style={{width:"100%",maxWidth:680,position:"relative",zIndex:1,paddingTop:40}}>
           {showLegal==="privacy" && <LegalPage type="privacy" onClose={()=>setShowLegal(null)}/>}
           {showLegal==="terms"   && <LegalPage type="terms"   onClose={()=>setShowLegal(null)}/>}
+          {!showLegal && phase==="wrong_device" && <WrongDevice/>}
           {!showLegal && phase==="landing"    && <Landing onStart={()=>{setTimerOn(true);setPhase("quiz");}} t={timeLeft} fmt={fmt}/>}
           {!showLegal && phase==="quiz"       && <Quiz q={questions[qIdx]} idx={qIdx} sel={sel} onSel={setSel} onNext={handleNext} t={timeLeft} fmt={fmt}/>}
           {!showLegal && phase==="processing" && <Processing step={procStep}/>}
@@ -487,12 +510,37 @@ function PrimaryBtn({onClick,children}){
   );
 }
 
+function WrongDevice(){
+  return(
+    <div style={{minHeight:"60vh",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",textAlign:"center",padding:"40px 24px",animation:"fadeUp .6s ease both"}}>
+      <div style={{width:64,height:64,borderRadius:"50%",background:"rgba(239,68,68,0.1)",border:"1px solid rgba(239,68,68,0.3)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:28,marginBottom:24}}>🔒</div>
+      <h2 style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:32,letterSpacing:2,color:"white",marginBottom:12}}>Report Not Available Here</h2>
+      <p style={{fontSize:16,color:"rgba(255,255,255,0.6)",lineHeight:1.7,maxWidth:420,marginBottom:8}}>
+        This report was purchased and confirmed on a different device or browser.
+      </p>
+      <p style={{fontSize:15,color:"rgba(255,255,255,0.45)",lineHeight:1.7,maxWidth:400,marginBottom:32}}>
+        To access your report, please open LQM on the original device and browser where you completed your purchase.
+      </p>
+      <div style={{background:"rgba(0,200,255,0.06)",border:"1px solid rgba(0,200,255,0.2)",borderRadius:14,padding:"16px 22px",maxWidth:400,marginBottom:28}}>
+        <p style={{fontSize:13,fontWeight:700,color:"#00C8FF",letterSpacing:".1em",textTransform:"uppercase",marginBottom:8}}>Need help?</p>
+        <p style={{fontSize:14,color:"rgba(255,255,255,0.5)",lineHeight:1.65}}>
+          If you've changed devices or cleared your browser data, email us at <strong style={{color:"#00C8FF"}}>lqm@lqmmethod.com</strong> with your delivery reference number and we'll verify your purchase manually.
+        </p>
+      </div>
+      <p style={{fontSize:13,color:"rgba(255,255,255,0.25)",fontStyle:"italic",maxWidth:360,lineHeight:1.6}}>
+        This protection exists to ensure your personalised report remains exclusively yours.
+      </p>
+    </div>
+  );
+}
+
 function Footer({onShowLegal}){
   function activateTestMode(){
     localStorage.setItem('lqm_delivery',JSON.stringify({
       ref:'LQM-2026-TEST'+Math.random().toString(36).substring(2,8).toUpperCase(),
       ts:new Date().toLocaleString('en-GB',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}),
-      confirmed:true
+      confirmed:true,
+      deviceToken:getOrCreateDeviceToken()
     }));
     localStorage.setItem('lqm_unlocks',JSON.stringify({neural:true,vital:true}));
     alert('✓ TEST MODE ACTIVATED\n\nAll features unlocked!\n\nClick OK then refresh the page (F5) to see everything.');
