@@ -104,6 +104,12 @@ const TYPES = {
 
 const ORIGINAL = 27, DISCOUNTED = 9, TIMER_SECS = 15 * 60;
 
+// ── TEST MODE ──────────────────────────────────────────────────────────────
+// Set to true to show the "Unlock All" button in the footer for testing.
+// Set to false before going live to real customers.
+const TEST_MODE = true;
+// ──────────────────────────────────────────────────────────────────────────
+
 function Particles() {
   return (
     <div style={{position:"fixed",inset:0,pointerEvents:"none",zIndex:0,overflow:"hidden"}}>
@@ -198,6 +204,8 @@ export default function App() {
       @keyframes spin{to{transform:rotate(360deg);}}
       @keyframes shimmer{0%{background-position:-200% center;}100%{background-position:200% center;}}
       @keyframes blurIn{from{filter:blur(8px);opacity:0;}to{filter:blur(0);opacity:1;}}
+      @keyframes habitPulse{0%,100%{box-shadow:0 0 0 0 rgba(0,200,255,0);}50%{box-shadow:0 0 0 6px rgba(0,200,255,0.08);}}
+      @keyframes habitBounce{0%,100%{transform:translateY(0);}50%{transform:translateY(-3px);}}
       @keyframes barGrow{from{width:0;}to{width:var(--w);}}
       .fu{animation:fadeUp .6s ease both;}
       .fu1{animation:fadeUp .6s .1s ease both;}
@@ -321,17 +329,19 @@ function PrimaryBtn({onClick,children}){
 
 function Footer({onShowLegal}){
   function activateTestMode(){
-    // Unlock main report
     localStorage.setItem('lqm_delivery',JSON.stringify({
       ref:'LQM-2026-TEST'+Math.random().toString(36).substring(2,8).toUpperCase(),
       ts:new Date().toLocaleString('en-GB',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}),
       confirmed:true
     }));
-    // Unlock both add-ons
     localStorage.setItem('lqm_unlocks',JSON.stringify({neural:true,vital:true}));
     alert('✓ TEST MODE ACTIVATED\n\nAll features unlocked!\n\nClick OK then refresh the page (F5) to see everything.');
   }
-  
+  function resetAll(){
+    localStorage.clear();
+    alert('✓ All data cleared. Refreshing now...');
+    window.location.reload();
+  }
   return(
     <div style={{width:"100%",maxWidth:680,marginTop:60,paddingTop:24,borderTop:`1px solid ${BORDER2}`,display:"flex",flexDirection:"column",gap:12,alignItems:"center"}}>
       <div style={{display:"flex",gap:24,flexWrap:"wrap",justifyContent:"center"}}>
@@ -340,11 +350,19 @@ function Footer({onShowLegal}){
       </div>
       <p style={{fontSize:14,color:DIMMED,textAlign:"center"}}>© 2026 Learning Quantum Method. All rights reserved.</p>
       <p style={{fontSize:16,color:DIMMED,textAlign:"center",maxWidth:500,lineHeight:1.5}}>For questions or support: <a href="mailto:lqm@lqmmethod.com" style={{color:E_BLUE,textDecoration:"none"}}>lqm@lqmmethod.com</a></p>
-      
-      {/* TEST MODE BUTTON - Remove before public launch */}
-      <button onClick={activateTestMode} style={{marginTop:16,background:'rgba(251,191,36,0.12)',border:'1px solid rgba(251,191,36,0.35)',borderRadius:8,padding:'10px 20px',color:'#FBBF24',fontSize:15,fontWeight:700,cursor:'pointer',fontFamily:"'Space Grotesk',sans-serif"}}>
-        🔧 TEST MODE — Unlock All Features
-      </button>
+      {TEST_MODE && (
+        <div style={{marginTop:16,display:"flex",gap:10,flexWrap:"wrap",justifyContent:"center"}}>
+          <button onClick={activateTestMode} style={{background:'rgba(251,191,36,0.12)',border:'1px solid rgba(251,191,36,0.35)',borderRadius:8,padding:'10px 20px',color:'#FBBF24',fontSize:15,fontWeight:700,cursor:'pointer',fontFamily:"'Space Grotesk',sans-serif"}}>
+            🔧 Unlock All (Test)
+          </button>
+          <button onClick={resetAll} style={{background:'rgba(239,68,68,0.1)',border:'1px solid rgba(239,68,68,0.3)',borderRadius:8,padding:'10px 20px',color:'#EF4444',fontSize:15,fontWeight:700,cursor:'pointer',fontFamily:"'Space Grotesk',sans-serif"}}>
+            🗑️ Reset All Data
+          </button>
+        </div>
+      )}
+      {TEST_MODE && (
+        <p style={{fontSize:12,color:'rgba(251,191,36,0.5)',fontWeight:700,letterSpacing:'.1em'}}>⚠ TEST MODE IS ON — set TEST_MODE = false before going live</p>
+      )}
     </div>
   );
 }
@@ -509,17 +527,34 @@ function Hub({type, unlocks, onOpenNeural, onOpenVital, onViewReport, onUnlockNe
         </div>
       </div>
 
-      {/* Today's focus — only show if at least one addon unlocked */}
+      {/* Today's focus — pulsating CTA */}
       {(unlocks.neural || unlocks.vital) && (
-        <div style={{background:"rgba(255,255,255,0.02)", border:`1px solid ${BORDER2}`, borderRadius:14, padding:"16px 20px", marginBottom:8}}>
-          <p style={{fontSize:13, fontWeight:700, color:DIMMED, letterSpacing:".12em", textTransform:"uppercase", marginBottom:10}}>💡 Your Daily Habit</p>
-          <p style={{fontSize:14, color:MUTED, lineHeight:1.6}}>
+        <div style={{
+          background:"rgba(0,200,255,0.04)",
+          border:`1px solid rgba(0,200,255,0.35)`,
+          borderRadius:16,
+          padding:"18px 22px",
+          marginBottom:8,
+          animation:"habitPulse 2.8s ease-in-out infinite",
+          position:"relative",
+          overflow:"hidden"
+        }}>
+          <div style={{position:"absolute",top:0,left:0,right:0,height:2,background:`linear-gradient(90deg,transparent,${E_BLUE},transparent)`,opacity:0.6}}/>
+          <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:10}}>
+            <span style={{fontSize:20,animation:"habitBounce 2.8s ease-in-out infinite"}}>⚡</span>
+            <p style={{fontSize:13, fontWeight:700, color:E_BLUE, letterSpacing:".14em", textTransform:"uppercase"}}>Your Action Right Now</p>
+          </div>
+          <p style={{fontSize:16, color:WHITE, lineHeight:1.65, fontWeight:500}}>
             {unlocks.neural && unlocks.vital
-              ? "Complete today's Brain Training session + tick all 5 Quantum Laws to log your daily progress on both 21-day journeys."
+              ? "Open Brain Training for today's session, then tick all 5 Quantum Laws. Both actions together log your daily streak on both 21-day journeys."
               : unlocks.neural
-              ? "Complete today's Brain Training session to log your daily progress and keep your streak alive."
-              : "Tick all 5 Quantum Laws today to log your daily progress and keep your streak alive."}
+              ? "Open Brain Training and complete today's session to keep your streak alive and log your 21-day progress."
+              : "Open Quantum Living and tick all 5 laws today to keep your streak alive and log your 21-day progress."}
           </p>
+          <div style={{marginTop:12,display:"flex",gap:8,flexWrap:"wrap"}}>
+            {unlocks.neural && <span style={{fontSize:12,color:E_BLUE,fontWeight:700,background:"rgba(0,200,255,0.1)",padding:"4px 12px",borderRadius:100}}>⚡ ~7 min Brain Training</span>}
+            {unlocks.vital  && <span style={{fontSize:12,color:"#34D399",fontWeight:700,background:"rgba(52,211,153,0.1)",padding:"4px 12px",borderRadius:100}}>🌿 5 Quantum Laws</span>}
+          </div>
         </div>
       )}
     </div>
@@ -1102,59 +1137,63 @@ function Dashboard({type, unlocks, onViewReport, onOpenBrain, onOpenQuantum, onU
     </div>
   );
 }
+function ReportSection({title, icon, color, preview, children, defaultOpen=false}){
+  const [open, setOpen] = useState(defaultOpen);
+  return (
+    <div style={{marginBottom:12, border:`1px solid ${open ? color+"55" : "rgba(255,255,255,0.07)"}`, borderTop:`2px solid ${open ? color : color+"44"}`, borderRadius:16, overflow:"hidden", transition:"border-color .3s"}}>
+      <div onClick={()=>setOpen(o=>!o)} style={{padding:"18px 22px", display:"flex", alignItems:"center", justifyContent:"space-between", cursor:"pointer", background:open?`${color}08`:"transparent", transition:"background .2s"}}
+        onMouseEnter={e=>e.currentTarget.style.background=`${color}08`}
+        onMouseLeave={e=>e.currentTarget.style.background=open?`${color}08`:"transparent"}>
+        <div style={{display:"flex", alignItems:"center", gap:12}}>
+          <span style={{fontSize:20}}>{icon}</span>
+          <p style={{fontSize:15, fontWeight:700, color:open?color:WHITE, letterSpacing:".06em", transition:"color .2s"}}>{title}</p>
+        </div>
+        <div style={{display:"flex", alignItems:"center", gap:10}}>
+          {!open && <p style={{fontSize:13, color:color, opacity:.7, fontStyle:"italic"}}>{preview}</p>}
+          <span style={{fontSize:18, color:color, transform:open?"rotate(180deg)":"rotate(0deg)", transition:"transform .3s", display:"block"}}>↓</span>
+        </div>
+      </div>
+      {open && (
+        <div style={{padding:"0 22px 22px", animation:"fadeUp .35s ease both"}}>
+          {children}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function Report({type, deliveryRef, deliveryTs, visualAnswer}){
-  // Visual processing insights
   const visualInsights = {
-    tree: {
-      icon: "🌳",
-      title: "Big Picture Processing",
-      text: "You noticed the tree structure first, suggesting you naturally see systems, patterns, and the whole before individual elements. This big-picture processing style aligns with strategic thinking and systems design. You tend to step back and see the forest, not just the trees."
-    },
-    woman: {
-      icon: "👤",
-      title: "Detail-First Processing",
-      text: "You noticed the woman's face first, suggesting you naturally focus on specific details, human elements, and individual components before seeing the larger pattern. This detail-oriented processing enhances your ability to spot nuances others miss and connect with people on a deeper level."
-    },
-    both: {
-      icon: "⚖️",
-      title: "Dual-Mode Processing",
-      text: "You saw both the tree and the woman equally, suggesting flexible cognitive processing. You can shift between big-picture strategic thinking and detail-oriented analysis depending on what the situation requires. This adaptability is a significant strength."
-    },
-    neutral: {
-      icon: "⚖️",
-      title: "Balanced Processing",
-      text: "Your visual processing shows balanced attention to both patterns and details. You can zoom in and zoom out as needed, giving you cognitive flexibility across different contexts."
-    }
+    tree:{icon:"🌳",title:"Big Picture Processing",text:"You noticed the tree structure first — you naturally see systems, patterns and the whole before the parts. You step back and see the forest, not just the trees. This is a strategic thinker's default mode."},
+    woman:{icon:"👤",title:"Detail-First Processing",text:"You noticed the woman's face first — you naturally focus on specific details and human elements before the larger pattern. This makes you sharp at spotting nuances others miss and connecting with people at depth."},
+    both:{icon:"⚖️",title:"Dual-Mode Processing",text:"You saw both equally — you have flexible cognitive processing. You can shift between big-picture strategic thinking and detail-oriented analysis as the situation demands. This adaptability is a genuine strength."},
+    neutral:{icon:"⚖️",title:"Balanced Processing",text:"Your visual processing shows balanced attention to both patterns and details. You can zoom in and zoom out, giving you cognitive flexibility across different contexts."}
   };
-  
-  // Determine which insight to show based on visual answer
   let visualInsight = null;
-  if (visualAnswer) {
-    const question11 = questions[10]; // The visual question
-    const selectedOption = question11?.opts?.find(opt => opt.ty === visualAnswer);
-    const visualType = selectedOption?.visual || "neutral";
-    visualInsight = visualInsights[visualType];
+  if(visualAnswer){
+    const q11 = questions[10];
+    const opt = q11?.opts?.find(o=>o.ty===visualAnswer);
+    visualInsight = visualInsights[opt?.visual||"neutral"];
   }
-  
+
   return(
     <div style={{animation:"blurIn .8s ease both"}}>
 
-      {/* ── Delivery confirmation bar ── */}
+      {/* Delivery bar */}
       {deliveryRef && <div style={{background:"rgba(52,211,153,0.06)",border:"1px solid rgba(52,211,153,0.25)",borderRadius:12,padding:"10px 18px",marginBottom:14,display:"flex",alignItems:"center",gap:12,flexWrap:"wrap"}}>
         <span style={{fontSize:14,color:"#34D399",flexShrink:0}}>✓</span>
         <div style={{flex:1}}>
           <p style={{fontSize:14,fontWeight:700,color:"#34D399",letterSpacing:".08em"}}>REPORT DELIVERED · {deliveryTs}</p>
-          <p style={{fontSize:16,color:"rgba(255,255,255,0.35)",fontFamily:"monospace",marginTop:2}}>Ref: {deliveryRef}</p>
+          <p style={{fontSize:12,color:"rgba(255,255,255,0.35)",fontFamily:"monospace",marginTop:2}}>Ref: {deliveryRef}</p>
         </div>
-        <span style={{fontSize:16,color:"rgba(255,255,255,0.25)"}}>Screenshot for your records</span>
+        <span style={{fontSize:13,color:"rgba(255,255,255,0.25)"}}>Screenshot for your records</span>
       </div>}
 
-      {/* ── Hero header ── */}
+      {/* Hero */}
       <div style={{background:`linear-gradient(145deg,${DARK2} 0%,${DARK} 100%)`,border:`1px solid ${type.blue}33`,borderRadius:20,padding:"40px 28px",textAlign:"center",marginBottom:14,boxShadow:`0 0 50px ${type.glow}`}}>
-        <div style={{display:"inline-block",background:"rgba(0,200,255,0.08)",border:`1px solid ${BORDER}`,borderRadius:100,padding:"5px 14px",fontSize:14,color:E_BLUE,fontWeight:700,letterSpacing:".1em",textTransform:"uppercase",marginBottom:16}}>⚡ Report Unlocked — For You Only</div>
+        <div style={{display:"inline-block",background:"rgba(0,200,255,0.08)",border:`1px solid ${BORDER}`,borderRadius:100,padding:"5px 14px",fontSize:13,color:E_BLUE,fontWeight:700,letterSpacing:".1em",textTransform:"uppercase",marginBottom:16}}>⚡ Report Unlocked — For You Only</div>
         <Logo size="sm"/>
-        <p style={{fontSize:16,color:DIMMED,letterSpacing:".14em",textTransform:"uppercase",fontWeight:600,marginTop:8,marginBottom:20}}>Behavioural Intelligence Report</p>
-        {/* Archetype illustration */}
+        <p style={{fontSize:15,color:DIMMED,letterSpacing:".14em",textTransform:"uppercase",fontWeight:600,marginTop:8,marginBottom:20}}>Behavioural Intelligence Report</p>
         <div style={{padding:"8px 0 16px"}}>
           <ArchetypeIllustration type={Object.keys({A:1,B:2,C:3,D:4}).find(k=>TYPES[k]===type)||"A"}/>
         </div>
@@ -1163,90 +1202,75 @@ function Report({type, deliveryRef, deliveryTs, visualAnswer}){
         <p style={{fontFamily:"'Crimson Pro',serif",fontSize:17,fontStyle:"italic",color:type.blue}}>{type.arch}</p>
       </div>
 
-      {/* ── Tagline ── */}
-      <Panel style={{borderLeft:`3px solid ${type.blue}`,borderRadius:"0 14px 14px 0",marginBottom:14,background:type.glow}}>
+      {/* Tagline */}
+      <div style={{borderLeft:`3px solid ${type.blue}`,borderRadius:"0 14px 14px 0",marginBottom:14,background:type.glow,padding:"18px 22px"}}>
         <p style={{fontFamily:"'Crimson Pro',serif",fontSize:20,fontStyle:"italic",color:WHITE,lineHeight:1.65}}>"{type.tag}"</p>
-      </Panel>
+      </div>
 
-      {/* ── Identity statement ── */}
-      <Panel glow style={{marginBottom:14,textAlign:"center",background:`linear-gradient(135deg,${type.glow},rgba(0,0,0,0.2))`}}>
-        <p style={{fontSize:16,fontWeight:700,letterSpacing:".16em",textTransform:"uppercase",color:type.blue,marginBottom:14}}>◈ Your Identity Statement</p>
+      {/* Identity — always open, this is the core */}
+      <div style={{background:`linear-gradient(135deg,${type.glow},rgba(0,0,0,0.2))`,border:`1px solid ${type.blue}44`,borderRadius:16,padding:"24px 22px",textAlign:"center",marginBottom:14,boxShadow:`0 0 30px ${type.glow}`}}>
+        <p style={{fontSize:13,fontWeight:700,letterSpacing:".16em",textTransform:"uppercase",color:type.blue,marginBottom:14}}>◈ Your Identity Statement</p>
         <p style={{fontFamily:"'Crimson Pro',serif",fontSize:21,fontStyle:"italic",color:WHITE,lineHeight:1.65,marginBottom:12}}>"{type.identity}"</p>
-        <p style={{fontSize:15,color:DIMMED,fontWeight:300}}>Repeat this daily. Identity precedes behaviour. Behaviour compounds into results.</p>
-      </Panel>
+        <p style={{fontSize:14,color:DIMMED,fontWeight:300}}>Repeat this daily. Identity precedes behaviour. Behaviour compounds into results.</p>
+      </div>
 
-      {/* ── Overview ── */}
-      <Panel style={{marginBottom:14}}>
-        <SLabel color={type.blue}>Profile Overview</SLabel>
-        <p style={{fontFamily:"'Crimson Pro',serif",fontSize:17,lineHeight:1.85,color:"rgba(255,255,255,0.78)",fontWeight:300}}>{type.desc}</p>
-      </Panel>
+      {/* ── Progressive sections ── */}
+      <p style={{fontSize:13,color:DIMMED,letterSpacing:".1em",textTransform:"uppercase",fontWeight:700,marginBottom:12,textAlign:"center"}}>Tap any section to go deeper ↓</p>
 
-      {/* ── LQM Quantum Insight ── */}
-      <Panel style={{marginBottom:14,borderLeft:`3px solid ${E_BLUE}`,background:"rgba(0,200,255,0.04)"}}>
-        <p style={{fontSize:16,fontWeight:700,letterSpacing:".14em",textTransform:"uppercase",color:E_BLUE,marginBottom:10}}>⚛ LQM Quantum Insight</p>
-        <p style={{fontSize:15,lineHeight:1.8,color:"rgba(255,255,255,0.82)",fontWeight:400}}>{type.atomic}</p>
-      </Panel>
+      <ReportSection title="Profile Overview" icon="⚛" color={type.blue} preview="How you're wired" defaultOpen={true}>
+        <p style={{fontFamily:"'Crimson Pro',serif",fontSize:17,lineHeight:1.85,color:"rgba(255,255,255,0.8)",fontWeight:300,paddingTop:8}}>{type.desc}</p>
+        <div style={{marginTop:16,background:"rgba(0,200,255,0.04)",border:`1px solid rgba(0,200,255,0.2)`,borderLeft:`3px solid ${E_BLUE}`,borderRadius:"0 10px 10px 0",padding:"14px 16px"}}>
+          <p style={{fontSize:13,fontWeight:700,color:E_BLUE,letterSpacing:".1em",textTransform:"uppercase",marginBottom:8}}>⚛ Your Quantum Insight</p>
+          <p style={{fontSize:15,lineHeight:1.8,color:"rgba(255,255,255,0.82)"}}>{type.atomic}</p>
+        </div>
+      </ReportSection>
 
-      {/* ── Visual Processing Style (if answered bonus question) ── */}
+      <ReportSection title="Core Strengths" icon="💪" color={type.blue} preview={type.strengths[0]+"..."}>
+        <div style={{paddingTop:8}}>
+          <StrengthBars strengths={type.strengths} color={type.blue}/>
+        </div>
+      </ReportSection>
+
+      <ReportSection title="Blind Spots to Navigate" icon="⚠️" color="rgba(255,180,50,0.9)" preview="3 patterns to know">
+        <p style={{fontFamily:"'Crimson Pro',serif",fontStyle:"italic",fontSize:15,color:MUTED,lineHeight:1.6,marginBottom:16,paddingTop:8}}>These aren't weaknesses. They're patterns to recognise — awareness is the first step to transcendence.</p>
+        {type.blindspots.map((b,i)=>(<BlindSpotCard key={i} text={b} index={i} color={type.blue}/>))}
+      </ReportSection>
+
       {visualInsight && (
-        <Panel style={{marginBottom:14,borderLeft:`3px solid ${AMBER}`,background:"rgba(251,191,36,0.04)"}}>
-          <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:12}}>
-            <span style={{fontSize:24}}>{visualInsight.icon}</span>
-            <p style={{fontSize:16,fontWeight:700,letterSpacing:".14em",textTransform:"uppercase",color:AMBER}}>Visual Processing Style</p>
+        <ReportSection title="Visual Processing Style" icon={visualInsight.icon} color={AMBER} preview={visualInsight.title}>
+          <div style={{paddingTop:8}}>
+            <p style={{fontSize:17,fontWeight:600,color:WHITE,marginBottom:10}}>{visualInsight.title}</p>
+            <p style={{fontSize:15,lineHeight:1.8,color:"rgba(255,255,255,0.82)"}}>{visualInsight.text}</p>
           </div>
-          <p style={{fontSize:17,fontWeight:600,color:WHITE,marginBottom:8}}>{visualInsight.title}</p>
-          <p style={{fontSize:15,lineHeight:1.8,color:"rgba(255,255,255,0.82)",fontWeight:400}}>{visualInsight.text}</p>
-        </Panel>
+        </ReportSection>
       )}
 
-      {/* ── Strengths with visual bars ── */}
-      <Panel style={{marginBottom:14}}>
-        <SLabel color={type.blue}>Core Strengths</SLabel>
-        <StrengthBars strengths={type.strengths} color={type.blue}/>
-      </Panel>
-
-      {/* ── Blind spots — BOLD, LARGE, VISUAL ── */}
-      <Panel style={{marginBottom:18}}>
-        <SLabel color="rgba(255,180,50,0.9)">Blind Spots to Navigate</SLabel>
-        <p style={{fontFamily:"'Crimson Pro',serif",fontStyle:"italic",fontSize:15,color:MUTED,lineHeight:1.6,marginBottom:16}}>These aren't weaknesses. They're patterns to recognise — awareness is the first step to transcendence.</p>
-        {type.blindspots.map((b,i)=>(
-          <BlindSpotCard key={i} text={b} index={i} color={type.blue}/>
-        ))}
-      </Panel>
-
-      {/* ── Strategy cards ── */}
-      <Panel style={{marginBottom:12}}>
-        <SLabel color={type.blue}>Your 3 LQM Quantum Strategy Cards</SLabel>
-        <p style={{fontFamily:"'Crimson Pro',serif",fontStyle:"italic",fontSize:16,color:MUTED,lineHeight:1.65}}>The following systems are built specifically for your behavioural profile. Read them as instructions written for you alone.</p>
-      </Panel>
-
-      {type.strategies.map((s,i)=>(
-        <div key={i} style={{background:PANEL,border:`1px solid ${BORDER2}`,borderTop:`2px solid ${type.blue}`,borderRadius:16,overflow:"hidden",marginBottom:12}}>
-          <div style={{background:type.glow,borderBottom:`1px solid ${type.blue}22`,padding:"14px 22px",display:"flex",alignItems:"center",gap:12}}>
-            <span style={{width:30,height:30,borderRadius:"50%",background:type.blue,display:"flex",alignItems:"center",justifyContent:"center",fontSize:16,color:BG,fontWeight:800,flexShrink:0}}>{i+1}</span>
-            <p style={{fontSize:14,fontWeight:700,color:type.blue,letterSpacing:".08em",textTransform:"uppercase"}}>{s.area}</p>
-          </div>
-          {/* Visual scenario strip */}
-          <div style={{background:`linear-gradient(90deg,${type.glow},transparent)`,borderBottom:`1px solid ${type.blue}11`,padding:"14px 22px",display:"flex",gap:12,alignItems:"flex-start"}}>
-            <div style={{width:36,height:36,borderRadius:10,background:`${type.glow}`,border:`1px solid ${type.blue}33`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,flexShrink:0}}>
-              {["⟁","◎","◈"][i]}
+      <ReportSection title="Your 3 Quantum Strategy Cards" icon="◈" color={type.blue} preview="Tap to unlock your system">
+        <div style={{paddingTop:8}}>
+          <p style={{fontFamily:"'Crimson Pro',serif",fontStyle:"italic",fontSize:15,color:MUTED,lineHeight:1.65,marginBottom:16}}>Three systems built specifically for your profile. Read them as instructions written for you alone.</p>
+          {type.strategies.map((s,i)=>(
+            <div key={i} style={{background:PANEL,border:`1px solid ${BORDER2}`,borderTop:`2px solid ${type.blue}`,borderRadius:14,overflow:"hidden",marginBottom:12}}>
+              <div style={{background:type.glow,borderBottom:`1px solid ${type.blue}22`,padding:"12px 18px",display:"flex",alignItems:"center",gap:10}}>
+                <span style={{width:28,height:28,borderRadius:"50%",background:type.blue,display:"flex",alignItems:"center",justifyContent:"center",fontSize:14,color:BG,fontWeight:800,flexShrink:0}}>{i+1}</span>
+                <p style={{fontSize:13,fontWeight:700,color:type.blue,letterSpacing:".08em",textTransform:"uppercase"}}>{s.area}</p>
+              </div>
+              <div style={{background:`linear-gradient(90deg,${type.glow},transparent)`,borderBottom:`1px solid ${type.blue}11`,padding:"12px 18px",display:"flex",gap:10,alignItems:"flex-start"}}>
+                <span style={{fontSize:18,flexShrink:0,marginTop:2}}>{["⟁","◎","◈"][i]}</span>
+                <div>
+                  <p style={{fontSize:12,fontWeight:700,color:DIMMED,letterSpacing:".1em",textTransform:"uppercase",marginBottom:4}}>The Scenario</p>
+                  <p style={{fontFamily:"'Crimson Pro',serif",fontSize:15,fontStyle:"italic",color:"rgba(255,255,255,0.82)",lineHeight:1.65}}>"{s.scenario}"</p>
+                </div>
+              </div>
+              <div style={{padding:"14px 18px"}}>
+                <p style={{fontSize:12,fontWeight:700,color:type.blue,letterSpacing:".1em",textTransform:"uppercase",marginBottom:8}}>→ Your Quantum System</p>
+                <p style={{fontSize:14,lineHeight:1.9,color:"rgba(255,255,255,0.78)"}}>{s.solution}</p>
+              </div>
             </div>
-            <div>
-              <p style={{fontSize:16,fontWeight:700,color:DIMMED,letterSpacing:".1em",textTransform:"uppercase",marginBottom:6}}>The Scenario</p>
-              <p style={{fontFamily:"'Crimson Pro',serif",fontSize:16,fontStyle:"italic",color:"rgba(255,255,255,0.82)",lineHeight:1.65}}>"{s.scenario}"</p>
-            </div>
-          </div>
-          <div style={{padding:"18px 22px"}}>
-            <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:10}}>
-              <div style={{width:20,height:20,borderRadius:"50%",background:type.blue,display:"flex",alignItems:"center",justifyContent:"center",fontSize:16,flexShrink:0}}>→</div>
-              <p style={{fontSize:16,fontWeight:700,color:type.blue,letterSpacing:".1em",textTransform:"uppercase"}}>Your Quantum System</p>
-            </div>
-            <p style={{fontSize:14,lineHeight:1.9,color:"rgba(255,255,255,0.78)",fontWeight:400}}>{s.solution}</p>
-          </div>
+          ))}
         </div>
-      ))}
+      </ReportSection>
 
-      {/* ── Footer ── */}
+            {/* ── Footer ── */}
       <Panel style={{textAlign:"center",background:`linear-gradient(145deg,${DARK2},${DARK})`}}>
         <Logo size="sm"/>
         <div style={{width:50,height:1,background:`linear-gradient(90deg,transparent,${E_BLUE}44,transparent)`,margin:"18px auto"}}/>

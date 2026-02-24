@@ -257,6 +257,9 @@ export default function QuantumLiving({ onBack, archetype }) {
       .law-icon-2{animation:scalesTilt 5s ease-in-out infinite;}
       .law-icon-3{animation:lightningPulse 2s ease-in-out infinite;}
       .law-icon-4{animation:fruitShine 3s ease-in-out infinite;}
+      @keyframes focusPulse{0%,100%{box-shadow:0 0 0 0 rgba(255,255,255,0.0);}60%{box-shadow:0 0 0 8px rgba(255,255,255,0.04);}}
+      @keyframes focusGlow{0%,100%{opacity:0.7;}50%{opacity:1;}}
+      .focus-law-item{animation:focusPulse 2.5s ease-in-out infinite;}
     `;
     document.head.appendChild(s);
     return () => { const el = document.getElementById(id); if(el) el.remove(); };
@@ -269,7 +272,8 @@ export default function QuantumLiving({ onBack, archetype }) {
     const n = [...checklist];
     n[i] = !n[i];
     setChecklist(n);
-    if(n.filter(Boolean).length === 5) {
+    // Streak only triggers when TODAY'S FOCUS LAW is ticked
+    if(i === todayLawIdx && n[i] === true) {
       const today = new Date().toISOString().split("T")[0];
       localStorage.setItem("lqm_living", JSON.stringify({ streak: streak + 1, lastDay: today }));
       setStreak(s => s + 1);
@@ -277,7 +281,7 @@ export default function QuantumLiving({ onBack, archetype }) {
       const updated = updateChallengeProgress("quantum");
       if(updated){
         setChallengeData(updated);
-        trackQuantumDay(5, updated.daysCompleted?.length || 0);
+        trackQuantumDay(n.filter(Boolean).length, updated.daysCompleted?.length || 0);
         if(updated.currentDay >= 7  && !updated.milestones.day_7.unlocked)  { playMilestoneSound(); setShowMilestone("day7");  }
         else if(updated.currentDay >= 14 && !updated.milestones.day_14.unlocked) { playMilestoneSound(); setShowMilestone("day14"); }
         else if(updated.currentDay >= 21 && !updated.milestones.day_21.unlocked) { playMilestoneSound(); setShowMilestone("day21"); }
@@ -362,37 +366,111 @@ export default function QuantumLiving({ onBack, archetype }) {
           </div>
         )}
 
-        {/* ── DAILY CHECKLIST ── */}
-        <div style={{background:PANEL,border:`1px solid ${allDone?"rgba(52,211,153,0.5)":BORDER2}`,borderRadius:16,padding:"20px 22px",marginBottom:16,boxShadow:allDone?`0 0 30px rgba(52,211,153,0.1)`:"none",animation:"fadeUp .5s .15s ease both"}}>
-          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
-            <p style={{fontSize:15,fontWeight:700,color:DIMMED,letterSpacing:".12em",textTransform:"uppercase"}}>Today's Checklist</p>
-            <div style={{display:"flex",alignItems:"center",gap:10}}>
-              {streak > 0 && <span style={{fontSize:13,color:AMBER,fontWeight:700}}>🔥 {streak} days</span>}
-              <span style={{fontSize:13,fontWeight:700,color:allDone?GREEN:DIMMED}}>{score}/5</span>
+        {/* ── DAILY CHECKLIST — Focus Law (streak) + Bonus Laws (bonus points) ── */}
+        <div style={{marginBottom:16, animation:"fadeUp .5s .15s ease both"}}>
+
+          {/* TODAY'S FOCUS — tied to streak */}
+          <div className="focus-law-item" style={{
+            background:`linear-gradient(135deg,${todayLaw.color}12,${DARK2})`,
+            border:`2px solid ${todayLaw.color}${checklist[todayLawIdx]?"99":"55"}`,
+            borderRadius:16, padding:"18px 20px", marginBottom:10,
+            boxShadow:checklist[todayLawIdx]?`0 0 25px ${todayLaw.color}25`:`0 0 15px ${todayLaw.color}08`,
+            transition:"all .3s"
+          }}>
+            <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:12}}>
+              <div>
+                <p style={{fontSize:11, fontWeight:700, color:todayLaw.color, letterSpacing:".14em", textTransform:"uppercase", marginBottom:4}}>🔥 DAILY STREAK TASK</p>
+                <p style={{fontSize:13, color:MUTED}}>Complete this to count today toward your streak</p>
+              </div>
+              {streak > 0 && <div style={{background:AMBER+"18", border:`1px solid ${AMBER}44`, borderRadius:100, padding:"4px 12px"}}>
+                <span style={{fontSize:13, color:AMBER, fontWeight:700}}>🔥 {streak} days</span>
+              </div>}
             </div>
-          </div>
-          {LAWS.map((law,i)=>(
-            <div key={i} onClick={()=>toggleCheck(i)} style={{display:"flex",gap:12,alignItems:"center",padding:"11px 0",borderBottom:i<4?`1px solid ${BORDER2}`:"none",cursor:"pointer"}}>
-              <div style={{width:24,height:24,borderRadius:7,border:`1.5px solid ${checklist[i]?law.color:BORDER2}`,background:checklist[i]?`${law.color}20`:"transparent",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,transition:"all .2s"}}>
-                {checklist[i] && <span style={{color:law.color,fontSize:14,fontWeight:800}}>✓</span>}
+            <div onClick={()=>toggleCheck(todayLawIdx)} style={{
+              display:"flex", gap:14, alignItems:"center", cursor:"pointer",
+              padding:"14px 16px", borderRadius:12,
+              background:checklist[todayLawIdx]?`${todayLaw.color}18`:"rgba(255,255,255,0.03)",
+              border:`1.5px solid ${checklist[todayLawIdx]?todayLaw.color:todayLaw.color+"44"}`,
+              transition:"all .25s"
+            }}>
+              <div style={{
+                width:32, height:32, borderRadius:9,
+                background:checklist[todayLawIdx]?todayLaw.color:"transparent",
+                border:`2px solid ${todayLaw.color}`,
+                display:"flex", alignItems:"center", justifyContent:"center",
+                flexShrink:0, transition:"all .25s", fontSize:16
+              }}>
+                {checklist[todayLawIdx]
+                  ? <span style={{color:BG, fontWeight:900, fontSize:16}}>✓</span>
+                  : <span className={`law-icon-${todayLawIdx}`} style={{display:"inline-block"}}>{todayLaw.icon}</span>
+                }
               </div>
               <div style={{flex:1}}>
-                <span style={{fontSize:15,color:checklist[i]?WHITE:MUTED,fontWeight:checklist[i]?600:400,transition:"color .2s"}}>
-                  <span className={`law-icon-${i}`} style={{display:"inline-block",marginRight:8,fontSize:16}}>{law.icon}</span>
-                  {law.title}
-                  {i === todayLawIdx && <span style={{marginLeft:8,fontSize:11,fontWeight:700,color:law.color,background:`${law.color}18`,padding:"2px 8px",borderRadius:100}}>Today's Focus</span>}
-                </span>
-                <p style={{fontSize:12,color:DIMMED,marginTop:2,marginLeft:32}}>{law.subtitle}</p>
+                <p style={{fontSize:17, fontWeight:700, color:checklist[todayLawIdx]?todayLaw.color:WHITE, marginBottom:2, transition:"color .2s"}}>{todayLaw.title}</p>
+                <p style={{fontSize:13, color:MUTED}}>{todayLaw.subtitle} · {todayLaw.dailyPractice.substring(0,60)}...</p>
               </div>
+              {!checklist[todayLawIdx] && <div style={{
+                background:todayLaw.color, color:BG, fontWeight:800, fontSize:13,
+                borderRadius:100, padding:"6px 14px", flexShrink:0, letterSpacing:".05em",
+                animation:"focusGlow 2s ease-in-out infinite"
+              }}>TAP TO TICK</div>}
             </div>
-          ))}
+            {checklist[todayLawIdx] && (
+              <div style={{marginTop:10, padding:"10px 14px", background:"rgba(52,211,153,0.08)", borderRadius:10, display:"flex", alignItems:"center", gap:8}}>
+                <span style={{fontSize:16}}>✅</span>
+                <p style={{fontSize:14, color:GREEN, fontWeight:600}}>Streak logged! Daily focus complete.</p>
+              </div>
+            )}
+          </div>
+
+          {/* BONUS LAWS — additional points, don't affect streak */}
+          <div style={{background:PANEL, border:`1px solid ${BORDER2}`, borderRadius:16, padding:"16px 18px"}}>
+            <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:12}}>
+              <p style={{fontSize:12, fontWeight:700, color:DIMMED, letterSpacing:".14em", textTransform:"uppercase"}}>⭐ Additional Tasks — Bonus Points</p>
+              <span style={{fontSize:12, color:AMBER, fontWeight:700}}>
+                {checklist.filter((v,i)=>v && i!==todayLawIdx).length * 10} pts earned
+              </span>
+            </div>
+            {LAWS.map((law,i) => i === todayLawIdx ? null : (
+              <div key={i} onClick={()=>toggleCheck(i)} style={{
+                display:"flex", gap:12, alignItems:"center",
+                padding:"10px 12px", marginBottom:6, borderRadius:10, cursor:"pointer",
+                background:checklist[i]?`${law.color}0d`:"rgba(255,255,255,0.02)",
+                border:`1px solid ${checklist[i]?law.color+"44":BORDER2}`,
+                transition:"all .2s"
+              }}>
+                <div style={{
+                  width:24, height:24, borderRadius:7,
+                  background:checklist[i]?law.color:"transparent",
+                  border:`1.5px solid ${checklist[i]?law.color:BORDER2}`,
+                  display:"flex", alignItems:"center", justifyContent:"center",
+                  flexShrink:0, transition:"all .2s"
+                }}>
+                  {checklist[i]
+                    ? <span style={{color:BG, fontSize:13, fontWeight:900}}>✓</span>
+                    : <span className={`law-icon-${i}`} style={{display:"inline-block", fontSize:13}}>{law.icon}</span>
+                  }
+                </div>
+                <div style={{flex:1}}>
+                  <span style={{fontSize:14, color:checklist[i]?WHITE:MUTED, fontWeight:checklist[i]?600:400, transition:"color .2s"}}>{law.title}</span>
+                  <p style={{fontSize:11, color:DIMMED, marginTop:1}}>{law.subtitle}</p>
+                </div>
+                <span style={{fontSize:12, color:checklist[i]?AMBER:DIMMED, fontWeight:700}}>+10 pts</span>
+              </div>
+            ))}
+            <div style={{marginTop:10, padding:"8px 12px", background:"rgba(251,191,36,0.04)", border:"1px solid rgba(251,191,36,0.15)", borderRadius:8}}>
+              <p style={{fontSize:12, color:"rgba(251,191,36,0.6)", lineHeight:1.5}}>💡 Bonus points add to your LQM score. Only Today's Focus Law counts for your daily streak.</p>
+            </div>
+          </div>
+
+          {/* All done celebration */}
           {allDone && (
-            <div style={{marginTop:14,padding:"14px 16px",background:"rgba(52,211,153,0.08)",border:"1px solid rgba(52,211,153,0.3)",borderRadius:10,textAlign:"center"}}>
-              <p style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:20,letterSpacing:2,color:GREEN,marginBottom:4}}>⚡ All 5 Laws Honoured Today</p>
+            <div style={{marginTop:10,padding:"14px 18px",background:"rgba(52,211,153,0.08)",border:"1px solid rgba(52,211,153,0.3)",borderRadius:12,textAlign:"center"}}>
+              <p style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:20,letterSpacing:2,color:GREEN,marginBottom:4}}>🌿 All 5 Laws Honoured Today</p>
               <p style={{fontFamily:"'Crimson Pro',serif",fontStyle:"italic",fontSize:14,color:MUTED}}>"Small shifts, consistently honoured, produce quantum results."</p>
-              {showMilestone==="day7"  && <div style={{marginTop:10,padding:"10px",background:"rgba(52,211,153,0.12)",borderRadius:8}}><p style={{color:GREEN,fontWeight:700}}>🌱 Week 1 Complete! You have built the foundation.</p></div>}
+              {showMilestone==="day7"  && <div style={{marginTop:10,padding:"10px",background:"rgba(52,211,153,0.12)",borderRadius:8}}><p style={{color:GREEN,fontWeight:700}}>🌱 Week 1 Complete! You built the foundation.</p></div>}
               {showMilestone==="day14" && <div style={{marginTop:10,padding:"10px",background:"rgba(52,211,153,0.12)",borderRadius:8}}><p style={{color:GREEN,fontWeight:700}}>🌿 Week 2 Complete! The habit is forming.</p></div>}
-              {showMilestone==="day21" && <div style={{marginTop:10,padding:"10px",background:"rgba(52,211,153,0.15)",borderRadius:8}}><p style={{color:GREEN,fontWeight:700}}>🌳 21 Days Complete! You have transformed your daily living.</p></div>}
+              {showMilestone==="day21" && <div style={{marginTop:10,padding:"10px",background:"rgba(52,211,153,0.15)",borderRadius:8}}><p style={{color:GREEN,fontWeight:700}}>🌳 21 Days Complete! You transformed your daily living.</p></div>}
             </div>
           )}
         </div>
