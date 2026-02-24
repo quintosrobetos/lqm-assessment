@@ -181,6 +181,47 @@ const CHECKLIST_ITEMS = [
   "Fruits or vegetables at the heart of every meal today",
 ];
 
+
+// ── Daily natural product fun fact ──────────────────────────────────────
+const FUN_FACTS = [
+  { ingredient:"Garlic", fact:"Raw garlic contains allicin — a compound shown in research to reduce cortisol levels and support immune function. Let it sit for 10 minutes after chopping to activate the allicin before eating." },
+  { ingredient:"Turmeric", fact:"Curcumin, the active compound in turmeric, has been shown to cross the blood-brain barrier and reduce neuroinflammation. Adding black pepper increases its absorption by up to 2,000%." },
+  { ingredient:"Blueberries", fact:"Blueberries are one of the few foods shown in studies to directly improve memory and delay cognitive ageing. A handful a day is enough to see measurable effects within 12 weeks." },
+  { ingredient:"Walnuts", fact:"Walnuts are the only nut with significant omega-3 content. Their shape isn't accidental — research confirms they specifically support brain structure and improve working memory." },
+  { ingredient:"Dark Chocolate", fact:"Cacao contains theobromine and flavonoids that increase blood flow to the brain. 70%+ dark chocolate in small amounts has been linked to improved focus and reduced anxiety." },
+  { ingredient:"Green Tea", fact:"L-theanine in green tea produces alert calmness — it increases alpha brain waves, the same state seen in experienced meditators. Combined with caffeine, it's one of nature's best focus compounds." },
+  { ingredient:"Ginger", fact:"Ginger contains gingerols and shogaols that inhibit inflammatory pathways in the brain. Fresh ginger tea before bed has been shown to reduce muscle soreness and improve sleep quality." },
+  { ingredient:"Avocado", fact:"Avocados are rich in oleic acid — the same fat that makes up 25% of the myelin sheath protecting your nerve fibres. They also contain more potassium than a banana, critical for cognitive function." },
+  { ingredient:"Spinach", fact:"Spinach contains lutein and folate, both linked to slower cognitive decline. Research from Tufts University found people who ate leafy greens daily had brains 11 years younger than those who didn't." },
+  { ingredient:"Wild Salmon", fact:"DHA from wild salmon makes up 40% of the polyunsaturated fats in your brain. Low DHA levels are consistently linked to depression, brain fog, and slower learning speeds." },
+  { ingredient:"Oats", fact:"Beta-glucan in oats feeds the beneficial bacteria in your gut — which produce 90% of your body's serotonin. A slow-release breakfast is directly linked to more stable mood throughout the day." },
+  { ingredient:"Cinnamon", fact:"Just half a teaspoon of cinnamon a day has been shown to improve insulin sensitivity, stabilise blood sugar, and increase BDNF — the protein responsible for creating new brain cells." },
+  { ingredient:"Beetroot", fact:"Beetroot is one of the richest dietary sources of nitrates, which convert to nitric oxide in the body — widening blood vessels and increasing oxygen delivery to the prefrontal cortex by up to 16%." },
+  { ingredient:"Broccoli", fact:"Broccoli contains sulforaphane — a compound that activates your body's own antioxidant defence system. It's also one of the best food sources of Vitamin K, essential for cognitive function." },
+  { ingredient:"Eggs", fact:"Eggs are the richest dietary source of choline — the precursor to acetylcholine, the neurotransmitter responsible for memory formation. One egg contains 35% of your daily choline requirement." },
+  { ingredient:"Pomegranate", fact:"Pomegranate juice contains ellagitannins that convert in the gut to urolithins — compounds shown to clear damaged mitochondria from brain cells, essentially performing cellular housekeeping." },
+  { ingredient:"Almonds", fact:"Almonds contain riboflavin and L-carnitine, two nutrients that support neural pathways and have been linked to increased brain activity. They're also one of the best magnesium sources — critical for sleep." },
+  { ingredient:"Olive Oil", fact:"Extra virgin olive oil contains oleocanthal — a natural anti-inflammatory with a mechanism similar to ibuprofen. Regular consumption is one of the most replicated predictors of long-term brain health." },
+  { ingredient:"Fermented Foods", fact:"Kimchi, kefir, and live yoghurt contain live bacteria that communicate with your brain via the vagus nerve. Studies show fermented food consumption correlates strongly with reduced anxiety scores." },
+  { ingredient:"Brazil Nuts", fact:"A single Brazil nut contains your entire daily selenium requirement. Selenium is essential for thyroid function, which directly regulates energy, mood, and metabolic rate." },
+  { ingredient:"Sweet Potato", fact:"Sweet potatoes are one of the richest sources of beta-carotene, which converts to Vitamin A in the body — essential for maintaining the protective layer around brain and spinal cord neurons." },
+  { ingredient:"Lemon", fact:"The scent of lemon alone has been shown in research to increase alertness and cognitive performance. Lemon water first thing in the morning supports liver detoxification and alkalises the body." },
+  { ingredient:"Pumpkin Seeds", fact:"Pumpkin seeds are the richest plant source of zinc, which is essential for nerve signalling. They also contain magnesium, iron, copper and manganese — critical micronutrients for brain function." },
+  { ingredient:"Chamomile", fact:"Chamomile contains apigenin — an antioxidant that binds to GABA receptors in your brain, producing a mild sedative effect. It's one of the most studied natural sleep aids, shown to improve sleep quality." },
+  { ingredient:"Rosemary", fact:"The aroma of rosemary alone has been shown to improve memory performance by 15% in research trials. Carnosic acid in rosemary also protects the brain from oxidative stress and free radical damage." },
+  { ingredient:"Flaxseed", fact:"Ground flaxseed is one of the best plant-based sources of ALA omega-3 fatty acids. It also contains lignans — phytoestrogens shown to reduce inflammation and support hormonal balance." },
+  { ingredient:"Honey", fact:"Raw honey contains prebiotics that feed beneficial gut bacteria, trace minerals, and a small amount of melatonin precursors. A teaspoon of raw honey before bed may improve sleep quality and morning alertness." },
+  { ingredient:"Cayenne Pepper", fact:"Capsaicin in cayenne triggers the release of endorphins and increases thermogenesis — your body's heat production. It's also shown to reduce appetite and increase energy expenditure for several hours after eating." },
+  { ingredient:"Coconut Oil", fact:"Medium-chain triglycerides (MCTs) in coconut oil are converted rapidly to ketones — an alternative fuel source the brain uses efficiently. MCTs have shown promise in early cognitive decline research." },
+  { ingredient:"Black Pepper", fact:"Piperine in black pepper doesn't just enhance nutrient absorption — it also inhibits an enzyme that breaks down serotonin and dopamine in the brain, effectively boosting their availability naturally." },
+  { ingredient:"Watercress", fact:"Watercress has the highest nutrient density of any vegetable tested by the CDC. It contains isothiocyanates shown to protect DNA from damage caused by oxidative stress — a leading driver of ageing." },
+  { ingredient:"Maca Root", fact:"Maca is an adaptogen — a plant that helps your body regulate its stress response. Studies show consistent maca use improves energy, mood, and endurance without stimulant effects or adrenal burden." },
+  { ingredient:"Ashwagandha", fact:"Withaferin A in ashwagandha has been shown to reduce cortisol by 27% over 60 days in clinical trials. It's the most studied adaptogen for stress reduction and sleep quality improvement." },
+  { ingredient:"Saffron", fact:"Saffron contains safranal and crocin — compounds shown in multiple studies to be as effective as low-dose antidepressants for mild to moderate depression, with no significant side effects reported." },
+  { ingredient:"Lion's Mane Mushroom", fact:"Lion's Mane is the only known food that stimulates Nerve Growth Factor (NGF) production — the protein responsible for growing and maintaining neurons. It's the most studied natural compound for neuroplasticity." },
+];
+const todayFact = FUN_FACTS[Math.floor(new Date().getTime() / 86400000) % FUN_FACTS.length];
+
 export default function QuantumLiving({ onBack, archetype }) {
   const [activeLaw, setActiveLaw] = useState(null);
   const todayKey = new Date().toISOString().split("T")[0]; // "2026-02-25"
@@ -414,6 +455,15 @@ export default function QuantumLiving({ onBack, archetype }) {
             <p style={{fontSize:14,color:MUTED,lineHeight:1.7}}>{dailyArchTip}</p>
           </div>
         )}
+
+        {/* ── DAILY FUN FACT ── */}
+        <div style={{background:"rgba(52,211,153,0.04)",border:"1px solid rgba(52,211,153,0.18)",borderRadius:14,padding:"16px 18px",marginBottom:16,animation:"fadeUp .5s .12s ease both"}}>
+          <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:10}}>
+            <span style={{fontSize:18}}>🌿</span>
+            <p style={{fontSize:12,fontWeight:700,color:GREEN,letterSpacing:".14em",textTransform:"uppercase"}}>Today's Natural Intelligence — {todayFact.ingredient}</p>
+          </div>
+          <p style={{fontSize:14,color:MUTED,lineHeight:1.75}}>{todayFact.fact}</p>
+        </div>
 
         {/* ── DAILY CHECKLIST — Focus Law (streak) + Bonus Laws (bonus points) ── */}
         <div style={{marginBottom:16, animation:"fadeUp .5s .15s ease both"}}>

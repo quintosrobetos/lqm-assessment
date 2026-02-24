@@ -246,6 +246,20 @@ const ARCHETYPE_DATA = {
 function loadBrain(){ try{return JSON.parse(localStorage.getItem("lqm_brain")||"{}");}catch{return{};} }
 function saveBrain(d){ localStorage.setItem("lqm_brain",JSON.stringify(d)); }
 
+function saveSession(round, scores, difficulty){
+  const today = new Date().toISOString().split("T")[0];
+  localStorage.setItem("lqm_brain_session", JSON.stringify({ round, scores, difficulty, date: today }));
+}
+function loadSession(){
+  try {
+    const s = JSON.parse(localStorage.getItem("lqm_brain_session")||"null");
+    const today = new Date().toISOString().split("T")[0];
+    if(s && s.date === today && s.round > 0 && s.round < 6) return s;
+  } catch{}
+  return null;
+}
+function clearSession(){ localStorage.removeItem("lqm_brain_session"); }
+
 // ── Global styles ─────────────────────────────────────────────────────────
 function GlobalStyles(){
   useEffect(()=>{
@@ -350,6 +364,7 @@ export default function BrainTraining({ onBack, archetype }){
   const [difficulty, setDifficulty] = useState(null);
   const [round,   setRound]   = useState(0);
   const [scores,  setScores]  = useState([]);
+  const [savedSession, setSavedSession] = useState(()=>loadSession());
   const [userData,setUserData]= useState(loadBrain);
   const [dailyAction]         = useState(()=>DAILY_ACTIONS[new Date().getDay()]);
   const [challengeData, setChallengeData] = useState(null);
@@ -380,8 +395,9 @@ export default function BrainTraining({ onBack, archetype }){
     playSuccessSound();
     
     if(round<5){ 
-      setRound(round+1); 
-      setScreen("science"); 
+      setRound(round+1);
+      setScreen("science");
+      saveSession(round+1, newScores, difficulty); // Save progress after each round
     }
     else {
       // Full session complete (all 6 challenges done)
@@ -443,11 +459,19 @@ export default function BrainTraining({ onBack, archetype }){
         }
       }
       
+      clearSession(); // Full session done — clear save point
       setScreen("results");
     }
   }
 
-  function startProtocol(){ setRound(0); setScores([]); setScreen("science"); }
+  function startProtocol(){ 
+    setRound(0); setScores([]); setSavedSession(null); clearSession();
+    setScreen("science"); 
+  }
+  function resumeSession(s){
+    setRound(s.round); setScores(s.scores); setDifficulty(s.difficulty);
+    setSavedSession(null); setScreen("science");
+  }
 
   return(
     <div style={{minHeight:"100vh",background:`radial-gradient(ellipse 70% 35% at 50% 0%,rgba(0,200,255,0.07) 0%,transparent 55%),${BG}`,fontFamily:"'Space Grotesk',sans-serif",color:WHITE,display:"flex",flexDirection:"column",alignItems:"center",padding:"0 0 60px"}}>
@@ -466,7 +490,24 @@ export default function BrainTraining({ onBack, archetype }){
       </div>
 
       <div style={{width:"100%",maxWidth:560,padding:"32px 20px 0"}}>
-        {screen==="difficulty" && <DifficultySelection onSelect={(d)=>{setDifficulty(d);setScreen("intro");}}/>}
+        {screen==="difficulty" && <>
+          {savedSession && (
+            <div style={{maxWidth:520,margin:"0 auto 16px",background:"rgba(0,200,255,0.06)",border:"1px solid rgba(0,200,255,0.35)",borderRadius:16,padding:"18px 22px"}}>
+              <p style={{fontSize:13,fontWeight:700,color:E_BLUE,letterSpacing:".12em",textTransform:"uppercase",marginBottom:8}}>⚡ Unfinished Session Found</p>
+              <p style={{fontSize:15,color:WHITE,marginBottom:4}}>You completed <strong style={{color:E_BLUE}}>{savedSession.round} of 6</strong> challenges earlier today.</p>
+              <p style={{fontSize:13,color:MUTED,marginBottom:14}}>Your scores are saved — pick up from Round {savedSession.round + 1}.</p>
+              <div style={{display:"flex",gap:10,flexWrap:"wrap"}}>
+                <button onClick={()=>resumeSession(savedSession)} style={{flex:1,background:E_BLUE,color:BG,fontWeight:800,fontSize:14,borderRadius:100,padding:"10px 18px",border:"none",cursor:"pointer",fontFamily:"'Space Grotesk',sans-serif"}}>
+                  ▶ Resume from Round {savedSession.round + 1}
+                </button>
+                <button onClick={()=>{clearSession();setSavedSession(null);}} style={{background:"rgba(255,255,255,0.04)",color:MUTED,fontWeight:600,fontSize:13,borderRadius:100,padding:"10px 16px",border:`1px solid ${BORDER2}`,cursor:"pointer",fontFamily:"'Space Grotesk',sans-serif"}}>
+                  Start Fresh
+                </button>
+              </div>
+            </div>
+          )}
+          <DifficultySelection onSelect={(d)=>{setDifficulty(d);setScreen("intro");}}/>
+        </>}
         {screen==="intro"     && <Intro onStart={startProtocol} onQuickPlay={()=>{setRound(5);setScores([]);setScreen("challenge");}} xp={totalXP} streak={streak} level={level} userData={userData} difficulty={difficulty} challengeData={challengeData}/>}
         {screen==="science"   && <ScienceCard card={SCIENCE_CARDS[round]} round={round} onBegin={()=>setScreen("challenge")}/>}
         {screen==="challenge" && round===0 && <StroopChallenge   key="s" difficulty={DIFFICULTY[difficulty]} onComplete={handleRoundComplete}/>}
