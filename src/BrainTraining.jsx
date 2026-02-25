@@ -1172,6 +1172,8 @@ function NeuralDefense({onComplete, difficulty}){
   const nextPopupId = useRef(0);
   const scoreRef = useRef(0);
   const hitsRef = useRef(0);
+  const lastShotRef = useRef(0);
+  const [showTip, setShowTip] = useState(true);
   
   const SHAPES_POOL = [
     {type:"circle",  color:E_BLUE, pts:10},
@@ -1300,9 +1302,6 @@ function NeuralDefense({onComplete, difficulty}){
       if(gameLoopRef.current) cancelAnimationFrame(gameLoopRef.current);
     };
   }, []);
-
-  const lastShotRef = useRef(0);
-  const [showTip, setShowTip] = useState(true);
 
   function handleShoot(){
     if(phase !== "playing") return;
