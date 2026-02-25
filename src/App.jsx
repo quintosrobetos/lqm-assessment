@@ -740,14 +740,14 @@ function Hub({type, unlocks, onOpenNeural, onOpenVital, onViewReport, onUnlockNe
         onMouseLeave={e=>{e.currentTarget.style.transform="translateY(0)";e.currentTarget.style.boxShadow="none";}}>
         <div style={{display:"flex", alignItems:"center", justifyContent:"space-between"}}>
           <div style={{display:"flex", alignItems:"center", gap:14}}>
-            <div style={{width:46, height:46, borderRadius:14, background:`${type.blue}18`, border:`1px solid ${type.blue}44`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:22}}>📊</div>
+            <div style={{width:46, height:46, borderRadius:14, background:`${type.blue}18`, border:`1px solid ${type.blue}44`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:24}}>{type.sym}</div>
             <div>
               <p style={{fontSize:13, fontWeight:700, color:type.blue, letterSpacing:".12em", textTransform:"uppercase", marginBottom:3}}>My Profile Report</p>
               <p style={{fontSize:18, fontWeight:700, color:WHITE}}>Full Archetype Analysis</p>
               <p style={{fontSize:13, color:DIMMED, marginTop:2}}>Strengths · Blind spots · 3 strategy cards · Visual insight</p>
             </div>
           </div>
-          <span style={{fontSize:20, color:type.blue, opacity:.7}}>→</span>
+          <div style={{background:`${type.blue}18`, border:`1px solid ${type.blue}55`, borderRadius:100, padding:"6px 14px", fontSize:13, color:type.blue, fontWeight:700, flexShrink:0}}>Open →</div>
         </div>
       </div>
 

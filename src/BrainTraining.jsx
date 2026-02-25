@@ -161,11 +161,19 @@ const DAILY_ACTIONS = [
 
 // ── Stroop data ───────────────────────────────────────────────────────────
 const STROOP_COLORS = [
-  { name:"RED",   hex:"#EF4444" },
-  { name:"BLUE",  hex:"#3B82F6" },
-  { name:"GREEN", hex:"#22C55E" },
-  { name:"AMBER", hex:"#F59E0B" },
+  { name:"RED",    hex:"#EF4444" },
+  { name:"BLUE",   hex:"#3B82F6" },
+  { name:"GREEN",  hex:"#22C55E" },
+  { name:"AMBER",  hex:"#F59E0B" },
+  { name:"VIOLET", hex:"#A78BFA" },
+  { name:"PINK",   hex:"#F472B6" },
 ];
+// Stroop only shows 4 choices per round — pick 4 including the correct ink
+function getStroopChoices(inkName){
+  const others = STROOP_COLORS.filter(c=>c.name!==inkName).sort(()=>Math.random()-.5).slice(0,3);
+  const all = [...others, STROOP_COLORS.find(c=>c.name===inkName)].sort(()=>Math.random()-.5);
+  return all;
+}
 function genStroopRound(){
   const ink  = STROOP_COLORS[Math.floor(Math.random()*STROOP_COLORS.length)];
   let word   = STROOP_COLORS[Math.floor(Math.random()*STROOP_COLORS.length)];
@@ -677,11 +685,18 @@ function ScienceCard({card:c,round,onBegin}){
 
 // ── Round progress bar ────────────────────────────────────────────────────
 function RoundProgress({round}){
+  const NAMES = ["Stroop","2-Back","Matrix","Reaction","Switch","Defense"];
   return(
-    <div style={{display:"flex",gap:6,marginBottom:20}}>
-      {[0,1,2,3,4].map(i=>(
-        <div key={i} style={{flex:1,height:3,borderRadius:100,background:i<round?E_BLUE:i===round?"rgba(0,200,255,0.35)":"rgba(255,255,255,0.06)",transition:"background .3s"}}/>
-      ))}
+    <div style={{marginBottom:24,marginTop:8}}>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
+        <p style={{fontSize:11,color:DIMMED,letterSpacing:".12em",textTransform:"uppercase",fontWeight:700}}>Round {round} of 6</p>
+        <p style={{fontSize:11,color:E_BLUE,fontWeight:700,letterSpacing:".08em"}}>{NAMES[round-1]}</p>
+      </div>
+      <div style={{display:"flex",gap:5}}>
+        {[1,2,3,4,5,6].map(i=>(
+          <div key={i} style={{flex:1,height:4,borderRadius:100,background:i<round?E_BLUE:i===round?"rgba(0,200,255,0.5)":"rgba(255,255,255,0.06)",transition:"background .3s",boxShadow:i<round?`0 0 6px ${E_BLUE}66`:"none"}}/>
+        ))}
+      </div>
     </div>
   );
 }
@@ -773,11 +788,11 @@ function StroopChallenge({onComplete, difficulty}){
           </div>
           <p style={{textAlign:"center",fontSize:16,color:DIMMED,fontWeight:700,letterSpacing:".12em",textTransform:"uppercase",marginBottom:12}}>Tap the ink colour</p>
           <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
-            {STROOP_COLORS.map(c=>(
-              <button key={c.name} onClick={()=>handleAnswer(c.name)} style={{border:`2px solid ${c.hex}44`,borderRadius:14,padding:"16px 0",background:`${c.hex}0c`,cursor:"pointer",display:"flex",flexDirection:"column",alignItems:"center",gap:8,transition:"all .12s",fontFamily:"'Space Grotesk',sans-serif"}}
-                onMouseEnter={e=>e.currentTarget.style.background=`${c.hex}22`}
-                onMouseLeave={e=>e.currentTarget.style.background=`${c.hex}0c`}>
-                <div style={{width:28,height:28,borderRadius:"50%",background:c.hex,boxShadow:`0 0 14px ${c.hex}88`}}/>
+            {getStroopChoices(item.inkName).map(c=>(
+              <button key={c.name} onClick={()=>handleAnswer(c.name)} style={{border:`2px solid ${c.hex}`,borderRadius:14,padding:"16px 0",background:`${c.hex}18`,cursor:"pointer",display:"flex",flexDirection:"column",alignItems:"center",gap:8,transition:"all .12s",fontFamily:"'Space Grotesk',sans-serif",boxShadow:`0 0 10px ${c.hex}33`}}
+                onMouseEnter={e=>{e.currentTarget.style.background=`${c.hex}35`;e.currentTarget.style.boxShadow=`0 0 18px ${c.hex}66`;}}
+                onMouseLeave={e=>{e.currentTarget.style.background=`${c.hex}18`;e.currentTarget.style.boxShadow=`0 0 10px ${c.hex}33`;}}>
+                <div style={{width:30,height:30,borderRadius:"50%",background:c.hex,boxShadow:`0 0 14px ${c.hex}99`}}/>
                 <span style={{fontSize:15,fontWeight:700,color:WHITE,letterSpacing:".06em"}}>{c.name}</span>
               </button>
             ))}
@@ -1179,6 +1194,8 @@ function NeuralDefense({onComplete, difficulty}){
     setShapes([]);
     setParticles([]);
     reactionTimes.current = [];
+    setShowTip(true); // Reset tip for new game
+    setTimeout(()=>setShowTip(false), 4000); // Auto-hide after 4s
     startWave(1);
   }
 
@@ -1285,13 +1302,14 @@ function NeuralDefense({onComplete, difficulty}){
   }, []);
 
   const lastShotRef = useRef(0);
+  const [showTip, setShowTip] = useState(true);
 
   function handleShoot(){
     if(phase !== "playing") return;
-    // Debounce: prevent double-fire from touchend + synthetic click (300ms gap)
     const now = Date.now();
     if(now - lastShotRef.current < 320) return;
     lastShotRef.current = now;
+    if(showTip) setShowTip(false); // Hide instructions on first shot
     
     // 🔊 SHOOT SOUND
     playShootSound();
@@ -1749,13 +1767,15 @@ function NeuralDefense({onComplete, difficulty}){
           </div>
         </div>
         
-        {/* Tap instruction with shield tooltip */}
-        <div style={{position:"absolute",bottom:50,left:"50%",transform:"translateX(-50%)",fontSize:13,color:DIMMED,pointerEvents:"none",textAlign:"center"}}>
-          <div style={{marginBottom:4}}>Tap anywhere to shoot</div>
-          <div style={{fontSize:11,color:PURPLE,background:"rgba(139,92,246,0.1)",padding:"4px 8px",borderRadius:6}}>
-            🛡️ Shield blocks incoming shapes
+        {/* Tap instruction — fades after first shot */}
+        {showTip && (
+          <div style={{position:"absolute",bottom:50,left:"50%",transform:"translateX(-50%)",fontSize:13,color:DIMMED,pointerEvents:"none",textAlign:"center",transition:"opacity .5s",animation:"fadeUp .3s ease both"}}>
+            <div style={{marginBottom:4}}>Tap anywhere to shoot</div>
+            <div style={{fontSize:11,color:PURPLE,background:"rgba(139,92,246,0.1)",padding:"4px 8px",borderRadius:6,whiteSpace:"nowrap"}}>
+              🛡️ Move shield with finger · Tap to fire
+            </div>
           </div>
-        </div>
+        )}
       </div>
       
       {/* Add CSS keyframes for lightning flicker and screen shake */}

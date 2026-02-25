@@ -403,64 +403,103 @@ export default function QuantumLiving({ onBack, archetype }) {
 
       <div style={{width:"100%",maxWidth:620,paddingTop:28,zIndex:1}}>
 
-        {/* ── ARCHETYPE HEADER ── */}
-        {arch && (
-          <div style={{textAlign:"center",marginBottom:24,animation:"fadeUp .5s ease both"}}>
-            <div style={{display:"inline-block",background:`${archColor}12`,border:`1px solid ${archColor}44`,borderRadius:100,padding:"5px 16px",marginBottom:12}}>
-              <span style={{fontSize:12,fontWeight:700,color:archColor,letterSpacing:".14em",textTransform:"uppercase"}}>🌿 Quantum Living — {archName}</span>
-            </div>
-            <h1 style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"clamp(26px,5vw,40px)",letterSpacing:2,color:WHITE,lineHeight:1.1,marginBottom:6}}>Your Daily<br/><span style={{color:GREEN}}>Living Practice</span></h1>
-            <p style={{fontFamily:"'Crimson Pro',serif",fontStyle:"italic",fontSize:15,color:MUTED,lineHeight:1.65,maxWidth:380,margin:"0 auto"}}>"Peak performance is built in the whole life — rested, breathed, balanced, moved and nourished."</p>
-          </div>
-        )}
+        {/* ── SECTION 1: TODAY'S INTENTION — Law + streak tick integrated ── */}
+        <div style={{marginBottom:16,animation:"fadeUp .5s ease both"}}>
 
-        {/* ── TODAY'S FEATURED LAW ── */}
-        <div style={{background:`linear-gradient(145deg,${todayLaw.color}12,${DARK2})`,border:`2px solid ${todayLaw.color}55`,borderRadius:20,padding:"24px",marginBottom:16,animation:"fadeUp .5s .05s ease both",boxShadow:`0 0 40px ${todayLaw.color}10`}}>
-          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
-            <div style={{background:`${todayLaw.color}18`,border:`1px solid ${todayLaw.color}44`,borderRadius:100,padding:"4px 12px"}}>
-              <span style={{fontSize:12,fontWeight:700,color:todayLaw.color,letterSpacing:".12em",textTransform:"uppercase"}}>⭐ Today's Focus Law</span>
+          {/* Law identity badge */}
+          <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:12}}>
+            <div style={{display:"flex",alignItems:"center",gap:10}}>
+              <span style={{fontSize:28}}>{todayLaw.icon}</span>
+              <div>
+                <p style={{fontSize:11,fontWeight:700,color:todayLaw.color,letterSpacing:".14em",textTransform:"uppercase",marginBottom:2}}>Law {todayLaw.num} · Today's Focus</p>
+                <h2 style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:28,letterSpacing:2,color:WHITE,lineHeight:1}}>{todayLaw.title}</h2>
+              </div>
             </div>
-            <span style={{fontSize:22,opacity:.7}}><span className={`law-icon-${todayLawIdx}`} style={{display:"inline-block"}}>{todayLaw.icon}</span></span>
+            {streak > 0 && <div style={{background:AMBER+"15",border:`1px solid ${AMBER}44`,borderRadius:100,padding:"5px 12px",flexShrink:0}}>
+              <span style={{fontSize:13,color:AMBER,fontWeight:700}}>🔥 {streak} days</span>
+            </div>}
           </div>
 
-          <p style={{fontSize:13,fontWeight:700,color:todayLaw.color,letterSpacing:".1em",textTransform:"uppercase",marginBottom:4}}>Law {todayLaw.num} · {todayLaw.subtitle}</p>
-          <h2 style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:32,letterSpacing:2,color:WHITE,marginBottom:10}}>{todayLaw.title}</h2>
-          <p style={{fontFamily:"'Crimson Pro',serif",fontStyle:"italic",fontSize:16,color:todayLaw.color,lineHeight:1.6,marginBottom:16}}>"{todayLaw.principle}"</p>
+          {/* Principle quote */}
+          <p style={{fontFamily:"'Crimson Pro',serif",fontStyle:"italic",fontSize:16,color:todayLaw.color,lineHeight:1.6,marginBottom:14,paddingLeft:4}}>"{todayLaw.principle}"</p>
 
-          {/* Today's practice */}
-          <div style={{background:"rgba(255,255,255,0.04)",border:`1px solid rgba(255,255,255,0.08)`,borderRadius:12,padding:"14px 16px",marginBottom:todayArchNote?14:0}}>
-            <p style={{fontSize:13,fontWeight:700,color:DIMMED,letterSpacing:".1em",textTransform:"uppercase",marginBottom:8}}>◈ Today's Practice</p>
+          {/* Practice — the actual thing to do today */}
+          <div style={{background:`linear-gradient(135deg,${todayLaw.color}0e,${DARK2})`,border:`1.5px solid ${todayLaw.color}44`,borderRadius:14,padding:"14px 16px",marginBottom:12}}>
+            <p style={{fontSize:11,fontWeight:700,color:todayLaw.color,letterSpacing:".12em",textTransform:"uppercase",marginBottom:8}}>◈ Your Practice Today</p>
             <p style={{fontSize:15,color:"rgba(255,255,255,0.78)",lineHeight:1.85,fontWeight:400}}>{todayLaw.dailyPractice}</p>
           </div>
 
-          {/* Archetype-specific note for today's law */}
+          {/* Archetype note */}
           {todayArchNote && (
-            <div style={{background:`${archColor}0c`,border:`1px solid ${archColor}33`,borderLeft:`3px solid ${archColor}`,borderRadius:"0 10px 10px 0",padding:"12px 14px"}}>
-              <p style={{fontSize:12,fontWeight:700,color:archColor,letterSpacing:".1em",textTransform:"uppercase",marginBottom:6}}>⚛ {archName} — Applied to You</p>
+            <div style={{background:`${archColor}0a`,borderLeft:`3px solid ${archColor}`,borderRadius:"0 10px 10px 0",padding:"12px 14px",marginBottom:12}}>
+              <p style={{fontSize:11,fontWeight:700,color:archColor,letterSpacing:".1em",textTransform:"uppercase",marginBottom:5}}>⚛ For {archName}</p>
               <p style={{fontSize:14,color:"rgba(255,255,255,0.72)",lineHeight:1.75,fontWeight:400}}>{todayArchNote}</p>
             </div>
           )}
 
-          <button onClick={()=>setActiveLaw(todayLawIdx)} style={{width:"100%",marginTop:14,border:`1px solid ${todayLaw.color}44`,borderRadius:100,padding:"11px",fontSize:13,fontWeight:700,background:`${todayLaw.color}12`,color:todayLaw.color,cursor:"pointer",fontFamily:"'Space Grotesk',sans-serif",letterSpacing:".06em"}}
-            onMouseEnter={e=>e.currentTarget.style.background=`${todayLaw.color}22`}
-            onMouseLeave={e=>e.currentTarget.style.background=`${todayLaw.color}12`}>
-            Read the Full Law — 4 Practices, Science & More →
+          {/* TICK — integrated into the law card, not a separate section */}
+          <div onClick={()=>toggleCheck(todayLawIdx)} style={{
+            display:"flex",alignItems:"center",gap:14,
+            padding:"14px 16px",borderRadius:14,cursor:"pointer",
+            background:checklist[todayLawIdx]?`${todayLaw.color}18`:"rgba(255,255,255,0.03)",
+            border:`2px solid ${checklist[todayLawIdx]?todayLaw.color:todayLaw.color+"55"}`,
+            boxShadow:checklist[todayLawIdx]?`0 0 20px ${todayLaw.color}22`:"none",
+            transition:"all .3s",marginBottom:8
+          }}>
+            <div style={{
+              width:36,height:36,borderRadius:10,flexShrink:0,
+              background:checklist[todayLawIdx]?todayLaw.color:`${todayLaw.color}22`,
+              border:`2px solid ${todayLaw.color}`,
+              display:"flex",alignItems:"center",justifyContent:"center",
+              transition:"all .25s",fontSize:18
+            }}>
+              {checklist[todayLawIdx]
+                ? <span style={{color:BG,fontWeight:900,fontSize:18}}>✓</span>
+                : <span style={{display:"inline-block"}}>{todayLaw.icon}</span>}
+            </div>
+            <div style={{flex:1}}>
+              <p style={{fontSize:16,fontWeight:700,color:checklist[todayLawIdx]?todayLaw.color:WHITE,transition:"color .2s",marginBottom:2}}>
+                {checklist[todayLawIdx] ? "Done for today ✓" : todayLaw.title}
+              </p>
+              <p style={{fontSize:13,color:MUTED,lineHeight:1.4}}>{checklist[todayLawIdx] ? "Streak logged — come back tomorrow" : todayLaw.todaySummary}</p>
+            </div>
+            {!checklist[todayLawIdx] && (
+              <div style={{
+                background:todayLaw.color,color:BG,fontWeight:800,fontSize:13,
+                borderRadius:100,padding:"8px 16px",flexShrink:0,
+                boxShadow:`0 0 14px ${todayLaw.color}66`,
+                animation:"focusGlow 2s ease-in-out infinite",
+                whiteSpace:"nowrap"
+              }}>Mark Done</div>
+            )}
+          </div>
+
+          {/* Dive deeper */}
+          <button onClick={()=>setActiveLaw(todayLawIdx)} style={{
+            width:"100%",border:`1px solid ${todayLaw.color}33`,borderRadius:100,
+            padding:"10px",fontSize:13,fontWeight:700,background:"transparent",
+            color:todayLaw.color,cursor:"pointer",fontFamily:"'Space Grotesk',sans-serif",
+            letterSpacing:".06em",opacity:.8
+          }}
+            onMouseEnter={e=>{e.currentTarget.style.opacity="1";e.currentTarget.style.background=`${todayLaw.color}12`;}}
+            onMouseLeave={e=>{e.currentTarget.style.opacity=".8";e.currentTarget.style.background="transparent";}}>
+            Explore full law — practices, science & more →
           </button>
         </div>
 
-        {/* ── DAILY ARCHETYPE TIP ── */}
+        {/* ── SECTION 2: YOUR TIP — archetype insight (discoverable on scroll) ── */}
         {dailyArchTip && (
-          <div style={{background:`${archColor}08`,border:`1px solid ${archColor}33`,borderRadius:14,padding:"16px 18px",marginBottom:16,animation:"fadeUp .5s .1s ease both"}}>
-            <p style={{fontSize:12,fontWeight:700,color:archColor,letterSpacing:".12em",textTransform:"uppercase",marginBottom:8}}>💡 Your Tip Today — {archName}</p>
+          <div style={{background:`${archColor}08`,border:`1px solid ${archColor}25`,borderRadius:14,padding:"16px 18px",marginBottom:16,animation:"fadeUp .5s .08s ease both"}}>
+            <p style={{fontSize:11,fontWeight:700,color:archColor,letterSpacing:".12em",textTransform:"uppercase",marginBottom:8}}>💡 Your Edge Today — {archName}</p>
             <p style={{fontSize:15,color:"rgba(255,255,255,0.78)",lineHeight:1.8,fontWeight:400}}>{dailyArchTip}</p>
           </div>
         )}
 
-        {/* ── DAILY FUN FACT ── */}
-        <div style={{background:"rgba(52,211,153,0.04)",border:"1px solid rgba(52,211,153,0.18)",borderRadius:14,padding:"16px 18px",marginBottom:16,animation:"fadeUp .5s .12s ease both"}}>
+        {/* ── SECTION 3: NATURAL INTELLIGENCE — daily fact ── */}
+        <div style={{background:"rgba(52,211,153,0.04)",border:"1px solid rgba(52,211,153,0.15)",borderRadius:14,padding:"16px 18px",marginBottom:16,animation:"fadeUp .5s .12s ease both"}}>
           <div style={{marginBottom:10}}>
             <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:4}}>
-              <span style={{fontSize:16}}>🌿</span>
+              <span style={{fontSize:15}}>🌿</span>
               <p style={{fontSize:11,fontWeight:700,color:"rgba(52,211,153,0.6)",letterSpacing:".14em",textTransform:"uppercase"}}>Today's Natural Intelligence</p>
             </div>
             <p style={{fontSize:17,fontWeight:700,color:GREEN,letterSpacing:".04em"}}>{todayFact.ingredient}</p>
@@ -468,114 +507,49 @@ export default function QuantumLiving({ onBack, archetype }) {
           <p style={{fontSize:15,color:"rgba(255,255,255,0.75)",lineHeight:1.8}}>{todayFact.fact}</p>
         </div>
 
-        {/* ── DAILY CHECKLIST — Focus Law (streak) + Bonus Laws (bonus points) ── */}
-        <div style={{marginBottom:16, animation:"fadeUp .5s .15s ease both"}}>
-
-          {/* TODAY'S FOCUS — tied to streak */}
-          <div className="focus-law-item" style={{
-            background:`linear-gradient(135deg,${todayLaw.color}12,${DARK2})`,
-            border:`2px solid ${todayLaw.color}${checklist[todayLawIdx]?"99":"55"}`,
-            borderRadius:16, padding:"18px 20px", marginBottom:10,
-            boxShadow:checklist[todayLawIdx]?`0 0 25px ${todayLaw.color}25`:`0 0 15px ${todayLaw.color}08`,
-            transition:"all .3s"
-          }}>
-            <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:12}}>
-              <div>
-                <p style={{fontSize:11, fontWeight:700, color:todayLaw.color, letterSpacing:".14em", textTransform:"uppercase", marginBottom:4}}>🔥 DAILY STREAK TASK</p>
-                <p style={{fontSize:13, color:MUTED}}>Complete this to count today toward your streak</p>
-              </div>
-              {streak > 0 && <div style={{background:AMBER+"18", border:`1px solid ${AMBER}44`, borderRadius:100, padding:"4px 12px"}}>
-                <span style={{fontSize:13, color:AMBER, fontWeight:700}}>🔥 {streak} days</span>
-              </div>}
-            </div>
-            <div onClick={()=>toggleCheck(todayLawIdx)} style={{
-              display:"flex", gap:14, alignItems:"center", cursor:"pointer",
-              padding:"14px 16px", borderRadius:12,
-              background:checklist[todayLawIdx]?`${todayLaw.color}18`:"rgba(255,255,255,0.03)",
-              border:`1.5px solid ${checklist[todayLawIdx]?todayLaw.color:todayLaw.color+"44"}`,
-              transition:"all .25s"
-            }}>
-              <div style={{
-                width:32, height:32, borderRadius:9,
-                background:checklist[todayLawIdx]?todayLaw.color:"transparent",
-                border:`2px solid ${todayLaw.color}`,
-                display:"flex", alignItems:"center", justifyContent:"center",
-                flexShrink:0, transition:"all .25s", fontSize:16
-              }}>
-                {checklist[todayLawIdx]
-                  ? <span style={{color:BG, fontWeight:900, fontSize:16}}>✓</span>
-                  : <span className={`law-icon-${todayLawIdx}`} style={{display:"inline-block"}}>{todayLaw.icon}</span>
-                }
-              </div>
-              <div style={{flex:1}}>
-                <p style={{fontSize:17, fontWeight:700, color:checklist[todayLawIdx]?todayLaw.color:WHITE, marginBottom:4, transition:"color .2s"}}>{todayLaw.title}</p>
-                <p style={{fontSize:14, color:MUTED, lineHeight:1.55, marginBottom:6}}>{todayLaw.todaySummary}</p>
-                <p style={{fontSize:12, color:todayLaw.color, opacity:.8, fontStyle:"italic"}}>↓ Full practice guide below</p>
-              </div>
-              {!checklist[todayLawIdx] && <div style={{
-                background:todayLaw.color,
-                color:BG,
-                fontWeight:800,
-                fontSize:13,
-                borderRadius:100,
-                padding:"8px 16px",
-                flexShrink:0,
-                letterSpacing:".05em",
-                border:`2px solid ${todayLaw.color}`,
-                boxShadow:`0 0 12px ${todayLaw.color}55`,
-                animation:"focusGlow 2s ease-in-out infinite",
-                cursor:"pointer",
-                userSelect:"none",
-                whiteSpace:"nowrap"
-              }}>✓ TAP TO TICK</div>}
-            </div>
-            {checklist[todayLawIdx] && (
-              <div style={{marginTop:10, padding:"10px 14px", background:"rgba(52,211,153,0.08)", borderRadius:10, display:"flex", alignItems:"center", gap:8}}>
-                <span style={{fontSize:16}}>✅</span>
-                <p style={{fontSize:14, color:GREEN, fontWeight:600}}>Streak logged! Daily focus complete.</p>
-              </div>
-            )}
-          </div>
-
-          {/* BONUS LAWS — additional points, don't affect streak */}
-          <div style={{background:PANEL, border:`1px solid ${BORDER2}`, borderRadius:16, padding:"16px 18px"}}>
-            <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:12}}>
-              <p style={{fontSize:12, fontWeight:700, color:DIMMED, letterSpacing:".14em", textTransform:"uppercase"}}>⭐ Additional Tasks — Bonus Points</p>
-              <span style={{fontSize:12, color:AMBER, fontWeight:700}}>
-                {checklist.filter((v,i)=>v && i!==todayLawIdx).length * 10} pts earned
-              </span>
-            </div>
-            {LAWS.map((law,i) => i === todayLawIdx ? null : (
-              <div key={i} onClick={()=>toggleCheck(i)} style={{
-                display:"flex", gap:12, alignItems:"center",
-                padding:"10px 12px", marginBottom:6, borderRadius:10, cursor:"pointer",
-                background:checklist[i]?`${law.color}0d`:"rgba(255,255,255,0.02)",
-                border:`1px solid ${checklist[i]?law.color+"44":BORDER2}`,
-                transition:"all .2s"
-              }}>
-                <div style={{
-                  width:24, height:24, borderRadius:7,
+        {/* ── SECTION 4: THE OTHER 4 LAWS — compact explore strip ── */}
+        <div style={{marginBottom:16,animation:"fadeUp .5s .16s ease both"}}>
+          <p style={{fontSize:11,fontWeight:700,color:DIMMED,letterSpacing:".14em",textTransform:"uppercase",marginBottom:10}}>⭐ The 5 Quantum Laws — tap any to explore</p>
+          <div style={{display:"flex",flexDirection:"column",gap:8}}>
+            {LAWS.map((law,i) => (
+              <div key={i} style={{
+                display:"flex",alignItems:"center",gap:12,
+                padding:"12px 14px",borderRadius:12,cursor:"pointer",
+                background:checklist[i]?`${law.color}10`:(i===todayLawIdx?`${law.color}0a`:"rgba(255,255,255,0.02)"),
+                border:`1px solid ${checklist[i]?law.color+"55":(i===todayLawIdx?law.color+"44":BORDER2)}`,
+                transition:"all .2s",position:"relative"
+              }}
+                onClick={()=>{ if(i===todayLawIdx) toggleCheck(i); else toggleCheck(i); setActiveLaw(i); }}
+                onMouseEnter={e=>e.currentTarget.style.background=`${law.color}12`}
+                onMouseLeave={e=>e.currentTarget.style.background=checklist[i]?`${law.color}10`:(i===todayLawIdx?`${law.color}0a`:"rgba(255,255,255,0.02)")}
+              >
+                {/* Checkbox */}
+                <div onClick={e=>{e.stopPropagation();toggleCheck(i);}} style={{
+                  width:26,height:26,borderRadius:8,flexShrink:0,
                   background:checklist[i]?law.color:"transparent",
                   border:`1.5px solid ${checklist[i]?law.color:BORDER2}`,
-                  display:"flex", alignItems:"center", justifyContent:"center",
-                  flexShrink:0, transition:"all .2s"
+                  display:"flex",alignItems:"center",justifyContent:"center",
+                  transition:"all .2s",cursor:"pointer"
                 }}>
                   {checklist[i]
-                    ? <span style={{color:BG, fontSize:13, fontWeight:900}}>✓</span>
-                    : <span className={`law-icon-${i}`} style={{display:"inline-block", fontSize:13}}>{law.icon}</span>
-                  }
+                    ? <span style={{color:BG,fontSize:13,fontWeight:900}}>✓</span>
+                    : <span style={{fontSize:13}}>{law.icon}</span>}
                 </div>
-                <div style={{flex:1}}>
-                  <span style={{fontSize:14, color:checklist[i]?WHITE:MUTED, fontWeight:checklist[i]?600:400, transition:"color .2s"}}>{law.title}</span>
-                  <p style={{fontSize:11, color:DIMMED, marginTop:1}}>{law.subtitle}</p>
+                <div style={{flex:1,minWidth:0}}>
+                  <div style={{display:"flex",alignItems:"center",gap:6}}>
+                    <p style={{fontSize:14,fontWeight:600,color:checklist[i]?WHITE:(i===todayLawIdx?law.color:MUTED),transition:"color .2s"}}>{law.title}</p>
+                    {i===todayLawIdx && <span style={{fontSize:10,fontWeight:700,color:law.color,background:`${law.color}18`,borderRadius:100,padding:"2px 7px",letterSpacing:".06em",textTransform:"uppercase",flexShrink:0}}>Today</span>}
+                  </div>
+                  <p style={{fontSize:11,color:DIMMED,marginTop:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{law.subtitle}</p>
                 </div>
-                <span style={{fontSize:12, color:checklist[i]?AMBER:DIMMED, fontWeight:700}}>+10 pts</span>
+                <span style={{fontSize:11,color:checklist[i]?AMBER:DIMMED,fontWeight:700,flexShrink:0}}>{i===todayLawIdx?"🔥":"+10"}</span>
               </div>
             ))}
-            <div style={{marginTop:10, padding:"8px 12px", background:"rgba(251,191,36,0.04)", border:"1px solid rgba(251,191,36,0.15)", borderRadius:8}}>
-              <p style={{fontSize:12, color:"rgba(251,191,36,0.6)", lineHeight:1.5}}>💡 Bonus points add to your LQM score. Only Today's Focus Law counts for your daily streak.</p>
-            </div>
           </div>
+          <div style={{marginTop:10,padding:"8px 12px",background:"rgba(251,191,36,0.03)",border:"1px solid rgba(251,191,36,0.12)",borderRadius:8}}>
+            <p style={{fontSize:12,color:"rgba(251,191,36,0.5)",lineHeight:1.5}}>💡 Tap any law to explore its full practice. Today's focus law 🔥 builds your streak.</p>
+          </div>
+        </div>
 
           {/* All done celebration */}
           {allDone && (
