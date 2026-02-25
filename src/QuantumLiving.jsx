@@ -592,7 +592,7 @@ export default function QuantumLiving({ onBack, archetype }) {
         <p style={{fontSize:13,fontWeight:700,color:DIMMED,letterSpacing:".14em",textTransform:"uppercase",marginBottom:12,animation:"fadeUp .5s .25s ease both"}}>All 5 Quantum Laws — Tap to explore</p>
         {LAWS.map((law,i)=>(
           <div key={i} onClick={()=>setActiveLaw(i)}
-            style={{background:i===todayLawIdx?`${law.color}0a`:PANEL, border:`1px solid ${i===todayLawIdx?law.color+"44":BORDER2}`, borderLeft:`3px solid ${law.color}`, borderRadius:14, padding:"14px 16px", marginBottom:8, cursor:"pointer", transition:"all .2s", animation:`fadeUp .5s ${.28+i*.06}s ease both`, display:"flex", alignItems:"center", gap:14}}
+            style={{background:i===todayLawIdx?`${law.color}0a`:PANEL, border:`1px solid ${i===todayLawIdx?law.color+"44":BORDER2}`, borderLeft:`3px solid ${law.color}`, borderRadius:14, padding:"14px 16px", marginBottom:8, cursor:"pointer", transition:"all .2s", animation:`fadeUp 0.5s ${0.28+i*0.06}s ease both`, display:"flex", alignItems:"center", gap:14}}
             onMouseEnter={e=>{e.currentTarget.style.background=law.glow;}}
             onMouseLeave={e=>{e.currentTarget.style.background=i===todayLawIdx?`${law.color}0a`:PANEL;}}>
             <span className={`law-icon-${i}`} style={{fontSize:24,display:"inline-block",flexShrink:0}}>{law.icon}</span>
@@ -842,7 +842,7 @@ function LawDetail({ law, arch, onBack }) {
         {/* 4 Practices */}
         <p style={{fontSize:16,fontWeight:700,color:DIMMED,letterSpacing:".12em",textTransform:"uppercase",marginBottom:12,animation:"fadeUp .6s .25s ease both"}}>4 Quantum Practices</p>
         {law.practices.map((p,i)=>(
-          <div key={i} style={{background:PANEL,border:`1px solid ${BORDER2}`,borderTop:`2px solid ${law.color}88`,borderRadius:14,padding:"18px 20px",marginBottom:10,animation:`fadeUp .6s ${.28+i*.06}s ease both`}}>
+          <div key={i} style={{background:PANEL,border:`1px solid ${BORDER2}`,borderTop:`2px solid ${law.color}88`,borderRadius:14,padding:"18px 20px",marginBottom:10,animation:`fadeUp 0.6s ${0.28+i*0.06}s ease both`}}>
             <div style={{display:"flex",gap:10,alignItems:"center",marginBottom:8}}>
               <div style={{width:24,height:24,borderRadius:"50%",background:law.color,display:"flex",alignItems:"center",justifyContent:"center",fontSize:14,color:BG,fontWeight:800,flexShrink:0}}>{i+1}</div>
               <p style={{fontSize:16,fontWeight:700,color:law.color,letterSpacing:".06em"}}>{p.title}</p>

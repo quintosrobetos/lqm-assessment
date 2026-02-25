@@ -201,10 +201,10 @@ function genNBackSequence(length=14,n=2){
 // ── Shape helper ──────────────────────────────────────────────────────────
 function ShapeEl({shape,color,size=36}){
   const s={width:size,height:size,display:"flex",alignItems:"center",justifyContent:"center"};
-  if(shape==="circle")   return <div style={s}><div style={{width:size*.82,height:size*.82,borderRadius:"50%",background:color,boxShadow:`0 0 ${size*.3}px ${color}66`}}/></div>;
-  if(shape==="square")   return <div style={s}><div style={{width:size*.76,height:size*.76,background:color,borderRadius:4,boxShadow:`0 0 ${size*.3}px ${color}66`}}/></div>;
-  if(shape==="triangle") return <div style={s}><svg width={size*.86} height={size*.86} viewBox="0 0 40 40"><polygon points="20,3 37,37 3,37" fill={color}/><polygon points="20,3 37,37 3,37" fill="none" stroke={color} strokeWidth="1" opacity=".4"/></svg></div>;
-  if(shape==="diamond")  return <div style={s}><svg width={size*.86} height={size*.86} viewBox="0 0 40 40"><polygon points="20,2 38,20 20,38 2,20" fill={color}/></svg></div>;
+  if(shape==="circle")   return <div style={s}><div style={{width:size*0.82,height:size*0.82,borderRadius:"50%",background:color,boxShadow:`0 0 ${size*0.3}px ${color}66`}}/></div>;
+  if(shape==="square")   return <div style={s}><div style={{width:size*0.76,height:size*0.76,background:color,borderRadius:4,boxShadow:`0 0 ${size*0.3}px ${color}66`}}/></div>;
+  if(shape==="triangle") return <div style={s}><svg width={size*0.86} height={size*0.86} viewBox="0 0 40 40"><polygon points="20,3 37,37 3,37" fill={color}/><polygon points="20,3 37,37 3,37" fill="none" stroke={color} strokeWidth="1" opacity=".4"/></svg></div>;
+  if(shape==="diamond")  return <div style={s}><svg width={size*0.86} height={size*0.86} viewBox="0 0 40 40"><polygon points="20,2 38,20 20,38 2,20" fill={color}/></svg></div>;
   return null;
 }
 
