@@ -430,14 +430,14 @@ export default function QuantumLiving({ onBack, archetype }) {
           {/* Today's practice */}
           <div style={{background:"rgba(255,255,255,0.04)",border:`1px solid rgba(255,255,255,0.08)`,borderRadius:12,padding:"14px 16px",marginBottom:todayArchNote?14:0}}>
             <p style={{fontSize:13,fontWeight:700,color:DIMMED,letterSpacing:".1em",textTransform:"uppercase",marginBottom:8}}>◈ Today's Practice</p>
-            <p style={{fontSize:14,color:MUTED,lineHeight:1.75}}>{todayLaw.dailyPractice}</p>
+            <p style={{fontSize:15,color:"rgba(255,255,255,0.78)",lineHeight:1.85,fontWeight:400}}>{todayLaw.dailyPractice}</p>
           </div>
 
           {/* Archetype-specific note for today's law */}
           {todayArchNote && (
             <div style={{background:`${archColor}0c`,border:`1px solid ${archColor}33`,borderLeft:`3px solid ${archColor}`,borderRadius:"0 10px 10px 0",padding:"12px 14px"}}>
               <p style={{fontSize:12,fontWeight:700,color:archColor,letterSpacing:".1em",textTransform:"uppercase",marginBottom:6}}>⚛ {archName} — Applied to You</p>
-              <p style={{fontFamily:"'Crimson Pro',serif",fontStyle:"italic",fontSize:14,color:MUTED,lineHeight:1.7}}>{todayArchNote}</p>
+              <p style={{fontSize:14,color:"rgba(255,255,255,0.72)",lineHeight:1.75,fontWeight:400}}>{todayArchNote}</p>
             </div>
           )}
 
@@ -452,17 +452,20 @@ export default function QuantumLiving({ onBack, archetype }) {
         {dailyArchTip && (
           <div style={{background:`${archColor}08`,border:`1px solid ${archColor}33`,borderRadius:14,padding:"16px 18px",marginBottom:16,animation:"fadeUp .5s .1s ease both"}}>
             <p style={{fontSize:12,fontWeight:700,color:archColor,letterSpacing:".12em",textTransform:"uppercase",marginBottom:8}}>💡 Your Tip Today — {archName}</p>
-            <p style={{fontSize:14,color:MUTED,lineHeight:1.7}}>{dailyArchTip}</p>
+            <p style={{fontSize:15,color:"rgba(255,255,255,0.78)",lineHeight:1.8,fontWeight:400}}>{dailyArchTip}</p>
           </div>
         )}
 
         {/* ── DAILY FUN FACT ── */}
         <div style={{background:"rgba(52,211,153,0.04)",border:"1px solid rgba(52,211,153,0.18)",borderRadius:14,padding:"16px 18px",marginBottom:16,animation:"fadeUp .5s .12s ease both"}}>
-          <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:10}}>
-            <span style={{fontSize:18}}>🌿</span>
-            <p style={{fontSize:12,fontWeight:700,color:GREEN,letterSpacing:".14em",textTransform:"uppercase"}}>Today's Natural Intelligence — {todayFact.ingredient}</p>
+          <div style={{marginBottom:10}}>
+            <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:4}}>
+              <span style={{fontSize:16}}>🌿</span>
+              <p style={{fontSize:11,fontWeight:700,color:"rgba(52,211,153,0.6)",letterSpacing:".14em",textTransform:"uppercase"}}>Today's Natural Intelligence</p>
+            </div>
+            <p style={{fontSize:17,fontWeight:700,color:GREEN,letterSpacing:".04em"}}>{todayFact.ingredient}</p>
           </div>
-          <p style={{fontSize:14,color:MUTED,lineHeight:1.75}}>{todayFact.fact}</p>
+          <p style={{fontSize:15,color:"rgba(255,255,255,0.75)",lineHeight:1.8}}>{todayFact.fact}</p>
         </div>
 
         {/* ── DAILY CHECKLIST — Focus Law (streak) + Bonus Laws (bonus points) ── */}
@@ -578,7 +581,7 @@ export default function QuantumLiving({ onBack, archetype }) {
           {allDone && (
             <div style={{marginTop:10,padding:"14px 18px",background:"rgba(52,211,153,0.08)",border:"1px solid rgba(52,211,153,0.3)",borderRadius:12,textAlign:"center"}}>
               <p style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:20,letterSpacing:2,color:GREEN,marginBottom:4}}>🌿 All 5 Laws Honoured Today</p>
-              <p style={{fontFamily:"'Crimson Pro',serif",fontStyle:"italic",fontSize:14,color:MUTED}}>"Small shifts, consistently honoured, produce quantum results."</p>
+              <p style={{fontSize:13,color:"rgba(255,255,255,0.5)",lineHeight:1.6,fontStyle:"italic"}}>"Small shifts, consistently honoured, produce quantum results."</p>
               {showMilestone==="day7"  && <div style={{marginTop:10,padding:"10px",background:"rgba(52,211,153,0.12)",borderRadius:8}}><p style={{color:GREEN,fontWeight:700}}>🌱 Week 1 Complete! You built the foundation.</p></div>}
               {showMilestone==="day14" && <div style={{marginTop:10,padding:"10px",background:"rgba(52,211,153,0.12)",borderRadius:8}}><p style={{color:GREEN,fontWeight:700}}>🌿 Week 2 Complete! The habit is forming.</p></div>}
               {showMilestone==="day21" && <div style={{marginTop:10,padding:"10px",background:"rgba(52,211,153,0.15)",borderRadius:8}}><p style={{color:GREEN,fontWeight:700}}>🌳 21 Days Complete! You transformed your daily living.</p></div>}
@@ -686,7 +689,7 @@ function QuantumMilestoneDay7({challengeData, onContinue}){
             <span style={{fontSize:14,fontWeight:700,color:GREEN,letterSpacing:".12em"}}>DAY 7 MILESTONE REACHED</span>
           </div>
           <h1 style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"clamp(36px,8vw,58px)",letterSpacing:2,color:WHITE,marginBottom:12}}>First Week Complete</h1>
-          <p style={{fontFamily:"'Crimson Pro',serif",fontStyle:"italic",fontSize:18,color:MUTED,lineHeight:1.7}}>You've honored the 5 Quantum Laws for 7 days. Wellness habits are taking root.</p>
+          <p style={{fontSize:16,color:"rgba(255,255,255,0.75)",lineHeight:1.75,fontWeight:400}}>You've honored the 5 Quantum Laws for 7 days. Wellness habits are taking root.</p>
         </div>
 
         <div style={{background:`linear-gradient(145deg,${DARK2},${DARK})`,border:`1px solid ${BORDER2}`,borderRadius:20,padding:"32px 28px",marginBottom:20}}>
@@ -732,7 +735,7 @@ function QuantumMilestoneDay14({challengeData, onContinue}){
             <span style={{fontSize:14,fontWeight:700,color:GREEN,letterSpacing:".12em"}}>DAY 14 MILESTONE REACHED</span>
           </div>
           <h1 style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"clamp(36px,8vw,58px)",letterSpacing:2,color:WHITE,marginBottom:12}}>Two Weeks Strong</h1>
-          <p style={{fontFamily:"'Crimson Pro',serif",fontStyle:"italic",fontSize:18,color:MUTED,lineHeight:1.7}}>Halfway to transformation. The habit is forming.</p>
+          <p style={{fontSize:16,color:"rgba(255,255,255,0.75)",lineHeight:1.75,fontWeight:400}}>Halfway to transformation. The habit is forming.</p>
         </div>
 
         <div style={{background:`linear-gradient(145deg,${DARK2},${DARK})`,border:`2px solid ${GREEN}44`,borderRadius:20,padding:"32px 28px",marginBottom:20,boxShadow:"0 0 30px rgba(52,211,153,0.15)"}}>
@@ -783,7 +786,7 @@ function QuantumMilestoneDay21({challengeData, onContinue}){
             <span style={{fontSize:14,fontWeight:700,color:WHITE,letterSpacing:".12em"}}>21-DAY WELLNESS TRANSFORMATION COMPLETE</span>
           </div>
           <h1 style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"clamp(40px,9vw,64px)",letterSpacing:2,color:WHITE,marginBottom:12}}>Transformation Complete</h1>
-          <p style={{fontFamily:"'Crimson Pro',serif",fontStyle:"italic",fontSize:19,color:MUTED,lineHeight:1.7}}>21 days of honoring the 5 Quantum Laws. The habit is formed.</p>
+          <p style={{fontSize:16,color:"rgba(255,255,255,0.75)",lineHeight:1.75,fontWeight:400}}>21 days of honoring the 5 Quantum Laws. The habit is formed.</p>
         </div>
 
         <div style={{background:`linear-gradient(145deg,rgba(52,211,153,0.15),transparent)`,border:`2px solid ${GREEN}`,borderRadius:20,padding:"36px 32px",marginBottom:24,boxShadow:"0 0 40px rgba(52,211,153,0.2)"}}>
@@ -847,13 +850,13 @@ function LawDetail({ law, arch, onBack }) {
         {/* The Truth */}
         <div style={{background:PANEL,border:`1px solid ${BORDER2}`,borderRadius:16,padding:"24px",marginBottom:14,animation:"fadeUp .6s .1s ease both"}}>
           <p style={{fontSize:16,fontWeight:700,color:DIMMED,letterSpacing:".12em",textTransform:"uppercase",marginBottom:12}}>The Truth</p>
-          <p style={{fontFamily:"'Crimson Pro',serif",fontSize:17,lineHeight:1.85,color:"rgba(255,255,255,0.8)",fontWeight:300}}>{law.truth}</p>
+          <p style={{fontSize:15,color:"rgba(255,255,255,0.78)",lineHeight:1.9,fontWeight:400}}>{law.truth}</p>
         </div>
 
         {/* Quantum Edge */}
         <div style={{background:law.glow,border:`1px solid ${law.color}33`,borderLeft:`3px solid ${law.color}`,borderRadius:"0 14px 14px 0",padding:"18px 20px",marginBottom:14,animation:"fadeUp .6s .15s ease both"}}>
           <p style={{fontSize:16,fontWeight:700,color:law.color,letterSpacing:".12em",textTransform:"uppercase",marginBottom:8}}>⚡ Quantum Edge</p>
-          <p style={{fontFamily:"'Crimson Pro',serif",fontSize:16,color:MUTED,lineHeight:1.75}}>{law.quantumEdge}</p>
+          <p style={{fontSize:15,color:"rgba(255,255,255,0.72)",lineHeight:1.85,fontWeight:400}}>{law.quantumEdge}</p>
         </div>
 
         {/* Daily Practice */}
@@ -889,12 +892,12 @@ function LawDetail({ law, arch, onBack }) {
         {archNote ? (
           <div style={{background:`linear-gradient(135deg,${ARCH_COLORS[arch]}0a,transparent)`,border:`1px solid ${ARCH_COLORS[arch]}33`,borderLeft:`3px solid ${ARCH_COLORS[arch]}`,borderRadius:"0 14px 14px 0",padding:"20px 22px",animation:"fadeUp .6s .55s ease both"}}>
             <p style={{fontSize:16,fontWeight:700,color:ARCH_COLORS[arch],letterSpacing:".12em",textTransform:"uppercase",marginBottom:10}}>⚛ {ARCH_NAMES[arch]} — This Law Applied to You</p>
-            <p style={{fontFamily:"'Crimson Pro',serif",fontStyle:"italic",fontSize:16,color:MUTED,lineHeight:1.8}}>{archNote}</p>
+            <p style={{fontSize:15,color:"rgba(255,255,255,0.75)",lineHeight:1.85,fontWeight:400}}>{archNote}</p>
           </div>
         ) : (
           <div style={{background:`linear-gradient(135deg,rgba(0,200,255,0.06),rgba(0,200,255,0.02))`,border:`1px solid ${E_BLUE}33`,borderRadius:16,padding:"20px 22px",animation:"fadeUp .6s .55s ease both"}}>
             <p style={{fontSize:16,fontWeight:700,color:E_BLUE,letterSpacing:".12em",textTransform:"uppercase",marginBottom:10}}>⚛ LQM Archetype Note</p>
-            <p style={{fontFamily:"'Crimson Pro',serif",fontStyle:"italic",fontSize:16,color:MUTED,lineHeight:1.75}}>{law.lqmNote}</p>
+            <p style={{fontSize:15,color:"rgba(255,255,255,0.75)",lineHeight:1.85,fontWeight:400}}>{law.lqmNote}</p>
           </div>
         )}
       </div>

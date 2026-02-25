@@ -342,9 +342,18 @@ export default function App() {
         setPhase("wrong_device");
         return;
       }
-      const testAnswers = ["A","B","A","C","D","A","B","C","D","A"];
-      setAnswers(testAnswers);
-      setCharType(calcType(testAnswers));
+      // Restore their real quiz answers — never use hardcoded fallback
+      try {
+        const saved = JSON.parse(localStorage.getItem("lqm_answers")||"null");
+        if(saved && saved.answers && saved.charType){
+          setAnswers(saved.answers);
+          setCharType(saved.charType);
+        } else {
+          // Legacy users with no saved answers — recalc from delivery if possible
+          // Fall back gracefully — they'll see hub but report may use last known type
+          setCharType("A");
+        }
+      } catch { setCharType("A"); }
       setPhase("paid");
       setDeliveryRef(deliveryData.ref);
       setDeliveryTs(deliveryData.ts);
@@ -414,7 +423,14 @@ export default function App() {
     if(!sel)return;
     const a=[...answers,sel];setAnswers(a);setSel(null);
     if(qIdx<questions.length-1){setQIdx(qIdx+1);}
-    else{setCharType(calcType(a));setPhase("processing");let st=0;const iv=setInterval(()=>{st++;setProcStep(st);if(st>=5){clearInterval(iv);setTimeout(()=>setPhase("teaser"),600);}},850);}
+    else{
+      const t=calcType(a);
+      setCharType(t);
+      // Save answers + charType so returning users get their real result
+      localStorage.setItem("lqm_answers", JSON.stringify({answers:a, charType:t}));
+      setPhase("processing");
+      let st=0;const iv=setInterval(()=>{st++;setProcStep(st);if(st>=5){clearInterval(iv);setTimeout(()=>setPhase("teaser"),600);}},850);
+    }
   };
 
   return(
@@ -878,7 +894,7 @@ function AddOnShop({unlocks, onUnlockNeural, onUnlockVital, onOpenNeural, onOpen
         <div style={{height:1,background:`linear-gradient(90deg,transparent,${BORDER},transparent)`,marginBottom:24}}/>
         <p style={{fontSize:14,fontWeight:700,letterSpacing:".16em",textTransform:"uppercase",color:E_BLUE,marginBottom:10}}>⚡ LQM Add-On Suite</p>
         <h2 style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"clamp(24px,5vw,38px)",letterSpacing:2,color:WHITE,marginBottom:8}}>Go Deeper. Perform Better.</h2>
-        <p style={{fontFamily:"'Crimson Pro',serif",fontStyle:"italic",fontSize:16,color:MUTED,maxWidth:440,margin:"0 auto",lineHeight:1.7}}>Two powerful extensions to your LQM profile — each unlocked for just £5.</p>
+        <p style={{fontSize:15,color:"rgba(255,255,255,0.62)",maxWidth:440,margin:"0 auto",lineHeight:1.7,fontWeight:400}}>Two powerful extensions to your LQM profile — each unlocked for just £5.</p>
       </div>
 
       {/* Neural Protocol card */}
@@ -888,7 +904,7 @@ function AddOnShop({unlocks, onUnlockNeural, onUnlockVital, onOpenNeural, onOpen
             <div>
               <p style={{fontSize:16,fontWeight:700,color:E_BLUE,letterSpacing:".14em",textTransform:"uppercase",marginBottom:8}}>⚡ Add-On 1</p>
               <h3 style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:28,letterSpacing:2,color:WHITE,marginBottom:4}}>Brain Training</h3>
-              <p style={{fontFamily:"'Crimson Pro',serif",fontStyle:"italic",fontSize:15,color:MUTED}}>Daily cognitive challenges — 6 rounds, ~6-7 minutes</p>
+              <p style={{fontSize:14,color:"rgba(255,255,255,0.6)",fontWeight:400}}>Daily cognitive challenges — 6 rounds, ~6-7 minutes</p>
             </div>
             <div style={{textAlign:"right",flexShrink:0}}>
               <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:36,letterSpacing:1,color:WHITE}}>£5</div>
@@ -926,7 +942,7 @@ function AddOnShop({unlocks, onUnlockNeural, onUnlockVital, onOpenNeural, onOpen
             <div>
               <p style={{fontSize:16,fontWeight:700,color:"#34D399",letterSpacing:".14em",textTransform:"uppercase",marginBottom:8}}>🌱 Add-On 2</p>
               <h3 style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:28,letterSpacing:2,color:WHITE,marginBottom:4}}>Quantum Living</h3>
-              <p style={{fontFamily:"'Crimson Pro',serif",fontStyle:"italic",fontSize:15,color:MUTED}}>5 Quantum Laws + daily wellness insights</p>
+              <p style={{fontSize:14,color:"rgba(255,255,255,0.6)",fontWeight:400}}>5 Quantum Laws + daily wellness insights</p>
             </div>
             <div style={{textAlign:"right",flexShrink:0}}>
               <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:36,letterSpacing:1,color:WHITE}}>£5</div>
@@ -1101,7 +1117,7 @@ function Processing({step}){
         <div style={{position:"absolute",top:"50%",left:"50%",transform:"translate(-50%,-50%)",fontSize:28}}>⚛</div>
       </div>
       <h2 style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:32,letterSpacing:2,marginBottom:8,color:WHITE}}>Analysing Your Profile</h2>
-      <p style={{fontFamily:"'Crimson Pro',serif",fontStyle:"italic",fontSize:15,color:DIMMED,marginBottom:36}}>Learning Quantum Method behavioural analysis in progress</p>
+      <p style={{fontSize:14,color:"rgba(255,255,255,0.45)",marginBottom:36,fontWeight:400}}>Learning Quantum Method behavioural analysis in progress</p>
       <Panel style={{maxWidth:400,margin:"0 auto",textAlign:"left"}}>
         {steps.map((s,i)=>(
           <div key={i} style={{display:"flex",gap:12,alignItems:"center",marginBottom:i<steps.length-1?14:0,opacity:step>i?1:.2,transition:"opacity .5s ease"}}>
@@ -1123,7 +1139,7 @@ function Teaser({type,t,fmt,onUnlock}){
         <h1 style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"clamp(26px,5vw,40px)",letterSpacing:2,color:WHITE,marginBottom:4}}>{type.name}</h1>
         <p style={{fontFamily:"'Crimson Pro',serif",fontSize:16,fontStyle:"italic",color:type.blue,marginBottom:18}}>{type.arch}</p>
         <div style={{width:50,height:2,background:`linear-gradient(90deg,transparent,${type.blue},transparent)`,margin:"0 auto 18px"}}/>
-        <p style={{fontFamily:"'Crimson Pro',serif",fontStyle:"italic",fontSize:17,color:MUTED,lineHeight:1.7,maxWidth:440,margin:"0 auto"}}>"{type.hook}"</p>
+        <p style={{fontFamily:"'Crimson Pro',serif",fontStyle:"italic",fontSize:17,color:"rgba(255,255,255,0.68)",lineHeight:1.7,maxWidth:440,margin:"0 auto"}}>"{type.hook}"</p>
       </Panel>
       <Panel style={{marginBottom:12,position:"relative",overflow:"hidden",minHeight:100}}>
         <SLabel color={type.blue}>Your Identity Statement</SLabel>
@@ -1181,7 +1197,7 @@ function DeliveryGate({ref_, ts, type, onConfirm}){
       <div style={{width:"100%",maxWidth:480,background:`linear-gradient(145deg,${DARK2},${DARK})`,border:`2px solid rgba(52,211,153,0.4)`,borderRadius:22,padding:"40px 32px",textAlign:"center",boxShadow:"0 0 60px rgba(52,211,153,0.08)"}}>
         <div style={{fontSize:48,marginBottom:16}}>📋</div>
         <p style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:28,letterSpacing:2,color:"#34D399",marginBottom:6}}>Report Ready</p>
-        <p style={{fontFamily:"'Crimson Pro',serif",fontStyle:"italic",fontSize:16,color:"rgba(255,255,255,0.6)",marginBottom:28,lineHeight:1.65}}>Your full LQM {type.name} report has been prepared and is ready for delivery.</p>
+        <p style={{fontSize:15,color:"rgba(255,255,255,0.65)",marginBottom:28,lineHeight:1.7,fontWeight:400}}>Your full LQM {type.name} report has been prepared and is ready for delivery.</p>
 
         <div style={{background:"rgba(52,211,153,0.06)",border:"1px solid rgba(52,211,153,0.2)",borderRadius:14,padding:"18px 20px",marginBottom:24,textAlign:"left"}}>
           <p style={{fontSize:15,fontWeight:700,color:"rgba(52,211,153,0.7)",letterSpacing:".12em",textTransform:"uppercase",marginBottom:10}}>Delivery Details</p>
@@ -1247,7 +1263,7 @@ function Dashboard({type, unlocks, onViewReport, onOpenBrain, onOpenQuantum, onU
         <h1 style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"clamp(32px,7vw,52px)",letterSpacing:2,color:WHITE,lineHeight:1.05,marginBottom:8}}>
           Welcome Back,<br/><span style={{color:type.blue}}>{type.name}</span>
         </h1>
-        <p style={{fontFamily:"'Crimson Pro',serif",fontStyle:"italic",fontSize:17,color:MUTED,lineHeight:1.7}}>Your complete Learning Quantum Method system — all in one place.</p>
+        <p style={{fontSize:15,color:"rgba(255,255,255,0.62)",lineHeight:1.7,fontWeight:400}}>Your complete Learning Quantum Method system — all in one place.</p>
       </div>
 
       <div onClick={onViewReport} style={{background:`linear-gradient(145deg,${type.glow},rgba(0,0,0,0.3))`,border:`2px solid ${type.blue}55`,borderRadius:20,padding:"28px 26px",marginBottom:16,cursor:"pointer",transition:"all .25s",boxShadow:`0 4px 20px ${type.glow}`}}
@@ -1258,7 +1274,7 @@ function Dashboard({type, unlocks, onViewReport, onOpenBrain, onOpenQuantum, onU
           <div style={{flex:1}}>
             <p style={{fontSize:13,fontWeight:700,color:type.blue,letterSpacing:".12em",textTransform:"uppercase",marginBottom:4}}>📊 Your Profile</p>
             <h3 style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:28,letterSpacing:2,color:WHITE,marginBottom:2}}>{type.name}</h3>
-            <p style={{fontFamily:"'Crimson Pro',serif",fontStyle:"italic",fontSize:15,color:MUTED}}>{type.arch}</p>
+            <p style={{fontSize:14,color:"rgba(255,255,255,0.5)",fontWeight:500,letterSpacing:".04em"}}>{type.arch}</p>
           </div>
           <div style={{fontSize:28,color:type.blue}}>→</div>
         </div>
@@ -1549,7 +1565,7 @@ function Report({type, deliveryRef, deliveryTs, visualAnswer}){
       </ReportSection>
 
       <ReportSection title="Blind Spots to Navigate" icon="⚠️" color="rgba(255,180,50,0.9)" preview="3 patterns to know">
-        <p style={{fontFamily:"'Crimson Pro',serif",fontStyle:"italic",fontSize:15,color:MUTED,lineHeight:1.6,marginBottom:16,paddingTop:8}}>These aren't weaknesses. They're patterns to recognise — awareness is the first step to transcendence.</p>
+        <p style={{fontSize:14,color:"rgba(255,255,255,0.62)",lineHeight:1.7,marginBottom:16,paddingTop:8,fontWeight:400}}>These aren't weaknesses. They're patterns to recognise — awareness is the first step to transcendence.</p>
         {type.blindspots.map((b,i)=>(<BlindSpotCard key={i} text={b} index={i} color={type.blue}/>))}
       </ReportSection>
 
@@ -1564,7 +1580,7 @@ function Report({type, deliveryRef, deliveryTs, visualAnswer}){
 
       <ReportSection title="Your 3 Quantum Strategy Cards" icon="◈" color={type.blue} preview="Tap to unlock your system">
         <div style={{paddingTop:8}}>
-          <p style={{fontFamily:"'Crimson Pro',serif",fontStyle:"italic",fontSize:15,color:MUTED,lineHeight:1.65,marginBottom:16}}>Three systems built specifically for your profile. Read them as instructions written for you alone.</p>
+          <p style={{fontSize:14,color:"rgba(255,255,255,0.62)",lineHeight:1.7,marginBottom:16,fontWeight:400}}>Three systems built specifically for your profile. Read them as instructions written for you alone.</p>
           {type.strategies.map((s,i)=>(
             <div key={i} style={{background:PANEL,border:`1px solid ${BORDER2}`,borderTop:`2px solid ${type.blue}`,borderRadius:14,overflow:"hidden",marginBottom:12}}>
               <div style={{background:type.glow,borderBottom:`1px solid ${type.blue}22`,padding:"12px 18px",display:"flex",alignItems:"center",gap:10}}>
@@ -1591,7 +1607,7 @@ function Report({type, deliveryRef, deliveryTs, visualAnswer}){
       <Panel style={{textAlign:"center",background:`linear-gradient(145deg,${DARK2},${DARK})`}}>
         <Logo size="sm"/>
         <div style={{width:50,height:1,background:`linear-gradient(90deg,transparent,${E_BLUE}44,transparent)`,margin:"18px auto"}}/>
-        <p style={{fontFamily:"'Crimson Pro',serif",fontSize:19,fontStyle:"italic",color:MUTED,lineHeight:1.7,maxWidth:420,margin:"0 auto 12px"}}>"Small shifts, consistently honoured, produce quantum results. The habit is not the destination — it is the vehicle."</p>
+        <p style={{fontFamily:"'Crimson Pro',serif",fontSize:17,fontStyle:"italic",color:"rgba(255,255,255,0.6)",lineHeight:1.75,maxWidth:420,margin:"0 auto 12px"}}>"Small shifts, consistently honoured, produce quantum results. The habit is not the destination — it is the vehicle."</p>
         <p style={{fontSize:14,color:DIMMED,letterSpacing:".06em"}}>— The Learning Quantum Method</p>
         <div style={{height:1,background:BORDER2,margin:"18px 0"}}/>
         <p style={{fontSize:14,color:DIMMED,letterSpacing:".1em"}}>LQM Behavioural Intelligence Report · {type.name}</p>

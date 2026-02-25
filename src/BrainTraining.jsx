@@ -134,7 +134,7 @@ const DIFFICULTY = {
     matrix: { hints: 0, puzzles: 4 },
     reaction: { reps: 10, minDelay: 800, maxDelay: 2000 },
     switch: { items: 15 },
-    defense: { waveDuration: 30, spawnWave1: 1000, spawnWave2: 700, spawnWave3: 500, fallWave1: 3.0, fallWave2: 4.2, fallWave3: 5.8 },
+    defense: { waveDuration: 30, spawnWave1: 850, spawnWave2: 580, spawnWave3: 380, fallWave1: 3.8, fallWave2: 5.5, fallWave3: 7.5 },
   },
 };
 
@@ -327,7 +327,7 @@ function DifficultySelection({onSelect}){
       <div style={{textAlign:"center",marginBottom:40}}>
         <p style={{fontSize:14,fontWeight:700,color:E_BLUE,letterSpacing:".12em",textTransform:"uppercase",marginBottom:12}}>⚡ Choose Your Challenge Level</p>
         <h1 style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"clamp(32px,7vw,48px)",letterSpacing:2,color:WHITE,marginBottom:12}}>Brain Training</h1>
-        <p style={{fontFamily:"'Crimson Pro',serif",fontStyle:"italic",fontSize:18,color:MUTED,lineHeight:1.75}}>Select the difficulty that feels right for you. You can always change this later.</p>
+        <p style={{fontSize:15,color:"rgba(255,255,255,0.65)",lineHeight:1.75,fontWeight:400}}>Select the difficulty that feels right for you. You can always change this later.</p>
       </div>
 
       <div style={{display:"flex",flexDirection:"column",gap:14}}>
@@ -555,7 +555,7 @@ function Intro({onStart,onQuickPlay,xp,streak,level,userData,challengeData}){
       <div className="fu" style={{textAlign:"center",marginBottom:24}}>
         <p style={{fontSize:16,fontWeight:700,letterSpacing:".16em",textTransform:"uppercase",color:E_BLUE,marginBottom:12}}>⚡ Daily Neural Protocol</p>
         <h1 style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"clamp(32px,7vw,52px)",letterSpacing:2,color:WHITE,lineHeight:1.05,marginBottom:8}}>Train Your<br/><span style={{color:E_BLUE}}>Quantum Mind</span></h1>
-        <p style={{fontFamily:"'Crimson Pro',serif",fontStyle:"italic",fontSize:16,color:MUTED,lineHeight:1.7}}>"The exercised brain builds new neural pathways throughout life. Consistency compounds."</p>
+        <p style={{fontFamily:"'Crimson Pro',serif",fontStyle:"italic",fontSize:15,color:"rgba(255,255,255,0.62)",lineHeight:1.7}}>"The exercised brain builds new neural pathways throughout life. Consistency compounds."</p>
       </div>
 
       {/* 21-DAY CHALLENGE DASHBOARD */}
@@ -616,7 +616,7 @@ function Intro({onStart,onQuickPlay,xp,streak,level,userData,challengeData}){
                 <p style={{fontSize:16,fontWeight:600,color:WHITE}}>{r.name}</p>
                 <span style={{fontSize:15,fontWeight:700,color:E_BLUE,letterSpacing:".08em",textTransform:"uppercase",background:"rgba(0,200,255,0.08)",border:`1px solid ${BORDER}`,borderRadius:100,padding:"2px 8px"}}>{r.tag}</span>
               </div>
-              <p style={{fontSize:14,color:DIMMED,fontStyle:"italic"}}>Brain region: {r.brain}</p>
+              <p style={{fontSize:13,color:"rgba(255,255,255,0.45)",fontWeight:400}}>Brain region: {r.brain}</p>
             </div>
             <span style={{fontSize:14,color:DIMMED,marginTop:2}}>{i+1}</span>
           </div>
@@ -663,7 +663,7 @@ function ScienceCard({card:c,round,onBegin}){
         </div>
         <div style={{padding:"12px 22px",display:"flex",gap:8,alignItems:"flex-start"}}>
           <span style={{fontSize:15,color:DIMMED,flexShrink:0}}>📊</span>
-          <p style={{fontSize:14,color:DIMMED,lineHeight:1.5,fontStyle:"italic"}}>{c.metric}</p>
+          <p style={{fontSize:13,color:"rgba(255,255,255,0.5)",lineHeight:1.6,fontWeight:400}}>{c.metric}</p>
         </div>
       </div>
       <button onClick={onBegin} style={{width:"100%",border:"none",borderRadius:100,padding:"16px",fontSize:16,fontWeight:700,fontFamily:"'Space Grotesk',sans-serif",cursor:"pointer",letterSpacing:".05em",background:`linear-gradient(135deg,${c.color}bb,${c.color})`,color:BG,boxShadow:`0 6px 24px ${c.color}33`,transition:"all .2s"}}
@@ -1159,11 +1159,15 @@ function NeuralDefense({onComplete, difficulty}){
   const hitsRef = useRef(0);
   
   const SHAPES_POOL = [
-    {type:"circle", color:E_BLUE, pts:10},
-    {type:"square", color:GREEN, pts:10},
-    {type:"triangle", color:AMBER, pts:10},
+    {type:"circle",  color:E_BLUE, pts:10},
+    {type:"square",  color:GREEN,  pts:10},
+    {type:"triangle",color:AMBER,  pts:10},
     {type:"diamond", color:VIOLET, pts:15},
   ];
+  // Special shapes spawn at low probability — big points, alphabet explosion
+  const SPECIAL_CHANCE = 0.12; // 12% chance per spawn
+  const ALPHA_LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  const ALPHA_COLORS  = [E_BLUE, GREEN, AMBER, VIOLET, "#F472B6", "#FB923C", "#34D399", "#A78BFA"];
 
   function startGame(){
     setPhase("playing");
@@ -1187,15 +1191,19 @@ function NeuralDefense({onComplete, difficulty}){
     
     // Spawn shapes periodically
     spawnTimerRef.current = setInterval(()=>{
-      const shape = SHAPES_POOL[Math.floor(Math.random()*SHAPES_POOL.length)];
+      const isSpecial = Math.random() < SPECIAL_CHANCE;
+      const shape = isSpecial
+        ? {type:"special", color:"#FFD700", pts:50}
+        : SHAPES_POOL[Math.floor(Math.random()*SHAPES_POOL.length)];
       const id = nextId.current++;
       setShapes(prev => [...prev, {
         id,
         ...shape,
         x: Math.random() * (GAME_WIDTH - SHAPE_SIZE),
         y: -SHAPE_SIZE,
-        speed: fallSpeed,
+        speed: isSpecial ? fallSpeed * 1.3 : fallSpeed, // special falls faster
         spawnTime: Date.now(),
+        isSpecial,
       }]);
     }, spawnRate);
     
@@ -1276,8 +1284,14 @@ function NeuralDefense({onComplete, difficulty}){
     };
   }, []);
 
+  const lastShotRef = useRef(0);
+
   function handleShoot(){
     if(phase !== "playing") return;
+    // Debounce: prevent double-fire from touchend + synthetic click (300ms gap)
+    const now = Date.now();
+    if(now - lastShotRef.current < 320) return;
+    lastShotRef.current = now;
     
     // 🔊 SHOOT SOUND
     playShootSound();
@@ -1376,6 +1390,37 @@ function NeuralDefense({onComplete, difficulty}){
               }]);
             }, i * 100);
           }
+
+          // 🌟 SPECIAL OBJECT — alphabet letter explosion!
+          if(s.isSpecial){
+            for(let i=0; i<18; i++){
+              const letter = ALPHA_LETTERS[Math.floor(Math.random()*ALPHA_LETTERS.length)];
+              const color  = ALPHA_COLORS[Math.floor(Math.random()*ALPHA_COLORS.length)];
+              const angle  = (i/18)*Math.PI*2;
+              const speed  = 2.5 + Math.random()*3.5;
+              setParticles(p => [...p, {
+                id: Math.random(),
+                x: s.x + SHAPE_SIZE/2,
+                y: s.y + SHAPE_SIZE/2,
+                vx: Math.cos(angle)*speed,
+                vy: Math.sin(angle)*speed - 2,
+                color,
+                life: 45,
+                isLetter: true,
+                letter,
+                fontSize: 12 + Math.floor(Math.random()*10),
+              }]);
+            }
+            // Bonus score popup
+            setScorePopups(p => [...p, {
+              id: nextPopupId.current++,
+              x: s.x + SHAPE_SIZE/2,
+              y: s.y - 10,
+              value: "⭐ +50 QUANTUM!",
+              color:"#FFD700",
+              life: 50,
+            }]);
+          }
         } else {
           remaining.push(s);
         }
@@ -1401,7 +1446,7 @@ function NeuralDefense({onComplete, difficulty}){
 
   function handleTouchEnd(e){
     if(phase !== "playing") return;
-    // Fire shoot on tap (touchend = tap on mobile)
+    e.preventDefault(); // Prevent synthetic click from also firing
     handleShoot();
   }
 
@@ -1411,6 +1456,11 @@ function NeuralDefense({onComplete, difficulty}){
     if(type==="square") return <div style={{width:size,height:size,background:color,borderRadius:4,boxShadow:`0 0 12px ${color}88`}}/>;
     if(type==="triangle") return <div style={{width:0,height:0,borderLeft:`${size/2}px solid transparent`,borderRight:`${size/2}px solid transparent`,borderBottom:`${size}px solid ${color}`,filter:`drop-shadow(0 0 8px ${color}88)`}}/>;
     if(type==="diamond") return <div style={{width:size,height:size,background:color,transform:"rotate(45deg)",borderRadius:4,boxShadow:`0 0 12px ${color}88`}}/>;
+    if(type==="special") return (
+      <div style={{width:size,height:size,display:"flex",alignItems:"center",justifyContent:"center",animation:"specialPulse 0.6s ease-in-out infinite"}}>
+        <div style={{fontSize:size*0.9,lineHeight:1,filter:"drop-shadow(0 0 8px gold) drop-shadow(0 0 16px #FFD700)"}}>⭐</div>
+      </div>
+    );
   }
 
   if(phase === "ready"){
@@ -1580,7 +1630,6 @@ function NeuralDefense({onComplete, difficulty}){
         {/* Particles */}
         {particles.map(p => {
           if(p.isPulse) {
-            // 🧠 NEURAL PULSE RINGS
             const size = 40 + (20 - p.life) * 3 + p.pulseSize;
             return (
               <div key={p.id} style={{
@@ -1594,6 +1643,26 @@ function NeuralDefense({onComplete, difficulty}){
                 opacity:p.life / 20,
                 pointerEvents:"none"
               }}/>
+            );
+          }
+          if(p.isLetter) {
+            // 🔤 Alphabet letter flying out from special explosion
+            const elapsed = 45 - p.life;
+            return (
+              <div key={p.id} style={{
+                position:"absolute",
+                left:p.x + p.vx * elapsed,
+                top:p.y + p.vy * elapsed + 0.04 * elapsed * elapsed,
+                fontSize:p.fontSize,
+                fontWeight:900,
+                fontFamily:"'Bebas Neue',sans-serif",
+                color:p.color,
+                textShadow:`0 0 8px ${p.color}, 0 0 16px ${p.color}88`,
+                opacity:Math.min(1, p.life/20),
+                pointerEvents:"none",
+                userSelect:"none",
+                transform:`rotate(${elapsed*8}deg)`,
+              }}>{p.letter}</div>
             );
           }
           return (
@@ -1626,20 +1695,59 @@ function NeuralDefense({onComplete, difficulty}){
           }}/>
         )}
         
-        {/* Shield with glow effect */}
+        {/* Energy Cannon Emitter */}
         <div style={{
           position:"absolute",
           left:shieldX,
-          bottom:20,
+          bottom:16,
           width:SHIELD_WIDTH,
-          height:12,
-          background:`linear-gradient(90deg,${PURPLE}44,${PURPLE},${PURPLE}44)`,
-          borderRadius:6,
-          boxShadow:shieldActive ? `0 0 30px ${PURPLE}, 0 0 60px ${PURPLE}88` : `0 0 16px ${PURPLE}88`,
           pointerEvents:"none",
-          transition:"all 0.08s",
-          transform:shieldActive ? "scale(1.1)" : "scale(1)"
-        }}/>
+          transition:"left 0.04s",
+        }}>
+          {/* Main cannon body */}
+          <div style={{
+            width:SHIELD_WIDTH,
+            height:16,
+            background:`linear-gradient(90deg,${PURPLE}33,${PURPLE}99,${PURPLE}33)`,
+            borderRadius:8,
+            boxShadow:shieldActive?`0 0 25px ${PURPLE},0 0 50px ${PURPLE}66`:`0 0 10px ${PURPLE}55`,
+            border:`1px solid ${PURPLE}88`,
+            transform:shieldActive?"scaleY(1.15)":"scaleY(1)",
+            transition:"all 0.08s",
+            position:"relative",
+          }}>
+            {/* Centre barrel */}
+            <div style={{
+              position:"absolute",
+              left:"50%",
+              top:-8,
+              transform:"translateX(-50%)",
+              width:10,
+              height:12,
+              background:`linear-gradient(180deg,${PURPLE},${PURPLE}66)`,
+              borderRadius:"4px 4px 0 0",
+              boxShadow:shieldActive?`0 0 15px ${PURPLE}`:"none",
+              transition:"all 0.08s",
+            }}/>
+            {/* Wing left */}
+            <div style={{position:"absolute",left:-6,top:3,width:8,height:10,background:`${PURPLE}66`,borderRadius:"3px 0 0 3px",boxShadow:`-3px 0 8px ${PURPLE}44`}}/>
+            {/* Wing right */}
+            <div style={{position:"absolute",right:-6,top:3,width:8,height:10,background:`${PURPLE}66`,borderRadius:"0 3px 3px 0",boxShadow:`3px 0 8px ${PURPLE}44`}}/>
+            {/* Energy core dot */}
+            <div style={{
+              position:"absolute",
+              left:"50%",
+              top:"50%",
+              transform:"translate(-50%,-50%)",
+              width:6,
+              height:6,
+              borderRadius:"50%",
+              background:shieldActive?"white":PURPLE,
+              boxShadow:shieldActive?`0 0 10px white,0 0 20px ${PURPLE}`:`0 0 6px ${PURPLE}`,
+              transition:"all 0.08s",
+            }}/>
+          </div>
+        </div>
         
         {/* Tap instruction with shield tooltip */}
         <div style={{position:"absolute",bottom:50,left:"50%",transform:"translateX(-50%)",fontSize:13,color:DIMMED,pointerEvents:"none",textAlign:"center"}}>
@@ -1661,6 +1769,10 @@ function NeuralDefense({onComplete, difficulty}){
           25% { transform: translate(-5px, 2px); }
           50% { transform: translate(5px, -2px); }
           75% { transform: translate(-3px, -2px); }
+        }
+        @keyframes specialPulse {
+          0%, 100% { transform: scale(1); filter: drop-shadow(0 0 6px gold); }
+          50% { transform: scale(1.25); filter: drop-shadow(0 0 18px gold) drop-shadow(0 0 30px #FFD700); }
         }
       `}</style>
     </div>
@@ -1759,7 +1871,7 @@ function Results({scores,level,newLevel,streak,dailyAction,arch,challengeData,on
       {/* Archetype neural intelligence */}
       {arch && <div style={{background:`linear-gradient(135deg,${arch.color}0a,transparent)`,border:`1px solid ${arch.color}33`,borderLeft:`3px solid ${arch.color}`,borderRadius:"0 14px 14px 0",padding:"20px",marginBottom:14}}>
         <p style={{fontSize:15,fontWeight:700,color:arch.color,letterSpacing:".14em",textTransform:"uppercase",marginBottom:10}}>⚛ {arch.name} — Neural Intelligence Profile</p>
-        <p style={{fontFamily:"'Crimson Pro',serif",fontStyle:"italic",fontSize:15,color:MUTED,lineHeight:1.75,marginBottom:14}}>{arch.neuralProfile}</p>
+        <p style={{fontSize:15,color:"rgba(255,255,255,0.72)",lineHeight:1.8,fontWeight:400,marginBottom:14}}>{arch.neuralProfile}</p>
         <div style={{display:"flex",flexDirection:"column",gap:8}}>
           {scores.map((s,i)=>{
             const roundNames=["Stroop Challenge","2-Back Test","Pattern Matrix","Reaction Velocity","Cognitive Switch"];
