@@ -392,11 +392,11 @@ export default function QuantumLiving({ onBack, archetype }) {
         </div>
         <div style={{display:"flex",gap:8,alignItems:"center"}}>
           <span style={{fontSize:13,fontWeight:700,color:checklist[todayLawIdx]?GREEN:MUTED}}>
-            {checklist[todayLawIdx]?"1":"0"}/1 🔥
+            {checklist[todayLawIdx]?"1":"0"}{"/"}{`1 🔥`}
           </span>
           <span style={{fontSize:12,color:DIMMED}}>+</span>
           <span style={{fontSize:13,fontWeight:700,color:AMBER}}>
-            {checklist.filter((v,i)=>v && i!==todayLawIdx).length}/4 ⭐
+            {checklist.filter((v,i)=>v && i!==todayLawIdx).length}{"/"}{`4 ⭐`}
           </span>
         </div>
       </div>
