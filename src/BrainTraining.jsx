@@ -580,7 +580,7 @@ function Intro({onStart,onQuickPlay,xp,streak,level,userData,challengeData}){
             </div>
           </div>
           <div style={{height:6,background:"rgba(255,255,255,0.06)",borderRadius:100,overflow:"hidden"}}>
-            <div style={{height:"100%",width:`${(currentDay/21)*100}%`,background:`linear-gradient(90deg,${E_BLUE},${GREEN})`,borderRadius:100}}/>
+            <div style={{height:"100%",width:`${Math.round((currentDay/21)*100)}%`,background:`linear-gradient(90deg,${E_BLUE},${GREEN})`,borderRadius:100}}/>
           </div>
           {currentDay >= 7 && (
             <p style={{fontSize:13,color:GREEN,marginTop:8,fontWeight:600}}>✓ Week 1 milestone reached!</p>
@@ -1931,7 +1931,7 @@ function Results({scores,level,newLevel,streak,dailyAction,arch,challengeData,on
           </div>
           {/* Progress bar */}
           <div style={{height:8,background:"rgba(255,255,255,0.06)",borderRadius:100,overflow:"hidden",marginBottom:12}}>
-            <div style={{height:"100%",width:`${((challengeData.currentDay||1)/21)*100}%`,background:`linear-gradient(90deg,${E_BLUE2},${E_BLUE})`,borderRadius:100,transition:"width .6s ease"}}/>
+            <div style={{height:"100%",width:`${Math.round(((challengeData.currentDay||1)/21)*100)}%`,background:`linear-gradient(90deg,${E_BLUE2},${E_BLUE})`,borderRadius:100,transition:"width .6s ease"}}/>
           </div>
           {/* Milestones */}
           <div style={{display:"flex",justifyContent:"space-between",marginBottom:14}}>

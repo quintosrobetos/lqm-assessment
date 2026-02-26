@@ -786,7 +786,7 @@ function Hub({type, unlocks, onOpenNeural, onOpenVital, onViewReport, onUnlockNe
                     <span style={{fontSize:12, color:E_BLUE, fontWeight:700}}>Day {brainDay} of 21</span>
                   </div>
                   <div style={{height:6, background:"rgba(255,255,255,0.06)", borderRadius:100, overflow:"hidden"}}>
-                    <div style={{height:"100%", width:`${(brainDay/21)*100}%`, background:`linear-gradient(90deg,${E_BLUE2},${E_BLUE})`, borderRadius:100}}/>
+                    <div style={{height:"100%", width:`${Math.round((brainDay/21)*100)}%`, background:`linear-gradient(90deg,${E_BLUE2},${E_BLUE})`, borderRadius:100}}/>
                   </div>
                 </div>
                 <div style={{display:"flex", gap:12}}>
@@ -829,7 +829,7 @@ function Hub({type, unlocks, onOpenNeural, onOpenVital, onViewReport, onUnlockNe
                     <span style={{fontSize:12, color:"#34D399", fontWeight:700}}>Day {quantumDay} of 21</span>
                   </div>
                   <div style={{height:6, background:"rgba(255,255,255,0.06)", borderRadius:100, overflow:"hidden"}}>
-                    <div style={{height:"100%", width:`${(quantumDay/21)*100}%`, background:"linear-gradient(90deg,#059669,#34D399)", borderRadius:100}}/>
+                    <div style={{height:"100%", width:`${Math.round((quantumDay/21)*100)}%`, background:"linear-gradient(90deg,#059669,#34D399)", borderRadius:100}}/>
                   </div>
                 </div>
                 <div style={{display:"flex", gap:12}}>

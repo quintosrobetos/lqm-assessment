@@ -571,7 +571,7 @@ export default function QuantumLiving({ onBack, archetype }) {
               <span style={{fontSize:13,color:AMBER,fontWeight:700}}>Day {challengeData.currentDay||1} of 21</span>
             </div>
             <div style={{height:7,background:"rgba(255,255,255,0.06)",borderRadius:100,overflow:"hidden",marginBottom:12}}>
-              <div style={{height:"100%",width:`${((challengeData.currentDay||1)/21)*100}%`,background:"linear-gradient(90deg,rgba(52,211,153,0.6),#34D399)",borderRadius:100,transition:"width .8s ease"}}/>
+              <div style={{height:"100%",width:`${Math.round(((challengeData.currentDay||1)/21)*100)}%`,background:"linear-gradient(90deg,rgba(52,211,153,0.6),#34D399)",borderRadius:100,transition:"width .8s ease"}}/>
             </div>
             <div style={{display:"flex",justifyContent:"space-around",marginBottom:12}}>
               {[{d:7,icon:"🌱",label:"Week 1"},{d:14,icon:"🌿",label:"Week 2"},{d:21,icon:"🌳",label:"Complete"}].map(m=>(
