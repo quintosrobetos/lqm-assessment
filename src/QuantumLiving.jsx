@@ -220,7 +220,7 @@ const FUN_FACTS = [
   { ingredient:"Saffron", fact:"Saffron contains safranal and crocin — compounds shown in multiple studies to be as effective as low-dose antidepressants for mild to moderate depression, with no significant side effects reported." },
   { ingredient:"Lion's Mane Mushroom", fact:"Lion's Mane is the only known food that stimulates Nerve Growth Factor (NGF) production — the protein responsible for growing and maintaining neurons. It's the most studied natural compound for neuroplasticity." },
 ];
-const todayFact = FUN_FACTS[Math.floor(new Date().getTime() / 86400000) % FUN_FACTS.length];
+const todayFact = FUN_FACTS[Math.floor(Date.now() * 0.0000115741) % FUN_FACTS.length];
 
 export default function QuantumLiving({ onBack, archetype }) {
   const [activeLaw, setActiveLaw] = useState(null);
@@ -250,7 +250,7 @@ export default function QuantumLiving({ onBack, archetype }) {
   const archName    = arch ? ARCH_NAMES[arch]  : "Your Archetype";
 
   // Which law is featured today — rotates through 5 on a 5-day cycle
-  const todayLawIdx = Math.floor(new Date().getTime() / 86400000) % 5;
+  const todayLawIdx = Math.floor(Date.now() * 0.0000115741) % 5;
   const todayLaw    = LAWS[todayLawIdx];
   const todayArchNote = arch && ARCH_LAW_NOTES[arch] ? ARCH_LAW_NOTES[arch][todayLawIdx] : null;
 
@@ -286,7 +286,7 @@ export default function QuantumLiving({ onBack, archetype }) {
     ],
   };
   const dailyArchTip = arch && ARCH_DAILY[arch]
-    ? ARCH_DAILY[arch][Math.floor(new Date().getTime() / 86400000) % 5]
+    ? ARCH_DAILY[arch][Math.floor(Date.now() * 0.0000115741) % 5]
     : null;
 
   // Initialize challenge
