@@ -173,15 +173,6 @@ const LAWS = [
   },
 ];
 
-const CHECKLIST_ITEMS = [
-  "7–9 hours of sleep last night",
-  "20+ minutes of fresh air today",
-  "Chose moderation in body, mind and spirit today",
-  "30+ minutes of movement",
-  "Fruits or vegetables at the heart of every meal today",
-];
-
-
 // ── Daily natural product fun fact ──────────────────────────────────────
 const FUN_FACTS = [
   { ingredient:"Garlic", fact:"Raw garlic contains allicin — a compound shown in research to reduce cortisol levels and support immune function. Let it sit for 10 minutes after chopping to activate the allicin before eating." },
@@ -256,8 +247,81 @@ const ARCH_LAW_NOTES = {
 };
 
 
+// ── Discoverable science questions — one per law ──────────────────────────
+// Matches the progressive disclosure pattern in BrainTraining Cognitive Blueprint
+const DISCOVERY_QUESTIONS = [
+  "Why does tonight's sleep determine tomorrow's thinking?",
+  "What does fresh air actually do inside your brain?",
+  "How does temperance protect your cognitive performance?",
+  "Why is movement the most underused cognitive tool available to you?",
+  "How does what you eat today change how your brain works tomorrow?",
+];
+
+// ── Wellness Marketplace — foundation for future natural product revenue ──
+// One category per law. URLs are placeholders — swap for real product pages.
+// Members who have purchased the Quantum Living add-on see member pricing.
+const SHOP_CATEGORIES = [
+  {
+    lawNum:"01", lawTitle:"Quantum Rest", icon:"🌙", color:"#818CF8",
+    tagline:"Sleep & Recovery",
+    description:"Natural compounds shown in research to support sleep architecture, circadian rhythm, and overnight cognitive repair.",
+    products:[
+      { name:"Magnesium Glycinate Complex", benefit:"Promotes deep sleep & nervous system calm", tag:"Best seller" },
+      { name:"Ashwagandha & Chamomile Blend", benefit:"Reduces cortisol for genuine wind-down", tag:"Member favourite" },
+    ],
+    discount:"20% member saving",
+    url:"#ql-rest",
+  },
+  {
+    lawNum:"02", lawTitle:"Quantum Breath", icon:"🌿", color:"#34D399",
+    tagline:"Oxygen & Vitality",
+    description:"Adaptogenic herbs and respiratory support supplements aligned with the Law of Fresh Air.",
+    products:[
+      { name:"Maca Root & Rhodiola Stack", benefit:"Natural energy and stress adaptation", tag:"Popular" },
+      { name:"Eucalyptus & Peppermint Oil Set", benefit:"Supports clear airways and focus", tag:"Aromatherapy" },
+    ],
+    discount:"20% member saving",
+    url:"#ql-breath",
+  },
+  {
+    lawNum:"03", lawTitle:"Quantum Balance", icon:"⚖️", color:"#F59E0B",
+    tagline:"Harmony & Restoration",
+    description:"Science-backed adaptogens and mood-supporting botanicals for body, mind, and spirit equilibrium.",
+    products:[
+      { name:"Saffron & Lion's Mane Capsules", benefit:"Mood support with neuroplasticity research", tag:"Clinical grade" },
+      { name:"Holy Basil (Tulsi) Tincture", benefit:"Ancient adaptogen for stress resilience", tag:"Organic" },
+    ],
+    discount:"20% member saving",
+    url:"#ql-balance",
+  },
+  {
+    lawNum:"04", lawTitle:"Quantum Motion", icon:"⚡", color:"#00C8FF",
+    tagline:"Performance & Recovery",
+    description:"Natural performance and recovery support for the moving body — no synthetic stimulants.",
+    products:[
+      { name:"Beetroot & Cordyceps Blend", benefit:"Nitric oxide support & natural endurance", tag:"Pre-movement" },
+      { name:"Turmeric & Ginger Anti-Inflammatory", benefit:"Post-exercise recovery & joint health", tag:"Recovery" },
+    ],
+    discount:"20% member saving",
+    url:"#ql-motion",
+  },
+  {
+    lawNum:"05", lawTitle:"Quantum Fuel", icon:"🌱", color:"#A78BFA",
+    tagline:"Nourishment & Clarity",
+    description:"Whole-food supplements and superfoods that extend the Law of Simple Nourishment into your daily stack.",
+    products:[
+      { name:"Spirulina & Chlorella Superfood", benefit:"Dense micronutrient profile from nature", tag:"Pure plant" },
+      { name:"Omega-3 Algae Oil (Vegan DHA)", benefit:"Brain-building fats without fish sourcing", tag:"Cognitive" },
+    ],
+    discount:"20% member saving",
+    url:"#ql-fuel",
+  },
+];
+
 export default function QuantumLiving({ onBack, archetype }) {
   const [activeLaw, setActiveLaw] = useState(null);
+  const [expandedLaw, setExpandedLaw] = useState(null); // discoverable preview — single open
+  const [expandedShop, setExpandedShop] = useState(null); // marketplace accordion
   const todayKey = new Date().toISOString().split("T")[0]; // "2026-02-25"
 
   const [checklist, setChecklist] = useState(() => {
@@ -621,26 +685,259 @@ export default function QuantumLiving({ onBack, archetype }) {
           </div>
         )}
 
-        {/* ── ALL 5 LAWS — secondary ── */}
-        <p style={{fontSize:13,fontWeight:700,color:DIMMED,letterSpacing:".14em",textTransform:"uppercase",marginBottom:12,animation:"fadeUp .5s .25s ease both"}}>All 5 Quantum Laws — Tap to explore</p>
-        {LAWS.map((law,i)=>(
-          <div key={i} onClick={()=>setActiveLaw(i)}
-            style={{background:i===todayLawIdx?`${law.color}0a`:PANEL, border:`1px solid ${i===todayLawIdx?law.color+"44":BORDER2}`, borderLeft:`3px solid ${law.color}`, borderRadius:14, padding:"14px 16px", marginBottom:8, cursor:"pointer", transition:"all .2s", animation:`fadeUp 0.5s ${0.28+i*0.06}s ease both`, display:"flex", alignItems:"center", gap:14}}
-            onMouseEnter={e=>{e.currentTarget.style.background=law.glow;}}
-            onMouseLeave={e=>{e.currentTarget.style.background=i===todayLawIdx?`${law.color}0a`:PANEL;}}>
-            <span className={`law-icon-${i}`} style={{fontSize:24,display:"inline-block",flexShrink:0}}>{law.icon}</span>
-            <div style={{flex:1}}>
-              <p style={{fontSize:13,fontWeight:700,color:law.color,letterSpacing:".08em",textTransform:"uppercase",marginBottom:2}}>Law {law.num} · {law.subtitle}</p>
-              <p style={{fontSize:15,fontWeight:700,color:WHITE}}>{law.title}</p>
-            </div>
-            {i===todayLawIdx && <span style={{fontSize:11,fontWeight:700,color:law.color,background:`${law.color}18`,padding:"3px 10px",borderRadius:100,flexShrink:0}}>Today</span>}
-            <span style={{color:DIMMED,fontSize:16}}>→</span>
+        {/* ── THE QUANTUM HEALTH SYSTEM — circular thumbnails + discoverable science ── */}
+        <div style={{marginBottom:16, animation:"fadeUp .5s .25s ease both"}}>
+
+          {/* Section header */}
+          <div style={{marginBottom:14}}>
+            <p style={{fontSize:11,fontWeight:700,color:DIMMED,letterSpacing:".14em",textTransform:"uppercase",marginBottom:4}}>🔬 The Quantum Health System</p>
+            <p style={{fontFamily:"'Crimson Pro',serif",fontStyle:"italic",fontSize:15,color:MUTED,lineHeight:1.6}}>Discover the science behind each law of health — tap any to reveal.</p>
           </div>
-        ))}
+
+          {/* Circular thumbnail row */}
+          <div style={{display:"flex",justifyContent:"space-between",gap:6,marginBottom:16}}>
+            {LAWS.map((law,i)=>(
+              <button key={i}
+                onClick={()=>setExpandedLaw(expandedLaw===i?null:i)}
+                style={{
+                  flex:1,display:"flex",flexDirection:"column",alignItems:"center",gap:6,
+                  background:"transparent",border:"none",cursor:"pointer",padding:"4px 0",
+                  fontFamily:"'Space Grotesk',sans-serif",
+                }}>
+                {/* Circular avatar */}
+                <div style={{
+                  width:54,height:54,borderRadius:"50%",flexShrink:0,
+                  background:`radial-gradient(circle at 35% 35%, ${law.color}33, ${law.color}10)`,
+                  border:`2px solid ${expandedLaw===i ? law.color : law.color+"44"}`,
+                  boxShadow: expandedLaw===i ? `0 0 18px ${law.color}55` : "none",
+                  display:"flex",alignItems:"center",justifyContent:"center",
+                  fontSize:22,
+                  transition:"all .25s cubic-bezier(.4,0,.2,1)",
+                  transform: expandedLaw===i ? "scale(1.08)" : "scale(1)",
+                }}>
+                  <span className={`law-icon-${i}`}>{law.icon}</span>
+                </div>
+                {/* Short label */}
+                <p style={{
+                  fontSize:9,fontWeight:700,color: expandedLaw===i ? law.color : DIMMED,
+                  letterSpacing:".06em",textTransform:"uppercase",lineHeight:1.2,textAlign:"center",
+                  transition:"color .2s",
+                  maxWidth:58,
+                }}>
+                  {law.title.replace("Quantum ","")}
+                </p>
+                {/* Today badge or tick */}
+                {i===todayLawIdx && (
+                  <div style={{width:6,height:6,borderRadius:"50%",background:law.color,boxShadow:`0 0 6px ${law.color}`}}/>
+                )}
+                {checklist[i] && i!==todayLawIdx && (
+                  <div style={{width:6,height:6,borderRadius:"50%",background:GREEN}}/>
+                )}
+              </button>
+            ))}
+          </div>
+
+          {/* Discoverable detail panel — expands below thumbnails */}
+          {expandedLaw !== null && (()=>{
+            const law = LAWS[expandedLaw];
+            const question = DISCOVERY_QUESTIONS[expandedLaw];
+            // First 2 sentences of truth as teaser
+            const teaser = law.truth.split(". ").slice(0,2).join(". ") + ".";
+            return (
+              <div style={{
+                background:`linear-gradient(135deg,${law.color}0c,${DARK2})`,
+                border:`1px solid ${law.color}44`,
+                borderTop:`2px solid ${law.color}`,
+                borderRadius:"0 0 14px 14px",
+                padding:"18px 18px 14px",
+                marginTop:-4,
+                animation:"fadeUp .22s ease both",
+              }}>
+                {/* Law identity */}
+                <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:12}}>
+                  <div style={{
+                    width:36,height:36,borderRadius:10,flexShrink:0,
+                    background:`${law.color}18`,border:`1px solid ${law.color}33`,
+                    display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,
+                  }}>{law.icon}</div>
+                  <div>
+                    <p style={{fontSize:10,fontWeight:700,color:law.color,letterSpacing:".12em",textTransform:"uppercase",marginBottom:1}}>Law {law.num} · {law.subtitle}</p>
+                    <p style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:20,letterSpacing:1.5,color:WHITE,lineHeight:1}}>{law.title}</p>
+                  </div>
+                  {expandedLaw===todayLawIdx && <span style={{marginLeft:"auto",fontSize:10,fontWeight:700,color:law.color,background:`${law.color}18`,borderRadius:100,padding:"3px 9px",flexShrink:0}}>Today</span>}
+                </div>
+
+                {/* The science question — invitation to discover */}
+                <p style={{fontFamily:"'Crimson Pro',serif",fontStyle:"italic",fontSize:15,color:law.color,lineHeight:1.6,marginBottom:10}}>"{question}"</p>
+
+                {/* Principle */}
+                <p style={{fontSize:13,fontWeight:700,color:MUTED,lineHeight:1.7,marginBottom:10,fontStyle:"italic"}}>"{law.principle}"</p>
+
+                {/* Science teaser */}
+                <p style={{fontSize:14,color:"rgba(255,255,255,0.65)",lineHeight:1.75,marginBottom:14,fontWeight:300}}>{teaser}</p>
+
+                {/* CTA */}
+                <button onClick={()=>setActiveLaw(expandedLaw)} style={{
+                  width:"100%",border:`1px solid ${law.color}55`,borderRadius:100,
+                  padding:"11px",fontSize:13,fontWeight:700,
+                  background:`${law.color}12`,color:law.color,
+                  cursor:"pointer",fontFamily:"'Space Grotesk',sans-serif",
+                  letterSpacing:".06em",transition:"all .2s",
+                }}
+                  onMouseEnter={e=>{e.currentTarget.style.background=`${law.color}22`;}}
+                  onMouseLeave={e=>{e.currentTarget.style.background=`${law.color}12`;}}>
+                  Explore full law — practices, science & your archetype →
+                </button>
+              </div>
+            );
+          })()}
+        </div>
+
+        {/* ── QUANTUM WELLNESS MARKETPLACE ── */}
+        <div style={{marginBottom:16,animation:"fadeUp .5s .3s ease both"}}>
+
+          {/* Premium member badge */}
+          <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:14}}>
+            <div style={{flex:1,height:1,background:`linear-gradient(90deg,transparent,${GREEN}44)`}}/>
+            <div style={{
+              display:"flex",alignItems:"center",gap:6,
+              background:"rgba(52,211,153,0.06)",border:"1px solid rgba(52,211,153,0.25)",
+              borderRadius:100,padding:"6px 14px",flexShrink:0,
+            }}>
+              <span style={{fontSize:12}}>🌿</span>
+              <span style={{fontSize:11,fontWeight:700,color:GREEN,letterSpacing:".1em",textTransform:"uppercase"}}>Quantum Living Members</span>
+            </div>
+            <div style={{flex:1,height:1,background:`linear-gradient(90deg,${GREEN}44,transparent)`}}/>
+          </div>
+
+          <p style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:24,letterSpacing:2,color:WHITE,marginBottom:4}}>Natural Wellness Range</p>
+          <p style={{fontSize:14,color:MUTED,lineHeight:1.65,marginBottom:16}}>As a Quantum Living member, you have exclusive access to our curated range of natural products — each aligned to the five laws. Member pricing applied automatically.</p>
+
+          {/* One card per law — accordion */}
+          <div style={{display:"flex",flexDirection:"column",gap:8}}>
+            {SHOP_CATEGORIES.map((cat,i)=>{
+              const isOpen = expandedShop === i;
+              return (
+                <div key={i} style={{
+                  background: isOpen ? `linear-gradient(135deg,${cat.color}0c,${DARK2})` : "rgba(255,255,255,0.025)",
+                  border:`1px solid ${isOpen ? cat.color+"44" : "rgba(255,255,255,0.07)"}`,
+                  borderRadius:14,overflow:"hidden",
+                  transition:"border-color .2s",
+                }}>
+                  {/* Tap target */}
+                  <button onClick={()=>setExpandedShop(isOpen?null:i)} style={{
+                    width:"100%",display:"flex",alignItems:"center",gap:12,
+                    padding:"14px 16px",background:"transparent",border:"none",
+                    cursor:"pointer",textAlign:"left",fontFamily:"'Space Grotesk',sans-serif",
+                  }}>
+                    {/* Circular icon */}
+                    <div style={{
+                      width:44,height:44,borderRadius:"50%",flexShrink:0,
+                      background:`radial-gradient(circle at 35% 35%, ${cat.color}30, ${cat.color}0a)`,
+                      border:`1.5px solid ${cat.color}44`,
+                      display:"flex",alignItems:"center",justifyContent:"center",fontSize:20,
+                      transition:"all .2s",
+                      boxShadow: isOpen ? `0 0 14px ${cat.color}44` : "none",
+                    }}>{cat.icon}</div>
+
+                    <div style={{flex:1,minWidth:0}}>
+                      <p style={{fontSize:10,fontWeight:700,color:cat.color,letterSpacing:".1em",textTransform:"uppercase",marginBottom:2}}>Law {cat.lawNum} · {cat.tagline}</p>
+                      <p style={{fontSize:15,fontWeight:700,color:WHITE}}>{cat.lawTitle}</p>
+                    </div>
+
+                    {/* Discount badge */}
+                    <div style={{
+                      background:`${cat.color}15`,border:`1px solid ${cat.color}33`,
+                      borderRadius:100,padding:"4px 10px",flexShrink:0,marginRight:6,
+                    }}>
+                      <span style={{fontSize:10,fontWeight:700,color:cat.color,letterSpacing:".06em"}}>20% OFF</span>
+                    </div>
+
+                    {/* Chevron */}
+                    <div style={{
+                      width:22,height:22,borderRadius:"50%",flexShrink:0,
+                      background:`${cat.color}10`,border:`1px solid ${cat.color}25`,
+                      display:"flex",alignItems:"center",justifyContent:"center",
+                      transition:"transform .3s cubic-bezier(.4,0,.2,1)",
+                      transform: isOpen ? "rotate(180deg)" : "rotate(0deg)",
+                    }}>
+                      <svg width="9" height="9" viewBox="0 0 12 12" fill="none">
+                        <path d="M2 4.5l4 3.5 4-3.5" stroke={cat.color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                    </div>
+                  </button>
+
+                  {/* Expanded content */}
+                  {isOpen && (
+                    <div style={{padding:"0 16px 16px",animation:"fadeUp .2s ease both"}}>
+                      <p style={{fontSize:13,color:MUTED,lineHeight:1.7,marginBottom:14,fontWeight:300}}>{cat.description}</p>
+
+                      {/* Product tiles */}
+                      <div style={{display:"flex",flexDirection:"column",gap:8,marginBottom:14}}>
+                        {cat.products.map((prod,j)=>(
+                          <div key={j} style={{
+                            display:"flex",alignItems:"center",gap:12,
+                            background:"rgba(255,255,255,0.025)",
+                            border:`1px solid rgba(255,255,255,0.06)`,
+                            borderRadius:10,padding:"12px 14px",
+                          }}>
+                            <div style={{
+                              width:8,height:8,borderRadius:"50%",
+                              background:cat.color,flexShrink:0,
+                              boxShadow:`0 0 6px ${cat.color}`,
+                            }}/>
+                            <div style={{flex:1}}>
+                              <p style={{fontSize:14,fontWeight:700,color:WHITE,marginBottom:2}}>{prod.name}</p>
+                              <p style={{fontSize:12,color:MUTED,lineHeight:1.4}}>{prod.benefit}</p>
+                            </div>
+                            <span style={{
+                              fontSize:10,fontWeight:700,color:cat.color,
+                              background:`${cat.color}15`,border:`1px solid ${cat.color}33`,
+                              borderRadius:100,padding:"3px 8px",flexShrink:0,
+                            }}>{prod.tag}</span>
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* Member saving + CTA */}
+                      <div style={{
+                        display:"flex",alignItems:"center",gap:10,
+                        background:`${cat.color}08`,border:`1px solid ${cat.color}22`,
+                        borderRadius:10,padding:"10px 14px",marginBottom:12,
+                      }}>
+                        <span style={{fontSize:14}}>🏷️</span>
+                        <p style={{fontSize:13,color:cat.color,fontWeight:700}}>Quantum Living member — {cat.discount} applied at checkout</p>
+                      </div>
+
+                      <a href={cat.url} style={{
+                        display:"block",width:"100%",boxSizing:"border-box",
+                        border:`1px solid ${cat.color}66`,borderRadius:100,
+                        padding:"11px",fontSize:13,fontWeight:700,
+                        background:`${cat.color}18`,color:cat.color,
+                        cursor:"pointer",fontFamily:"'Space Grotesk',sans-serif",
+                        letterSpacing:".06em",textAlign:"center",textDecoration:"none",
+                        transition:"all .2s",
+                      }}
+                        onMouseEnter={e=>e.currentTarget.style.background=`${cat.color}28`}
+                        onMouseLeave={e=>e.currentTarget.style.background=`${cat.color}18`}>
+                        Explore the {cat.tagline} range →
+                      </a>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Coming soon note */}
+          <div style={{marginTop:12,padding:"12px 16px",background:"rgba(255,255,255,0.02)",border:`1px solid ${BORDER2}`,borderRadius:10,textAlign:"center"}}>
+            <p style={{fontSize:12,color:DIMMED,lineHeight:1.6}}>🌿 More products added regularly. All formulations are natural, third-party tested, and aligned with the Quantum Living philosophy.</p>
+          </div>
+        </div>
 
         {/* Disclaimer */}
-        <div style={{marginTop:16,padding:"14px 18px",background:"rgba(255,255,255,0.02)",border:`1px solid ${BORDER2}`,borderRadius:12}}>
-          <p style={{fontSize:12,color:DIMMED,lineHeight:1.6}}>The 5 Quantum Laws are educational principles for general wellbeing — not medical advice. Please consult a doctor before making changes to exercise or health habits.</p>
+        <div style={{marginTop:8,padding:"14px 18px",background:"rgba(255,255,255,0.02)",border:`1px solid ${BORDER2}`,borderRadius:12}}>
+          <p style={{fontSize:12,color:DIMMED,lineHeight:1.6}}>The 5 Quantum Laws are educational principles for general wellbeing — not medical advice. Please consult a doctor before making changes to exercise or health habits. Natural product descriptions are educational and do not constitute medical claims.</p>
         </div>
       </div>
     </div>
