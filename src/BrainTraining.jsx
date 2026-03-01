@@ -484,108 +484,191 @@ export default function BrainTraining({ onBack, archetype }){
 
 // ── Intro ─────────────────────────────────────────────────────────────────
 function Intro({onStart,onQuickPlay,xp,streak,level,userData,challengeData}){
-  const nextLevel=LEVELS.find(l=>l.min>xp);
-  const pct=nextLevel?Math.min(100,((xp-level.min)/(nextLevel.min-level.min))*100):100;
-  
-  // 21-day challenge progress
-  const currentDay = challengeData?.currentDay || 0;
+  const [showRounds, setShowRounds] = useState(false);
+  const nextLevel = LEVELS.find(l=>l.min>xp);
+  const pct = nextLevel ? Math.min(100,((xp-level.min)/(nextLevel.min-level.min))*100) : 100;
+
+  // 21-day challenge progress — same logic, untouched
+  const currentDay    = challengeData?.currentDay || 0;
   const daysCompleted = challengeData?.daysCompleted?.length || 0;
-  const completionPct = currentDay > 0 ? Math.round((daysCompleted / currentDay) * 100) : 0;
-  const isEnrolled = challengeData && challengeData.enrolled;
-  
-  const rounds=[
-    {icon:"🎨",name:"Stroop Challenge",tag:"Executive Function",brain:"Prefrontal cortex"},
-    {icon:"🧠",name:"2-Back Test",tag:"Working Memory",brain:"Dorsolateral prefrontal"},
-    {icon:"🔷",name:"Pattern Matrix",tag:"Spatial Reasoning",brain:"Parietal cortex"},
-    {icon:"⚡",name:"Reaction Velocity",tag:"Processing Speed",brain:"Motor cortex"},
-    {icon:"🔄",name:"Cognitive Switch",tag:"Mental Flexibility",brain:"Anterior cingulate"},
-    {icon:"🛡️",name:"Neural Defense",tag:"Sustained Attention",brain:"Visual & parietal cortex"},
+  const completionPct = currentDay > 0 ? Math.round((daysCompleted/currentDay)*100) : 0;
+  const isEnrolled    = challengeData && challengeData.enrolled;
+
+  // Colour per round matches SCIENCE_CARDS palette
+  const rounds = [
+    {icon:"🎨", name:"Stroop Challenge",  tag:"Executive Function",  brain:"Prefrontal cortex",          color:E_BLUE},
+    {icon:"🧠", name:"2-Back Test",       tag:"Working Memory",       brain:"Dorsolateral prefrontal",     color:VIOLET},
+    {icon:"🔷", name:"Pattern Matrix",    tag:"Spatial Reasoning",    brain:"Parietal cortex",             color:GREEN},
+    {icon:"⚡", name:"Reaction Velocity", tag:"Processing Speed",     brain:"Motor cortex",                color:AMBER},
+    {icon:"🔄", name:"Cognitive Switch",  tag:"Mental Flexibility",   brain:"Anterior cingulate",          color:RED},
+    {icon:"🛡️", name:"Neural Defense",    tag:"Sustained Attention",  brain:"Visual & parietal cortex",    color:PURPLE},
   ];
+
   return(
     <div>
-      <div className="fu" style={{textAlign:"center",marginBottom:24}}>
-        <p style={{fontSize:16,fontWeight:700,letterSpacing:".16em",textTransform:"uppercase",color:E_BLUE,marginBottom:12}}>⚡ Daily Neural Protocol</p>
-        <h1 style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"clamp(32px,7vw,52px)",letterSpacing:2,color:WHITE,lineHeight:1.05,marginBottom:8}}>Train Your<br/><span style={{color:E_BLUE}}>Quantum Mind</span></h1>
-        <p style={{fontFamily:"'Crimson Pro',serif",fontStyle:"italic",fontSize:16,color:MUTED,lineHeight:1.7}}>"The exercised brain builds new neural pathways throughout life. Consistency compounds."</p>
+
+      {/* ── 1. HERO ─────────────────────────────────────────────────────── */}
+      <div className="fu" style={{textAlign:"center",marginBottom:28}}>
+        <p style={{fontSize:12,fontWeight:700,letterSpacing:".2em",textTransform:"uppercase",color:E_BLUE,marginBottom:14}}>⚡ Daily Neural Protocol</p>
+        <h1 style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"clamp(38px,8vw,60px)",letterSpacing:2,color:WHITE,lineHeight:1.0,marginBottom:16}}>
+          Train Your<br/><span style={{color:E_BLUE}}>Quantum Mind</span>
+        </h1>
+        <p style={{fontFamily:"'Crimson Pro',serif",fontStyle:"italic",fontSize:16,color:MUTED,lineHeight:1.75,maxWidth:320,margin:"0 auto"}}>
+          "The exercised brain builds new neural pathways throughout life. Consistency compounds."
+        </p>
       </div>
 
-      {/* 21-DAY CHALLENGE DASHBOARD */}
-      {isEnrolled && (
-        <div className="fu0" style={{background:`linear-gradient(135deg,rgba(0,200,255,0.08),rgba(0,200,255,0.03))`,border:`1px solid ${E_BLUE}33`,borderRadius:16,padding:"16px 20px",marginBottom:14}}>
-          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
-            <div>
-              <p style={{fontSize:14,fontWeight:700,color:E_BLUE,letterSpacing:".12em",textTransform:"uppercase",marginBottom:2}}>📅 21-Day Transformation</p>
-              <p style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:22,letterSpacing:2,color:WHITE}}>Day {currentDay} of 21</p>
-            </div>
-            <div style={{textAlign:"right"}}>
-              <p style={{fontSize:14,color:DIMMED,marginBottom:2}}>Completion</p>
-              <p style={{fontSize:20,fontWeight:700,color:GREEN}}>{completionPct}%</p>
-            </div>
+      {/* ── 2. PRIMARY CTA — dominant, top position ──────────────────────── */}
+      <button className="fu1" onClick={onStart}
+        style={{width:"100%",border:"none",borderRadius:100,padding:"18px",fontSize:17,fontWeight:700,
+          fontFamily:"'Space Grotesk',sans-serif",cursor:"pointer",letterSpacing:".06em",
+          background:`linear-gradient(135deg,${E_BLUE2},${E_BLUE})`,color:BG,
+          boxShadow:`0 8px 32px rgba(0,200,255,0.28)`,transition:"all .2s",marginBottom:12}}
+        onMouseEnter={e=>{e.currentTarget.style.transform="translateY(-2px)";e.currentTarget.style.boxShadow=`0 16px 44px rgba(0,200,255,0.4)`;}}
+        onMouseLeave={e=>{e.currentTarget.style.transform="translateY(0)";e.currentTarget.style.boxShadow=`0 8px 32px rgba(0,200,255,0.28)`;}}>
+        ⚡ Begin Full Protocol →
+      </button>
+
+      {/* ── 3. XP STRIP — slim, one row, no visual noise at zero ─────────── */}
+      <div className="fu2" style={{
+        background:`linear-gradient(135deg,${DARK2},${DARK})`,
+        border:`1px solid ${level.color}22`,
+        borderRadius: streak>0 ? "14px 14px 0 0" : "14px",
+        padding:"12px 18px", marginBottom: streak>0 ? 0 : 14
+      }}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:7}}>
+          <div style={{display:"flex",alignItems:"center",gap:9}}>
+            <div style={{width:8,height:8,borderRadius:"50%",background:level.color,boxShadow:`0 0 8px ${level.color}`,flexShrink:0}}/>
+            <span style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:16,letterSpacing:2,color:level.color}}>{level.name}</span>
           </div>
-          <div style={{height:6,background:"rgba(255,255,255,0.06)",borderRadius:100,overflow:"hidden"}}>
-            <div style={{height:"100%",width:`${(currentDay/21)*100}%`,background:`linear-gradient(90deg,${E_BLUE},${GREEN})`,borderRadius:100}}/>
+          <div style={{display:"flex",alignItems:"center",gap:10}}>
+            {nextLevel && <span style={{fontSize:12,color:DIMMED}}>{nextLevel.min-xp} XP to <span style={{color:nextLevel.color}}>{nextLevel.name}</span></span>}
+            <span style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:16,letterSpacing:1,color:WHITE}}>{xp} XP</span>
           </div>
-          {currentDay >= 7 && (
-            <p style={{fontSize:13,color:GREEN,marginTop:8,fontWeight:600}}>✓ Week 1 milestone reached!</p>
-          )}
-          {currentDay >= 14 && (
-            <p style={{fontSize:13,color:GREEN,marginTop:4,fontWeight:600}}>✓ Week 2 milestone reached!</p>
-          )}
-          {currentDay >= 21 && (
-            <p style={{fontSize:13,color:AMBER,marginTop:4,fontWeight:700}}>🏆 21-Day Transformation Complete!</p>
-          )}
+        </div>
+        <div style={{height:3,background:"rgba(255,255,255,0.06)",borderRadius:100,overflow:"hidden"}}>
+          <div style={{height:"100%",width:`${pct}%`,background:`linear-gradient(90deg,${level.color}55,${level.color})`,borderRadius:100}}/>
+        </div>
+      </div>
+
+      {/* Streak attaches below XP strip when active — shares the card boundary */}
+      {streak>0 && (
+        <div style={{
+          marginBottom:14,padding:"8px 18px",
+          background:"rgba(251,191,36,0.05)",border:"1px solid rgba(251,191,36,0.16)",
+          borderTop:"none",borderRadius:"0 0 14px 14px",
+          display:"flex",alignItems:"center",gap:8
+        }}>
+          <span style={{fontSize:15}}>🔥</span>
+          <span style={{fontSize:14,color:AMBER,fontWeight:600}}>{streak}-day streak</span>
+          <span style={{fontSize:13,color:DIMMED,marginLeft:"auto"}}>+{streak*5}% XP bonus active</span>
         </div>
       )}
 
-      <div className="fu1" style={{background:`linear-gradient(135deg,${DARK2},${DARK})`,border:`1px solid ${level.color}33`,borderRadius:16,padding:"18px 22px",marginBottom:14}}>
-        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
-          <div>
-            <p style={{fontSize:15,fontWeight:700,color:DIMMED,letterSpacing:".12em",textTransform:"uppercase",marginBottom:4}}>Neural Level</p>
-            <p style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:22,letterSpacing:2,color:level.color}}>{level.name}</p>
-          </div>
-          <div style={{textAlign:"right"}}>
-            <p style={{fontSize:15,fontWeight:700,color:DIMMED,letterSpacing:".12em",textTransform:"uppercase",marginBottom:4}}>Total XP</p>
-            <p style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:26,letterSpacing:2,color:WHITE}}>{xp}</p>
-          </div>
-        </div>
-        <div style={{height:5,background:"rgba(255,255,255,0.06)",borderRadius:100,overflow:"hidden",marginBottom:6}}>
-          <div style={{height:"100%",width:`${pct}%`,background:`linear-gradient(90deg,${level.color}66,${level.color})`,borderRadius:100}}/>
-        </div>
-        {nextLevel&&<p style={{fontSize:14,color:DIMMED}}>{nextLevel.min-xp} XP to <span style={{color:nextLevel.color}}>{nextLevel.name}</span></p>}
-        {streak>0&&<div style={{marginTop:12,display:"flex",alignItems:"center",gap:8,padding:"8px 12px",background:"rgba(251,191,36,0.05)",border:"1px solid rgba(251,191,36,0.2)",borderRadius:10}}>
-          <span>🔥</span><span style={{fontSize:16,color:AMBER,fontWeight:600}}>{streak}-day streak</span><span style={{fontSize:14,color:DIMMED,marginLeft:"auto"}}>+{streak*5}% XP bonus</span>
-        </div>}
-      </div>
-
-      <div className="fu2" style={{background:PANEL,border:`1px solid ${BORDER2}`,borderRadius:16,padding:"18px 20px",marginBottom:18}}>
-        <p style={{fontSize:15,fontWeight:700,color:DIMMED,letterSpacing:".12em",textTransform:"uppercase",marginBottom:14}}>6 Science-Backed Challenges · ~6-7 minutes</p>
-        {rounds.map((r,i)=>(
-          <div key={i} style={{display:"flex",gap:14,alignItems:"flex-start",padding:"11px 0",borderBottom:i<rounds.length-1?`1px solid ${BORDER2}`:"none"}}>
-            <div style={{width:40,height:40,borderRadius:12,background:"rgba(0,200,255,0.07)",border:`1px solid ${BORDER}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,flexShrink:0}}>{r.icon}</div>
-            <div style={{flex:1}}>
-              <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:3,flexWrap:"wrap"}}>
-                <p style={{fontSize:16,fontWeight:600,color:WHITE}}>{r.name}</p>
-                <span style={{fontSize:15,fontWeight:700,color:E_BLUE,letterSpacing:".08em",textTransform:"uppercase",background:"rgba(0,200,255,0.08)",border:`1px solid ${BORDER}`,borderRadius:100,padding:"2px 8px"}}>{r.tag}</span>
-              </div>
-              <p style={{fontSize:14,color:DIMMED,fontStyle:"italic"}}>Brain region: {r.brain}</p>
+      {/* ── 4. 21-DAY PANEL — enrolled users only, logic identical ──────── */}
+      {isEnrolled && (
+        <div style={{background:`linear-gradient(135deg,rgba(0,200,255,0.08),rgba(0,200,255,0.03))`,
+          border:`1px solid ${E_BLUE}33`,borderRadius:14,padding:"14px 18px",marginBottom:14,
+          animation:"fadeUp .5s ease both"}}>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
+            <div>
+              <p style={{fontSize:12,fontWeight:700,color:E_BLUE,letterSpacing:".12em",textTransform:"uppercase",marginBottom:2}}>📅 21-Day Transformation</p>
+              <p style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:20,letterSpacing:2,color:WHITE}}>Day {currentDay} of 21</p>
             </div>
-            <span style={{fontSize:14,color:DIMMED,marginTop:2}}>{i+1}</span>
+            <div style={{textAlign:"right"}}>
+              <p style={{fontSize:12,color:DIMMED,marginBottom:2}}>Complete</p>
+              <p style={{fontSize:22,fontWeight:700,color:GREEN}}>{completionPct}%</p>
+            </div>
           </div>
-        ))}
+          <div style={{height:5,background:"rgba(255,255,255,0.06)",borderRadius:100,overflow:"hidden"}}>
+            <div style={{height:"100%",width:`${(currentDay/21)*100}%`,background:`linear-gradient(90deg,${E_BLUE},${GREEN})`,borderRadius:100}}/>
+          </div>
+          {currentDay>=7  && <p style={{fontSize:12,color:GREEN,marginTop:6,fontWeight:600}}>✓ Week 1 milestone reached!</p>}
+          {currentDay>=14 && <p style={{fontSize:12,color:GREEN,marginTop:2,fontWeight:600}}>✓ Week 2 milestone reached!</p>}
+          {currentDay>=21 && <p style={{fontSize:12,color:AMBER,marginTop:2,fontWeight:700}}>🏆 21-Day Transformation Complete!</p>}
+        </div>
+      )}
+
+      {/* ── 5. PROGRESSIVE DISCLOSURE — What's inside ───────────────────── */}
+      <div className="fu3" style={{marginBottom:14}}>
+
+        {/* Toggle button */}
+        <button onClick={()=>setShowRounds(v=>!v)} style={{
+          width:"100%",display:"flex",justifyContent:"space-between",alignItems:"center",
+          background:PANEL,border:`1px solid ${BORDER2}`,
+          borderRadius: showRounds ? "14px 14px 0 0" : "14px",
+          padding:"14px 18px",cursor:"pointer",
+          fontFamily:"'Space Grotesk',sans-serif",
+          transition:"border-radius .25s, background .2s",
+        }}
+          onMouseEnter={e=>e.currentTarget.style.background="rgba(255,255,255,0.06)"}
+          onMouseLeave={e=>e.currentTarget.style.background=PANEL}>
+          <div style={{display:"flex",alignItems:"center",gap:12}}>
+            <span style={{fontSize:19}}>🧠</span>
+            <div style={{textAlign:"left"}}>
+              <p style={{fontSize:14,fontWeight:700,color:WHITE,marginBottom:1}}>6 Science-Backed Challenges</p>
+              <p style={{fontSize:12,color:DIMMED}}>~6–7 min · Executive function to sustained attention</p>
+            </div>
+          </div>
+          {/* Animated chevron */}
+          <div style={{
+            width:28,height:28,borderRadius:"50%",flexShrink:0,
+            background:`rgba(0,200,255,0.07)`,border:`1px solid ${BORDER}`,
+            display:"flex",alignItems:"center",justifyContent:"center",
+            transition:"transform .35s cubic-bezier(.4,0,.2,1)",
+            transform: showRounds ? "rotate(180deg)" : "rotate(0deg)"
+          }}>
+            <svg width="11" height="11" viewBox="0 0 12 12" fill="none">
+              <path d="M2 4.5l4 3.5 4-3.5" stroke={E_BLUE} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </div>
+        </button>
+
+        {/* Expanded rounds — staggered fade-in per row */}
+        {showRounds && (
+          <div style={{background:PANEL,border:`1px solid ${BORDER2}`,borderTop:"none",borderRadius:"0 0 14px 14px",overflow:"hidden"}}>
+            {rounds.map((r,i)=>(
+              <div key={i} style={{
+                display:"flex",gap:13,alignItems:"center",
+                padding:"12px 18px",
+                borderBottom: i<rounds.length-1 ? `1px solid ${BORDER2}` : "none",
+                animation:"fadeUp .3s ease both",
+                animationDelay:`${i*45}ms`,
+              }}>
+                <div style={{
+                  width:36,height:36,borderRadius:10,flexShrink:0,
+                  background:`${r.color}10`,border:`1px solid ${r.color}30`,
+                  display:"flex",alignItems:"center",justifyContent:"center",fontSize:16
+                }}>{r.icon}</div>
+                <div style={{flex:1,minWidth:0}}>
+                  <div style={{display:"flex",alignItems:"center",gap:7,flexWrap:"wrap",marginBottom:2}}>
+                    <p style={{fontSize:14,fontWeight:600,color:WHITE}}>{r.name}</p>
+                    <span style={{
+                      fontSize:10,fontWeight:700,color:r.color,letterSpacing:".09em",
+                      textTransform:"uppercase",background:`${r.color}10`,
+                      border:`1px solid ${r.color}30`,borderRadius:100,
+                      padding:"1px 7px",whiteSpace:"nowrap"
+                    }}>{r.tag}</span>
+                  </div>
+                  <p style={{fontSize:12,color:DIMMED,fontStyle:"italic"}}>{r.brain}</p>
+                </div>
+                <span style={{fontSize:12,color:DIMMED,fontWeight:600,flexShrink:0,opacity:.7}}>{i+1}</span>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
-      <button className="fu3" onClick={onStart} style={{width:"100%",border:"none",borderRadius:100,padding:"16px",fontSize:16,fontWeight:700,fontFamily:"'Space Grotesk',sans-serif",cursor:"pointer",letterSpacing:".05em",background:`linear-gradient(135deg,${E_BLUE2},${E_BLUE})`,color:BG,boxShadow:`0 6px 28px rgba(0,200,255,0.2)`,transition:"all .2s",marginBottom:10}}
-        onMouseEnter={e=>{e.currentTarget.style.transform="translateY(-2px)";e.currentTarget.style.boxShadow=`0 12px 36px rgba(0,200,255,0.32)`;}}
-        onMouseLeave={e=>{e.currentTarget.style.transform="translateY(0)";e.currentTarget.style.boxShadow=`0 6px 28px rgba(0,200,255,0.2)`;}}>
-        ⚡ Begin Full Protocol →
-      </button>
-      
-      {/* QUICK PLAY NEURAL DEFENSE BUTTON */}
-      <button className="fu4" onClick={onQuickPlay} style={{width:"100%",border:`1.5px solid ${PURPLE}66`,borderRadius:100,padding:"14px",fontSize:15,fontWeight:600,fontFamily:"'Space Grotesk',sans-serif",cursor:"pointer",letterSpacing:".05em",background:"transparent",color:PURPLE,transition:"all .2s"}}
+      {/* ── 6. QUICK PLAY — secondary entry point ────────────────────────── */}
+      <button onClick={onQuickPlay}
+        style={{width:"100%",border:`1.5px solid ${PURPLE}55`,borderRadius:100,padding:"14px",
+          fontSize:15,fontWeight:600,fontFamily:"'Space Grotesk',sans-serif",cursor:"pointer",
+          letterSpacing:".05em",background:"transparent",color:PURPLE,transition:"all .2s"}}
         onMouseEnter={e=>{e.currentTarget.style.background=`${PURPLE}11`;e.currentTarget.style.borderColor=PURPLE;}}
-        onMouseLeave={e=>{e.currentTarget.style.background="transparent";e.currentTarget.style.borderColor=`${PURPLE}66`;}}>
+        onMouseLeave={e=>{e.currentTarget.style.background="transparent";e.currentTarget.style.borderColor=`${PURPLE}55`;}}>
         🛡️ Quick Play: Neural Defense Only
       </button>
+
     </div>
   );
 }
