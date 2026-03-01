@@ -284,7 +284,7 @@ export default function QuantumLiving({ onBack, archetype }) {
   const archName    = arch ? ARCH_NAMES[arch]  : "Your Archetype";
 
   // Which law is featured today — rotates through 5 on a 5-day cycle
-  const todayLawIdx = Math.trunc(Date.now() * 0.0000115741) % 5;
+  const todayLawIdx = DAY_NUM % 5;
   const todayLaw    = LAWS[todayLawIdx];
   const todayArchNote = arch && ARCH_LAW_NOTES[arch] ? ARCH_LAW_NOTES[arch][todayLawIdx] : null;
 
@@ -320,7 +320,7 @@ export default function QuantumLiving({ onBack, archetype }) {
     ],
   };
   const dailyArchTip = arch && ARCH_DAILY[arch]
-    ? ARCH_DAILY[arch][Math.trunc(Date.now() * 0.0000115741) % 5]
+    ? ARCH_DAILY[arch][DAY_NUM % 5]
     : null;
 
   // Initialize challenge
