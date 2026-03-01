@@ -476,7 +476,7 @@ export default function BrainTraining({ onBack, archetype }){
         {screen==="challenge" && round===3 && <ReactionChallenge key="r" difficulty={DIFFICULTY[difficulty]} onComplete={handleRoundComplete}/>}
         {screen==="challenge" && round===4 && <SwitchChallenge   key="sw" difficulty={DIFFICULTY[difficulty]} onComplete={handleRoundComplete}/>}
         {screen==="challenge" && round===5 && <NeuralDefense     key="nd" difficulty={DIFFICULTY[difficulty]} onComplete={handleRoundComplete}/>}
-        {screen==="results"   && <Results scores={scores} level={level} newLevel={getLevel(totalXP)} streak={streak} dailyAction={dailyAction} arch={arch} challengeData={challengeData} isQuickPlay={isQuickPlay} onBack={onBack} onRetry={()=>{setIsQuickPlay(false);setRound(0);setScores([]);setScreen("science");}}/>}
+        {screen==="results"   && <Results scores={scores} level={level} newLevel={getLevel(totalXP)} streak={streak} dailyAction={dailyAction} arch={arch} challengeData={challengeData} isQuickPlay={isQuickPlay} bestScore={userData.bestScore||0} onBack={onBack} onRetry={()=>{setIsQuickPlay(false);setRound(0);setScores([]);setScreen("science");}}/>}
       </div>
     </div>
   );
@@ -1100,6 +1100,8 @@ function NeuralDefense({onComplete, difficulty}){
   const [screenFlash, setScreenFlash] = useState(null); // Red flash on miss
   const [shieldActive, setShieldActive] = useState(false); // Shield glow effect
   
+  const [hintDismissed, setHintDismissed] = useState(false);
+
   const gameLoopRef = useRef(null);
   const spawnTimerRef = useRef(null);
   const waveTimerRef = useRef(null);
@@ -1108,6 +1110,7 @@ function NeuralDefense({onComplete, difficulty}){
   const nextPopupId = useRef(0);
   const scoreRef = useRef(0);
   const hitsRef = useRef(0);
+  const shapesRef = useRef([]); // Mirror of shapes state — read synchronously in handleShoot
   
   const SHAPES_POOL = [
     {type:"circle", color:E_BLUE, pts:10},
@@ -1123,8 +1126,9 @@ function NeuralDefense({onComplete, difficulty}){
     setHits(0); hitsRef.current = 0;
     setMisses(0);
     setWaveTime(WAVE_DURATION);
-    setShapes([]);
+    setShapes([]); shapesRef.current = [];
     setParticles([]);
+    setHintDismissed(false);
     reactionTimes.current = [];
     startWave(1);
   }
@@ -1197,7 +1201,9 @@ function NeuralDefense({onComplete, difficulty}){
           setScreenFlash('red');
           setTimeout(() => setScreenFlash(null), 200);
         }
-        return updated.filter(s => s.y <= GAME_HEIGHT);
+        const remaining = updated.filter(s => s.y <= GAME_HEIGHT);
+        shapesRef.current = remaining; // Keep ref in sync for synchronous reads in handleShoot
+        return remaining;
       });
       
       // Decay particles
@@ -1230,10 +1236,13 @@ function NeuralDefense({onComplete, difficulty}){
   function handleShoot(){
     if(phase !== "playing") return;
     
+    // Dismiss the tap hint on first shot
+    setHintDismissed(true);
+    
     // 🔊 SHOOT SOUND
     playShootSound();
     
-    // 🎆 LIGHTNING BOLT EFFECT - Create dramatic shooting visual
+    // 🎆 LIGHTNING BOLT EFFECT
     const shieldCenter = shieldX + SHIELD_WIDTH/2;
     setLightningBolts(prev => [...prev, {
       id: Math.random(),
@@ -1247,92 +1256,83 @@ function NeuralDefense({onComplete, difficulty}){
     setShieldActive(true);
     setTimeout(() => setShieldActive(false), 200);
     
-    // Check if shield hits any shape - hit the closest shape to shield
-    const shieldTop = GAME_HEIGHT - 60;
+    // ── Read current shapes from ref (synchronous, no render) ──────────────
+    const currentShapes = shapesRef.current;
     
-    let hitCount = 0;
-    let totalPoints = 0;
-    setShapes(prev => {
-      const remaining = [];
-      // Find the best target: prioritise shapes near shield horizontally, lowest on screen
-      let bestTarget = null;
-      let bestScore = -1;
-      prev.forEach(s => {
-        const shapeCenter = s.x + SHAPE_SIZE/2;
-        const horizDist = Math.abs(shapeCenter - shieldCenter);
-        const vertScore = s.y; // lower = better (closer to shield)
-        if(horizDist < 100) {
-          const score = vertScore - horizDist * 0.5;
-          if(score > bestScore) { bestScore = score; bestTarget = s; }
-        }
-      });
-      prev.forEach(s => {
-        const shapeCenter = s.x + SHAPE_SIZE/2;
-        const shapeBottom = s.y + SHAPE_SIZE;
-        const isTarget = bestTarget && s.id === bestTarget.id;
-        
-        // Hit if it's our best target
-        if(isTarget){
-          // 💥 HIT!
-          hitCount++;
-          totalPoints += s.pts;
-          scoreRef.current += s.pts;
-          setScore(scoreRef.current);
-          hitsRef.current += 1;
-          setHits(hitsRef.current);
-          
-          // 🔊 HIT SOUND
-          playHitSound();
-          
-          // Track reaction time
-          const rt = Date.now() - s.spawnTime;
-          reactionTimes.current.push(rt);
-          
-          // 🎯 SCORE POPUP - Floating number
-          setScorePopups(p => [...p, {
-            id: nextPopupId.current++,
-            x: s.x + SHAPE_SIZE/2,
-            y: s.y,
-            value: `+${s.pts}`,
-            color: s.color,
-            life: 30,
-          }]);
-          
-          // 💥 EXPLOSION PARTICLES - More dramatic
-          for(let i=0; i<12; i++){
-            setParticles(p => [...p, {
-              id: Math.random(),
-              x: s.x + SHAPE_SIZE/2,
-              y: s.y + SHAPE_SIZE/2,
-              vx: (Math.random()-0.5)*6,
-              vy: (Math.random()-0.5)*6,
-              color: s.color,
-              life: 25,
-            }]);
-          }
-          
-          // 🧠 NEURAL PULSE RINGS - Emanate from hit point
-          for(let i=0; i<3; i++){
-            setTimeout(() => {
-              setParticles(p => [...p, {
-                id: Math.random(),
-                x: s.x + SHAPE_SIZE/2,
-                y: s.y + SHAPE_SIZE/2,
-                vx: 0,
-                vy: 0,
-                color: s.color,
-                life: 20,
-                isPulse: true,
-                pulseSize: i * 10,
-              }]);
-            }, i * 100);
-          }
-        } else {
-          remaining.push(s);
-        }
-      });
-      return remaining;
+    // Find best target: closest horizontally within 100px, lowest on screen
+    let bestTarget = null;
+    let bestPriority = -1;
+    currentShapes.forEach(s => {
+      const horizDist = Math.abs((s.x + SHAPE_SIZE/2) - shieldCenter);
+      if(horizDist < 100) {
+        const priority = s.y - horizDist * 0.5;
+        if(priority > bestPriority) { bestPriority = priority; bestTarget = s; }
+      }
     });
+    
+    if(bestTarget){
+      // ── Update game state ─────────────────────────────────────────────
+      scoreRef.current += bestTarget.pts;
+      hitsRef.current += 1;
+      reactionTimes.current.push(Date.now() - bestTarget.spawnTime);
+      
+      // Remove hit shape from state
+      setShapes(prev => prev.filter(s => s.id !== bestTarget.id));
+      shapesRef.current = currentShapes.filter(s => s.id !== bestTarget.id);
+      setScore(scoreRef.current);
+      setHits(hitsRef.current);
+      
+      // 🔊 HIT SOUND
+      playHitSound();
+      
+      // ── Build all particles in one array — single setParticles call ──
+      const cx = bestTarget.x + SHAPE_SIZE/2;
+      const cy = bestTarget.y + SHAPE_SIZE/2;
+      const STAR_COLORS = [E_BLUE, GREEN, AMBER, VIOLET, RED, "#F472B6"];
+      const newParticles = [];
+      
+      // 💥 Explosion dot particles
+      for(let i=0; i<10; i++){
+        newParticles.push({
+          id: Math.random(), x: cx, y: cy,
+          vx: (Math.random()-0.5)*8, vy: (Math.random()-0.5)*8,
+          color: bestTarget.color, life: 25,
+        });
+      }
+      
+      // ⭐ Star burst — 6 coloured stars radiating outward
+      for(let i=0; i<6; i++){
+        const angle = (i/6)*Math.PI*2;
+        newParticles.push({
+          id: Math.random(), x: cx, y: cy,
+          vx: Math.cos(angle)*6, vy: Math.sin(angle)*6,
+          color: STAR_COLORS[i], life: 32,
+          isStar: true,
+        });
+      }
+      
+      // 🧠 Neural pulse rings
+      for(let i=0; i<3; i++){
+        newParticles.push({
+          id: Math.random(), x: cx, y: cy,
+          vx: 0, vy: 0,
+          color: bestTarget.color, life: 20 - i*3,
+          isPulse: true, pulseSize: i * 12,
+        });
+      }
+      
+      // Single batched update — no per-particle renders, no freeze
+      setParticles(prev => [...prev, ...newParticles]);
+      
+      // 🎯 Score popup
+      setScorePopups(prev => [...prev, {
+        id: nextPopupId.current++,
+        x: cx, y: bestTarget.y,
+        value: `+${bestTarget.pts}`,
+        color: bestTarget.color,
+        life: 30,
+      }]);
+    }
   }
 
   function handleMouseMove(e){
@@ -1547,6 +1547,29 @@ function NeuralDefense({onComplete, difficulty}){
               }}/>
             );
           }
+          if(p.isStar) {
+            // ⭐ STAR BURST — spinning coloured star radiating outward
+            const age = 32 - p.life;
+            const sz = 14 + age * 0.4;
+            return (
+              <div key={p.id} style={{
+                position:"absolute",
+                left: p.x + p.vx * age - sz/2,
+                top:  p.y + p.vy * age - sz/2,
+                width: sz,
+                height: sz,
+                fontSize: sz,
+                lineHeight: "1",
+                textAlign: "center",
+                color: p.color,
+                opacity: p.life / 32,
+                pointerEvents: "none",
+                textShadow: `0 0 10px ${p.color}, 0 0 20px ${p.color}88`,
+                transform: `rotate(${age * 15}deg)`,
+                userSelect: "none",
+              }}>★</div>
+            );
+          }
           return (
             <div key={p.id} style={{
               position:"absolute",
@@ -1592,13 +1615,15 @@ function NeuralDefense({onComplete, difficulty}){
           transform:shieldActive ? "scale(1.1)" : "scale(1)"
         }}/>
         
-        {/* Tap instruction with shield tooltip */}
-        <div style={{position:"absolute",bottom:50,left:"50%",transform:"translateX(-50%)",fontSize:13,color:DIMMED,pointerEvents:"none",textAlign:"center"}}>
-          <div style={{marginBottom:4}}>Tap anywhere to shoot</div>
-          <div style={{fontSize:11,color:PURPLE,background:"rgba(139,92,246,0.1)",padding:"4px 8px",borderRadius:6}}>
-            🛡️ Shield blocks incoming shapes
+        {/* Tap instruction — only shown until first shot */}
+        {!hintDismissed && (
+          <div style={{position:"absolute",bottom:50,left:"50%",transform:"translateX(-50%)",fontSize:13,color:DIMMED,pointerEvents:"none",textAlign:"center",transition:"opacity .3s"}}>
+            <div style={{marginBottom:4}}>Tap anywhere to shoot</div>
+            <div style={{fontSize:11,color:PURPLE,background:"rgba(139,92,246,0.1)",padding:"4px 8px",borderRadius:6}}>
+              🛡️ Shield blocks incoming shapes
+            </div>
           </div>
-        </div>
+        )}
       </div>
       
       {/* Add CSS keyframes for lightning flicker and screen shake */}
@@ -1623,13 +1648,32 @@ function NeuralDefense({onComplete, difficulty}){
 // ══════════════════════════════════════════════════════════════════════════
 
 // ══════════════════════════════════════════════════════════════════════════
-function Results({scores,level,newLevel,streak,dailyAction,arch,challengeData,isQuickPlay,onBack,onRetry}){
+function Results({scores,level,newLevel,streak,dailyAction,arch,challengeData,isQuickPlay,bestScore,onBack,onRetry}){
   const total=scores.reduce((a,s)=>a+s.score,0);
   const levelUp=newLevel.name!==level.name;
   const grade=total>=540?"Quantum Elite":total>=420?"Elite":total>=300?"Sharp":total>=180?"Developing":"Initiate";
   const gradeColor=total>=540?VIOLET:total>=420?E_BLUE:total>=300?GREEN:total>=180?AMBER:DIMMED;
   const rtimes=scores.filter(s=>s.reactionMs).map(s=>s.reactionMs);
   const avgMs=rtimes.length?Math.round(rtimes.reduce((a,b)=>a+b,0)/rtimes.length):null;
+
+  // ── Benchmark data ──────────────────────────────────────────────────────
+  // Estimated percentiles based on observed score distribution across the
+  // 820-point max (140+140+140+130+120+150). Thresholds are conservative.
+  const getBenchmark = (score) => {
+    if(score >= 600) return { pct:97, label:"Top 3%",   color:VIOLET, bar:97 };
+    if(score >= 540) return { pct:93, label:"Top 7%",   color:VIOLET, bar:93 };
+    if(score >= 480) return { pct:88, label:"Top 12%",  color:E_BLUE, bar:88 };
+    if(score >= 420) return { pct:82, label:"Top 18%",  color:E_BLUE, bar:82 };
+    if(score >= 360) return { pct:72, label:"Top 28%",  color:GREEN,  bar:72 };
+    if(score >= 300) return { pct:62, label:"Top 38%",  color:GREEN,  bar:62 };
+    if(score >= 240) return { pct:50, label:"Top 50%",  color:AMBER,  bar:50 };
+    if(score >= 180) return { pct:38, label:"Top 62%",  color:AMBER,  bar:38 };
+    if(score >= 120) return { pct:24, label:"Top 76%",  color:RED,    bar:24 };
+    return               { pct:10, label:"Top 90%",  color:RED,    bar:10 };
+  };
+  const benchmark = !isQuickPlay ? getBenchmark(total) : null;
+  const isPB = total > 0 && total >= bestScore && bestScore > 0;
+  const pbDiff = bestScore > 0 ? total - bestScore : null;
   // Map by label so Quick Play (single Defense score) renders with correct metadata
   const roundMetaByLabel={
     "Stroop Challenge":   {icon:"🎨",label:"Stroop",tag:"Exec. Function",max:140},
@@ -1679,6 +1723,53 @@ function Results({scores,level,newLevel,streak,dailyAction,arch,challengeData,is
           );
         })}
       </div>
+
+      {/* Benchmark — full sessions only */}
+      {benchmark && (
+        <div style={{background:PANEL,border:`1px solid ${benchmark.color}33`,borderRadius:16,padding:"20px",marginBottom:14}}>
+          <p style={{fontSize:15,fontWeight:700,color:DIMMED,letterSpacing:".12em",textTransform:"uppercase",marginBottom:14}}>📊 How You Rank</p>
+          
+          {/* Percentile bar */}
+          <div style={{marginBottom:16}}>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"baseline",marginBottom:8}}>
+              <span style={{fontSize:13,color:DIMMED}}>Population percentile (estimated)</span>
+              <span style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:22,letterSpacing:1,color:benchmark.color}}>{benchmark.label}</span>
+            </div>
+            <div style={{height:10,background:"rgba(255,255,255,0.05)",borderRadius:100,overflow:"hidden",position:"relative"}}>
+              <div style={{height:"100%",width:`${benchmark.bar}%`,background:`linear-gradient(90deg,${benchmark.color}66,${benchmark.color})`,borderRadius:100,transition:"width 1.4s ease"}}/>
+            </div>
+            <div style={{display:"flex",justifyContent:"space-between",marginTop:5}}>
+              <span style={{fontSize:11,color:DIMMED}}>0</span>
+              <span style={{fontSize:11,color:DIMMED}}>Average</span>
+              <span style={{fontSize:11,color:DIMMED}}>Elite</span>
+            </div>
+          </div>
+
+          {/* Personal best comparison */}
+          <div style={{display:"flex",gap:10}}>
+            <div style={{flex:1,background:"rgba(255,255,255,0.025)",border:`1px solid ${BORDER2}`,borderRadius:10,padding:"12px 14px",textAlign:"center"}}>
+              <p style={{fontSize:12,color:DIMMED,letterSpacing:".1em",textTransform:"uppercase",marginBottom:6}}>This Session</p>
+              <p style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:28,letterSpacing:1,color:gradeColor}}>{total}</p>
+            </div>
+            <div style={{flex:1,background:"rgba(255,255,255,0.025)",border:`1px solid ${bestScore>0?AMBER+"33":BORDER2}`,borderRadius:10,padding:"12px 14px",textAlign:"center"}}>
+              <p style={{fontSize:12,color:DIMMED,letterSpacing:".1em",textTransform:"uppercase",marginBottom:6}}>Personal Best</p>
+              <p style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:28,letterSpacing:1,color:bestScore>0?AMBER:DIMMED}}>{bestScore>0?Math.max(bestScore,total):"—"}</p>
+            </div>
+            {pbDiff !== null && (
+              <div style={{flex:1,background:pbDiff>=0?"rgba(52,211,153,0.05)":"rgba(248,113,113,0.05)",border:`1px solid ${pbDiff>=0?GREEN+"33":RED+"33"}`,borderRadius:10,padding:"12px 14px",textAlign:"center"}}>
+                <p style={{fontSize:12,color:DIMMED,letterSpacing:".1em",textTransform:"uppercase",marginBottom:6}}>vs Best</p>
+                <p style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:28,letterSpacing:1,color:pbDiff>=0?GREEN:RED}}>{pbDiff>=0?`+${pbDiff}`:pbDiff}</p>
+              </div>
+            )}
+          </div>
+          
+          {isPB && (
+            <div style={{marginTop:12,textAlign:"center",padding:"8px",background:`${GREEN}0a`,border:`1px solid ${GREEN}33`,borderRadius:10}}>
+              <span style={{fontSize:14,fontWeight:700,color:GREEN}}>🏆 New Personal Best!</span>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Archetype neural intelligence */}
       {arch && <div style={{background:`linear-gradient(135deg,${arch.color}0a,transparent)`,border:`1px solid ${arch.color}33`,borderLeft:`3px solid ${arch.color}`,borderRadius:"0 14px 14px 0",padding:"20px",marginBottom:14}}>
