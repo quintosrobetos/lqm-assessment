@@ -82,6 +82,7 @@ const LAWS = [
     ],
     avoid: ["Caffeine after 2pm", "Screens within 1 hour of sleep", "Alcohol as a sleep aid (it fragments sleep architecture)", "Irregular sleep schedules"],
     lqmNote: "Your motivation archetype directly affects your sleep patterns. Systems types often stay up optimising. Visionaries lose hours to creative spirals. Know your pattern — and build your sleep system around it.",
+    natureWisdom: "A warm foot bath for 20 minutes before bed is one of nature's most reliable sleep remedies — it draws blood away from the head, calms the nervous system, and signals the body toward rest. Traditional healers in Back to Eden documented this as foundational. A cup of chamomile or passionflower tea alongside it compounds the effect. These are not supplements — they are nature's original sleep protocol, available to everyone at almost no cost.",
   },
   {
     num: "02",
@@ -104,6 +105,7 @@ const LAWS = [
     ],
     avoid: ["Long periods in closed, recirculated air environments without breaks", "Shallow chest breathing as a default pattern", "Smoking and passive smoke exposure", "Heavy indoor chemical exposure (cleaning products, synthetic fragrances)"],
     lqmNote: "Deep learner types often neglect outdoor time — the research rabbit hole has no fresh air. Relational types thrive when outdoor time includes meaningful connection. Know your archetype's tendencies and design your air practice accordingly.",
+    natureWisdom: "Traditional healers observed that chronic mouth-breathing was one of the most overlooked causes of fatigue, poor focus, and weakened immunity. Back to Eden teaches that nasal breathing — slow, deliberate, through the nose — filters, warms, and humidifies air before it reaches the lungs, activating receptors that chest-breathing bypasses entirely. Steam inhalation with eucalyptus or peppermint — a practice used for centuries — opens airways, reduces congestion, and supports clear, oxygenated breathing at no cost.",
   },
   {
     num: "03",
@@ -126,6 +128,7 @@ const LAWS = [
     ],
     avoid: ["Substances that create dependency (alcohol, nicotine, recreational drugs)", "Chronic overwork masquerading as productivity", "Digital overstimulation — endless scrolling and consumption without creation", "Neglecting the inner life — spiritual emptiness is as real a depletion as physical exhaustion", "Extreme regimes that cannot be sustained"],
     lqmNote: "Systems Architects often violate temperance through over-optimisation — adding more to an already full system. Visionary types burn intensely at the start and crash. But every archetype benefits from anchoring their balance in something beyond performance. The most sustainable version of yourself is the complete you — body, mind and spirit working together.",
+    natureWisdom: "Back to Eden identifies temperance as one of the eight laws of health — a governing principle above diet, exercise, and sleep. Traditional healers used activated charcoal compresses and clay poultices to draw out what overloads the body. But the deeper teaching is this: the body heals itself when we stop overloading it. Periods of simplicity — eating less, being still, removing stimulants — allow the liver, kidneys, and lymphatic system to restore what chronic excess depletes. The body was designed to self-heal. Temperance creates the conditions for that healing.",
   },
   {
     num: "04",
@@ -148,6 +151,7 @@ const LAWS = [
     ],
     avoid: ["Sedentary periods longer than 2 hours without movement", "Treating exercise as a punishment for eating", "Overtraining without adequate recovery", "Using 'I don't have time' as a reason — a 20-minute walk requires no equipment, no gym, no schedule"],
     lqmNote: "Deep Learners resist leaving the desk. Systems Architects may over-programme exercise until it becomes another optimisation project. The best movement practice is the one you'll actually do consistently. Start embarrassingly small.",
+    natureWisdom: "Hot and cold hydrotherapy — alternating warm and cold water during bathing — is one of the most powerful and underused natural health practices. Traditional healers used it to stimulate circulation, invigorate the lymphatic system, and boost immune response. Back to Eden dedicates significant attention to water treatments as the body's great restorer after exercise. A simple practice: finish every shower with 30–60 seconds of cold water. This activates the same circulatory pathways, reduces inflammation, and dramatically accelerates recovery from movement.",
   },
   {
     num: "05",
@@ -170,6 +174,7 @@ const LAWS = [
     ],
     avoid: ["Ultra-processed foods with long ingredient lists", "Refined sugar as a primary fuel source — it creates energy spikes followed by crashes that impair sustained focus", "Harmful substances that damage the body's natural systems", "Eating in a chronic state of stress — cortisol impairs digestion and nutrient absorption"],
     lqmNote: "Your body is the hardware your quantum mind runs on. No software upgrade compensates for failing hardware. Nourishing your body simply and consistently is one of the highest-leverage practices available to you.",
+    natureWisdom: "Back to Eden teaches that herbs are not condiments — they are nature's pharmacy growing freely in the earth. Turmeric, ginger, garlic, parsley, and rosemary have been used for thousands of years as everyday medicines, not occasional flavourings. Adding them generously to every meal is one of the simplest and highest-return health practices available. The principle is this: the closer food is to its natural state, the more healing intelligence it carries. A handful of parsley contains more vitamin C than an orange. A clove of crushed garlic is a natural antimicrobial. Nature provided abundantly — we simply stopped looking.",
   },
 ];
 
@@ -416,6 +421,9 @@ export default function QuantumLiving({ onBack, archetype }) {
       @keyframes focusPulse{0%,100%{box-shadow:0 0 0 0 rgba(255,255,255,0.0);}60%{box-shadow:0 0 0 8px rgba(255,255,255,0.04);}}
       @keyframes focusGlow{0%,100%{opacity:0.7;}50%{opacity:1;}}
       .focus-law-item{animation:focusPulse 2.5s ease-in-out infinite;}
+      @keyframes todayRing{0%{transform:scale(1);opacity:0.9;}50%{transform:scale(1.18);opacity:0.35;}100%{transform:scale(1);opacity:0.9;}}
+      @keyframes todayBadge{0%,100%{opacity:0.8;transform:scale(1);}50%{opacity:1;transform:scale(1.06);}}
+      @keyframes shopGlow{0%,100%{box-shadow:0 0 0 0 rgba(52,211,153,0.0);border-color:rgba(52,211,153,0.25);}50%{box-shadow:0 0 20px rgba(52,211,153,0.2);border-color:rgba(52,211,153,0.55);}}
     `;
     document.head.appendChild(s);
     return () => { const el = document.getElementById(id); if(el) el.remove(); };
@@ -593,8 +601,8 @@ export default function QuantumLiving({ onBack, archetype }) {
           </div>
         )}
 
-        {/* ── SECTION 3: NATURAL INTELLIGENCE — daily fact ── */}
-        <div style={{background:"rgba(52,211,153,0.04)",border:"1px solid rgba(52,211,153,0.15)",borderRadius:14,padding:"16px 18px",marginBottom:16,animation:"fadeUp .5s .12s ease both"}}>
+        {/* ── SECTION 3: NATURAL INTELLIGENCE — daily fact + nature wisdom ── */}
+        <div style={{background:"rgba(52,211,153,0.04)",border:"1px solid rgba(52,211,153,0.15)",borderRadius:14,padding:"16px 18px",marginBottom:10,animation:"fadeUp .5s .12s ease both"}}>
           <div style={{marginBottom:10}}>
             <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:4}}>
               <span style={{fontSize:15}}>🌿</span>
@@ -605,51 +613,114 @@ export default function QuantumLiving({ onBack, archetype }) {
           <p style={{fontSize:15,color:"rgba(255,255,255,0.75)",lineHeight:1.8}}>{todayFact.fact}</p>
         </div>
 
-        {/* ── SECTION 4: THE OTHER 4 LAWS — compact explore strip ── */}
+        {/* Nature's Wisdom — Back to Eden tradition, tied to today's law */}
+        <div style={{background:`linear-gradient(135deg,${todayLaw.color}06,rgba(255,255,255,0.02))`,border:`1px solid ${todayLaw.color}22`,borderLeft:`3px solid ${todayLaw.color}55`,borderRadius:"0 12px 12px 0",padding:"14px 16px",marginBottom:16,animation:"fadeUp .5s .14s ease both"}}>
+          <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:8}}>
+            <span style={{fontSize:13}}>📖</span>
+            <p style={{fontSize:11,fontWeight:700,color:todayLaw.color,letterSpacing:".12em",textTransform:"uppercase"}}>Nature's Wisdom · {todayLaw.subtitle}</p>
+          </div>
+          <p style={{fontSize:14,color:"rgba(255,255,255,0.68)",lineHeight:1.8,fontWeight:300,fontStyle:"italic"}}>{todayLaw.natureWisdom}</p>
+          <p style={{fontSize:10,color:DIMMED,marginTop:8,letterSpacing:".06em"}}>Traditional healing wisdom · Referenced in Back to Eden</p>
+        </div>
+
+        {/* ── THE 5 QUANTUM LAWS — circular thumbnails with integrated checklist ── */}
         <div style={{marginBottom:16,animation:"fadeUp .5s .16s ease both"}}>
-          <p style={{fontSize:11,fontWeight:700,color:DIMMED,letterSpacing:".14em",textTransform:"uppercase",marginBottom:10}}>⭐ The 5 Quantum Laws — tap any to explore</p>
-          <div style={{display:"flex",flexDirection:"column",gap:8}}>
-            {LAWS.map((law,i) => (
-              <div key={i} style={{
-                display:"flex",alignItems:"center",gap:12,
-                padding:"12px 14px",borderRadius:12,cursor:"pointer",
-                background:checklist[i]?`${law.color}10`:(i===todayLawIdx?`${law.color}0a`:"rgba(255,255,255,0.02)"),
-                border:`1px solid ${checklist[i]?law.color+"55":(i===todayLawIdx?law.color+"44":BORDER2)}`,
-                transition:"all .2s",position:"relative"
-              }}
-                onClick={()=>{ if(i===todayLawIdx) toggleCheck(i); else toggleCheck(i); setActiveLaw(i); }}
-                onMouseEnter={e=>e.currentTarget.style.background=`${law.color}12`}
-                onMouseLeave={e=>e.currentTarget.style.background=checklist[i]?`${law.color}10`:(i===todayLawIdx?`${law.color}0a`:"rgba(255,255,255,0.02)")}
-              >
-                {/* Checkbox */}
-                <div onClick={e=>{e.stopPropagation();toggleCheck(i);}} style={{
-                  width:26,height:26,borderRadius:8,flexShrink:0,
-                  background:checklist[i]?law.color:"transparent",
-                  border:`1.5px solid ${checklist[i]?law.color:BORDER2}`,
-                  display:"flex",alignItems:"center",justifyContent:"center",
-                  transition:"all .2s",cursor:"pointer"
-                }}>
-                  {checklist[i]
-                    ? <span style={{color:BG,fontSize:13,fontWeight:900}}>✓</span>
-                    : <span style={{fontSize:13}}>{law.icon}</span>}
-                </div>
-                <div style={{flex:1,minWidth:0}}>
-                  <div style={{display:"flex",alignItems:"center",gap:6}}>
-                    <p style={{fontSize:14,fontWeight:600,color:checklist[i]?WHITE:(i===todayLawIdx?law.color:MUTED),transition:"color .2s"}}>{law.title}</p>
-                    {i===todayLawIdx && <span style={{fontSize:10,fontWeight:700,color:law.color,background:`${law.color}18`,borderRadius:100,padding:"2px 7px",letterSpacing:".06em",textTransform:"uppercase",flexShrink:0}}>Today</span>}
+
+          {/* Header row — title + pulsating today's focus badge on the right */}
+          <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:14}}>
+            <p style={{fontSize:11,fontWeight:700,color:DIMMED,letterSpacing:".14em",textTransform:"uppercase"}}>⭐ The 5 Quantum Laws</p>
+            <div style={{
+              display:"flex",alignItems:"center",gap:5,
+              background:`${todayLaw.color}15`,
+              border:`1px solid ${todayLaw.color}55`,
+              borderRadius:100,padding:"5px 12px",
+              animation:"todayBadge 2.2s ease-in-out infinite",
+            }}>
+              <span style={{fontSize:11}}>{todayLaw.icon}</span>
+              <span style={{fontSize:10,fontWeight:700,color:todayLaw.color,letterSpacing:".1em",textTransform:"uppercase"}}>Today's Focus</span>
+            </div>
+          </div>
+
+          {/* Circular row */}
+          <div style={{display:"flex",justifyContent:"space-between",gap:4,marginBottom:12}}>
+            {LAWS.map((law,i)=>{
+              const isToday = i === todayLawIdx;
+              const isTicked = checklist[i];
+              return (
+                <button key={i}
+                  onClick={()=>{ if(isToday){ toggleCheck(i); } setActiveLaw(i); }}
+                  style={{
+                    flex:1,display:"flex",flexDirection:"column",alignItems:"center",gap:5,
+                    background:"transparent",border:"none",cursor:"pointer",padding:"4px 0",
+                    fontFamily:"'Space Grotesk',sans-serif",
+                  }}>
+
+                  {/* Outer ring — pulsates only for today's unticked law */}
+                  <div style={{position:"relative",width:isToday?60:52,height:isToday?60:52,flexShrink:0}}>
+                    {isToday && !isTicked && (
+                      <div style={{
+                        position:"absolute",inset:-4,borderRadius:"50%",
+                        border:`2px solid ${law.color}88`,
+                        animation:"todayRing 2.4s ease-in-out infinite",
+                        pointerEvents:"none",
+                      }}/>
+                    )}
+                    {/* Circle */}
+                    <div style={{
+                      width:"100%",height:"100%",borderRadius:"50%",
+                      background: isTicked
+                        ? `radial-gradient(circle at 40% 35%, ${law.color}cc, ${law.color}88)`
+                        : `radial-gradient(circle at 35% 35%, ${law.color}33, ${law.color}0e)`,
+                      border:`2px solid ${isTicked ? law.color : (isToday ? law.color : law.color+"55")}`,
+                      boxShadow: isToday && !isTicked
+                        ? `0 0 22px ${law.color}55`
+                        : isTicked ? `0 0 14px ${law.color}55` : "none",
+                      display:"flex",alignItems:"center",justifyContent:"center",
+                      fontSize:isToday?24:20,
+                      transition:"all .3s cubic-bezier(.4,0,.2,1)",
+                    }}>
+                      {isTicked
+                        ? <span style={{color:BG,fontWeight:900,fontSize:isToday?22:18}}>✓</span>
+                        : <span className={`law-icon-${i}`}>{law.icon}</span>}
+                    </div>
                   </div>
-                  <p style={{fontSize:11,color:DIMMED,marginTop:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{law.subtitle}</p>
-                </div>
-                <span style={{fontSize:11,color:checklist[i]?AMBER:DIMMED,fontWeight:700,flexShrink:0}}>{i===todayLawIdx?"🔥":"+10"}</span>
-              </div>
-            ))}
+
+                  {/* Label */}
+                  <p style={{
+                    fontSize:isToday?10:9,fontWeight:700,
+                    color: isTicked ? GREEN : (isToday ? law.color : DIMMED),
+                    letterSpacing:".06em",textTransform:"uppercase",
+                    lineHeight:1.2,textAlign:"center",
+                    transition:"color .2s",maxWidth:62,
+                  }}>
+                    {law.title.replace("Quantum ","")}
+                  </p>
+
+                  {/* Focus label or tick dot */}
+                  {isToday && !isTicked && (
+                    <span style={{
+                      fontSize:8,fontWeight:700,color:law.color,
+                      background:`${law.color}15`,border:`1px solid ${law.color}44`,
+                      borderRadius:100,padding:"2px 6px",letterSpacing:".08em",
+                      textTransform:"uppercase",animation:"focusGlow 2s ease-in-out infinite",
+                    }}>Focus</span>
+                  )}
+                  {isTicked && (
+                    <div style={{width:6,height:6,borderRadius:"50%",background:GREEN,boxShadow:`0 0 5px ${GREEN}`}}/>
+                  )}
+                </button>
+              );
+            })}
           </div>
-          <div style={{marginTop:10,padding:"8px 12px",background:"rgba(251,191,36,0.03)",border:"1px solid rgba(251,191,36,0.12)",borderRadius:8}}>
-            <p style={{fontSize:12,color:"rgba(251,191,36,0.5)",lineHeight:1.5}}>💡 Tap any law to explore its full practice. Today's focus law 🔥 builds your streak.</p>
+
+          {/* Hint */}
+          <div style={{padding:"8px 12px",background:"rgba(251,191,36,0.03)",border:"1px solid rgba(251,191,36,0.1)",borderRadius:8,marginBottom:10}}>
+            <p style={{fontSize:12,color:"rgba(251,191,36,0.5)",lineHeight:1.5}}>💡 Tap today's law to mark done · tap any law to explore its full science</p>
           </div>
-          {/* All done celebration */}
+
+          {/* All 5 done celebration + milestone displays */}
           {allDone && (
-            <div style={{marginTop:10,padding:"14px 18px",background:"rgba(52,211,153,0.08)",border:"1px solid rgba(52,211,153,0.3)",borderRadius:12,textAlign:"center"}}>
+            <div style={{padding:"14px 18px",background:"rgba(52,211,153,0.08)",border:"1px solid rgba(52,211,153,0.3)",borderRadius:12,textAlign:"center"}}>
               <p style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:20,letterSpacing:2,color:GREEN,marginBottom:4}}>🌿 All 5 Laws Honoured Today</p>
               <p style={{fontSize:13,color:"rgba(255,255,255,0.5)",lineHeight:1.6,fontStyle:"italic"}}>"Small shifts, consistently honoured, produce quantum results."</p>
               {showMilestone==="day7"  && <div style={{marginTop:10,padding:"10px",background:"rgba(52,211,153,0.12)",borderRadius:8}}><p style={{color:GREEN,fontWeight:700}}>🌱 Week 1 Complete! You built the foundation.</p></div>}
@@ -684,6 +755,43 @@ export default function QuantumLiving({ onBack, archetype }) {
             </div>
           </div>
         )}
+
+        {/* ── MEMBER BONUS TEASER — leads the eye to the shop below ── */}
+        <div
+          onClick={()=>{ const el = document.getElementById("ql-shop"); if(el) el.scrollIntoView({behavior:"smooth",block:"start"}); }}
+          style={{
+            display:"flex",alignItems:"center",gap:14,
+            marginBottom:16,padding:"16px 18px",
+            background:"linear-gradient(135deg,rgba(52,211,153,0.08),rgba(52,211,153,0.03))",
+            border:"1px solid rgba(52,211,153,0.25)",
+            borderRadius:14,cursor:"pointer",
+            animation:"shopGlow 3.5s ease-in-out infinite",
+            transition:"all .2s",
+          }}
+          onMouseEnter={e=>e.currentTarget.style.background="linear-gradient(135deg,rgba(52,211,153,0.14),rgba(52,211,153,0.05))"}
+          onMouseLeave={e=>e.currentTarget.style.background="linear-gradient(135deg,rgba(52,211,153,0.08),rgba(52,211,153,0.03))"}
+        >
+          <div style={{
+            width:44,height:44,borderRadius:"50%",flexShrink:0,
+            background:"linear-gradient(135deg,rgba(52,211,153,0.25),rgba(52,211,153,0.08))",
+            border:"1.5px solid rgba(52,211,153,0.4)",
+            display:"flex",alignItems:"center",justifyContent:"center",fontSize:20,
+          }}>🎁</div>
+          <div style={{flex:1}}>
+            <p style={{fontSize:11,fontWeight:700,color:GREEN,letterSpacing:".12em",textTransform:"uppercase",marginBottom:3}}>Your Member Bonus · Exclusive Access</p>
+            <p style={{fontSize:14,fontWeight:600,color:WHITE,marginBottom:2}}>Natural Wellness Range — aligned to each law</p>
+            <p style={{fontSize:12,color:MUTED}}>20% member saving · natural formulations · tap to explore →</p>
+          </div>
+          <div style={{
+            width:28,height:28,borderRadius:"50%",flexShrink:0,
+            background:"rgba(52,211,153,0.12)",border:"1px solid rgba(52,211,153,0.3)",
+            display:"flex",alignItems:"center",justifyContent:"center",
+          }}>
+            <svg width="10" height="10" viewBox="0 0 12 12" fill="none">
+              <path d="M4 2l4 4-4 4" stroke={GREEN} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </div>
+        </div>
 
         {/* ── THE QUANTUM HEALTH SYSTEM — circular thumbnails + discoverable science ── */}
         <div style={{marginBottom:16, animation:"fadeUp .5s .25s ease both"}}>
@@ -794,24 +902,34 @@ export default function QuantumLiving({ onBack, archetype }) {
         </div>
 
         {/* ── QUANTUM WELLNESS MARKETPLACE ── */}
-        <div style={{marginBottom:16,animation:"fadeUp .5s .3s ease both"}}>
+        <div id="ql-shop" style={{marginBottom:16,animation:"fadeUp .5s .3s ease both"}}>
 
-          {/* Premium member badge */}
-          <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:14}}>
-            <div style={{flex:1,height:1,background:`linear-gradient(90deg,transparent,${GREEN}44)`}}/>
+          {/* Premium destination header */}
+          <div style={{
+            background:"linear-gradient(135deg,rgba(52,211,153,0.10),rgba(52,211,153,0.03))",
+            border:"1px solid rgba(52,211,153,0.3)",
+            borderRadius:16,padding:"22px 20px",marginBottom:16,
+            textAlign:"center",
+          }}>
             <div style={{
-              display:"flex",alignItems:"center",gap:6,
-              background:"rgba(52,211,153,0.06)",border:"1px solid rgba(52,211,153,0.25)",
-              borderRadius:100,padding:"6px 14px",flexShrink:0,
+              display:"inline-flex",alignItems:"center",gap:7,
+              background:"rgba(52,211,153,0.1)",border:"1px solid rgba(52,211,153,0.3)",
+              borderRadius:100,padding:"6px 16px",marginBottom:12,
             }}>
-              <span style={{fontSize:12}}>🌿</span>
-              <span style={{fontSize:11,fontWeight:700,color:GREEN,letterSpacing:".1em",textTransform:"uppercase"}}>Quantum Living Members</span>
+              <span style={{fontSize:13}}>🎁</span>
+              <span style={{fontSize:11,fontWeight:700,color:GREEN,letterSpacing:".12em",textTransform:"uppercase"}}>Your Member Bonus</span>
             </div>
-            <div style={{flex:1,height:1,background:`linear-gradient(90deg,${GREEN}44,transparent)`}}/>
+            <p style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:28,letterSpacing:2,color:WHITE,marginBottom:6}}>Natural Wellness Range</p>
+            <p style={{fontSize:14,color:MUTED,lineHeight:1.7,maxWidth:460,margin:"0 auto 14px"}}>Each product in this range is aligned to one of the five laws — chosen because the science that drives the law also drives the formulation. This is your Quantum Living membership working for your body.</p>
+            <div style={{
+              display:"inline-flex",alignItems:"center",gap:8,
+              background:"rgba(251,191,36,0.08)",border:"1px solid rgba(251,191,36,0.2)",
+              borderRadius:100,padding:"7px 16px",
+            }}>
+              <span style={{fontSize:12}}>🏷️</span>
+              <span style={{fontSize:13,fontWeight:700,color:AMBER}}>20% member saving applied at checkout — automatically</span>
+            </div>
           </div>
-
-          <p style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:24,letterSpacing:2,color:WHITE,marginBottom:4}}>Natural Wellness Range</p>
-          <p style={{fontSize:14,color:MUTED,lineHeight:1.65,marginBottom:16}}>As a Quantum Living member, you have exclusive access to our curated range of natural products — each aligned to the five laws. Member pricing applied automatically.</p>
 
           {/* One card per law — accordion */}
           <div style={{display:"flex",flexDirection:"column",gap:8}}>
@@ -1124,6 +1242,18 @@ function LawDetail({ law, arch, onBack }) {
           <p style={{fontSize:16,fontWeight:700,color:DIMMED,letterSpacing:".12em",textTransform:"uppercase",marginBottom:12}}>The Truth</p>
           <p style={{fontSize:15,color:"rgba(255,255,255,0.78)",lineHeight:1.9,fontWeight:400}}>{law.truth}</p>
         </div>
+
+        {/* Nature's Wisdom — Back to Eden tradition */}
+        {law.natureWisdom && (
+          <div style={{background:`linear-gradient(135deg,${law.color}08,rgba(255,255,255,0.02))`,border:`1px solid ${law.color}22`,borderLeft:`3px solid ${law.color}55`,borderRadius:"0 14px 14px 0",padding:"20px 22px",marginBottom:14,animation:"fadeUp .6s .13s ease both"}}>
+            <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:10}}>
+              <span style={{fontSize:16}}>📖</span>
+              <p style={{fontSize:14,fontWeight:700,color:law.color,letterSpacing:".1em",textTransform:"uppercase"}}>Nature's Wisdom</p>
+            </div>
+            <p style={{fontSize:14,color:"rgba(255,255,255,0.72)",lineHeight:1.9,fontWeight:300,fontStyle:"italic"}}>{law.natureWisdom}</p>
+            <p style={{fontSize:10,color:DIMMED,marginTop:10,letterSpacing:".07em"}}>Traditional healing wisdom · Referenced in Back to Eden</p>
+          </div>
+        )}
 
         {/* Quantum Edge */}
         <div style={{background:law.glow,border:`1px solid ${law.color}33`,borderLeft:`3px solid ${law.color}`,borderRadius:"0 14px 14px 0",padding:"18px 20px",marginBottom:14,animation:"fadeUp .6s .15s ease both"}}>
