@@ -583,8 +583,6 @@ export default function QuantumLiving({ onBack, archetype }) {
           <div style={{marginTop:10,padding:"8px 12px",background:"rgba(251,191,36,0.03)",border:"1px solid rgba(251,191,36,0.12)",borderRadius:8}}>
             <p style={{fontSize:12,color:"rgba(251,191,36,0.5)",lineHeight:1.5}}>💡 Tap any law to explore its full practice. Today's focus law 🔥 builds your streak.</p>
           </div>
-        </div>
-
           {/* All done celebration */}
           {allDone && (
             <div style={{marginTop:10,padding:"14px 18px",background:"rgba(52,211,153,0.08)",border:"1px solid rgba(52,211,153,0.3)",borderRadius:12,textAlign:"center"}}>
@@ -596,6 +594,7 @@ export default function QuantumLiving({ onBack, archetype }) {
             </div>
           )}
         </div>
+
 
         {/* ── 21-DAY PROGRESS ── */}
         {challengeData && (
