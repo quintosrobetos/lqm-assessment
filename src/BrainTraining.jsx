@@ -1,5 +1,5 @@
 // ════════════════════════════════════════════════════════════════════════════
-// LQM BRAIN TRAINING — 5 Science-Backed Cognitive Challenges
+// LQM BRAIN TRAINING — 6 Science-Backed Cognitive Challenges
 // ════════════════════════════════════════════════════════════════════════════
 
 import { useState, useEffect, useRef } from "react";
@@ -147,6 +147,9 @@ const LEVELS = [
   { name:"Quantum Mind", min:2500, color:"#A78BFA" },
 ];
 function getLevel(xp){ return [...LEVELS].reverse().find(l=>xp>=l.min)||LEVELS[0]; }
+
+// ── Protocol constants ────────────────────────────────────────────────────
+const TOTAL_ROUNDS = 6; // Single source of truth — update here to change everywhere
 
 // ── Daily actions ─────────────────────────────────────────────────────────
 const DAILY_ACTIONS = [
@@ -385,41 +388,39 @@ export default function BrainTraining({ onBack, archetype }){
       setScreen("science"); 
     }
     else {
-      // Full session complete (all 6 challenges done) or Quick Play (1 challenge)
       const total=newScores.reduce((a,s)=>a+s.score,0);
-      const today=new Date().toISOString().split("T")[0];
-      const yesterday=new Date(Date.now()-86400000).toISOString().split("T")[0];
-      const newStreak=userData.lastDay===yesterday?streak+1:userData.lastDay===today?streak:1;
-      const bonus=Math.floor(total*(newStreak*0.05));
-      const final=total+bonus;
-      const updated={totalXP:totalXP+final,streak:newStreak,lastDay:today,bestScore:Math.max(final,userData.bestScore||0)};
-      
-      // Check for level up
-      const oldLevel = getLevel(totalXP);
-      const newLevel = getLevel(updated.totalXP);
-      if(newLevel.name !== oldLevel.name){
-        trackLevelUp(newLevel.name, updated.totalXP);
-        playLevelUpSound(); // Level up sound!
-      }
-      
-      setUserData(updated); 
-      saveBrain(updated);
-      
-      // avgScore: divide by actual number of scores completed, not hardcoded 6
-      const avgScore = Math.round(total / newScores.length);
-      trackSessionComplete(total, avgScore, difficulty);
-      
-      // Play celebration sound for completing all 6 challenges
-      playCelebrationSound();
-      
-      // Only update 21-day challenge progress for full sessions (not Quick Play)
+
+      // Quick Play: score goes to Results display only — no XP, no streak, no persistence
       if(!isQuickPlay){
+        const today=new Date().toISOString().split("T")[0];
+        const yesterday=new Date(Date.now()-86400000).toISOString().split("T")[0];
+        const newStreak=userData.lastDay===yesterday?streak+1:userData.lastDay===today?streak:1;
+        const bonus=Math.floor(total*(newStreak*0.05));
+        const final=total+bonus;
+        const updated={totalXP:totalXP+final,streak:newStreak,lastDay:today,bestScore:Math.max(final,userData.bestScore||0)};
+        
+        // Check for level up
+        const oldLevel = getLevel(totalXP);
+        const newLevel = getLevel(updated.totalXP);
+        if(newLevel.name !== oldLevel.name){
+          trackLevelUp(newLevel.name, updated.totalXP);
+          playLevelUpSound();
+        }
+        
+        setUserData(updated); 
+        saveBrain(updated);
+        
+        const avgScore = Math.round(total / newScores.length);
+        trackSessionComplete(total, avgScore, difficulty);
+        
+        playCelebrationSound();
+        
+        // 21-day challenge progress — full sessions only
         const updatedChallenge = updateChallengeProgress("brain");
         if(updatedChallenge){
           setChallengeData(updatedChallenge);
           
-          // Store baseline scores if this is first session — use label-matched indices
-          // to guard against any future round-order changes
+          // Store baseline scores if this is first session — label-matched for order safety
           if(updatedChallenge.sessionsCompleted === 1){
             const findScore = (label, field="score") => newScores.find(s=>s.label===label)?.[field] || 0;
             const baselineScores = {
@@ -433,7 +434,7 @@ export default function BrainTraining({ onBack, archetype }){
             storeBaselineScores("brain", baselineScores);
           }
           
-          // Milestone tracking (popups disabled for now - will add back later)
+          // Milestone tracking
           if(updatedChallenge.currentDay >= 7 && !updatedChallenge.milestones.day_7.unlocked){
             playMilestoneSound();
           } else if(updatedChallenge.currentDay >= 14 && !updatedChallenge.milestones.day_14.unlocked){
@@ -678,7 +679,7 @@ function ScienceCard({card:c,round,onBegin}){
   return(
     <div style={{animation:"fadeUp .5s ease both"}}>
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:18}}>
-        <span style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:14,letterSpacing:2,color:DIMMED}}>ROUND {round+1} OF 5</span>
+        <span style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:14,letterSpacing:2,color:DIMMED}}>ROUND {round+1} OF {TOTAL_ROUNDS}</span>
         <span style={{fontSize:16,fontWeight:700,color:c.color,letterSpacing:".1em",textTransform:"uppercase",background:`${c.color}18`,border:`1px solid ${c.color}44`,borderRadius:100,padding:"4px 12px"}}>{c.tag}</span>
       </div>
       <div style={{background:`linear-gradient(145deg,${DARK2},${DARK})`,border:`1px solid ${c.color}33`,borderTop:`2px solid ${c.color}`,borderRadius:18,overflow:"hidden",marginBottom:14}}>
@@ -713,7 +714,7 @@ function ScienceCard({card:c,round,onBegin}){
 function RoundProgress({round}){
   return(
     <div style={{display:"flex",gap:6,marginBottom:20}}>
-      {[0,1,2,3,4].map(i=>(
+      {Array.from({length:TOTAL_ROUNDS},(_,i)=>(
         <div key={i} style={{flex:1,height:3,borderRadius:100,background:i<round?E_BLUE:i===round?"rgba(0,200,255,0.35)":"rgba(255,255,255,0.06)",transition:"background .3s"}}/>
       ))}
     </div>
@@ -761,6 +762,7 @@ function StroopChallenge({onComplete, difficulty}){
   const startRef  = useRef(null);
   const rtimes    = useRef([]);
   const scoreRef  = useRef(0); // ref to avoid stale closure in finish()
+  const finishedRef = useRef(false); // guard against double-fire from timer + answer race
 
   useEffect(()=>{
     if(!started) return;
@@ -769,7 +771,12 @@ function StroopChallenge({onComplete, difficulty}){
     return()=>clearInterval(t);
   },[tLeft,started]);
 
-  function finish(){ const avg=rtimes.current.length?Math.round(rtimes.current.reduce((a,b)=>a+b,0)/rtimes.current.length):0; onComplete(scoreRef.current,"Stroop Challenge",avg); }
+  function finish(){ 
+    if(finishedRef.current) return; // Guard — timer and answer path can both trigger simultaneously
+    finishedRef.current = true;
+    const avg=rtimes.current.length?Math.round(rtimes.current.reduce((a,b)=>a+b,0)/rtimes.current.length):0; 
+    onComplete(scoreRef.current,"Stroop Challenge",avg); 
+  }
 
   function handleAnswer(colorName){
     if(fb||!started) return;
@@ -798,7 +805,7 @@ function StroopChallenge({onComplete, difficulty}){
             <div style={{padding:"12px 20px",background:"rgba(59,130,246,0.1)",border:"2px solid #3B82F6",borderRadius:12,fontFamily:"'Bebas Neue',sans-serif",fontSize:30,letterSpacing:2,color:"#EF4444"}}>BLUE</div>
             <span style={{color:DIMMED,fontSize:12}}>→ tap Red</span>
           </div>
-          <button onClick={()=>{setSt(true);startRef.current=Date.now();}} style={{border:"none",borderRadius:100,padding:"14px 40px",fontSize:16,fontWeight:700,fontFamily:"'Space Grotesk',sans-serif",cursor:"pointer",background:`linear-gradient(135deg,${E_BLUE2},${E_BLUE})`,color:BG,letterSpacing:".05em"}}>Start →</button>
+          <button onClick={()=>{finishedRef.current=false; setSt(true);startRef.current=Date.now();}} style={{border:"none",borderRadius:100,padding:"14px 40px",fontSize:16,fontWeight:700,fontFamily:"'Space Grotesk',sans-serif",cursor:"pointer",background:`linear-gradient(135deg,${E_BLUE2},${E_BLUE})`,color:BG,letterSpacing:".05em"}}>Start →</button>
         </div>
       ):(
         <div>
@@ -927,13 +934,16 @@ function NBackChallenge({onComplete, difficulty}){
 function MatrixChallenge({onComplete, difficulty}){
   const MAX_HINTS = difficulty?.matrix?.hints !== undefined ? difficulty.matrix.hints : 1;
   const NUM_PUZZLES = difficulty?.matrix?.puzzles || 4;
-  const [pidx, setPidx]= useState(()=>Math.floor(Math.random()*PATTERN_PUZZLES.length));
+  // Pre-select puzzles at round start — shuffle pool then slice to NUM_PUZZLES
+  // This ensures difficulty setting is honoured and random start can't cause truncation
+  const [puzzles] = useState(()=>[...PATTERN_PUZZLES].sort(()=>Math.random()-.5).slice(0,NUM_PUZZLES));
+  const [pidx, setPidx]= useState(0);
   const [score,setScore]= useState(0);
   const [done, setDone] = useState(0);
   const [fb,   setFb]  = useState(null);
   const [hint, setHint]= useState(false);
   const [usedHint,setUH]=useState(false);
-  const p=PATTERN_PUZZLES[pidx];
+  const p=puzzles[pidx];
 
   function handleAnswer(opt){
     if(fb) return;
@@ -944,7 +954,7 @@ function MatrixChallenge({onComplete, difficulty}){
     setTimeout(()=>{
       setFb(null); setHint(false); setUH(false);
       const next=pidx+1;
-      if(next>=PATTERN_PUZZLES.length){onComplete(score+pts,"Pattern Matrix",null);}
+      if(next>=puzzles.length){onComplete(score+pts,"Pattern Matrix",null);}
       else{setPidx(next);}
     },700);
   }
@@ -953,7 +963,7 @@ function MatrixChallenge({onComplete, difficulty}){
     <div>
       <RoundProgress round={3}/>
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}>
-        <div><p style={{fontSize:15,fontWeight:700,color:DIMMED,letterSpacing:".1em",textTransform:"uppercase",marginBottom:3}}>Pattern Matrix</p><p style={{fontSize:15,color:MUTED}}>Puzzle {done+1} of {PATTERN_PUZZLES.length} · {score} pts</p></div>
+        <div><p style={{fontSize:15,fontWeight:700,color:DIMMED,letterSpacing:".1em",textTransform:"uppercase",marginBottom:3}}>Pattern Matrix</p><p style={{fontSize:15,color:MUTED}}>Puzzle {done+1} of {puzzles.length} · {score} pts</p></div>
         <span style={{fontSize:16,color:GREEN,fontWeight:700,background:"rgba(52,211,153,0.08)",border:"1px solid rgba(52,211,153,0.2)",borderRadius:100,padding:"4px 12px"}}>Spatial Reasoning</span>
       </div>
       <div style={{background:PANEL,border:`1px solid ${BORDER2}`,borderRadius:18,padding:"24px",marginBottom:12}}>
@@ -1168,8 +1178,7 @@ function NeuralDefense({onComplete, difficulty}){
   const FALL_SPEED_WAVE2 = difficulty?.defense?.fallWave2 || 3.5;
   const FALL_SPEED_WAVE3 = difficulty?.defense?.fallWave3 || 4.8;
   
-  const [phase, setPhase] = useState("ready"); // ready, playing, between, complete
-  const [betweenWave, setBetweenWave] = useState(0); // wave just completed
+  const [phase, setPhase] = useState("ready"); // ready, playing, complete
   const [wave, setWave] = useState(1);
   const [score, setScore] = useState(0);
   const [hits, setHits] = useState(0);
@@ -1193,6 +1202,7 @@ function NeuralDefense({onComplete, difficulty}){
   const nextPopupId = useRef(0);
   const scoreRef = useRef(0);
   const hitsRef = useRef(0);
+  const missesRef = useRef(0); // Mirrors misses state — avoids stale closure in finishGame
   const shapesRef = useRef([]); // Mirror of shapes state — read synchronously in handleShoot
   
   const SHAPES_POOL = [
@@ -1207,7 +1217,7 @@ function NeuralDefense({onComplete, difficulty}){
     setWave(1);
     setScore(0); scoreRef.current = 0;
     setHits(0); hitsRef.current = 0;
-    setMisses(0);
+    setMisses(0); missesRef.current = 0;
     setWaveTime(WAVE_DURATION);
     setShapes([]); shapesRef.current = [];
     setParticles([]);
@@ -1259,7 +1269,9 @@ function NeuralDefense({onComplete, difficulty}){
     clearInterval(waveTimerRef.current);
     if(gameLoopRef.current) cancelAnimationFrame(gameLoopRef.current);
     
-    const accuracy = hitsRef.current+misses > 0 ? Math.round((hitsRef.current/(hitsRef.current+misses))*100) : 0;
+    const accuracy = hitsRef.current + missesRef.current > 0
+      ? Math.round((hitsRef.current / (hitsRef.current + missesRef.current)) * 100)
+      : 0;
     const avgReaction = reactionTimes.current.length > 0 
       ? Math.round(reactionTimes.current.reduce((a,b)=>a+b,0) / reactionTimes.current.length) 
       : 0;
@@ -1278,6 +1290,7 @@ function NeuralDefense({onComplete, difficulty}){
         const missed = updated.filter(s => s.y > GAME_HEIGHT);
         if(missed.length > 0){
           setMisses(m => m + missed.length);
+          missesRef.current += missed.length; // Keep ref in sync for finishGame accuracy calculation
           // 🔊 MISS SOUND
           playMissSound();
           // ❌ SCREEN FLASH on miss
@@ -1475,39 +1488,6 @@ function NeuralDefense({onComplete, difficulty}){
           <button onClick={startGame} style={{border:"none",borderRadius:100,padding:"14px 40px",fontSize:16,fontWeight:700,fontFamily:"'Space Grotesk',sans-serif",cursor:"pointer",background:`linear-gradient(135deg,${PURPLE}cc,${PURPLE})`,color:WHITE,letterSpacing:".05em",boxShadow:`0 6px 28px ${PURPLE}44`,animation:"pulse 2s infinite"}}>
             ⚡ Launch Defense →
           </button>
-        </div>
-      </div>
-    );
-  }
-
-  // Between-wave celebration screen
-  if(phase === "between"){
-    return(
-      <div style={{textAlign:"center",padding:"40px 20px",animation:"fadeUp .3s ease both"}}>
-        <RoundProgress round={6}/>
-        <div style={{background:`linear-gradient(135deg,${PURPLE}18,rgba(0,200,255,0.08))`,border:`2px solid ${PURPLE}66`,borderRadius:20,padding:"36px 28px",marginTop:16}}>
-          <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:52,letterSpacing:3,color:PURPLE,marginBottom:4}}>WAVE {betweenWave}</div>
-          <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:28,letterSpacing:2,color:GREEN,marginBottom:20}}>COMPLETE ✓</div>
-          <div style={{display:"flex",justifyContent:"center",gap:24,marginBottom:24}}>
-            <div style={{textAlign:"center"}}>
-              <p style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:36,color:WHITE}}>{hits}</p>
-              <p style={{fontSize:12,color:DIMMED,letterSpacing:".1em"}}>HITS</p>
-            </div>
-            <div style={{width:1,background:BORDER2}}/>
-            <div style={{textAlign:"center"}}>
-              <p style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:36,color:WHITE}}>{score}</p>
-              <p style={{fontSize:12,color:DIMMED,letterSpacing:".1em"}}>POINTS</p>
-            </div>
-            <div style={{width:1,background:BORDER2}}/>
-            <div style={{textAlign:"center"}}>
-              <p style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:36,color:RED}}>{misses}</p>
-              <p style={{fontSize:12,color:DIMMED,letterSpacing:".1em"}}>MISSED</p>
-            </div>
-          </div>
-          <p style={{fontSize:15,color:AMBER,fontWeight:700,letterSpacing:".08em"}}>⚡ WAVE {betweenWave+1} INCOMING — GET READY</p>
-          <div style={{height:4,background:"rgba(255,255,255,0.06)",borderRadius:100,overflow:"hidden",marginTop:16}}>
-            <div style={{height:"100%",background:`linear-gradient(90deg,${PURPLE},${E_BLUE})`,animation:"waveLoad 2.5s linear forwards",borderRadius:100}}/>
-          </div>
         </div>
       </div>
     );
