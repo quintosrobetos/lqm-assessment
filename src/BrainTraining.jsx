@@ -134,7 +134,7 @@ const DIFFICULTY = {
     matrix: { hints: 0, puzzles: 4 },
     reaction: { reps: 10, minDelay: 800, maxDelay: 2000 },
     switch: { items: 15 },
-    defense: { waveDuration: 30, spawnWave1: 850, spawnWave2: 580, spawnWave3: 380, fallWave1: 3.8, fallWave2: 5.5, fallWave3: 7.5 },
+    defense: { waveDuration: 30, spawnWave1: 1000, spawnWave2: 700, spawnWave3: 500, fallWave1: 3.0, fallWave2: 4.2, fallWave3: 5.8 },
   },
 };
 
@@ -161,19 +161,11 @@ const DAILY_ACTIONS = [
 
 // ── Stroop data ───────────────────────────────────────────────────────────
 const STROOP_COLORS = [
-  { name:"RED",    hex:"#EF4444" },
-  { name:"BLUE",   hex:"#3B82F6" },
-  { name:"GREEN",  hex:"#22C55E" },
-  { name:"AMBER",  hex:"#F59E0B" },
-  { name:"VIOLET", hex:"#A78BFA" },
-  { name:"PINK",   hex:"#F472B6" },
+  { name:"RED",   hex:"#EF4444" },
+  { name:"BLUE",  hex:"#3B82F6" },
+  { name:"GREEN", hex:"#22C55E" },
+  { name:"AMBER", hex:"#F59E0B" },
 ];
-// Stroop only shows 4 choices per round — pick 4 including the correct ink
-function getStroopChoices(inkName){
-  const others = STROOP_COLORS.filter(c=>c.name!==inkName).sort(()=>Math.random()-.5).slice(0,3);
-  const all = [...others, STROOP_COLORS.find(c=>c.name===inkName)].sort(()=>Math.random()-.5);
-  return all;
-}
 function genStroopRound(){
   const ink  = STROOP_COLORS[Math.floor(Math.random()*STROOP_COLORS.length)];
   let word   = STROOP_COLORS[Math.floor(Math.random()*STROOP_COLORS.length)];
@@ -201,10 +193,10 @@ function genNBackSequence(length=14,n=2){
 // ── Shape helper ──────────────────────────────────────────────────────────
 function ShapeEl({shape,color,size=36}){
   const s={width:size,height:size,display:"flex",alignItems:"center",justifyContent:"center"};
-  if(shape==="circle")   return <div style={s}><div style={{width:size*0.82,height:size*0.82,borderRadius:"50%",background:color,boxShadow:`0 0 ${size*0.3}px ${color}66`}}/></div>;
-  if(shape==="square")   return <div style={s}><div style={{width:size*0.76,height:size*0.76,background:color,borderRadius:4,boxShadow:`0 0 ${size*0.3}px ${color}66`}}/></div>;
-  if(shape==="triangle") return <div style={s}><svg width={size*0.86} height={size*0.86} viewBox="0 0 40 40"><polygon points="20,3 37,37 3,37" fill={color}/><polygon points="20,3 37,37 3,37" fill="none" stroke={color} strokeWidth="1" opacity=".4"/></svg></div>;
-  if(shape==="diamond")  return <div style={s}><svg width={size*0.86} height={size*0.86} viewBox="0 0 40 40"><polygon points="20,2 38,20 20,38 2,20" fill={color}/></svg></div>;
+  if(shape==="circle")   return <div style={s}><div style={{width:size*.82,height:size*.82,borderRadius:"50%",background:color,boxShadow:`0 0 ${size*.3}px ${color}66`}}/></div>;
+  if(shape==="square")   return <div style={s}><div style={{width:size*.76,height:size*.76,background:color,borderRadius:4,boxShadow:`0 0 ${size*.3}px ${color}66`}}/></div>;
+  if(shape==="triangle") return <div style={s}><svg width={size*.86} height={size*.86} viewBox="0 0 40 40"><polygon points="20,3 37,37 3,37" fill={color}/><polygon points="20,3 37,37 3,37" fill="none" stroke={color} strokeWidth="1" opacity=".4"/></svg></div>;
+  if(shape==="diamond")  return <div style={s}><svg width={size*.86} height={size*.86} viewBox="0 0 40 40"><polygon points="20,2 38,20 20,38 2,20" fill={color}/></svg></div>;
   return null;
 }
 
@@ -253,20 +245,6 @@ const ARCHETYPE_DATA = {
 // ── Storage ───────────────────────────────────────────────────────────────
 function loadBrain(){ try{return JSON.parse(localStorage.getItem("lqm_brain")||"{}");}catch{return{};} }
 function saveBrain(d){ localStorage.setItem("lqm_brain",JSON.stringify(d)); }
-
-function saveSession(round, scores, difficulty){
-  const today = new Date().toISOString().split("T")[0];
-  localStorage.setItem("lqm_brain_session", JSON.stringify({ round, scores, difficulty, date: today }));
-}
-function loadSession(){
-  try {
-    const s = JSON.parse(localStorage.getItem("lqm_brain_session")||"null");
-    const today = new Date().toISOString().split("T")[0];
-    if(s && s.date === today && s.round > 0 && s.round < 6) return s;
-  } catch{}
-  return null;
-}
-function clearSession(){ localStorage.removeItem("lqm_brain_session"); }
 
 // ── Global styles ─────────────────────────────────────────────────────────
 function GlobalStyles(){
@@ -335,7 +313,7 @@ function DifficultySelection({onSelect}){
       <div style={{textAlign:"center",marginBottom:40}}>
         <p style={{fontSize:14,fontWeight:700,color:E_BLUE,letterSpacing:".12em",textTransform:"uppercase",marginBottom:12}}>⚡ Choose Your Challenge Level</p>
         <h1 style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"clamp(32px,7vw,48px)",letterSpacing:2,color:WHITE,marginBottom:12}}>Brain Training</h1>
-        <p style={{fontSize:15,color:"rgba(255,255,255,0.65)",lineHeight:1.75,fontWeight:400}}>Select the difficulty that feels right for you. You can always change this later.</p>
+        <p style={{fontFamily:"'Crimson Pro',serif",fontStyle:"italic",fontSize:18,color:MUTED,lineHeight:1.75}}>Select the difficulty that feels right for you. You can always change this later.</p>
       </div>
 
       <div style={{display:"flex",flexDirection:"column",gap:14}}>
@@ -372,7 +350,7 @@ export default function BrainTraining({ onBack, archetype }){
   const [difficulty, setDifficulty] = useState(null);
   const [round,   setRound]   = useState(0);
   const [scores,  setScores]  = useState([]);
-  const [savedSession, setSavedSession] = useState(()=>loadSession());
+  const [isQuickPlay, setIsQuickPlay] = useState(false);
   const [userData,setUserData]= useState(loadBrain);
   const [dailyAction]         = useState(()=>DAILY_ACTIONS[new Date().getDay()]);
   const [challengeData, setChallengeData] = useState(null);
@@ -403,28 +381,18 @@ export default function BrainTraining({ onBack, archetype }){
     playSuccessSound();
     
     if(round<5){ 
-      setRound(round+1);
-      setScreen("science");
-      saveSession(round+1, newScores, difficulty); // Save progress after each round
+      setRound(round+1); 
+      setScreen("science"); 
     }
     else {
-      // Full session complete (all 6 challenges done)
+      // Full session complete (all 6 challenges done) or Quick Play (1 challenge)
       const total=newScores.reduce((a,s)=>a+s.score,0);
       const today=new Date().toISOString().split("T")[0];
       const yesterday=new Date(Date.now()-86400000).toISOString().split("T")[0];
       const newStreak=userData.lastDay===yesterday?streak+1:userData.lastDay===today?streak:1;
       const bonus=Math.floor(total*(newStreak*0.05));
       const final=total+bonus;
-      const updated={
-        totalXP: totalXP+final,
-        streak: newStreak,
-        lastDay: today,
-        bestScore: Math.max(final, userData.bestScore||0),
-        lastSessionXP: final,           // XP earned this session (with streak bonus)
-        lastSessionScore: total,        // Raw score this session (out of ~720)
-        bestSessionScore: Math.max(total, userData.bestSessionScore||0), // Personal best raw score
-        sessionCount: (userData.sessionCount||0) + 1, // Total sessions completed
-      };
+      const updated={totalXP:totalXP+final,streak:newStreak,lastDay:today,bestScore:Math.max(final,userData.bestScore||0)};
       
       // Check for level up
       const oldLevel = getLevel(totalXP);
@@ -437,58 +405,50 @@ export default function BrainTraining({ onBack, archetype }){
       setUserData(updated); 
       saveBrain(updated);
       
-      // Track session completion
-      const avgScore = Math.round(total / 6);
+      // avgScore: divide by actual number of scores completed, not hardcoded 6
+      const avgScore = Math.round(total / newScores.length);
       trackSessionComplete(total, avgScore, difficulty);
       
       // Play celebration sound for completing all 6 challenges
       playCelebrationSound();
       
-      // Update 21-day challenge progress
-      const updatedChallenge = updateChallengeProgress("brain");
-      if(updatedChallenge){
-        setChallengeData(updatedChallenge);
-        
-        // Store baseline scores if this is first session
-        if(updatedChallenge.sessionsCompleted === 1){
-          const baselineScores = {
-            stroop: newScores[0]?.score || 0,
-            nback: newScores[1]?.score || 0,
-            matrix: newScores[2]?.score || 0,
-            reaction: newScores[3]?.reactionMs || 0,
-            switch: newScores[4]?.score || 0,
-            defense: newScores[5]?.score || 0
-          };
-          storeBaselineScores("brain", baselineScores);
-        }
-        
-        // Milestone tracking (popups disabled for now - will add back later)
-        // Track milestone achievements in background
-        if(updatedChallenge.currentDay >= 7 && !updatedChallenge.milestones.day_7.unlocked){
-          playMilestoneSound();
-          // setShowMilestone("day7"); // Disabled - component not ready
-        } else if(updatedChallenge.currentDay >= 14 && !updatedChallenge.milestones.day_14.unlocked){
-          playMilestoneSound();
-          // setShowMilestone("day14"); // Disabled
-        } else if(updatedChallenge.currentDay >= 21 && !updatedChallenge.milestones.day_21.unlocked){
-          playMilestoneSound();
-          // setShowMilestone("day21"); // Disabled
+      // Only update 21-day challenge progress for full sessions (not Quick Play)
+      if(!isQuickPlay){
+        const updatedChallenge = updateChallengeProgress("brain");
+        if(updatedChallenge){
+          setChallengeData(updatedChallenge);
+          
+          // Store baseline scores if this is first session — use label-matched indices
+          // to guard against any future round-order changes
+          if(updatedChallenge.sessionsCompleted === 1){
+            const findScore = (label, field="score") => newScores.find(s=>s.label===label)?.[field] || 0;
+            const baselineScores = {
+              stroop:   findScore("Stroop Challenge"),
+              nback:    findScore("2-Back Test"),
+              matrix:   findScore("Pattern Matrix"),
+              reaction: findScore("Reaction Velocity", "reactionMs"),
+              switch:   findScore("Cognitive Switch"),
+              defense:  findScore("Neural Defense"),
+            };
+            storeBaselineScores("brain", baselineScores);
+          }
+          
+          // Milestone tracking (popups disabled for now - will add back later)
+          if(updatedChallenge.currentDay >= 7 && !updatedChallenge.milestones.day_7.unlocked){
+            playMilestoneSound();
+          } else if(updatedChallenge.currentDay >= 14 && !updatedChallenge.milestones.day_14.unlocked){
+            playMilestoneSound();
+          } else if(updatedChallenge.currentDay >= 21 && !updatedChallenge.milestones.day_21.unlocked){
+            playMilestoneSound();
+          }
         }
       }
       
-      clearSession(); // Full session done — clear save point
       setScreen("results");
     }
   }
 
-  function startProtocol(){ 
-    setRound(0); setScores([]); setSavedSession(null); clearSession();
-    setScreen("science"); 
-  }
-  function resumeSession(s){
-    setRound(s.round); setScores(s.scores); setDifficulty(s.difficulty);
-    setSavedSession(null); setScreen("science");
-  }
+  function startProtocol(){ setIsQuickPlay(false); setRound(0); setScores([]); setScreen("science"); }
 
   return(
     <div style={{minHeight:"100vh",background:`radial-gradient(ellipse 70% 35% at 50% 0%,rgba(0,200,255,0.07) 0%,transparent 55%),${BG}`,fontFamily:"'Space Grotesk',sans-serif",color:WHITE,display:"flex",flexDirection:"column",alignItems:"center",padding:"0 0 60px"}}>
@@ -507,25 +467,8 @@ export default function BrainTraining({ onBack, archetype }){
       </div>
 
       <div style={{width:"100%",maxWidth:560,padding:"32px 20px 0"}}>
-        {screen==="difficulty" && <>
-          {savedSession && (
-            <div style={{maxWidth:520,margin:"0 auto 16px",background:"rgba(0,200,255,0.06)",border:"1px solid rgba(0,200,255,0.35)",borderRadius:16,padding:"18px 22px"}}>
-              <p style={{fontSize:13,fontWeight:700,color:E_BLUE,letterSpacing:".12em",textTransform:"uppercase",marginBottom:8}}>⚡ Unfinished Session Found</p>
-              <p style={{fontSize:15,color:WHITE,marginBottom:4}}>You completed <strong style={{color:E_BLUE}}>{savedSession.round} of 6</strong> challenges earlier today.</p>
-              <p style={{fontSize:13,color:MUTED,marginBottom:14}}>Your scores are saved — pick up from Round {savedSession.round + 1}.</p>
-              <div style={{display:"flex",gap:10,flexWrap:"wrap"}}>
-                <button onClick={()=>resumeSession(savedSession)} style={{flex:1,background:E_BLUE,color:BG,fontWeight:800,fontSize:14,borderRadius:100,padding:"10px 18px",border:"none",cursor:"pointer",fontFamily:"'Space Grotesk',sans-serif"}}>
-                  ▶ Resume from Round {savedSession.round + 1}
-                </button>
-                <button onClick={()=>{clearSession();setSavedSession(null);}} style={{background:"rgba(255,255,255,0.04)",color:MUTED,fontWeight:600,fontSize:13,borderRadius:100,padding:"10px 16px",border:`1px solid ${BORDER2}`,cursor:"pointer",fontFamily:"'Space Grotesk',sans-serif"}}>
-                  Start Fresh
-                </button>
-              </div>
-            </div>
-          )}
-          <DifficultySelection onSelect={(d)=>{setDifficulty(d);setScreen("intro");}}/>
-        </>}
-        {screen==="intro"     && <Intro onStart={startProtocol} onQuickPlay={()=>{setRound(5);setScores([]);setScreen("challenge");}} xp={totalXP} streak={streak} level={level} userData={userData} difficulty={difficulty} challengeData={challengeData}/>}
+        {screen==="difficulty" && <DifficultySelection onSelect={(d)=>{setDifficulty(d);setScreen("intro");}}/>}
+        {screen==="intro"     && <Intro onStart={startProtocol} onQuickPlay={()=>{setIsQuickPlay(true);setRound(5);setScores([]);setScreen("challenge");}} xp={totalXP} streak={streak} level={level} userData={userData} difficulty={difficulty} challengeData={challengeData}/>}
         {screen==="science"   && <ScienceCard card={SCIENCE_CARDS[round]} round={round} onBegin={()=>setScreen("challenge")}/>}
         {screen==="challenge" && round===0 && <StroopChallenge   key="s" difficulty={DIFFICULTY[difficulty]} onComplete={handleRoundComplete}/>}
         {screen==="challenge" && round===1 && <NBackChallenge    key="n" difficulty={DIFFICULTY[difficulty]} onComplete={handleRoundComplete}/>}
@@ -533,7 +476,7 @@ export default function BrainTraining({ onBack, archetype }){
         {screen==="challenge" && round===3 && <ReactionChallenge key="r" difficulty={DIFFICULTY[difficulty]} onComplete={handleRoundComplete}/>}
         {screen==="challenge" && round===4 && <SwitchChallenge   key="sw" difficulty={DIFFICULTY[difficulty]} onComplete={handleRoundComplete}/>}
         {screen==="challenge" && round===5 && <NeuralDefense     key="nd" difficulty={DIFFICULTY[difficulty]} onComplete={handleRoundComplete}/>}
-        {screen==="results"   && <Results scores={scores} level={level} newLevel={getLevel(totalXP)} streak={streak} dailyAction={dailyAction} arch={arch} challengeData={challengeData} onBack={onBack} onRetry={()=>{setRound(0);setScores([]);setScreen("science");}}/>}
+        {screen==="results"   && <Results scores={scores} level={level} newLevel={getLevel(totalXP)} streak={streak} dailyAction={dailyAction} arch={arch} challengeData={challengeData} isQuickPlay={isQuickPlay} onBack={onBack} onRetry={()=>{setIsQuickPlay(false);setRound(0);setScores([]);setScreen("science");}}/>}
       </div>
     </div>
   );
@@ -563,7 +506,7 @@ function Intro({onStart,onQuickPlay,xp,streak,level,userData,challengeData}){
       <div className="fu" style={{textAlign:"center",marginBottom:24}}>
         <p style={{fontSize:16,fontWeight:700,letterSpacing:".16em",textTransform:"uppercase",color:E_BLUE,marginBottom:12}}>⚡ Daily Neural Protocol</p>
         <h1 style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"clamp(32px,7vw,52px)",letterSpacing:2,color:WHITE,lineHeight:1.05,marginBottom:8}}>Train Your<br/><span style={{color:E_BLUE}}>Quantum Mind</span></h1>
-        <p style={{fontFamily:"'Crimson Pro',serif",fontStyle:"italic",fontSize:15,color:"rgba(255,255,255,0.62)",lineHeight:1.7}}>"The exercised brain builds new neural pathways throughout life. Consistency compounds."</p>
+        <p style={{fontFamily:"'Crimson Pro',serif",fontStyle:"italic",fontSize:16,color:MUTED,lineHeight:1.7}}>"The exercised brain builds new neural pathways throughout life. Consistency compounds."</p>
       </div>
 
       {/* 21-DAY CHALLENGE DASHBOARD */}
@@ -580,7 +523,7 @@ function Intro({onStart,onQuickPlay,xp,streak,level,userData,challengeData}){
             </div>
           </div>
           <div style={{height:6,background:"rgba(255,255,255,0.06)",borderRadius:100,overflow:"hidden"}}>
-            <div style={{height:"100%",width:`${Math.round((currentDay/21)*100)}%`,background:`linear-gradient(90deg,${E_BLUE},${GREEN})`,borderRadius:100}}/>
+            <div style={{height:"100%",width:`${(currentDay/21)*100}%`,background:`linear-gradient(90deg,${E_BLUE},${GREEN})`,borderRadius:100}}/>
           </div>
           {currentDay >= 7 && (
             <p style={{fontSize:13,color:GREEN,marginTop:8,fontWeight:600}}>✓ Week 1 milestone reached!</p>
@@ -624,7 +567,7 @@ function Intro({onStart,onQuickPlay,xp,streak,level,userData,challengeData}){
                 <p style={{fontSize:16,fontWeight:600,color:WHITE}}>{r.name}</p>
                 <span style={{fontSize:15,fontWeight:700,color:E_BLUE,letterSpacing:".08em",textTransform:"uppercase",background:"rgba(0,200,255,0.08)",border:`1px solid ${BORDER}`,borderRadius:100,padding:"2px 8px"}}>{r.tag}</span>
               </div>
-              <p style={{fontSize:13,color:"rgba(255,255,255,0.45)",fontWeight:400}}>Brain region: {r.brain}</p>
+              <p style={{fontSize:14,color:DIMMED,fontStyle:"italic"}}>Brain region: {r.brain}</p>
             </div>
             <span style={{fontSize:14,color:DIMMED,marginTop:2}}>{i+1}</span>
           </div>
@@ -671,7 +614,7 @@ function ScienceCard({card:c,round,onBegin}){
         </div>
         <div style={{padding:"12px 22px",display:"flex",gap:8,alignItems:"flex-start"}}>
           <span style={{fontSize:15,color:DIMMED,flexShrink:0}}>📊</span>
-          <p style={{fontSize:13,color:"rgba(255,255,255,0.5)",lineHeight:1.6,fontWeight:400}}>{c.metric}</p>
+          <p style={{fontSize:14,color:DIMMED,lineHeight:1.5,fontStyle:"italic"}}>{c.metric}</p>
         </div>
       </div>
       <button onClick={onBegin} style={{width:"100%",border:"none",borderRadius:100,padding:"16px",fontSize:16,fontWeight:700,fontFamily:"'Space Grotesk',sans-serif",cursor:"pointer",letterSpacing:".05em",background:`linear-gradient(135deg,${c.color}bb,${c.color})`,color:BG,boxShadow:`0 6px 24px ${c.color}33`,transition:"all .2s"}}
@@ -685,18 +628,11 @@ function ScienceCard({card:c,round,onBegin}){
 
 // ── Round progress bar ────────────────────────────────────────────────────
 function RoundProgress({round}){
-  const NAMES = ["Stroop","2-Back","Matrix","Reaction","Switch","Defense"];
   return(
-    <div style={{marginBottom:24,marginTop:8}}>
-      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
-        <p style={{fontSize:11,color:DIMMED,letterSpacing:".12em",textTransform:"uppercase",fontWeight:700}}>Round {round} of 6</p>
-        <p style={{fontSize:11,color:E_BLUE,fontWeight:700,letterSpacing:".08em"}}>{NAMES[round-1]}</p>
-      </div>
-      <div style={{display:"flex",gap:5}}>
-        {[1,2,3,4,5,6].map(i=>(
-          <div key={i} style={{flex:1,height:4,borderRadius:100,background:i<round?E_BLUE:i===round?"rgba(0,200,255,0.5)":"rgba(255,255,255,0.06)",transition:"background .3s",boxShadow:i<round?`0 0 6px ${E_BLUE}66`:"none"}}/>
-        ))}
-      </div>
+    <div style={{display:"flex",gap:6,marginBottom:20}}>
+      {[0,1,2,3,4].map(i=>(
+        <div key={i} style={{flex:1,height:3,borderRadius:100,background:i<round?E_BLUE:i===round?"rgba(0,200,255,0.35)":"rgba(255,255,255,0.06)",transition:"background .3s"}}/>
+      ))}
     </div>
   );
 }
@@ -788,11 +724,11 @@ function StroopChallenge({onComplete, difficulty}){
           </div>
           <p style={{textAlign:"center",fontSize:16,color:DIMMED,fontWeight:700,letterSpacing:".12em",textTransform:"uppercase",marginBottom:12}}>Tap the ink colour</p>
           <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
-            {getStroopChoices(item.inkName).map(c=>(
-              <button key={c.name} onClick={()=>handleAnswer(c.name)} style={{border:`2px solid ${c.hex}`,borderRadius:14,padding:"16px 0",background:`${c.hex}18`,cursor:"pointer",display:"flex",flexDirection:"column",alignItems:"center",gap:8,transition:"all .12s",fontFamily:"'Space Grotesk',sans-serif",boxShadow:`0 0 10px ${c.hex}33`}}
-                onMouseEnter={e=>{e.currentTarget.style.background=`${c.hex}35`;e.currentTarget.style.boxShadow=`0 0 18px ${c.hex}66`;}}
-                onMouseLeave={e=>{e.currentTarget.style.background=`${c.hex}18`;e.currentTarget.style.boxShadow=`0 0 10px ${c.hex}33`;}}>
-                <div style={{width:30,height:30,borderRadius:"50%",background:c.hex,boxShadow:`0 0 14px ${c.hex}99`}}/>
+            {STROOP_COLORS.map(c=>(
+              <button key={c.name} onClick={()=>handleAnswer(c.name)} style={{border:`2px solid ${c.hex}44`,borderRadius:14,padding:"16px 0",background:`${c.hex}0c`,cursor:"pointer",display:"flex",flexDirection:"column",alignItems:"center",gap:8,transition:"all .12s",fontFamily:"'Space Grotesk',sans-serif"}}
+                onMouseEnter={e=>e.currentTarget.style.background=`${c.hex}22`}
+                onMouseLeave={e=>e.currentTarget.style.background=`${c.hex}0c`}>
+                <div style={{width:28,height:28,borderRadius:"50%",background:c.hex,boxShadow:`0 0 14px ${c.hex}88`}}/>
                 <span style={{fontSize:15,fontWeight:700,color:WHITE,letterSpacing:".06em"}}>{c.name}</span>
               </button>
             ))}
@@ -1172,19 +1108,13 @@ function NeuralDefense({onComplete, difficulty}){
   const nextPopupId = useRef(0);
   const scoreRef = useRef(0);
   const hitsRef = useRef(0);
-  const lastShotRef = useRef(0);
-  const [showTip, setShowTip] = useState(true);
   
   const SHAPES_POOL = [
-    {type:"circle",  color:E_BLUE, pts:10},
-    {type:"square",  color:GREEN,  pts:10},
-    {type:"triangle",color:AMBER,  pts:10},
+    {type:"circle", color:E_BLUE, pts:10},
+    {type:"square", color:GREEN, pts:10},
+    {type:"triangle", color:AMBER, pts:10},
     {type:"diamond", color:VIOLET, pts:15},
   ];
-  // Special shapes spawn at low probability — big points, alphabet explosion
-  const SPECIAL_CHANCE = 0.12; // 12% chance per spawn
-  const ALPHA_LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-  const ALPHA_COLORS  = [E_BLUE, GREEN, AMBER, VIOLET, "#F472B6", "#FB923C", "#34D399", "#A78BFA"];
 
   function startGame(){
     setPhase("playing");
@@ -1196,8 +1126,6 @@ function NeuralDefense({onComplete, difficulty}){
     setShapes([]);
     setParticles([]);
     reactionTimes.current = [];
-    setShowTip(true); // Reset tip for new game
-    setTimeout(()=>setShowTip(false), 4000); // Auto-hide after 4s
     startWave(1);
   }
 
@@ -1210,19 +1138,15 @@ function NeuralDefense({onComplete, difficulty}){
     
     // Spawn shapes periodically
     spawnTimerRef.current = setInterval(()=>{
-      const isSpecial = Math.random() < SPECIAL_CHANCE;
-      const shape = isSpecial
-        ? {type:"special", color:"#FFD700", pts:50}
-        : SHAPES_POOL[Math.floor(Math.random()*SHAPES_POOL.length)];
+      const shape = SHAPES_POOL[Math.floor(Math.random()*SHAPES_POOL.length)];
       const id = nextId.current++;
       setShapes(prev => [...prev, {
         id,
         ...shape,
         x: Math.random() * (GAME_WIDTH - SHAPE_SIZE),
         y: -SHAPE_SIZE,
-        speed: isSpecial ? fallSpeed * 1.3 : fallSpeed, // special falls faster
+        speed: fallSpeed,
         spawnTime: Date.now(),
-        isSpecial,
       }]);
     }, spawnRate);
     
@@ -1305,10 +1229,6 @@ function NeuralDefense({onComplete, difficulty}){
 
   function handleShoot(){
     if(phase !== "playing") return;
-    const now = Date.now();
-    if(now - lastShotRef.current < 320) return;
-    lastShotRef.current = now;
-    if(showTip) setShowTip(false); // Hide instructions on first shot
     
     // 🔊 SHOOT SOUND
     playShootSound();
@@ -1407,37 +1327,6 @@ function NeuralDefense({onComplete, difficulty}){
               }]);
             }, i * 100);
           }
-
-          // 🌟 SPECIAL OBJECT — alphabet letter explosion!
-          if(s.isSpecial){
-            for(let i=0; i<18; i++){
-              const letter = ALPHA_LETTERS[Math.floor(Math.random()*ALPHA_LETTERS.length)];
-              const color  = ALPHA_COLORS[Math.floor(Math.random()*ALPHA_COLORS.length)];
-              const angle  = (i/18)*Math.PI*2;
-              const speed  = 2.5 + Math.random()*3.5;
-              setParticles(p => [...p, {
-                id: Math.random(),
-                x: s.x + SHAPE_SIZE/2,
-                y: s.y + SHAPE_SIZE/2,
-                vx: Math.cos(angle)*speed,
-                vy: Math.sin(angle)*speed - 2,
-                color,
-                life: 45,
-                isLetter: true,
-                letter,
-                fontSize: 12 + Math.floor(Math.random()*10),
-              }]);
-            }
-            // Bonus score popup
-            setScorePopups(p => [...p, {
-              id: nextPopupId.current++,
-              x: s.x + SHAPE_SIZE/2,
-              y: s.y - 10,
-              value: "⭐ +50 QUANTUM!",
-              color:"#FFD700",
-              life: 50,
-            }]);
-          }
         } else {
           remaining.push(s);
         }
@@ -1463,7 +1352,7 @@ function NeuralDefense({onComplete, difficulty}){
 
   function handleTouchEnd(e){
     if(phase !== "playing") return;
-    e.preventDefault(); // Prevent synthetic click from also firing
+    // Fire shoot on tap (touchend = tap on mobile)
     handleShoot();
   }
 
@@ -1473,11 +1362,6 @@ function NeuralDefense({onComplete, difficulty}){
     if(type==="square") return <div style={{width:size,height:size,background:color,borderRadius:4,boxShadow:`0 0 12px ${color}88`}}/>;
     if(type==="triangle") return <div style={{width:0,height:0,borderLeft:`${size/2}px solid transparent`,borderRight:`${size/2}px solid transparent`,borderBottom:`${size}px solid ${color}`,filter:`drop-shadow(0 0 8px ${color}88)`}}/>;
     if(type==="diamond") return <div style={{width:size,height:size,background:color,transform:"rotate(45deg)",borderRadius:4,boxShadow:`0 0 12px ${color}88`}}/>;
-    if(type==="special") return (
-      <div style={{width:size,height:size,display:"flex",alignItems:"center",justifyContent:"center",animation:"specialPulse 0.6s ease-in-out infinite"}}>
-        <div style={{fontSize:size*0.9,lineHeight:1,filter:"drop-shadow(0 0 8px gold) drop-shadow(0 0 16px #FFD700)"}}>⭐</div>
-      </div>
-    );
   }
 
   if(phase === "ready"){
@@ -1647,6 +1531,7 @@ function NeuralDefense({onComplete, difficulty}){
         {/* Particles */}
         {particles.map(p => {
           if(p.isPulse) {
+            // 🧠 NEURAL PULSE RINGS
             const size = 40 + (20 - p.life) * 3 + p.pulseSize;
             return (
               <div key={p.id} style={{
@@ -1660,26 +1545,6 @@ function NeuralDefense({onComplete, difficulty}){
                 opacity:p.life / 20,
                 pointerEvents:"none"
               }}/>
-            );
-          }
-          if(p.isLetter) {
-            // 🔤 Alphabet letter flying out from special explosion
-            const elapsed = 45 - p.life;
-            return (
-              <div key={p.id} style={{
-                position:"absolute",
-                left:p.x + p.vx * elapsed,
-                top:p.y + p.vy * elapsed + 0.04 * elapsed * elapsed,
-                fontSize:p.fontSize,
-                fontWeight:900,
-                fontFamily:"'Bebas Neue',sans-serif",
-                color:p.color,
-                textShadow:`0 0 8px ${p.color}, 0 0 16px ${p.color}88`,
-                opacity:Math.min(1, p.life/20),
-                pointerEvents:"none",
-                userSelect:"none",
-                transform:`rotate(${elapsed*8}deg)`,
-              }}>{p.letter}</div>
             );
           }
           return (
@@ -1712,69 +1577,28 @@ function NeuralDefense({onComplete, difficulty}){
           }}/>
         )}
         
-        {/* Energy Cannon Emitter */}
+        {/* Shield with glow effect */}
         <div style={{
           position:"absolute",
           left:shieldX,
-          bottom:16,
+          bottom:20,
           width:SHIELD_WIDTH,
+          height:12,
+          background:`linear-gradient(90deg,${PURPLE}44,${PURPLE},${PURPLE}44)`,
+          borderRadius:6,
+          boxShadow:shieldActive ? `0 0 30px ${PURPLE}, 0 0 60px ${PURPLE}88` : `0 0 16px ${PURPLE}88`,
           pointerEvents:"none",
-          transition:"left 0.04s",
-        }}>
-          {/* Main cannon body */}
-          <div style={{
-            width:SHIELD_WIDTH,
-            height:16,
-            background:`linear-gradient(90deg,${PURPLE}33,${PURPLE}99,${PURPLE}33)`,
-            borderRadius:8,
-            boxShadow:shieldActive?`0 0 25px ${PURPLE},0 0 50px ${PURPLE}66`:`0 0 10px ${PURPLE}55`,
-            border:`1px solid ${PURPLE}88`,
-            transform:shieldActive?"scaleY(1.15)":"scaleY(1)",
-            transition:"all 0.08s",
-            position:"relative",
-          }}>
-            {/* Centre barrel */}
-            <div style={{
-              position:"absolute",
-              left:"50%",
-              top:-8,
-              transform:"translateX(-50%)",
-              width:10,
-              height:12,
-              background:`linear-gradient(180deg,${PURPLE},${PURPLE}66)`,
-              borderRadius:"4px 4px 0 0",
-              boxShadow:shieldActive?`0 0 15px ${PURPLE}`:"none",
-              transition:"all 0.08s",
-            }}/>
-            {/* Wing left */}
-            <div style={{position:"absolute",left:-6,top:3,width:8,height:10,background:`${PURPLE}66`,borderRadius:"3px 0 0 3px",boxShadow:`-3px 0 8px ${PURPLE}44`}}/>
-            {/* Wing right */}
-            <div style={{position:"absolute",right:-6,top:3,width:8,height:10,background:`${PURPLE}66`,borderRadius:"0 3px 3px 0",boxShadow:`3px 0 8px ${PURPLE}44`}}/>
-            {/* Energy core dot */}
-            <div style={{
-              position:"absolute",
-              left:"50%",
-              top:"50%",
-              transform:"translate(-50%,-50%)",
-              width:6,
-              height:6,
-              borderRadius:"50%",
-              background:shieldActive?"white":PURPLE,
-              boxShadow:shieldActive?`0 0 10px white,0 0 20px ${PURPLE}`:`0 0 6px ${PURPLE}`,
-              transition:"all 0.08s",
-            }}/>
+          transition:"all 0.08s",
+          transform:shieldActive ? "scale(1.1)" : "scale(1)"
+        }}/>
+        
+        {/* Tap instruction with shield tooltip */}
+        <div style={{position:"absolute",bottom:50,left:"50%",transform:"translateX(-50%)",fontSize:13,color:DIMMED,pointerEvents:"none",textAlign:"center"}}>
+          <div style={{marginBottom:4}}>Tap anywhere to shoot</div>
+          <div style={{fontSize:11,color:PURPLE,background:"rgba(139,92,246,0.1)",padding:"4px 8px",borderRadius:6}}>
+            🛡️ Shield blocks incoming shapes
           </div>
         </div>
-        
-        {/* Tap instruction — fades after first shot */}
-        {showTip && (
-          <div style={{position:"absolute",bottom:50,left:"50%",transform:"translateX(-50%)",fontSize:13,color:DIMMED,pointerEvents:"none",textAlign:"center",transition:"opacity .5s",animation:"fadeUp .3s ease both"}}>
-            <div style={{marginBottom:4}}>Tap anywhere to shoot</div>
-            <div style={{fontSize:11,color:PURPLE,background:"rgba(139,92,246,0.1)",padding:"4px 8px",borderRadius:6,whiteSpace:"nowrap"}}>
-              🛡️ Move shield with finger · Tap to fire
-            </div>
-          </div>
-        )}
       </div>
       
       {/* Add CSS keyframes for lightning flicker and screen shake */}
@@ -1789,10 +1613,6 @@ function NeuralDefense({onComplete, difficulty}){
           50% { transform: translate(5px, -2px); }
           75% { transform: translate(-3px, -2px); }
         }
-        @keyframes specialPulse {
-          0%, 100% { transform: scale(1); filter: drop-shadow(0 0 6px gold); }
-          50% { transform: scale(1.25); filter: drop-shadow(0 0 18px gold) drop-shadow(0 0 30px #FFD700); }
-        }
       `}</style>
     </div>
   );
@@ -1803,21 +1623,22 @@ function NeuralDefense({onComplete, difficulty}){
 // ══════════════════════════════════════════════════════════════════════════
 
 // ══════════════════════════════════════════════════════════════════════════
-function Results({scores,level,newLevel,streak,dailyAction,arch,challengeData,onBack,onRetry}){
+function Results({scores,level,newLevel,streak,dailyAction,arch,challengeData,isQuickPlay,onBack,onRetry}){
   const total=scores.reduce((a,s)=>a+s.score,0);
   const levelUp=newLevel.name!==level.name;
   const grade=total>=540?"Quantum Elite":total>=420?"Elite":total>=300?"Sharp":total>=180?"Developing":"Initiate";
   const gradeColor=total>=540?VIOLET:total>=420?E_BLUE:total>=300?GREEN:total>=180?AMBER:DIMMED;
   const rtimes=scores.filter(s=>s.reactionMs).map(s=>s.reactionMs);
   const avgMs=rtimes.length?Math.round(rtimes.reduce((a,b)=>a+b,0)/rtimes.length):null;
-  const roundMeta=[
-    {icon:"🎨",label:"Stroop",tag:"Exec. Function",max:140},
-    {icon:"🧠",label:"2-Back",tag:"Working Memory",max:140},
-    {icon:"🔷",label:"Matrix",tag:"Spatial",max:140},
-    {icon:"⚡",label:"Reaction",tag:"Proc. Speed",max:130},
-    {icon:"🔄",label:"Switch",tag:"Flexibility",max:120},
-    {icon:"🛡️",label:"Defense",tag:"Sustained Attn",max:150},
-  ];
+  // Map by label so Quick Play (single Defense score) renders with correct metadata
+  const roundMetaByLabel={
+    "Stroop Challenge":   {icon:"🎨",label:"Stroop",tag:"Exec. Function",max:140},
+    "2-Back Test":        {icon:"🧠",label:"2-Back",tag:"Working Memory",max:140},
+    "Pattern Matrix":     {icon:"🔷",label:"Matrix",tag:"Spatial",max:140},
+    "Reaction Velocity":  {icon:"⚡",label:"Reaction",tag:"Proc. Speed",max:130},
+    "Cognitive Switch":   {icon:"🔄",label:"Switch",tag:"Flexibility",max:120},
+    "Neural Defense":     {icon:"🛡️",label:"Defense",tag:"Sustained Attn",max:150},
+  };
   return(
     <div style={{animation:"fadeUp .55s ease both"}}>
       {levelUp&&<div style={{background:`linear-gradient(135deg,${newLevel.color}22,transparent)`,border:`2px solid ${newLevel.color}`,borderRadius:16,padding:"18px 22px",textAlign:"center",marginBottom:14}}>
@@ -1828,44 +1649,16 @@ function Results({scores,level,newLevel,streak,dailyAction,arch,challengeData,on
       <div style={{background:`linear-gradient(145deg,${DARK2},${DARK})`,border:`1px solid ${gradeColor}22`,borderRadius:20,padding:"30px 24px",textAlign:"center",marginBottom:14}}>
         <p style={{fontSize:15,fontWeight:700,color:DIMMED,letterSpacing:".14em",textTransform:"uppercase",marginBottom:10}}>Brain Training Complete</p>
         <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:72,letterSpacing:2,color:gradeColor,lineHeight:1,marginBottom:4}}>{total}</div>
-        <p style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:18,letterSpacing:4,color:gradeColor,marginBottom:4}}>{grade}</p>
-        <p style={{fontSize:14,color:MUTED,marginBottom:14}}>
-          {total>=540?"You scored in the top 5% of LQM users — exceptional across all 6 cognitive domains."
-          :total>=420?"You scored in the top 20% of LQM users — strong performance across most domains."
-          :total>=300?"You scored in the top 45% of LQM users — solid baseline with clear room to grow."
-          :total>=180?"You are in the early development phase — consistent training will move you up quickly."
-          :"First session benchmark recorded. Every session from here builds your baseline."}
-        </p>
-        {/* Benchmark grid */}
-        <div style={{display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:6,marginBottom:14}}>
-          {[
-            {label:"Initiate",range:"0–179",min:0,max:179},
-            {label:"Developing",range:"180–299",min:180,max:299},
-            {label:"Sharp",range:"300–419",min:300,max:419},
-            {label:"Elite",range:"420–539",min:420,max:539},
-            {label:"Quantum Elite",range:"540+",min:540,max:720},
-          ].map((tier,i)=>{
-            const isYou = total>=tier.min && total<=tier.max;
-            const isPast = total>tier.max;
-            const col = i===4?VIOLET:i===3?E_BLUE:i===2?GREEN:i===1?AMBER:DIMMED;
-            return(
-              <div key={i} style={{borderRadius:10,padding:"8px 4px",border:`1.5px solid ${isYou?col:isPast?col+"44":"rgba(255,255,255,0.06)"}`,background:isYou?col+"18":"transparent",transition:"all .3s"}}>
-                <div style={{fontSize:isYou?16:14,marginBottom:3}}>{isPast?"✓":isYou?"◉":"○"}</div>
-                <p style={{fontSize:10,fontWeight:700,color:isYou?col:isPast?col+"88":DIMMED,lineHeight:1.2}}>{tier.label}</p>
-                <p style={{fontSize:9,color:"rgba(255,255,255,0.25)"}}>{tier.range}</p>
-              </div>
-            );
-          })}
-        </div>
-        {avgMs&&<p style={{fontSize:14,color:MUTED,marginBottom:10}}>Avg reaction: <strong style={{color:WHITE}}>{avgMs}ms</strong> — {avgMs<270?"⚡ Exceptional speed":avgMs<370?"✓ Above average":avgMs<500?"Average range":"Room to improve"}</p>}
-        {streak>0&&<div style={{display:"inline-flex",alignItems:"center",gap:8,background:"rgba(251,191,36,0.06)",border:"1px solid rgba(251,191,36,0.16)",borderRadius:100,padding:"6px 14px",fontSize:14,color:AMBER,fontWeight:600}}>🔥 {streak}-day streak · +{streak*5}% bonus XP</div>}
+        <p style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:18,letterSpacing:4,color:gradeColor,marginBottom:8}}>{grade}</p>
+        {avgMs&&<p style={{fontSize:16,color:MUTED,marginBottom:10}}>Avg reaction time: <strong style={{color:WHITE}}>{avgMs}ms</strong>{avgMs<270?"  ⚡":avgMs<370?"  ✓":""}</p>}
+        {streak>0&&<div style={{display:"inline-flex",alignItems:"center",gap:8,background:"rgba(251,191,36,0.06)",border:"1px solid rgba(251,191,36,0.16)",borderRadius:100,padding:"6px 14px",fontSize:14,color:AMBER,fontWeight:600}}>🔥 {streak}-day streak · +{streak*5}% bonus</div>}
       </div>
 
       {/* Breakdown */}
       <div style={{background:PANEL,border:`1px solid ${BORDER2}`,borderRadius:16,padding:"20px",marginBottom:14}}>
-        <p style={{fontSize:15,fontWeight:700,color:DIMMED,letterSpacing:".12em",textTransform:"uppercase",marginBottom:14}}>Round Breakdown</p>
+        <p style={{fontSize:15,fontWeight:700,color:DIMMED,letterSpacing:".12em",textTransform:"uppercase",marginBottom:14}}>{isQuickPlay?"Quick Play Result":"Round Breakdown"}</p>
         {scores.map((s,i)=>{
-          const m=roundMeta[i]; const pct=Math.min(100,(s.score/m.max)*100);
+          const m=roundMetaByLabel[s.label]||{icon:"🧠",label:s.label,tag:"",max:150}; const pct=Math.min(100,(s.score/m.max)*100);
           const col=pct>65?GREEN:pct>35?AMBER:RED;
           return(
             <div key={i} style={{marginBottom:i<scores.length-1?14:0}}>
@@ -1890,16 +1683,16 @@ function Results({scores,level,newLevel,streak,dailyAction,arch,challengeData,on
       {/* Archetype neural intelligence */}
       {arch && <div style={{background:`linear-gradient(135deg,${arch.color}0a,transparent)`,border:`1px solid ${arch.color}33`,borderLeft:`3px solid ${arch.color}`,borderRadius:"0 14px 14px 0",padding:"20px",marginBottom:14}}>
         <p style={{fontSize:15,fontWeight:700,color:arch.color,letterSpacing:".14em",textTransform:"uppercase",marginBottom:10}}>⚛ {arch.name} — Neural Intelligence Profile</p>
-        <p style={{fontSize:15,color:"rgba(255,255,255,0.72)",lineHeight:1.8,fontWeight:400,marginBottom:14}}>{arch.neuralProfile}</p>
+        <p style={{fontFamily:"'Crimson Pro',serif",fontStyle:"italic",fontSize:15,color:MUTED,lineHeight:1.75,marginBottom:14}}>{arch.neuralProfile}</p>
         <div style={{display:"flex",flexDirection:"column",gap:8}}>
           {scores.map((s,i)=>{
-            const roundNames=["Stroop Challenge","2-Back Test","Pattern Matrix","Reaction Velocity","Cognitive Switch"];
-            const insight=arch.strengths[roundNames[i]];
+            const insight=arch.strengths[s.label];
             if(!insight) return null;
-            const roundIcons=["🎨","🧠","🔷","⚡","🔄"];
+            const roundIconsByLabel={"Stroop Challenge":"🎨","2-Back Test":"🧠","Pattern Matrix":"🔷","Reaction Velocity":"⚡","Cognitive Switch":"🔄","Neural Defense":"🛡️"};
+            const icon=roundIconsByLabel[s.label]||"🧠";
             return(
               <div key={i} style={{background:"rgba(255,255,255,0.025)",border:`1px solid rgba(255,255,255,0.06)`,borderRadius:10,padding:"12px 14px"}}>
-                <p style={{fontSize:16,fontWeight:700,color:arch.color,letterSpacing:".08em",marginBottom:5}}>{roundIcons[i]} {roundNames[i]}</p>
+                <p style={{fontSize:16,fontWeight:700,color:arch.color,letterSpacing:".08em",marginBottom:5}}>{icon} {s.label}</p>
                 <p style={{fontSize:15,color:MUTED,lineHeight:1.65,fontWeight:300}}>{insight}</p>
               </div>
             );
@@ -1931,7 +1724,7 @@ function Results({scores,level,newLevel,streak,dailyAction,arch,challengeData,on
           </div>
           {/* Progress bar */}
           <div style={{height:8,background:"rgba(255,255,255,0.06)",borderRadius:100,overflow:"hidden",marginBottom:12}}>
-            <div style={{height:"100%",width:`${Math.round(((challengeData.currentDay||1)/21)*100)}%`,background:`linear-gradient(90deg,${E_BLUE2},${E_BLUE})`,borderRadius:100,transition:"width .6s ease"}}/>
+            <div style={{height:"100%",width:`${((challengeData.currentDay||1)/21)*100}%`,background:`linear-gradient(90deg,${E_BLUE2},${E_BLUE})`,borderRadius:100,transition:"width .6s ease"}}/>
           </div>
           {/* Milestones */}
           <div style={{display:"flex",justifyContent:"space-between",marginBottom:14}}>
