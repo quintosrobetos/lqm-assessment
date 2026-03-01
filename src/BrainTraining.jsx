@@ -1768,11 +1768,14 @@ function Results({scores,level,newLevel,streak,dailyAction,arch,challengeData,is
   };
   return(
     <div style={{animation:"fadeUp .55s ease both"}}>
+
+      {/* ── 1. LEVEL UP BANNER ── */}
       {levelUp&&<div style={{background:`linear-gradient(135deg,${newLevel.color}22,transparent)`,border:`2px solid ${newLevel.color}`,borderRadius:16,padding:"18px 22px",textAlign:"center",marginBottom:14}}>
         <p style={{fontSize:16,fontWeight:700,color:newLevel.color,letterSpacing:".16em",textTransform:"uppercase",marginBottom:6}}>⚡ Level Up!</p>
         <p style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:26,letterSpacing:2,color:WHITE}}>You are now a <span style={{color:newLevel.color}}>{newLevel.name}</span></p>
       </div>}
 
+      {/* ── 2. SCORE HERO ── */}
       <div style={{background:`linear-gradient(145deg,${DARK2},${DARK})`,border:`1px solid ${gradeColor}22`,borderRadius:20,padding:"30px 24px",textAlign:"center",marginBottom:14}}>
         <p style={{fontSize:15,fontWeight:700,color:DIMMED,letterSpacing:".14em",textTransform:"uppercase",marginBottom:10}}>Brain Training Complete</p>
         <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:72,letterSpacing:2,color:gradeColor,lineHeight:1,marginBottom:4}}>{total}</div>
@@ -1781,7 +1784,80 @@ function Results({scores,level,newLevel,streak,dailyAction,arch,challengeData,is
         {streak>0&&<div style={{display:"inline-flex",alignItems:"center",gap:8,background:"rgba(251,191,36,0.06)",border:"1px solid rgba(251,191,36,0.16)",borderRadius:100,padding:"6px 14px",fontSize:14,color:AMBER,fontWeight:600}}>🔥 {streak}-day streak · +{streak*5}% bonus</div>}
       </div>
 
-      {/* Breakdown */}
+      {/* ── 3. TODAY'S FOCUS — action is the headline, science is the footnote ── */}
+      <div style={{
+        background:`linear-gradient(135deg,rgba(0,200,255,0.07),rgba(0,200,255,0.02))`,
+        border:`1px solid ${E_BLUE}44`,
+        borderLeft:`4px solid ${E_BLUE}`,
+        borderRadius:"0 16px 16px 0",
+        padding:"22px 22px 18px",
+        marginBottom:14,
+      }}>
+        {/* Label */}
+        <p style={{fontSize:11,fontWeight:700,color:E_BLUE,letterSpacing:".2em",textTransform:"uppercase",marginBottom:10}}>⚡ Today's Focus</p>
+        {/* Action title — this is the headline */}
+        <p style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:26,letterSpacing:1.5,color:WHITE,lineHeight:1.1,marginBottom:12}}>{dailyAction.title}</p>
+        {/* The action itself — readable and prominent */}
+        <p style={{fontSize:16,color:MUTED,lineHeight:1.8,marginBottom:16,fontWeight:400}}>{dailyAction.action}</p>
+        {/* Neuroscience — de-emphasised supporting note */}
+        <div style={{
+          display:"flex",gap:10,alignItems:"flex-start",
+          padding:"10px 12px",
+          background:"rgba(255,255,255,0.025)",
+          border:`1px solid rgba(255,255,255,0.05)`,
+          borderRadius:10,
+        }}>
+          <span style={{fontSize:13,flexShrink:0,marginTop:1,opacity:.6}}>🔬</span>
+          <p style={{fontSize:13,color:DIMMED,lineHeight:1.6,fontStyle:"italic"}}>{dailyAction.science}</p>
+        </div>
+      </div>
+
+      {/* ── 4. 21-DAY COMEBACK — momentum message leads, data follows ── */}
+      {challengeData && (
+        <div style={{
+          background:`linear-gradient(135deg,rgba(251,191,36,0.06),rgba(251,191,36,0.02))`,
+          border:`1px solid rgba(251,191,36,0.22)`,
+          borderRadius:16,
+          padding:"20px",
+          marginBottom:14,
+        }}>
+          {/* Comeback message — this is the emotional lead */}
+          <div style={{display:"flex",gap:14,alignItems:"center",marginBottom:16,paddingBottom:16,borderBottom:`1px solid rgba(255,255,255,0.06)`}}>
+            <div style={{
+              width:44,height:44,borderRadius:12,flexShrink:0,
+              background:"rgba(251,191,36,0.1)",border:"1px solid rgba(251,191,36,0.25)",
+              display:"flex",alignItems:"center",justifyContent:"center",fontSize:22
+            }}>🔥</div>
+            <div>
+              <p style={{fontSize:16,fontWeight:700,color:WHITE,marginBottom:3}}>
+                {streak>1 ? `${streak}-day streak — you're building momentum.` : "Day 1 complete. The streak starts now."}
+              </p>
+              <p style={{fontSize:14,color:AMBER,lineHeight:1.5}}>
+                Return tomorrow to keep it alive — consistency is where the real transformation happens.
+              </p>
+            </div>
+          </div>
+          {/* Progress — supporting data below the message */}
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
+            <p style={{fontSize:12,fontWeight:700,color:DIMMED,letterSpacing:".1em",textTransform:"uppercase"}}>🧠 21-Day Challenge</p>
+            <span style={{fontSize:13,color:E_BLUE,fontWeight:700}}>Day {challengeData.currentDay||1} of 21</span>
+          </div>
+          <div style={{height:6,background:"rgba(255,255,255,0.06)",borderRadius:100,overflow:"hidden",marginBottom:10}}>
+            <div style={{height:"100%",width:`${((challengeData.currentDay||1)/21)*100}%`,background:`linear-gradient(90deg,${AMBER}88,${AMBER})`,borderRadius:100,transition:"width .6s ease"}}/>
+          </div>
+          {/* Milestone markers */}
+          <div style={{display:"flex",justifyContent:"space-between"}}>
+            {[{day:7,label:"Week 1",icon:"⭐"},{day:14,label:"Week 2",icon:"🌟"},{day:21,label:"Complete",icon:"🏆"}].map(m=>(
+              <div key={m.day} style={{textAlign:"center",flex:1}}>
+                <div style={{fontSize:18,marginBottom:2,opacity:(challengeData.currentDay||0)>=m.day?1:0.25}}>{m.icon}</div>
+                <p style={{fontSize:10,color:(challengeData.currentDay||0)>=m.day?AMBER:DIMMED,fontWeight:700}}>{m.label}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ── 5. ROUND BREAKDOWN ── */}
       <div style={{background:PANEL,border:`1px solid ${BORDER2}`,borderRadius:16,padding:"20px",marginBottom:14}}>
         <p style={{fontSize:15,fontWeight:700,color:DIMMED,letterSpacing:".12em",textTransform:"uppercase",marginBottom:14}}>{isQuickPlay?"Quick Play Result":"Round Breakdown"}</p>
         {scores.map((s,i)=>{
@@ -1807,18 +1883,16 @@ function Results({scores,level,newLevel,streak,dailyAction,arch,challengeData,is
         })}
       </div>
 
-      {/* Benchmark — full sessions only */}
+      {/* ── 6. BENCHMARK — full sessions only ── */}
       {benchmark && (
         <div style={{background:PANEL,border:`1px solid ${benchmark.color}33`,borderRadius:16,padding:"20px",marginBottom:14}}>
           <p style={{fontSize:15,fontWeight:700,color:DIMMED,letterSpacing:".12em",textTransform:"uppercase",marginBottom:14}}>📊 How You Rank</p>
-          
-          {/* Percentile bar */}
           <div style={{marginBottom:16}}>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"baseline",marginBottom:8}}>
               <span style={{fontSize:13,color:DIMMED}}>Population percentile (estimated)</span>
               <span style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:22,letterSpacing:1,color:benchmark.color}}>{benchmark.label}</span>
             </div>
-            <div style={{height:10,background:"rgba(255,255,255,0.05)",borderRadius:100,overflow:"hidden",position:"relative"}}>
+            <div style={{height:10,background:"rgba(255,255,255,0.05)",borderRadius:100,overflow:"hidden"}}>
               <div style={{height:"100%",width:`${benchmark.bar}%`,background:`linear-gradient(90deg,${benchmark.color}66,${benchmark.color})`,borderRadius:100,transition:"width 1.4s ease"}}/>
             </div>
             <div style={{display:"flex",justifyContent:"space-between",marginTop:5}}>
@@ -1827,8 +1901,6 @@ function Results({scores,level,newLevel,streak,dailyAction,arch,challengeData,is
               <span style={{fontSize:11,color:DIMMED}}>Elite</span>
             </div>
           </div>
-
-          {/* Personal best comparison */}
           <div style={{display:"flex",gap:10}}>
             <div style={{flex:1,background:"rgba(255,255,255,0.025)",border:`1px solid ${BORDER2}`,borderRadius:10,padding:"12px 14px",textAlign:"center"}}>
               <p style={{fontSize:12,color:DIMMED,letterSpacing:".1em",textTransform:"uppercase",marginBottom:6}}>This Session</p>
@@ -1845,7 +1917,6 @@ function Results({scores,level,newLevel,streak,dailyAction,arch,challengeData,is
               </div>
             )}
           </div>
-          
           {isPB && (
             <div style={{marginTop:12,textAlign:"center",padding:"8px",background:`${GREEN}0a`,border:`1px solid ${GREEN}33`,borderRadius:10}}>
               <span style={{fontSize:14,fontWeight:700,color:GREEN}}>🏆 New Personal Best!</span>
@@ -1854,7 +1925,7 @@ function Results({scores,level,newLevel,streak,dailyAction,arch,challengeData,is
         </div>
       )}
 
-      {/* Archetype neural intelligence */}
+      {/* ── 7. ARCHETYPE NEURAL INTELLIGENCE — deep content for those who scroll ── */}
       {arch && <div style={{background:`linear-gradient(135deg,${arch.color}0a,transparent)`,border:`1px solid ${arch.color}33`,borderLeft:`3px solid ${arch.color}`,borderRadius:"0 14px 14px 0",padding:"20px",marginBottom:14}}>
         <p style={{fontSize:15,fontWeight:700,color:arch.color,letterSpacing:".14em",textTransform:"uppercase",marginBottom:10}}>⚛ {arch.name} — Neural Intelligence Profile</p>
         <p style={{fontFamily:"'Crimson Pro',serif",fontStyle:"italic",fontSize:15,color:MUTED,lineHeight:1.75,marginBottom:14}}>{arch.neuralProfile}</p>
@@ -1878,48 +1949,7 @@ function Results({scores,level,newLevel,streak,dailyAction,arch,challengeData,is
         </div>
       </div>}
 
-      {/* Daily action */}
-      <div style={{background:"rgba(0,200,255,0.04)",border:`1px solid ${BORDER}`,borderLeft:`3px solid ${E_BLUE}`,borderRadius:"0 14px 14px 0",padding:"20px",marginBottom:14}}>
-        <p style={{fontSize:15,fontWeight:700,color:E_BLUE,letterSpacing:".14em",textTransform:"uppercase",marginBottom:8}}>⚡ Today's Neural Action</p>
-        <p style={{fontSize:15,fontWeight:700,color:WHITE,marginBottom:8}}>{dailyAction.title}</p>
-        <p style={{fontFamily:"'Crimson Pro',serif",fontSize:15,color:MUTED,lineHeight:1.75,marginBottom:12}}>{dailyAction.action}</p>
-        <div style={{background:"rgba(255,255,255,0.03)",border:`1px solid ${BORDER2}`,borderRadius:10,padding:"11px 14px"}}>
-          <p style={{fontSize:15,fontWeight:700,color:DIMMED,letterSpacing:".1em",textTransform:"uppercase",marginBottom:5}}>The Neuroscience</p>
-          <p style={{fontSize:15,color:MUTED,lineHeight:1.6}}>{dailyAction.science}</p>
-        </div>
-      </div>
-
-      {/* 21-Day Challenge Progress */}
-      {challengeData && (
-        <div style={{background:"rgba(0,200,255,0.04)",border:`1px solid ${BORDER}`,borderRadius:16,padding:"18px 20px",marginBottom:14}}>
-          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
-            <p style={{fontSize:15,fontWeight:700,color:E_BLUE,letterSpacing:".1em",textTransform:"uppercase"}}>🧠 21-Day Neural Challenge</p>
-            <span style={{fontSize:13,color:AMBER,fontWeight:700}}>Day {challengeData.currentDay || 1} of 21</span>
-          </div>
-          {/* Progress bar */}
-          <div style={{height:8,background:"rgba(255,255,255,0.06)",borderRadius:100,overflow:"hidden",marginBottom:12}}>
-            <div style={{height:"100%",width:`${((challengeData.currentDay||1)/21)*100}%`,background:`linear-gradient(90deg,${E_BLUE2},${E_BLUE})`,borderRadius:100,transition:"width .6s ease"}}/>
-          </div>
-          {/* Milestones */}
-          <div style={{display:"flex",justifyContent:"space-between",marginBottom:14}}>
-            {[{day:7,label:"Week 1",icon:"⭐"},{day:14,label:"Week 2",icon:"🌟"},{day:21,label:"Complete",icon:"🏆"}].map(m=>(
-              <div key={m.day} style={{textAlign:"center",flex:1}}>
-                <div style={{fontSize:20,marginBottom:3,opacity:(challengeData.currentDay||0)>=m.day?1:0.3}}>{m.icon}</div>
-                <p style={{fontSize:11,color:(challengeData.currentDay||0)>=m.day?E_BLUE:DIMMED,fontWeight:700}}>{m.label}</p>
-                <p style={{fontSize:10,color:DIMMED}}>Day {m.day}</p>
-              </div>
-            ))}
-          </div>
-          <div style={{background:"rgba(255,255,255,0.03)",borderRadius:10,padding:"10px 14px",display:"flex",alignItems:"center",gap:10}}>
-            <span style={{fontSize:20}}>🔥</span>
-            <div>
-              <p style={{fontSize:14,fontWeight:600,color:WHITE,marginBottom:2}}>Streak: {streak} day{streak!==1?"s":""}</p>
-              <p style={{fontSize:13,color:DIMMED,lineHeight:1.4}}>Return tomorrow to keep building. Each session rewires your neural pathways — consistency is where transformation happens.</p>
-            </div>
-          </div>
-        </div>
-      )}
-
+      {/* ── 8. BUTTONS ── */}
       <div style={{display:"flex",gap:10}}>
         <button onClick={onRetry} style={{flex:1,border:`1px solid ${BORDER}`,borderRadius:100,padding:"14px",fontSize:14,fontWeight:700,background:"rgba(255,255,255,0.03)",color:MUTED,cursor:"pointer",fontFamily:"'Space Grotesk',sans-serif",transition:"all .15s"}}
           onMouseEnter={e=>{e.currentTarget.style.color=WHITE;e.currentTarget.style.borderColor=E_BLUE;}}
