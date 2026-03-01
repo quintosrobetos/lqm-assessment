@@ -1732,6 +1732,26 @@ function NeuralDefense({onComplete, difficulty}){
 
 // ══════════════════════════════════════════════════════════════════════════
 function Results({scores,level,newLevel,streak,dailyAction,arch,challengeData,isQuickPlay,bestScore,onBack,onRetry}){
+  const [expandedInsights, setExpandedInsights] = useState(new Set());
+
+  function toggleInsight(i){
+    setExpandedInsights(prev => {
+      const next = new Set(prev);
+      next.has(i) ? next.delete(i) : next.add(i);
+      return next;
+    });
+  }
+
+  // Question shown on each card before the user taps to reveal
+  const insightQuestions = {
+    "Stroop Challenge":  "What does your executive control say about you?",
+    "2-Back Test":       "What does your working memory score reveal?",
+    "Pattern Matrix":    "What does your spatial score tell you?",
+    "Reaction Velocity": "What does your reaction time mean for you?",
+    "Cognitive Switch":  "What does your flexibility score say about you?",
+    "Neural Defense":    "What does your sustained attention reveal?",
+  };
+
   const total=scores.reduce((a,s)=>a+s.score,0);
   const levelUp=newLevel.name!==level.name;
   const grade=total>=540?"Quantum Elite":total>=420?"Elite":total>=300?"Sharp":total>=180?"Developing":"Initiate";
@@ -1925,29 +1945,98 @@ function Results({scores,level,newLevel,streak,dailyAction,arch,challengeData,is
         </div>
       )}
 
-      {/* ── 7. ARCHETYPE NEURAL INTELLIGENCE — deep content for those who scroll ── */}
-      {arch && <div style={{background:`linear-gradient(135deg,${arch.color}0a,transparent)`,border:`1px solid ${arch.color}33`,borderLeft:`3px solid ${arch.color}`,borderRadius:"0 14px 14px 0",padding:"20px",marginBottom:14}}>
-        <p style={{fontSize:15,fontWeight:700,color:arch.color,letterSpacing:".14em",textTransform:"uppercase",marginBottom:10}}>⚛ {arch.name} — Neural Intelligence Profile</p>
-        <p style={{fontFamily:"'Crimson Pro',serif",fontStyle:"italic",fontSize:15,color:MUTED,lineHeight:1.75,marginBottom:14}}>{arch.neuralProfile}</p>
-        <div style={{display:"flex",flexDirection:"column",gap:8}}>
-          {scores.map((s,i)=>{
-            const insight=arch.strengths[s.label];
-            if(!insight) return null;
-            const roundIconsByLabel={"Stroop Challenge":"🎨","2-Back Test":"🧠","Pattern Matrix":"🔷","Reaction Velocity":"⚡","Cognitive Switch":"🔄","Neural Defense":"🛡️"};
-            const icon=roundIconsByLabel[s.label]||"🧠";
-            return(
-              <div key={i} style={{background:"rgba(255,255,255,0.025)",border:`1px solid rgba(255,255,255,0.06)`,borderRadius:10,padding:"12px 14px"}}>
-                <p style={{fontSize:16,fontWeight:700,color:arch.color,letterSpacing:".08em",marginBottom:5}}>{icon} {s.label}</p>
-                <p style={{fontSize:15,color:MUTED,lineHeight:1.65,fontWeight:300}}>{insight}</p>
-              </div>
-            );
-          })}
+      {/* ── 7. COGNITIVE BLUEPRINT — discoverable insight cards ── */}
+      {arch && (
+        <div style={{
+          background:`linear-gradient(135deg,${arch.color}0a,transparent)`,
+          border:`1px solid ${arch.color}33`,
+          borderLeft:`3px solid ${arch.color}`,
+          borderRadius:"0 16px 16px 0",
+          padding:"20px",
+          marginBottom:14,
+        }}>
+          {/* Section header */}
+          <p style={{fontSize:11,fontWeight:700,color:arch.color,letterSpacing:".2em",textTransform:"uppercase",marginBottom:6}}>⚛ {arch.name}</p>
+          <p style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:22,letterSpacing:1.5,color:WHITE,marginBottom:10}}>Your Cognitive Blueprint</p>
+
+          {/* Orienting summary — always visible, earns the section */}
+          <p style={{fontFamily:"'Crimson Pro',serif",fontStyle:"italic",fontSize:15,color:MUTED,lineHeight:1.75,marginBottom:16,paddingBottom:16,borderBottom:`1px solid rgba(255,255,255,0.06)`}}>{arch.neuralProfile}</p>
+
+          {/* Discoverable insight cards */}
+          <div style={{display:"flex",flexDirection:"column",gap:8,marginBottom:12}}>
+            {scores.map((s,i)=>{
+              const insight = arch.strengths[s.label];
+              if(!insight) return null;
+              const roundIconsByLabel={"Stroop Challenge":"🎨","2-Back Test":"🧠","Pattern Matrix":"🔷","Reaction Velocity":"⚡","Cognitive Switch":"🔄","Neural Defense":"🛡️"};
+              const icon = roundIconsByLabel[s.label] || "🧠";
+              const question = insightQuestions[s.label] || "What does this score reveal?";
+              const isOpen = expandedInsights.has(i);
+
+              return(
+                <div key={i} style={{
+                  background:"rgba(255,255,255,0.025)",
+                  border:`1px solid ${isOpen ? arch.color+"44" : "rgba(255,255,255,0.06)"}`,
+                  borderRadius:12,
+                  overflow:"hidden",
+                  transition:"border-color .2s",
+                }}>
+                  {/* Tap target — always visible */}
+                  <button
+                    onClick={()=>toggleInsight(i)}
+                    style={{
+                      width:"100%",display:"flex",alignItems:"center",gap:11,
+                      padding:"13px 14px",background:"transparent",border:"none",
+                      cursor:"pointer",textAlign:"left",fontFamily:"'Space Grotesk',sans-serif",
+                    }}
+                  >
+                    {/* Icon chip */}
+                    <div style={{
+                      width:32,height:32,borderRadius:8,flexShrink:0,
+                      background:`${arch.color}14`,border:`1px solid ${arch.color}30`,
+                      display:"flex",alignItems:"center",justifyContent:"center",fontSize:15,
+                    }}>{icon}</div>
+
+                    {/* Label + question */}
+                    <div style={{flex:1,minWidth:0}}>
+                      <p style={{fontSize:13,fontWeight:700,color:arch.color,letterSpacing:".07em",marginBottom:2}}>{s.label}</p>
+                      <p style={{fontSize:13,color:isOpen?MUTED:DIMMED,lineHeight:1.45,transition:"color .2s"}}>{question}</p>
+                    </div>
+
+                    {/* Animated chevron */}
+                    <div style={{
+                      width:24,height:24,borderRadius:"50%",flexShrink:0,
+                      background:`${arch.color}10`,border:`1px solid ${arch.color}25`,
+                      display:"flex",alignItems:"center",justifyContent:"center",
+                      transition:"transform .3s cubic-bezier(.4,0,.2,1)",
+                      transform: isOpen ? "rotate(180deg)" : "rotate(0deg)",
+                    }}>
+                      <svg width="10" height="10" viewBox="0 0 12 12" fill="none">
+                        <path d="M2 4.5l4 3.5 4-3.5" stroke={arch.color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                    </div>
+                  </button>
+
+                  {/* Revealed insight — only rendered when open */}
+                  {isOpen && (
+                    <div style={{
+                      padding:"0 14px 14px 57px",
+                      animation:"fadeUp .22s ease both",
+                    }}>
+                      <p style={{fontSize:14,color:MUTED,lineHeight:1.7,fontWeight:300}}>{insight}</p>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Quantum Edge — always visible, the actionable summary */}
+          <div style={{padding:"12px 14px",background:`${arch.color}0c`,border:`1px solid ${arch.color}22`,borderRadius:10}}>
+            <p style={{fontSize:12,fontWeight:700,color:arch.color,letterSpacing:".12em",textTransform:"uppercase",marginBottom:5}}>⚡ Your Quantum Edge Today</p>
+            <p style={{fontSize:14,color:MUTED,lineHeight:1.6}}>{arch.dailyEdge}</p>
+          </div>
         </div>
-        <div style={{marginTop:12,padding:"10px 14px",background:`${arch.color}0c`,border:`1px solid ${arch.color}22`,borderRadius:10}}>
-          <p style={{fontSize:14,fontWeight:700,color:arch.color,marginBottom:4}}>⚡ Your Quantum Edge Today</p>
-          <p style={{fontSize:15,color:MUTED,lineHeight:1.55}}>{arch.dailyEdge}</p>
-        </div>
-      </div>}
+      )}
 
       {/* ── 8. BUTTONS ── */}
       <div style={{display:"flex",gap:10}}>
