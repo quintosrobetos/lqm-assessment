@@ -29,7 +29,7 @@ const AMBER   = "#FBBF24";
 const DAILY_INSIGHTS = [
   { icon:"🥑", title:"Avocado Power", fact:"Avocados contain more potassium than bananas and are packed with heart-healthy monounsaturated fats that help your body absorb fat-soluble vitamins A, D, E, and K." },
   { icon:"🧄", title:"Garlic's Secret", fact:"Garlic has been used as a natural antibiotic for thousands of years. Allicin, the compound released when garlic is crushed, has powerful antimicrobial properties that can help fight infections." },
-  { icon:"🫐", title:"Blueberry Brain Boost", fact:"Blueberries are among the most antioxidant-rich foods on Earth. Studies show they can improve memory, reduce oxidative stress, and may delay brain aging by up to 2.5 years." },
+  { icon:"🫐", title:"Blueberry Brain Boost", fact:"Blueberries are among the most antioxidant-rich foods on Earth. Studies show they can improve memory, reduce oxidative stress, and may delay brain ageing by up to 2.5 years." },
   { icon:"🥦", title:"Broccoli Defense", fact:"Broccoli contains sulforaphane, a compound that activates your body's natural detoxification enzymes and has been shown to have powerful anti-cancer properties." },
   { icon:"🌶️", title:"Chili Heat Therapy", fact:"Capsaicin in chili peppers triggers endorphin release (natural painkillers), boosts metabolism by up to 25% temporarily, and may help you live longer according to large population studies." },
   { icon:"🥬", title:"Leafy Green Gold", fact:"Dark leafy greens like kale and spinach contain lutein and zeaxanthin — compounds that accumulate in your retinas and can reduce age-related vision decline by up to 40%." },
@@ -39,12 +39,12 @@ const DAILY_INSIGHTS = [
   { icon:"🥕", title:"Carrot Vision", fact:"The beta-carotene in carrots really does support eye health. Your body converts it to vitamin A, which is essential for the light-sensing cells in your retinas to function properly." },
   { icon:"☕", title:"Coffee Clarity", fact:"Coffee doesn't just wake you up — studies show 3-4 cups daily is associated with up to 65% lower risk of Alzheimer's disease and significantly reduced risk of depression." },
   { icon:"🍵", title:"Green Tea Magic", fact:"Green tea contains L-theanine, an amino acid that promotes calm alertness by increasing alpha brain waves. Combined with caffeine, it creates focused relaxation without jitters." },
-  { icon:"🫘", title:"Bean Longevity", fact:"People in Blue Zones (regions where people live longest) eat beans daily. Beans are protein-rich, high in fiber, stabilize blood sugar, and feed beneficial gut bacteria." },
+  { icon:"🫘", title:"Bean Longevity", fact:"People in Blue Zones (regions where people live longest) eat beans daily. Beans are protein-rich, high in fibre, stabilise blood sugar, and feed beneficial gut bacteria." },
   { icon:"🥥", title:"Coconut Health", fact:"Coconut water is naturally rich in electrolytes, making it superior to many sports drinks. The MCT fats in coconut can be quickly converted to energy by your liver." },
   { icon:"🍋", title:"Lemon Fresh Start", fact:"Starting your day with warm lemon water supports liver function, aids digestion, and provides vitamin C. The citric acid helps your body absorb minerals throughout the day." },
   { icon:"🧅", title:"Onion Layers", fact:"Onions contain quercetin, a powerful antioxidant and anti-inflammatory compound. Red onions have the highest levels. Crying while cutting them releases sulfur compounds with antimicrobial properties." },
   { icon:"🍄", title:"Mushroom Medicine", fact:"Mushrooms are the only plant source of vitamin D when exposed to sunlight. Some varieties like shiitake and maitake also contain compounds that boost immune function." },
-  { icon:"🌰", title:"Almond Nutrition", fact:"Almonds are incredibly nutrient-dense — high in vitamin E, magnesium, and healthy fats. Just 23 almonds (1 ounce) contains 6g of protein and 3.5g of fiber." },
+  { icon:"🌰", title:"Almond Nutrition", fact:"Almonds are incredibly nutrient-dense — high in vitamin E, magnesium, and healthy fats. Just 23 almonds (1 ounce) contains 6g of protein and 3.5g of fibre." },
   { icon:"🍯", title:"Honey Healing", fact:"Raw honey has natural antibacterial properties and has been used to treat wounds for millennia. It contains antioxidants and enzymes that support gut health. Darker honey has more antioxidants." },
   { icon:"🥒", title:"Cucumber Hydration", fact:"Cucumbers are 96% water, making them one of the most hydrating foods. They also contain silica, which supports healthy skin, hair, and nails." },
   { icon:"🫑", title:"Bell Pepper Power", fact:"Red bell peppers contain 3x more vitamin C than green ones and are one of the best sources of beta-carotene. They're technically fruits, not vegetables." },
@@ -491,7 +491,7 @@ export default function QuantumLiving({ onBack, archetype }) {
 
       {/* Header */}
       <div style={{width:"100%",borderBottom:`1px solid ${BORDER}`,padding:"12px 20px",display:"flex",alignItems:"center",justifyContent:"space-between",background:"rgba(7,15,30,0.9)",backdropFilter:"blur(14px)",position:"sticky",top:0,zIndex:100}}>
-        <button onClick={onBack} style={{background:"none",border:`1px solid ${BORDER}`,borderRadius:100,padding:"8px 16px",color:MUTED,fontSize:15,cursor:"pointer",fontFamily:"'Space Grotesk',sans-serif"}} onMouseEnter={e=>e.currentTarget.style.color=WHITE} onMouseLeave={e=>e.currentTarget.style.color=MUTED}>← Back</button>
+        <button onClick={onBack} style={{background:"rgba(52,211,153,0.08)",border:"1px solid rgba(52,211,153,0.35)",borderRadius:100,padding:"8px 18px",color:GREEN,fontSize:13,fontWeight:700,cursor:"pointer",fontFamily:"'Space Grotesk',sans-serif",letterSpacing:".04em",transition:"all .18s"}} onMouseEnter={e=>{e.currentTarget.style.background="rgba(52,211,153,0.18)";e.currentTarget.style.borderColor="rgba(52,211,153,0.7)";}} onMouseLeave={e=>{e.currentTarget.style.background="rgba(52,211,153,0.08)";e.currentTarget.style.borderColor="rgba(52,211,153,0.35)";}}>← Back</button>
         <div style={{display:"flex",alignItems:"center",gap:8}}>
           <span style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:18,letterSpacing:2,color:WHITE}}>LQM</span>
           <span style={{fontSize:14,color:GREEN,fontWeight:700,letterSpacing:".1em"}}>QUANTUM LIVING</span>
@@ -722,7 +722,10 @@ export default function QuantumLiving({ onBack, archetype }) {
           {allDone && (
             <div style={{padding:"14px 18px",background:"rgba(52,211,153,0.08)",border:"1px solid rgba(52,211,153,0.3)",borderRadius:12,textAlign:"center"}}>
               <p style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:20,letterSpacing:2,color:GREEN,marginBottom:4}}>🌿 All 5 Laws Honoured Today</p>
-              <p style={{fontSize:13,color:"rgba(255,255,255,0.5)",lineHeight:1.6,fontStyle:"italic"}}>"Small shifts, consistently honoured, produce quantum results."</p>
+              <p style={{fontFamily:"'Crimson Pro',serif",fontStyle:"italic",fontSize:14,color:"rgba(255,255,255,0.72)",lineHeight:1.75,marginBottom:6}}>
+                "Small shifts, consistently honoured, produce quantum results. The habit is not the destination — it is the vehicle."
+              </p>
+              <p style={{fontSize:10,fontWeight:700,color:"rgba(52,211,153,0.55)",letterSpacing:".14em",textTransform:"uppercase"}}>— The Learning Quantum Method</p>
               {showMilestone==="day7"  && <div style={{marginTop:10,padding:"10px",background:"rgba(52,211,153,0.12)",borderRadius:8}}><p style={{color:GREEN,fontWeight:700}}>🌱 Week 1 Complete! You built the foundation.</p></div>}
               {showMilestone==="day14" && <div style={{marginTop:10,padding:"10px",background:"rgba(52,211,153,0.12)",borderRadius:8}}><p style={{color:GREEN,fontWeight:700}}>🌿 Week 2 Complete! The habit is forming.</p></div>}
               {showMilestone==="day21" && <div style={{marginTop:10,padding:"10px",background:"rgba(52,211,153,0.15)",borderRadius:8}}><p style={{color:GREEN,fontWeight:700}}>🌳 21 Days Complete! You transformed your daily living.</p></div>}
@@ -1149,7 +1152,7 @@ function QuantumMilestoneDay14({challengeData, onContinue}){
 
           <div style={{background:"rgba(52,211,153,0.04)",border:"1px solid rgba(52,211,153,0.2)",borderRadius:12,padding:"20px"}}>
             <p style={{fontSize:15,color:MUTED,lineHeight:1.8}}>
-              <strong style={{color:WHITE}}>Consistency compounds.</strong> The next 7 days are where the 5 Quantum Laws shift from conscious practice to automatic behavior.
+              <strong style={{color:WHITE}}>Consistency compounds.</strong> The next 7 days are where the 5 Quantum Laws shift from conscious practice to automatic behaviour.
             </p>
           </div>
         </div>
@@ -1198,10 +1201,11 @@ function QuantumMilestoneDay21({challengeData, onContinue}){
             )}
           </div>
 
-          <div style={{background:"rgba(52,211,153,0.06)",border:"1px solid rgba(52,211,153,0.3)",borderRadius:14,padding:"24px"}}>
-            <p style={{fontFamily:"'Crimson Pro',serif",fontStyle:"italic",fontSize:16,color:WHITE,lineHeight:1.85,textAlign:"center"}}>
-              "Small shifts, consistently honoured, produce quantum results."
+          <div style={{background:"rgba(52,211,153,0.06)",border:"1px solid rgba(52,211,153,0.3)",borderRadius:14,padding:"28px 24px",textAlign:"center"}}>
+            <p style={{fontFamily:"'Crimson Pro',serif",fontStyle:"italic",fontSize:18,color:WHITE,lineHeight:1.9,marginBottom:10}}>
+              "Small shifts, consistently honoured, produce quantum results. The habit is not the destination — it is the vehicle."
             </p>
+            <p style={{fontSize:11,fontWeight:700,color:"rgba(52,211,153,0.6)",letterSpacing:".16em",textTransform:"uppercase",marginTop:8}}>— The Learning Quantum Method</p>
           </div>
         </div>
 
@@ -1222,7 +1226,7 @@ function LawDetail({ law, arch, onBack }) {
   return (
     <div style={{minHeight:"100vh",background:`radial-gradient(ellipse 80% 40% at 50% 0%,${law.glow} 0%,transparent 60%),${BG}`,fontFamily:"'Space Grotesk',sans-serif",color:WHITE,display:"flex",flexDirection:"column",alignItems:"center",padding:"0 16px 60px"}}>
       <div style={{width:"100%",borderBottom:`1px solid ${BORDER}`,padding:"12px 20px",display:"flex",alignItems:"center",justifyContent:"space-between",background:"rgba(7,15,30,0.9)",backdropFilter:"blur(14px)",position:"sticky",top:0,zIndex:100}}>
-        <button onClick={onBack} style={{background:"none",border:`1px solid ${BORDER}`,borderRadius:100,padding:"8px 16px",color:MUTED,fontSize:15,cursor:"pointer",fontFamily:"'Space Grotesk',sans-serif"}} onMouseEnter={e=>e.currentTarget.style.color=WHITE} onMouseLeave={e=>e.currentTarget.style.color=MUTED}>← All Laws</button>
+        <button onClick={onBack} style={{background:"none",border:"1px solid rgba(255,255,255,0.12)",borderRadius:100,padding:"7px 16px",color:"rgba(255,255,255,0.45)",fontSize:12,fontWeight:600,cursor:"pointer",fontFamily:"'Space Grotesk',sans-serif",letterSpacing:".03em",transition:"all .15s"}} onMouseEnter={e=>{e.currentTarget.style.color="rgba(255,255,255,0.8)";e.currentTarget.style.borderColor="rgba(255,255,255,0.28)";}} onMouseLeave={e=>{e.currentTarget.style.color="rgba(255,255,255,0.45)";e.currentTarget.style.borderColor="rgba(255,255,255,0.12)";}}>← All Laws</button>
         <p style={{fontSize:14,fontWeight:700,color:law.color,letterSpacing:".1em",textTransform:"uppercase"}}>Law {law.num}</p>
         <span style={{fontSize:20,color:law.color}}>{law.sym}</span>
       </div>
@@ -1298,7 +1302,7 @@ function LawDetail({ law, arch, onBack }) {
           </div>
         ) : (
           <div style={{background:`linear-gradient(135deg,rgba(0,200,255,0.06),rgba(0,200,255,0.02))`,border:`1px solid ${E_BLUE}33`,borderRadius:16,padding:"20px 22px",animation:"fadeUp .6s .55s ease both"}}>
-            <p style={{fontSize:16,fontWeight:700,color:E_BLUE,letterSpacing:".12em",textTransform:"uppercase",marginBottom:10}}>⚛ LQM Archetype Note</p>
+            <p style={{fontSize:16,fontWeight:700,color:E_BLUE,letterSpacing:".12em",textTransform:"uppercase",marginBottom:10}}>⚛ Your Archetype Note</p>
             <p style={{fontSize:15,color:"rgba(255,255,255,0.75)",lineHeight:1.85,fontWeight:400}}>{law.lqmNote}</p>
           </div>
         )}
