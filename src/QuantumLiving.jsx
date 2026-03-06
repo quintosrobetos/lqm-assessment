@@ -269,64 +269,64 @@ const SHOP_CATEGORIES = [
   {
     lawNum:"01", lawTitle:"Quantum Rest", icon:"🌙", color:"#818CF8",
     tagline:"Sleep & Recovery",
-    description:"Natural compounds shown in research to support sleep architecture, circadian rhythm, and overnight cognitive repair.",
+    description:"The body repairs, consolidates memory, and recalibrates the nervous system during deep sleep. Every formula in the QL Rest range is built around compounds that research consistently links to sleep quality, circadian alignment, and overnight recovery.",
     products:[
-      { name:"Magnesium Glycinate Complex", benefit:"Promotes deep sleep & nervous system calm", tag:"Best seller" },
-      { name:"Ashwagandha & Chamomile Blend", benefit:"Reduces cortisol for genuine wind-down", tag:"Member favourite" },
+      { name:"QL Rest · Deep Sleep Complex", benefit:"Magnesium glycinate and L-theanine — supports sleep onset and deep-wave restoration", tag:"Bestseller" },
+      { name:"QL Rest · Evening Calm", benefit:"Ashwagandha and chamomile — reduces evening cortisol for genuine wind-down", tag:"Member favourite" },
     ],
     discount:"20% member saving",
-    url:"#ql-rest",
+    comingSoon:true,
   },
   {
     lawNum:"02", lawTitle:"Quantum Breath", icon:"🌿", color:"#34D399",
     tagline:"Oxygen & Vitality",
-    description:"Adaptogenic herbs and respiratory support supplements aligned with the Law of Fresh Air.",
+    description:"The lungs are the body's primary interface with the environment. The QL Breath range supports respiratory function, oxygen utilisation, and the sustained energy that comes from breathing well — day and night.",
     products:[
-      { name:"Maca Root & Rhodiola Stack", benefit:"Natural energy and stress adaptation", tag:"Popular" },
-      { name:"Eucalyptus & Peppermint Oil Set", benefit:"Supports clear airways and focus", tag:"Aromatherapy" },
+      { name:"QL Breath · Vitality Stack", benefit:"Maca root and rhodiola — adaptogenic energy and altitude-equivalent endurance support", tag:"Daily essential" },
+      { name:"QL Breath · Clarity Blend", benefit:"Eucalyptus and peppermint — promotes nasal clarity and alert focus throughout the day", tag:"Natural" },
     ],
     discount:"20% member saving",
-    url:"#ql-breath",
+    comingSoon:true,
   },
   {
     lawNum:"03", lawTitle:"Quantum Balance", icon:"⚖️", color:"#F59E0B",
     tagline:"Harmony & Restoration",
-    description:"Science-backed adaptogens and mood-supporting botanicals for body, mind, and spirit equilibrium.",
+    description:"Temperance is not deprivation — it is calibration. The QL Balance range uses botanicals with the deepest research backing for mood stability, stress adaptation, and the neurological conditions that allow sustained mental clarity.",
     products:[
-      { name:"Saffron & Lion's Mane Capsules", benefit:"Mood support with neuroplasticity research", tag:"Clinical grade" },
-      { name:"Holy Basil (Tulsi) Tincture", benefit:"Ancient adaptogen for stress resilience", tag:"Organic" },
+      { name:"QL Balance · Mind Formula", benefit:"Saffron and lion's mane — dual-pathway mood and neuroplasticity support", tag:"Clinical grade" },
+      { name:"QL Balance · Adaptogen Tincture", benefit:"Holy basil (tulsi) and ashwagandha — ancient resilience support with modern validation", tag:"Organic" },
     ],
     discount:"20% member saving",
-    url:"#ql-balance",
+    comingSoon:true,
   },
   {
     lawNum:"04", lawTitle:"Quantum Motion", icon:"⚡", color:"#00C8FF",
     tagline:"Performance & Recovery",
-    description:"Natural performance and recovery support for the moving body — no synthetic stimulants.",
+    description:"Movement is the brain's most reliable cognitive enhancer. The QL Motion range supports both the performance phase and the recovery phase — without synthetic stimulants, without compromise.",
     products:[
-      { name:"Beetroot & Cordyceps Blend", benefit:"Nitric oxide support & natural endurance", tag:"Pre-movement" },
-      { name:"Turmeric & Ginger Anti-Inflammatory", benefit:"Post-exercise recovery & joint health", tag:"Recovery" },
+      { name:"QL Motion · Performance Blend", benefit:"Beetroot and cordyceps — natural nitric oxide support and endurance from the ground up", tag:"Pre-movement" },
+      { name:"QL Motion · Recovery Formula", benefit:"Turmeric and ginger — anti-inflammatory support for joints, muscles, and overnight repair", tag:"Post-movement" },
     ],
     discount:"20% member saving",
-    url:"#ql-motion",
+    comingSoon:true,
   },
   {
     lawNum:"05", lawTitle:"Quantum Fuel", icon:"🌱", color:"#A78BFA",
     tagline:"Nourishment & Clarity",
-    description:"Whole-food supplements and superfoods that extend the Law of Simple Nourishment into your daily stack.",
+    description:"The Quantum Plate principle: whole food first, supplementation as precision support. The QL Fuel range provides the micronutrient density and cognitive building blocks that modern diets consistently fall short of.",
     products:[
-      { name:"Spirulina & Chlorella Superfood", benefit:"Dense micronutrient profile from nature", tag:"Pure plant" },
-      { name:"Omega-3 Algae Oil (Vegan DHA)", benefit:"Brain-building fats without fish sourcing", tag:"Cognitive" },
+      { name:"QL Fuel · Green Superfood", benefit:"Spirulina and chlorella — the most nutrient-dense plant matter on earth, concentrated", tag:"Pure plant" },
+      { name:"QL Fuel · Brain Oil", benefit:"Omega-3 algae DHA — the structural fat of the brain, 100% vegan and sustainably sourced", tag:"Cognitive" },
     ],
     discount:"20% member saving",
-    url:"#ql-fuel",
+    comingSoon:true,
   },
 ];
 
+
 export default function QuantumLiving({ onBack, archetype }) {
   const [activeLaw, setActiveLaw] = useState(null);
-  const [expandedLaw, setExpandedLaw] = useState(null); // discoverable preview — single open
-  const [expandedShop, setExpandedShop] = useState(null); // marketplace accordion
+  const [activeShop, setActiveShop] = useState(false);
   const todayKey = new Date().toISOString().split("T")[0]; // "2026-02-25"
 
   const [checklist, setChecklist] = useState(() => {
@@ -478,6 +478,7 @@ export default function QuantumLiving({ onBack, archetype }) {
   }
 
   if (activeLaw !== null) return <LawDetail law={LAWS[activeLaw]} arch={arch} onBack={()=>setActiveLaw(null)}></LawDetail>;
+  if (activeShop) return <QuantumShop onBack={()=>setActiveShop(false)} arch={arch} />;
 
   return (
     <div style={{minHeight:"100vh", background:`radial-gradient(ellipse 80% 40% at 50% 0%,rgba(52,211,153,0.06) 0%,transparent 60%),${BG}`, fontFamily:"'Space Grotesk',sans-serif", color:WHITE, display:"flex", flexDirection:"column", alignItems:"center", padding:"0 16px 60px", position:"relative", overflow:"hidden"}}>
@@ -759,300 +760,57 @@ export default function QuantumLiving({ onBack, archetype }) {
           </div>
         )}
 
-        {/* ── MEMBER BONUS TEASER — leads the eye to the shop below ── */}
+        {/* ── QUANTUM HEALTH RANGE — premium entry card ── */}
         <div
-          onClick={()=>{ const el = document.getElementById("ql-shop"); if(el) el.scrollIntoView({behavior:"smooth",block:"start"}); }}
+          onClick={()=>setActiveShop(true)}
           style={{
-            display:"flex",alignItems:"center",gap:14,
-            marginBottom:16,padding:"16px 18px",
-            background:"linear-gradient(135deg,rgba(52,211,153,0.08),rgba(52,211,153,0.03))",
-            border:"1px solid rgba(52,211,153,0.25)",
-            borderRadius:14,cursor:"pointer",
-            animation:"shopGlow 3.5s ease-in-out infinite",
-            transition:"all .2s",
-          }}
-          onMouseEnter={e=>e.currentTarget.style.background="linear-gradient(135deg,rgba(52,211,153,0.14),rgba(52,211,153,0.05))"}
-          onMouseLeave={e=>e.currentTarget.style.background="linear-gradient(135deg,rgba(52,211,153,0.08),rgba(52,211,153,0.03))"}
-        >
-          <div style={{
-            width:44,height:44,borderRadius:"50%",flexShrink:0,
-            background:"linear-gradient(135deg,rgba(52,211,153,0.25),rgba(52,211,153,0.08))",
-            border:"1.5px solid rgba(52,211,153,0.4)",
-            display:"flex",alignItems:"center",justifyContent:"center",fontSize:20,
-          }}>🎁</div>
-          <div style={{flex:1}}>
-            <p style={{fontSize:11,fontWeight:700,color:GREEN,letterSpacing:".12em",textTransform:"uppercase",marginBottom:3}}>Your Member Bonus · Exclusive Access</p>
-            <p style={{fontSize:14,fontWeight:600,color:WHITE,marginBottom:2}}>Natural Wellness Range — aligned to each law</p>
-            <p style={{fontSize:12,color:MUTED}}>20% member saving · natural formulations · tap to explore →</p>
-          </div>
-          <div style={{
-            width:28,height:28,borderRadius:"50%",flexShrink:0,
-            background:"rgba(52,211,153,0.12)",border:"1px solid rgba(52,211,153,0.3)",
-            display:"flex",alignItems:"center",justifyContent:"center",
-          }}>
-            <svg width="10" height="10" viewBox="0 0 12 12" fill="none">
-              <path d="M4 2l4 4-4 4" stroke={GREEN} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-          </div>
-        </div>
-
-        {/* ── THE QUANTUM HEALTH SYSTEM — circular thumbnails + discoverable science ── */}
-        <div style={{marginBottom:16, animation:"fadeUp .5s .25s ease both"}}>
-
-          {/* Section header */}
-          <div style={{marginBottom:14}}>
-            <p style={{fontSize:11,fontWeight:700,color:DIMMED,letterSpacing:".14em",textTransform:"uppercase",marginBottom:4}}>🔬 The Quantum Health System</p>
-            <p style={{fontFamily:"'Crimson Pro',serif",fontStyle:"italic",fontSize:15,color:MUTED,lineHeight:1.6}}>Discover the science behind each law of health — tap any to reveal.</p>
-          </div>
-
-          {/* Circular thumbnail row */}
-          <div style={{display:"flex",justifyContent:"space-between",gap:6,marginBottom:16}}>
-            {LAWS.map((law,i)=>(
-              <button key={i}
-                onClick={()=>setExpandedLaw(expandedLaw===i?null:i)}
-                style={{
-                  flex:1,display:"flex",flexDirection:"column",alignItems:"center",gap:6,
-                  background:"transparent",border:"none",cursor:"pointer",padding:"4px 0",
-                  fontFamily:"'Space Grotesk',sans-serif",
-                }}>
-                {/* Circular avatar */}
-                <div style={{
-                  width:54,height:54,borderRadius:"50%",flexShrink:0,
-                  background:`radial-gradient(circle at 35% 35%, ${law.color}33, ${law.color}10)`,
-                  border:`2px solid ${expandedLaw===i ? law.color : law.color+"44"}`,
-                  boxShadow: expandedLaw===i ? `0 0 18px ${law.color}55` : "none",
-                  display:"flex",alignItems:"center",justifyContent:"center",
-                  fontSize:22,
-                  transition:"all .25s cubic-bezier(.4,0,.2,1)",
-                  transform: expandedLaw===i ? "scale(1.08)" : "scale(1)",
-                }}>
-                  <span className={`law-icon-${i}`}>{law.icon}</span>
-                </div>
-                {/* Short label */}
-                <p style={{
-                  fontSize:9,fontWeight:700,color: expandedLaw===i ? law.color : DIMMED,
-                  letterSpacing:".06em",textTransform:"uppercase",lineHeight:1.2,textAlign:"center",
-                  transition:"color .2s",
-                  maxWidth:58,
-                }}>
-                  {law.title.replace("Quantum ","")}
-                </p>
-                {/* Today badge or tick */}
-                {i===todayLawIdx && (
-                  <div style={{width:6,height:6,borderRadius:"50%",background:law.color,boxShadow:`0 0 6px ${law.color}`}}/>
-                )}
-                {checklist[i] && i!==todayLawIdx && (
-                  <div style={{width:6,height:6,borderRadius:"50%",background:GREEN}}/>
-                )}
-              </button>
-            ))}
-          </div>
-
-          {/* Discoverable detail panel — expands below thumbnails */}
-          {expandedLaw !== null && (()=>{
-            const law = LAWS[expandedLaw];
-            const question = DISCOVERY_QUESTIONS[expandedLaw];
-            // First 2 sentences of truth as teaser
-            const teaser = law.truth.split(". ").slice(0,2).join(". ") + ".";
-            return (
-              <div style={{
-                background:`linear-gradient(135deg,${law.color}0c,${DARK2})`,
-                border:`1px solid ${law.color}44`,
-                borderTop:`2px solid ${law.color}`,
-                borderRadius:"0 0 14px 14px",
-                padding:"18px 18px 14px",
-                marginTop:-4,
-                animation:"fadeUp .22s ease both",
-              }}>
-                {/* Law identity */}
-                <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:12}}>
-                  <div style={{
-                    width:36,height:36,borderRadius:10,flexShrink:0,
-                    background:`${law.color}18`,border:`1px solid ${law.color}33`,
-                    display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,
-                  }}>{law.icon}</div>
-                  <div>
-                    <p style={{fontSize:10,fontWeight:700,color:law.color,letterSpacing:".12em",textTransform:"uppercase",marginBottom:1}}>Law {law.num} · {law.subtitle}</p>
-                    <p style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:20,letterSpacing:1.5,color:WHITE,lineHeight:1}}>{law.title}</p>
-                  </div>
-                  {expandedLaw===todayLawIdx && <span style={{marginLeft:"auto",fontSize:10,fontWeight:700,color:law.color,background:`${law.color}18`,borderRadius:100,padding:"3px 9px",flexShrink:0}}>Today</span>}
-                </div>
-
-                {/* The science question — invitation to discover */}
-                <p style={{fontFamily:"'Crimson Pro',serif",fontStyle:"italic",fontSize:15,color:law.color,lineHeight:1.6,marginBottom:10}}>"{question}"</p>
-
-                {/* Principle */}
-                <p style={{fontSize:13,fontWeight:700,color:MUTED,lineHeight:1.7,marginBottom:10,fontStyle:"italic"}}>"{law.principle}"</p>
-
-                {/* Science teaser */}
-                <p style={{fontSize:14,color:"rgba(255,255,255,0.65)",lineHeight:1.75,marginBottom:14,fontWeight:300}}>{teaser}</p>
-
-                {/* CTA */}
-                <button onClick={()=>setActiveLaw(expandedLaw)} style={{
-                  width:"100%",border:`1px solid ${law.color}55`,borderRadius:100,
-                  padding:"11px",fontSize:13,fontWeight:700,
-                  background:`${law.color}12`,color:law.color,
-                  cursor:"pointer",fontFamily:"'Space Grotesk',sans-serif",
-                  letterSpacing:".06em",transition:"all .2s",
-                }}
-                  onMouseEnter={e=>{e.currentTarget.style.background=`${law.color}22`;}}
-                  onMouseLeave={e=>{e.currentTarget.style.background=`${law.color}12`;}}>
-                  Explore full law — practices, science & your archetype →
-                </button>
-              </div>
-            );
-          })()}
-        </div>
-
-        {/* ── QUANTUM WELLNESS MARKETPLACE ── */}
-        <div id="ql-shop" style={{marginBottom:16,animation:"fadeUp .5s .3s ease both"}}>
-
-          {/* Premium destination header */}
-          <div style={{
-            background:"linear-gradient(135deg,rgba(52,211,153,0.10),rgba(52,211,153,0.03))",
+            marginBottom:16,borderRadius:18,overflow:"hidden",cursor:"pointer",
+            background:"linear-gradient(135deg,rgba(52,211,153,0.10) 0%,rgba(52,211,153,0.03) 100%)",
             border:"1px solid rgba(52,211,153,0.3)",
-            borderRadius:16,padding:"22px 20px",marginBottom:16,
-            textAlign:"center",
+            transition:"all .22s",
+          }}
+          onMouseEnter={e=>{e.currentTarget.style.background="linear-gradient(135deg,rgba(52,211,153,0.18) 0%,rgba(52,211,153,0.07) 100%)";e.currentTarget.style.borderColor="rgba(52,211,153,0.55)";}}
+          onMouseLeave={e=>{e.currentTarget.style.background="linear-gradient(135deg,rgba(52,211,153,0.10) 0%,rgba(52,211,153,0.03) 100%)";e.currentTarget.style.borderColor="rgba(52,211,153,0.3)";}}
+        >
+          {/* Member saving bar — primary visual element */}
+          <div style={{
+            background:"linear-gradient(90deg,rgba(52,211,153,0.22),rgba(52,211,153,0.10))",
+            borderBottom:"1px solid rgba(52,211,153,0.2)",
+            padding:"10px 20px",
+            display:"flex",alignItems:"center",justifyContent:"space-between",
           }}>
-            <div style={{
-              display:"inline-flex",alignItems:"center",gap:7,
-              background:"rgba(52,211,153,0.1)",border:"1px solid rgba(52,211,153,0.3)",
-              borderRadius:100,padding:"6px 16px",marginBottom:12,
-            }}>
-              <span style={{fontSize:13}}>🎁</span>
-              <span style={{fontSize:11,fontWeight:700,color:GREEN,letterSpacing:".12em",textTransform:"uppercase"}}>Your Member Bonus</span>
+            <div style={{display:"flex",alignItems:"center",gap:8}}>
+              <span style={{fontSize:14}}>🌿</span>
+              <span style={{fontSize:11,fontWeight:700,color:GREEN,letterSpacing:".14em",textTransform:"uppercase"}}>Quantum Living Member Benefit</span>
             </div>
-            <p style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:28,letterSpacing:2,color:WHITE,marginBottom:6}}>Natural Wellness Range</p>
-            <p style={{fontSize:14,color:MUTED,lineHeight:1.7,maxWidth:460,margin:"0 auto 14px"}}>Each product in this range is aligned to one of the five laws — chosen because the science that drives the law also drives the formulation. This is your Quantum Living membership working for your body.</p>
             <div style={{
-              display:"inline-flex",alignItems:"center",gap:8,
-              background:"rgba(251,191,36,0.08)",border:"1px solid rgba(251,191,36,0.2)",
-              borderRadius:100,padding:"7px 16px",
+              background:"rgba(52,211,153,0.2)",border:"1px solid rgba(52,211,153,0.5)",
+              borderRadius:100,padding:"4px 12px",
             }}>
-              <span style={{fontSize:12}}>🏷️</span>
-              <span style={{fontSize:13,fontWeight:700,color:AMBER}}>20% member saving applied at checkout — automatically</span>
+              <span style={{fontSize:13,fontWeight:800,color:GREEN,letterSpacing:".04em"}}>20% OFF</span>
             </div>
           </div>
 
-          {/* One card per law — accordion */}
-          <div style={{display:"flex",flexDirection:"column",gap:8}}>
-            {SHOP_CATEGORIES.map((cat,i)=>{
-              const isOpen = expandedShop === i;
-              return (
-                <div key={i} style={{
-                  background: isOpen ? `linear-gradient(135deg,${cat.color}0c,${DARK2})` : "rgba(255,255,255,0.025)",
-                  border:`1px solid ${isOpen ? cat.color+"44" : "rgba(255,255,255,0.07)"}`,
-                  borderRadius:14,overflow:"hidden",
-                  transition:"border-color .2s",
-                }}>
-                  {/* Tap target */}
-                  <button onClick={()=>setExpandedShop(isOpen?null:i)} style={{
-                    width:"100%",display:"flex",alignItems:"center",gap:12,
-                    padding:"14px 16px",background:"transparent",border:"none",
-                    cursor:"pointer",textAlign:"left",fontFamily:"'Space Grotesk',sans-serif",
-                  }}>
-                    {/* Circular icon */}
-                    <div style={{
-                      width:44,height:44,borderRadius:"50%",flexShrink:0,
-                      background:`radial-gradient(circle at 35% 35%, ${cat.color}30, ${cat.color}0a)`,
-                      border:`1.5px solid ${cat.color}44`,
-                      display:"flex",alignItems:"center",justifyContent:"center",fontSize:20,
-                      transition:"all .2s",
-                      boxShadow: isOpen ? `0 0 14px ${cat.color}44` : "none",
-                    }}>{cat.icon}</div>
-
-                    <div style={{flex:1,minWidth:0}}>
-                      <p style={{fontSize:10,fontWeight:700,color:cat.color,letterSpacing:".1em",textTransform:"uppercase",marginBottom:2}}>Law {cat.lawNum} · {cat.tagline}</p>
-                      <p style={{fontSize:15,fontWeight:700,color:WHITE}}>{cat.lawTitle}</p>
-                    </div>
-
-                    {/* Discount badge */}
-                    <div style={{
-                      background:`${cat.color}15`,border:`1px solid ${cat.color}33`,
-                      borderRadius:100,padding:"4px 10px",flexShrink:0,marginRight:6,
-                    }}>
-                      <span style={{fontSize:10,fontWeight:700,color:cat.color,letterSpacing:".06em"}}>20% OFF</span>
-                    </div>
-
-                    {/* Chevron */}
-                    <div style={{
-                      width:22,height:22,borderRadius:"50%",flexShrink:0,
-                      background:`${cat.color}10`,border:`1px solid ${cat.color}25`,
-                      display:"flex",alignItems:"center",justifyContent:"center",
-                      transition:"transform .3s cubic-bezier(.4,0,.2,1)",
-                      transform: isOpen ? "rotate(180deg)" : "rotate(0deg)",
-                    }}>
-                      <svg width="9" height="9" viewBox="0 0 12 12" fill="none">
-                        <path d="M2 4.5l4 3.5 4-3.5" stroke={cat.color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
-                      </svg>
-                    </div>
-                  </button>
-
-                  {/* Expanded content */}
-                  {isOpen && (
-                    <div style={{padding:"0 16px 16px",animation:"fadeUp .2s ease both"}}>
-                      <p style={{fontSize:13,color:MUTED,lineHeight:1.7,marginBottom:14,fontWeight:300}}>{cat.description}</p>
-
-                      {/* Product tiles */}
-                      <div style={{display:"flex",flexDirection:"column",gap:8,marginBottom:14}}>
-                        {cat.products.map((prod,j)=>(
-                          <div key={j} style={{
-                            display:"flex",alignItems:"center",gap:12,
-                            background:"rgba(255,255,255,0.025)",
-                            border:`1px solid rgba(255,255,255,0.06)`,
-                            borderRadius:10,padding:"12px 14px",
-                          }}>
-                            <div style={{
-                              width:8,height:8,borderRadius:"50%",
-                              background:cat.color,flexShrink:0,
-                              boxShadow:`0 0 6px ${cat.color}`,
-                            }}/>
-                            <div style={{flex:1}}>
-                              <p style={{fontSize:14,fontWeight:700,color:WHITE,marginBottom:2}}>{prod.name}</p>
-                              <p style={{fontSize:12,color:MUTED,lineHeight:1.4}}>{prod.benefit}</p>
-                            </div>
-                            <span style={{
-                              fontSize:10,fontWeight:700,color:cat.color,
-                              background:`${cat.color}15`,border:`1px solid ${cat.color}33`,
-                              borderRadius:100,padding:"3px 8px",flexShrink:0,
-                            }}>{prod.tag}</span>
-                          </div>
-                        ))}
-                      </div>
-
-                      {/* Member saving + CTA */}
-                      <div style={{
-                        display:"flex",alignItems:"center",gap:10,
-                        background:`${cat.color}08`,border:`1px solid ${cat.color}22`,
-                        borderRadius:10,padding:"10px 14px",marginBottom:12,
-                      }}>
-                        <span style={{fontSize:14}}>🏷️</span>
-                        <p style={{fontSize:13,color:cat.color,fontWeight:700}}>Quantum Living member — {cat.discount} applied at checkout</p>
-                      </div>
-
-                      <a href={cat.url} style={{
-                        display:"block",width:"100%",boxSizing:"border-box",
-                        border:`1px solid ${cat.color}66`,borderRadius:100,
-                        padding:"11px",fontSize:13,fontWeight:700,
-                        background:`${cat.color}18`,color:cat.color,
-                        cursor:"pointer",fontFamily:"'Space Grotesk',sans-serif",
-                        letterSpacing:".06em",textAlign:"center",textDecoration:"none",
-                        transition:"all .2s",
-                      }}
-                        onMouseEnter={e=>e.currentTarget.style.background=`${cat.color}28`}
-                        onMouseLeave={e=>e.currentTarget.style.background=`${cat.color}18`}>
-                        Explore the {cat.tagline} range →
-                      </a>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-
-          {/* Coming soon note */}
-          <div style={{marginTop:12,padding:"12px 16px",background:"rgba(255,255,255,0.02)",border:`1px solid ${BORDER2}`,borderRadius:10,textAlign:"center"}}>
-            <p style={{fontSize:12,color:DIMMED,lineHeight:1.6}}>🌿 More products added regularly. All formulations are natural, third-party tested, and aligned with the Quantum Living philosophy.</p>
+          {/* Card body */}
+          <div style={{padding:"20px 20px 18px",display:"flex",alignItems:"center",gap:16}}>
+            <div style={{flex:1}}>
+              <p style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:22,letterSpacing:2,color:WHITE,marginBottom:6,lineHeight:1.1}}>Discover Your Quantum Health Range</p>
+              <p style={{fontFamily:"'Crimson Pro',serif",fontStyle:"italic",fontSize:15,color:"rgba(255,255,255,0.6)",lineHeight:1.6,marginBottom:12}}>Five laws. Five product collections. Each formulation built from the same science that drives the law.</p>
+              <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
+                {["🌱 Natural","🔬 Science-backed","🌿 Plant-first","✓ QL Exclusive"].map(t=>(
+                  <span key={t} style={{fontSize:11,fontWeight:600,color:"rgba(52,211,153,0.7)",background:"rgba(52,211,153,0.08)",border:"1px solid rgba(52,211,153,0.2)",borderRadius:100,padding:"3px 10px"}}>{t}</span>
+                ))}
+              </div>
+            </div>
+            <div style={{
+              width:40,height:40,borderRadius:"50%",flexShrink:0,
+              background:"rgba(52,211,153,0.12)",border:"1px solid rgba(52,211,153,0.35)",
+              display:"flex",alignItems:"center",justifyContent:"center",
+            }}>
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                <path d="M4 2l4 4-4 4" stroke={GREEN} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </div>
           </div>
         </div>
 
@@ -1064,6 +822,131 @@ export default function QuantumLiving({ onBack, archetype }) {
     </div>
   );
 }
+
+// ══════════════════════════════════════════════════════════════════════════
+// QUANTUM SHOP — Full-page wellness range (member benefit)
+// ══════════════════════════════════════════════════════════════════════════
+
+function QuantumShop({ onBack, arch }) {
+  const BG = "#070F1E", WHITE = "#FFFFFF", MUTED = "rgba(255,255,255,0.62)";
+  const DIMMED = "rgba(255,255,255,0.32)", GREEN = "#34D399", AMBER = "#FBBF24";
+  const DARK2 = "#111E38", BORDER2 = "rgba(255,255,255,0.09)";
+
+  return (
+    <div style={{minHeight:"100vh",background:`radial-gradient(ellipse 80% 40% at 50% 0%,rgba(52,211,153,0.05) 0%,transparent 60%),${BG}`,fontFamily:"'Space Grotesk',sans-serif",color:WHITE,display:"flex",flexDirection:"column",alignItems:"center",padding:"0 16px 80px",position:"relative"}}>
+      <div style={{width:"100%",maxWidth:640}}>
+
+        {/* Header nav */}
+        <div style={{padding:"18px 0 10px",display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:8}}>
+          <button onClick={onBack} style={{background:"rgba(52,211,153,0.07)",border:"1px solid rgba(52,211,153,0.32)",borderRadius:100,padding:"8px 16px",color:GREEN,fontSize:13,fontWeight:700,cursor:"pointer",fontFamily:"'Space Grotesk',sans-serif",letterSpacing:".04em",transition:"all .18s",display:"flex",alignItems:"center",gap:7}} onMouseEnter={e=>{e.currentTarget.style.background="rgba(52,211,153,0.16)";e.currentTarget.style.borderColor="rgba(52,211,153,0.6)";}} onMouseLeave={e=>{e.currentTarget.style.background="rgba(52,211,153,0.07)";e.currentTarget.style.borderColor="rgba(52,211,153,0.32)";}}>
+            ← Back
+          </button>
+          <div style={{display:"flex",alignItems:"center",gap:8,background:"rgba(52,211,153,0.08)",border:"1px solid rgba(52,211,153,0.25)",borderRadius:100,padding:"5px 14px"}}>
+            <span style={{fontSize:11}}>🌿</span>
+            <span style={{fontSize:11,fontWeight:700,color:GREEN,letterSpacing:".12em",textTransform:"uppercase"}}>Member Benefit · 20% Off</span>
+          </div>
+        </div>
+
+        {/* Hero */}
+        <div style={{textAlign:"center",padding:"24px 0 20px",animation:"fadeUp .5s ease both"}}>
+          <p style={{fontSize:13,fontWeight:700,letterSpacing:".18em",textTransform:"uppercase",color:GREEN,marginBottom:12}}>⚛ Quantum Living Exclusive Range</p>
+          <h1 style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"clamp(30px,7vw,48px)",letterSpacing:2,color:WHITE,lineHeight:1.05,marginBottom:10}}>
+            What Does Your Body<br/>Need to Support Each Law?
+          </h1>
+          <p style={{fontFamily:"'Crimson Pro',serif",fontStyle:"italic",fontSize:17,color:MUTED,lineHeight:1.7,maxWidth:480,margin:"0 auto 20px"}}>Each product in this range was formulated around one principle: the same science that drives the law drives the formula. This is precision wellness — not a supplement shelf.</p>
+        </div>
+
+        {/* Member saving hero — primary conversion element */}
+        <div style={{background:"linear-gradient(135deg,rgba(52,211,153,0.14),rgba(52,211,153,0.05))",border:"1.5px solid rgba(52,211,153,0.4)",borderRadius:18,padding:"22px 24px",marginBottom:24,display:"flex",alignItems:"center",gap:20,animation:"fadeUp .5s .1s ease both"}}>
+          <div style={{flex:1}}>
+            <p style={{fontSize:13,fontWeight:700,color:GREEN,letterSpacing:".12em",textTransform:"uppercase",marginBottom:6}}>Your Member Saving</p>
+            <div style={{display:"flex",alignItems:"baseline",gap:14,marginBottom:6}}>
+              <span style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:48,letterSpacing:1,color:WHITE,lineHeight:1}}>20%</span>
+              <span style={{fontSize:15,color:MUTED}}>off every product, applied automatically</span>
+            </div>
+            <p style={{fontSize:13,color:"rgba(52,211,153,0.7)",fontWeight:600}}>Exclusive to Quantum Living members · No code required</p>
+          </div>
+          <div style={{flexShrink:0,textAlign:"center"}}>
+            <div style={{width:64,height:64,borderRadius:"50%",background:"rgba(52,211,153,0.15)",border:"2px solid rgba(52,211,153,0.4)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:28}}>🌿</div>
+          </div>
+        </div>
+
+        {/* Trust bar */}
+        <div style={{display:"flex",gap:6,justifyContent:"center",flexWrap:"wrap",marginBottom:28}}>
+          {[["🌱","Plant-first"],["🔬","Science-backed"],["✓","Third-party tested"],["🌿","No synthetics"],["⚛","QL Formulated"]].map(([ic,lb])=>(
+            <div key={lb} style={{display:"flex",alignItems:"center",gap:5,fontSize:12,color:DIMMED,fontWeight:600,background:"rgba(255,255,255,0.03)",border:`1px solid ${BORDER2}`,borderRadius:100,padding:"5px 12px"}}>
+              <span style={{color:GREEN,fontSize:11}}>{ic}</span>{lb}
+            </div>
+          ))}
+        </div>
+
+        {/* Coming soon banner */}
+        <div style={{background:"linear-gradient(90deg,rgba(251,191,36,0.08),rgba(251,191,36,0.03))",border:"1px solid rgba(251,191,36,0.25)",borderRadius:14,padding:"14px 20px",marginBottom:28,display:"flex",alignItems:"center",gap:14}}>
+          <span style={{fontSize:20,flexShrink:0}}>🚀</span>
+          <div>
+            <p style={{fontSize:13,fontWeight:700,color:AMBER,marginBottom:3}}>Launching Soon</p>
+            <p style={{fontSize:13,color:MUTED,lineHeight:1.6}}>The QL range is in final development. As a Quantum Living member, your 20% saving is reserved and will apply automatically at launch.</p>
+          </div>
+        </div>
+
+        {/* Products by law */}
+        <div style={{display:"flex",flexDirection:"column",gap:12}}>
+          {SHOP_CATEGORIES.map((cat,i)=>(
+            <div key={i} style={{background:`linear-gradient(135deg,${cat.color}0a,${DARK2})`,border:`1px solid ${cat.color}33`,borderTop:`2px solid ${cat.color}`,borderRadius:16,overflow:"hidden",animation:`fadeUp .5s ${0.1+i*0.07}s ease both`}}>
+
+              {/* Law header */}
+              <div style={{padding:"16px 20px 12px",borderBottom:`1px solid ${cat.color}18`}}>
+                <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:2}}>
+                  <div style={{width:40,height:40,borderRadius:12,background:`${cat.color}18`,border:`1px solid ${cat.color}33`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:20,flexShrink:0}}>{cat.icon}</div>
+                  <div style={{flex:1}}>
+                    <p style={{fontSize:10,fontWeight:700,color:cat.color,letterSpacing:".12em",textTransform:"uppercase",marginBottom:2}}>Law {cat.lawNum} · {cat.tagline}</p>
+                    <p style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:20,letterSpacing:1.5,color:WHITE,lineHeight:1}}>{cat.lawTitle}</p>
+                  </div>
+                  <div style={{background:`${cat.color}15`,border:`1px solid ${cat.color}44`,borderRadius:100,padding:"4px 10px",flexShrink:0}}>
+                    <span style={{fontSize:11,fontWeight:800,color:cat.color}}>20% OFF</span>
+                  </div>
+                </div>
+                <p style={{fontSize:13,color:MUTED,lineHeight:1.65,marginTop:10,fontWeight:300}}>{cat.description}</p>
+              </div>
+
+              {/* Products */}
+              <div style={{padding:"12px 20px 16px",display:"flex",flexDirection:"column",gap:10}}>
+                {cat.products.map((prod,j)=>(
+                  <div key={j} style={{background:"rgba(255,255,255,0.03)",border:`1px solid ${cat.color}22`,borderRadius:12,padding:"14px 16px"}}>
+                    <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:10,marginBottom:6}}>
+                      <p style={{fontSize:14,fontWeight:700,color:WHITE,lineHeight:1.3}}>{prod.name}</p>
+                      <div style={{display:"flex",flexDirection:"column",alignItems:"flex-end",gap:3,flexShrink:0}}>
+                        <span style={{fontSize:10,fontWeight:700,color:cat.color,background:`${cat.color}15`,border:`1px solid ${cat.color}33`,borderRadius:100,padding:"2px 8px",whiteSpace:"nowrap"}}>{prod.tag}</span>
+                        <span style={{fontSize:10,fontWeight:700,color:AMBER,background:"rgba(251,191,36,0.08)",border:"1px solid rgba(251,191,36,0.2)",borderRadius:100,padding:"2px 8px",whiteSpace:"nowrap"}}>20% SAVING</span>
+                      </div>
+                    </div>
+                    <p style={{fontSize:13,color:MUTED,lineHeight:1.55,marginBottom:10,fontWeight:300}}>{prod.benefit}</p>
+                    <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"8px 12px",background:"rgba(255,255,255,0.02)",border:`1px solid ${BORDER2}`,borderRadius:8}}>
+                      <span style={{fontSize:12,color:DIMMED,fontWeight:600}}>⏳ Coming soon</span>
+                      <span style={{fontSize:12,color:"rgba(52,211,153,0.6)",fontWeight:600}}>Your saving is reserved ✓</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Footer note */}
+        <div style={{marginTop:24,padding:"16px 20px",background:"rgba(52,211,153,0.04)",border:"1px solid rgba(52,211,153,0.15)",borderRadius:14,textAlign:"center"}}>
+          <p style={{fontSize:13,color:MUTED,lineHeight:1.7}}>🌿 The QL range is formulated exclusively for Quantum Living members — natural, third-party tested, and aligned to the philosophy of each law. No synthetic fillers. No greenwashing.</p>
+        </div>
+
+        {/* Medical disclaimer */}
+        <div style={{marginTop:12,padding:"12px 16px",background:"rgba(255,255,255,0.02)",border:`1px solid ${BORDER2}`,borderRadius:10}}>
+          <p style={{fontSize:11,color:DIMMED,lineHeight:1.6,textAlign:"center"}}>Natural product descriptions are educational and do not constitute medical claims. Consult a healthcare professional before starting any new supplement.</p>
+        </div>
+
+      </div>
+    </div>
+  );
+}
+
 
 // ══════════════════════════════════════════════════════════════════════════
 // 21-DAY QUANTUM LIVING MILESTONES
