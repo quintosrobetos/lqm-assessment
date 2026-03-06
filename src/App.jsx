@@ -102,7 +102,7 @@ const TYPES = {
 };
 
 
-const ORIGINAL = 27, DISCOUNTED = 9, TIMER_SECS = 15 * 60;
+const ORIGINAL = 27, DISCOUNTED = 9, TIMER_SECS = 5 * 60;
 
 // ── TEST MODE ──────────────────────────────────────────────────────────────
 // Set to true to show the "Unlock All" button in the footer for testing.
@@ -230,7 +230,7 @@ export default function App() {
     if(!sel)return;
     const a=[...answers,sel];setAnswers(a);setSel(null);
     if(qIdx<questions.length-1){setQIdx(qIdx+1);}
-    else{setCharType(calcType(a));setPhase("processing");let st=0;const iv=setInterval(()=>{st++;setProcStep(st);if(st>=5){clearInterval(iv);setTimeout(()=>setPhase("teaser"),600);}},850);}
+    else{setCharType(calcType(a));setPhase("processing");let st=0;const iv=setInterval(()=>{st++;setProcStep(st);if(st>=5){clearInterval(iv);setTimeout(()=>{setTimerOn(true);setPhase("teaser");},600);}},850);}
   };
 
   return(
@@ -255,8 +255,8 @@ export default function App() {
         <div style={{width:"100%",maxWidth:680,position:"relative",zIndex:1,paddingTop:40}}>
           {showLegal==="privacy" && <LegalPage type="privacy" onClose={()=>setShowLegal(null)}/>}
           {showLegal==="terms"   && <LegalPage type="terms"   onClose={()=>setShowLegal(null)}/>}
-          {!showLegal && phase==="landing"    && <Landing onStart={()=>{setTimerOn(true);setPhase("quiz");}} t={timeLeft} fmt={fmt}/>}
-          {!showLegal && phase==="quiz"       && <Quiz q={questions[qIdx]} idx={qIdx} sel={sel} onSel={setSel} onNext={handleNext} t={timeLeft} fmt={fmt}/>}
+          {!showLegal && phase==="landing"    && <Landing onStart={()=>setPhase("quiz")}/>}
+          {!showLegal && phase==="quiz"       && <Quiz q={questions[qIdx]} idx={qIdx} sel={sel} onSel={setSel} onNext={handleNext}/>}
           {!showLegal && phase==="processing" && <Processing step={procStep}/>}
           {!showLegal && phase==="teaser"     && <Teaser type={TYPES[charType]} t={timeLeft} fmt={fmt} onUnlock={()=>{ generateDeliveryRef(); window.open(STRIPE_MAIN,"_blank"); }}/>}
           {!showLegal && phase==="paid"       && <>
@@ -669,7 +669,7 @@ function RotatingStrapline() {
   );
 }
 
-function Landing({onStart,t,fmt}){
+function Landing({onStart}){
   return(
     <div>
       <div className="fu" style={{textAlign:"center",marginBottom:28,paddingTop:8}}><Logo size="lg"/></div>
@@ -687,7 +687,7 @@ function Landing({onStart,t,fmt}){
           </div>
         ))}
       </div>
-      <Panel style={{marginBottom:14,borderTop:`2px solid rgba(0,200,255,0.18)`}}>
+      <Panel style={{marginBottom:24,borderTop:`2px solid rgba(0,200,255,0.18)`}}>
         <SLabel>What's inside your report</SLabel>
         {[["⚛","Your Behavioural Archetype","Deep analysis of your unique motivation architecture — how you're wired to learn, decide and perform"],["◈","Strengths & Blind Spot Analysis","An honest breakdown of your psychological edge and the patterns quietly holding you back"],["△","3 LQM Quantum Strategy Cards","Scenario-based systems designed specifically for your profile"],["⬡","Your Identity Statement","The single sentence that, when repeated, rewires how you show up every day"],["◎","Your LQM Behaviour Blueprint","A personalised daily system built around your natural motivation architecture"]].map(([ic,ti,de])=>(
           <div key={ti} style={{display:"flex",gap:14,marginBottom:16,alignItems:"flex-start"}}>
@@ -696,33 +696,19 @@ function Landing({onStart,t,fmt}){
           </div>
         ))}
       </Panel>
-      <Panel className="fu4" style={{marginBottom:14,borderColor:BORDER}} glow>
-        <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:14}}>
-          <span style={{color:E_BLUE,fontSize:18}}>⚡</span>
-          <p style={{fontSize:16,fontWeight:700,letterSpacing:".14em",textTransform:"uppercase",color:E_BLUE}}>Launch Pricing — Limited Window</p>
-        </div>
-        <div style={{display:"flex",alignItems:"baseline",gap:12,marginBottom:8}}>
-          <span style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:54,letterSpacing:1,color:WHITE}}>£{DISCOUNTED}</span>
-          <span style={{fontSize:22,color:DIMMED,textDecoration:"line-through"}}>£{ORIGINAL}</span>
-          <span style={{background:"rgba(0,200,255,0.1)",border:`1px solid ${BORDER}`,color:E_BLUE,padding:"3px 12px",borderRadius:100,fontSize:15,fontWeight:700}}>67% off</span>
-        </div>
-        <p style={{fontSize:14,color:MUTED,fontWeight:300,lineHeight:1.6}}>Complete the assessment to lock in this price. Full personalised report delivered instantly.</p>
-      </Panel>
-      <div className="fu4" style={{textAlign:"center",marginBottom:12}}><TimerBadge t={t} fmt={fmt}/></div>
-      <div className="fu5" style={{textAlign:"center"}}>
-        <PrimaryBtn onClick={onStart}>⚡ Begin My Profile Assessment →</PrimaryBtn>
-        <p style={{marginTop:10,fontSize:15,color:DIMMED}}>No payment required until you see your results</p>
+      <div className="fu4" style={{textAlign:"center"}}>
+        <PrimaryBtn onClick={onStart}>⚡ Begin My Free Assessment →</PrimaryBtn>
+        <p style={{marginTop:10,fontSize:15,color:DIMMED}}>Free to complete · Price revealed with your results</p>
       </div>
     </div>
   );
 }
-function Quiz({q,idx,sel,onSel,onNext,t,fmt}){
+function Quiz({q,idx,sel,onSel,onNext}){
   const pct=(idx/questions.length)*100;
   return(
     <div style={{animation:"fadeUp .4s ease both"}}>
-      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:20}}>
+      <div style={{display:"flex",justifyContent:"center",alignItems:"center",marginBottom:20}}>
         <span style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:18,letterSpacing:2,color:DIMMED}}>{String(idx+1).padStart(2,"0")} / {String(questions.length).padStart(2,"0")}</span>
-        <TimerBadge t={t} fmt={fmt}/>
       </div>
       <div style={{height:2,background:"rgba(255,255,255,0.06)",borderRadius:100,marginBottom:30,overflow:"hidden"}}>
         <div style={{height:"100%",width:`${pct}%`,background:`linear-gradient(90deg,${E_BLUE2},${E_BLUE})`,borderRadius:100,transition:"width .5s ease",boxShadow:`0 0 10px ${E_BLUE}55`}}/>
