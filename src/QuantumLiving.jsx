@@ -788,7 +788,7 @@ export default function QuantumLiving({ onBack, archetype }) {
               background:"rgba(52,211,153,0.2)",border:"1px solid rgba(52,211,153,0.5)",
               borderRadius:100,padding:"4px 12px",
             }}>
-              <span style={{fontSize:13,fontWeight:800,color:GREEN,letterSpacing:".04em"}}>20% OFF</span>
+              <span style={{fontSize:13,fontWeight:800,color:GREEN,letterSpacing:".04em",animation:"pct20Pulse 2.2s ease-in-out infinite"}}>20% OFF</span>
             </div>
           </div>
 
@@ -844,7 +844,7 @@ function QuantumShop({ onBack, arch }) {
           </button>
           <div style={{display:"flex",alignItems:"center",gap:8,background:"rgba(52,211,153,0.08)",border:"1px solid rgba(52,211,153,0.25)",borderRadius:100,padding:"5px 14px"}}>
             <span style={{fontSize:11}}>🌿</span>
-            <span style={{fontSize:11,fontWeight:700,color:GREEN,letterSpacing:".12em",textTransform:"uppercase"}}>Member Benefit · 20% Off</span>
+            <span style={{fontSize:11,fontWeight:700,color:GREEN,letterSpacing:".12em",textTransform:"uppercase",animation:"pct20Pulse 2.2s ease-in-out infinite"}}>Member Benefit · 20% Off</span>
           </div>
         </div>
 
