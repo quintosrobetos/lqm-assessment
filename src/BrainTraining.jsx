@@ -456,7 +456,7 @@ export default function BrainTraining({ onBack, archetype }){
       <GlobalStyles/>
       {/* Header */}
       <div style={{width:"100%",borderBottom:`1px solid ${BORDER}`,padding:"11px 20px",display:"flex",alignItems:"center",justifyContent:"space-between",background:"rgba(7,15,30,0.92)",backdropFilter:"blur(16px)",position:"sticky",top:0,zIndex:100}}>
-        <button onClick={onBack} style={{background:"none",border:`1px solid ${BORDER2}`,borderRadius:100,padding:"7px 15px",color:MUTED,fontSize:15,cursor:"pointer",fontFamily:"'Space Grotesk',sans-serif",transition:"color .15s"}} onMouseEnter={e=>e.currentTarget.style.color=WHITE} onMouseLeave={e=>e.currentTarget.style.color=MUTED}>← Back</button>
+        <button onClick={onBack} style={{background:"rgba(0,200,255,0.07)",border:"1px solid rgba(0,200,255,0.32)",borderRadius:100,padding:"7px 18px",color:E_BLUE,fontSize:13,fontWeight:700,cursor:"pointer",fontFamily:"'Space Grotesk',sans-serif",letterSpacing:".04em",transition:"all .18s"}} onMouseEnter={e=>{e.currentTarget.style.background="rgba(0,200,255,0.16)";e.currentTarget.style.borderColor="rgba(0,200,255,0.65)";}} onMouseLeave={e=>{e.currentTarget.style.background="rgba(0,200,255,0.07)";e.currentTarget.style.borderColor="rgba(0,200,255,0.32)";}}>← Back</button>
         <div style={{display:"flex",alignItems:"center",gap:7}}>
           <span style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:19,letterSpacing:2,color:WHITE}}>LQM</span>
           <span style={{fontSize:14,color:E_BLUE,fontWeight:700,letterSpacing:".12em"}}>BRAIN TRAINING</span>
