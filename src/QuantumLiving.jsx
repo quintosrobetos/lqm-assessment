@@ -424,6 +424,7 @@ export default function QuantumLiving({ onBack, archetype }) {
       @keyframes todayRing{0%{transform:scale(1);opacity:0.9;}50%{transform:scale(1.18);opacity:0.35;}100%{transform:scale(1);opacity:0.9;}}
       @keyframes todayBadge{0%,100%{opacity:0.8;transform:scale(1);}50%{opacity:1;transform:scale(1.06);}}
       @keyframes shopGlow{0%,100%{box-shadow:0 0 0 0 rgba(52,211,153,0.0);border-color:rgba(52,211,153,0.25);}50%{box-shadow:0 0 20px rgba(52,211,153,0.2);border-color:rgba(52,211,153,0.55);}}
+      @keyframes pct20Pulse{0%,100%{color:#ffffff;text-shadow:0 0 8px rgba(255,255,255,0.3);}50%{color:#34D399;text-shadow:0 0 20px rgba(52,211,153,0.8),0 0 40px rgba(52,211,153,0.3);}}
     `;
     document.head.appendChild(s);
     return () => { const el = document.getElementById(id); if(el) el.remove(); };
@@ -861,7 +862,7 @@ function QuantumShop({ onBack, arch }) {
           <div style={{flex:1}}>
             <p style={{fontSize:13,fontWeight:700,color:GREEN,letterSpacing:".12em",textTransform:"uppercase",marginBottom:6}}>Your Member Saving</p>
             <div style={{display:"flex",alignItems:"baseline",gap:14,marginBottom:6}}>
-              <span style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:48,letterSpacing:1,color:WHITE,lineHeight:1}}>20%</span>
+              <span style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:48,letterSpacing:1,color:WHITE,lineHeight:1,animation:"pct20Pulse 2.2s ease-in-out infinite"}}>20%</span>
               <span style={{fontSize:15,color:MUTED}}>off every product, applied automatically</span>
             </div>
             <p style={{fontSize:13,color:"rgba(52,211,153,0.7)",fontWeight:600}}>Exclusive to Quantum Living members · No code required</p>
