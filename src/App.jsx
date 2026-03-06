@@ -205,6 +205,7 @@ export default function App() {
       @keyframes shimmer{0%{background-position:-200% center;}100%{background-position:200% center;}}
       @keyframes blurIn{from{filter:blur(8px);opacity:0;}to{filter:blur(0);opacity:1;}}
       @keyframes barGrow{from{width:0;}to{width:var(--w);}}
+      @keyframes eureka{0%,100%{filter:drop-shadow(0 0 3px rgba(0,200,255,0.4));opacity:0.78;}45%{filter:drop-shadow(0 0 22px rgba(0,200,255,1)) drop-shadow(0 0 50px rgba(0,200,255,0.55)) drop-shadow(0 0 90px rgba(0,200,255,0.2));opacity:1;}}
       .fu{animation:fadeUp .6s ease both;}
       .fu1{animation:fadeUp .6s .1s ease both;}
       .fu2{animation:fadeUp .6s .22s ease both;}
@@ -277,17 +278,57 @@ function Logo({size="md"}){
   const sc=size==="sm"?.58:size==="lg"?1.25:1;
   return(
     <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:2}}>
-      <div style={{position:"relative",display:"inline-block"}}>
-        <span style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:52*sc,letterSpacing:3*sc,color:WHITE,lineHeight:1,textShadow:`0 0 28px ${E_BLUE}44`}}>LQM</span>
-        <span style={{position:"absolute",top:-7*sc,right:-4*sc,fontSize:15*sc,color:E_BLUE,animation:"glow 2.5s ease-in-out infinite"}}>⚡</span>
-        <svg style={{position:"absolute",bottom:-3*sc,left:0,width:"100%"}} height={5*sc} viewBox="0 0 160 5">
-          <path d="M28 4 Q80 1 132 4" stroke={E_BLUE} strokeWidth="1.5" fill="none" strokeLinecap="round" opacity=".55"/>
+      <div style={{position:"relative",display:"inline-block",paddingBottom:4*sc}}>
+        <span style={{
+          position:"absolute",top:"50%",left:"50%",
+          transform:"translate(-50%,-52%) rotate(-5deg)",
+          fontFamily:"'Bebas Neue',sans-serif",
+          fontSize:90*sc,letterSpacing:6*sc,
+          background:"linear-gradient(160deg,rgba(0,200,255,0.12),rgba(0,200,255,0.03))",
+          WebkitBackgroundClip:"text",backgroundClip:"text",
+          WebkitTextFillColor:"transparent",
+          whiteSpace:"nowrap",pointerEvents:"none",zIndex:0,lineHeight:1,
+        }}>LQM</span>
+        <svg
+          style={{
+            position:"absolute",
+            top:`${-36*sc}px`,left:`${-22*sc}px`,
+            width:`calc(100% + ${44*sc}px)`,
+            height:`calc(100% + ${58*sc}px)`,
+            zIndex:1,pointerEvents:"none",
+            animation:"eureka 3s ease-in-out infinite",
+            overflow:"visible",
+          }}
+          viewBox="0 0 300 110"
+          preserveAspectRatio="none"
+        >
+          <defs>
+            <linearGradient id="lqmBolt" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%"   stopColor="#ffffff" stopOpacity="1"/>
+              <stop offset="15%"  stopColor="#a8f0ff" stopOpacity="1"/>
+              <stop offset="32%"  stopColor="#00C8FF" stopOpacity="0.95"/>
+              <stop offset="58%"  stopColor="#00C8FF" stopOpacity="0.45"/>
+              <stop offset="78%"  stopColor="#00C8FF" stopOpacity="0.08"/>
+              <stop offset="100%" stopColor="#00C8FF" stopOpacity="0"/>
+            </linearGradient>
+            <linearGradient id="lqmCore" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%"   stopColor="#ffffff" stopOpacity="0.9"/>
+              <stop offset="25%"  stopColor="#ffffff" stopOpacity="0.5"/>
+              <stop offset="50%"  stopColor="#ffffff" stopOpacity="0.1"/>
+              <stop offset="100%" stopColor="#ffffff" stopOpacity="0"/>
+            </linearGradient>
+          </defs>
+          <path d="M 52 0 L 18 52 L 42 52 L 6 110 L 14 110 L 52 60 L 28 60 L 64 0 Z" transform="skewX(-8)" fill="url(#lqmBolt)"/>
+          <path d="M 55 2 L 24 50 L 44 50 L 10 106 L 50 58 L 32 58 L 62 2 Z" transform="skewX(-8)" fill="url(#lqmCore)" opacity="0.55"/>
+        </svg>
+        <span style={{position:"relative",zIndex:2,fontFamily:"'Bebas Neue',sans-serif",fontSize:52*sc,letterSpacing:3*sc,color:WHITE,lineHeight:1,textShadow:`0 0 28px ${E_BLUE}22`,display:"block"}}>LQM</span>
+        <svg style={{position:"absolute",bottom:0,left:0,width:"100%",zIndex:3,pointerEvents:"none"}} height={5*sc} viewBox="0 0 160 5">
+          <path d="M18 4 Q80 1 142 4" stroke={E_BLUE} strokeWidth="1.5" fill="none" strokeLinecap="round" opacity=".6"/>
         </svg>
       </div>
     </div>
   );
 }
-
 function TimerBadge({t,fmt}){
   const urgent=t<180;
   return(
@@ -657,13 +698,13 @@ function RotatingStrapline() {
   }, []);
 
   return (
-    <div style={{textAlign:"center",height:28,marginBottom:20,overflow:"hidden"}}>
+    <div style={{textAlign:"center",height:36,marginBottom:24,overflow:"hidden"}}>
       <p style={{
-        fontFamily:"'Crimson Pro',serif",fontStyle:"italic",fontSize:17,
-        color:"rgba(255,255,255,0.45)",letterSpacing:".02em",lineHeight:1.6,
-        transition:"opacity .6s ease, transform .6s ease",
+        fontFamily:"'Crimson Pro',serif",fontStyle:"italic",fontSize:20,
+        color:"rgba(255,255,255,0.72)",letterSpacing:".03em",lineHeight:1.6,
+        transition:"opacity .65s ease, transform .65s ease",
         opacity:visible?1:0,
-        transform:visible?"translateY(0)":"translateY(6px)"
+        transform:visible?"translateY(0)":"translateY(8px)"
       }}>{lines[idx]}</p>
     </div>
   );
@@ -698,7 +739,7 @@ function Landing({onStart}){
       </Panel>
       <div className="fu4" style={{textAlign:"center"}}>
         <PrimaryBtn onClick={onStart}>⚡ Begin My Free Assessment →</PrimaryBtn>
-        <p style={{marginTop:10,fontSize:15,color:DIMMED}}>Free to complete · Price revealed with your results</p>
+        <p style={{marginTop:10,fontSize:15,color:DIMMED}}>Takes 3 minutes · No payment until you see your results</p>
       </div>
     </div>
   );
