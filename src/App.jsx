@@ -143,7 +143,11 @@ export default function App() {
     const ref="LQM-"+new Date().getFullYear()+"-"+Math.random().toString(36).substring(2,10).toUpperCase();
     const ts=new Date().toLocaleString("en-GB",{day:"2-digit",month:"short",year:"numeric",hour:"2-digit",minute:"2-digit"});
     setDeliveryRef(ref); setDeliveryTs(ts);
+    // Save real quiz answers so returning customers get their correct archetype
+    localStorage.setItem("lqm_answers",JSON.stringify(answers));
     localStorage.setItem("lqm_delivery",JSON.stringify({ref,ts,confirmed:false}));
+    // ── KEY FIX 1: advance phase so delivery gate actually renders ──
+    setPhase("paid");
     setShowDeliveryGate(true);
   }
   function confirmDelivery(){
@@ -152,20 +156,60 @@ export default function App() {
     setShowDeliveryGate(false);
   }
 
-  // Check localStorage on mount - if delivery data exists, skip to paid phase
+  // ── KEY FIX 3: full mount restore — handles all three return scenarios ──
   useEffect(()=>{
-    const delivery = localStorage.getItem("lqm_delivery");
-    const unlocks = getUnlocks();
-    if(delivery && phase==="landing"){
-      // User has already unlocked - show them the report
-      // We need to simulate completing the quiz first
-      const testAnswers = ["A","B","A","C","D","A","B","C","D","A"];
-      setAnswers(testAnswers);
-      setCharType(calcType(testAnswers));
+    const params=new URLSearchParams(window.location.search);
+    const paid=params.get("paid");
+    const cancelled=params.get("cancelled");
+
+    // Scenario A: returning from Stripe add-on payment (?paid=neural/vital)
+    if(paid==="neural"||paid==="vital"){
+      setUnlock(paid);                          // write to localStorage
+      const saved=JSON.parse(localStorage.getItem("lqm_session_state")||"null");
+      if(saved&&saved.answers){
+        setAnswers(saved.answers);
+        setCharType(saved.charType||calcType(saved.answers));
+        setUnlocks(getUnlocks());               // read back including new unlock
+        setPhase("paid");
+        setActiveView("hub");
+        localStorage.removeItem("lqm_session_state");
+      }
+      window.history.replaceState({},"",window.location.pathname);
+      return;
+    }
+
+    // Scenario B: returning from cancelled Stripe add-on (?cancelled=1)
+    if(cancelled){
+      const saved=JSON.parse(localStorage.getItem("lqm_session_state")||"null");
+      if(saved&&saved.answers){
+        setAnswers(saved.answers);
+        setCharType(saved.charType||calcType(saved.answers));
+        setUnlocks(getUnlocks());
+        setPhase("paid");
+        setActiveView("hub");
+        localStorage.removeItem("lqm_session_state");
+      }
+      window.history.replaceState({},"",window.location.pathname);
+      return;
+    }
+
+    // Scenario C: page refresh — restore paid customer with their real archetype
+    const delivery=localStorage.getItem("lqm_delivery");
+    if(delivery&&phase==="landing"){
+      const savedAnswers=JSON.parse(localStorage.getItem("lqm_answers")||"null");
+      // Use real saved answers; only fall back to defaults if somehow missing
+      const restoreAnswers=(savedAnswers&&savedAnswers.length>=10)
+        ? savedAnswers
+        : ["A","B","A","C","D","A","B","C","D","A"];
+      setAnswers(restoreAnswers);
+      setCharType(calcType(restoreAnswers));
+      setUnlocks(getUnlocks());
       setPhase("paid");
-      const deliveryData = JSON.parse(delivery);
+      const deliveryData=JSON.parse(delivery);
       setDeliveryRef(deliveryData.ref);
       setDeliveryTs(deliveryData.ts);
+      // Show delivery gate only if customer hasn't confirmed yet
+      if(!deliveryData.confirmed) setShowDeliveryGate(true);
     }
   },[]);
 
@@ -173,6 +217,19 @@ export default function App() {
     setUnlock(key);
     setUnlocks(getUnlocks());
     setActiveAddon(key);
+  }
+
+  // ── KEY FIX 2: save state then redirect same-tab for add-on payment ──
+  // Stripe success URLs must be configured in the Stripe dashboard:
+  //   Brain Training → https://lqm-assessment.vercel.app?paid=neural
+  //   Quantum Living  → https://lqm-assessment.vercel.app?paid=vital
+  // Cancel URLs:
+  //   Both            → https://lqm-assessment.vercel.app?cancelled=1
+  function handleAddonRedirect(stripeUrl){
+    localStorage.setItem("lqm_session_state",JSON.stringify({
+      answers, charType, activeView:"hub"
+    }));
+    window.location.href=stripeUrl;
   }
 
   // Test mode - auto-unlock everything if ?test=true in URL
@@ -263,7 +320,7 @@ export default function App() {
           {!showLegal && phase==="paid"       && <>
             {showDeliveryGate && <DeliveryGate ref_={deliveryRef} ts={deliveryTs} type={TYPES[charType]} onConfirm={confirmDelivery}/>}
             {!showDeliveryGate && <>
-              {activeView==="hub"      && <Hub type={TYPES[charType]} unlocks={unlocks} onOpenNeural={()=>setActiveAddon("neural")} onOpenVital={()=>setActiveAddon("vital")} onViewReport={()=>setActiveView("report")} onUnlockNeural={()=>window.open(STRIPE_BRAIN,"_blank")} onUnlockVital={()=>window.open(STRIPE_VITAL,"_blank")} onSimulateNeural={()=>handleUnlockAddon("neural")} onSimulateVital={()=>handleUnlockAddon("vital")}/>}
+              {activeView==="hub"      && <Hub type={TYPES[charType]} unlocks={unlocks} onOpenNeural={()=>setActiveAddon("neural")} onOpenVital={()=>setActiveAddon("vital")} onViewReport={()=>setActiveView("report")} onUnlockNeural={()=>handleAddonRedirect(STRIPE_BRAIN)} onUnlockVital={()=>handleAddonRedirect(STRIPE_VITAL)} onSimulateNeural={()=>handleUnlockAddon("neural")} onSimulateVital={()=>handleUnlockAddon("vital")}/>}
               {activeView==="report"   && <><Report type={TYPES[charType]} deliveryRef={deliveryRef} deliveryTs={deliveryTs} visualAnswer={answers[10]}/><button onClick={()=>setActiveView("hub")} style={{width:"100%",marginTop:16,border:"1px solid rgba(0,200,255,0.32)",borderRadius:100,padding:"13px",fontSize:14,fontWeight:700,background:"rgba(0,200,255,0.07)",color:E_BLUE,cursor:"pointer",fontFamily:"'Space Grotesk',sans-serif",letterSpacing:".05em",transition:"all .18s"}} onMouseEnter={e=>{e.currentTarget.style.background="rgba(0,200,255,0.16)";e.currentTarget.style.borderColor="rgba(0,200,255,0.65)";}} onMouseLeave={e=>{e.currentTarget.style.background="rgba(0,200,255,0.07)";e.currentTarget.style.borderColor="rgba(0,200,255,0.32)";}}>⌂ Back to My Hub</button></>}
             </>}
           </>}
