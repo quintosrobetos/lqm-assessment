@@ -141,15 +141,13 @@ export default function App() {
   const timerRef=useRef(null);
 
   function generateDeliveryRef(){
-    const ref="LQM-"+new Date().getFullYear()+"-"+Math.random().toString(36).substring(2,10).toUpperCase();
-    const ts=new Date().toLocaleString("en-GB",{day:"2-digit",month:"short",year:"numeric",hour:"2-digit",minute:"2-digit"});
-    setDeliveryRef(ref); setDeliveryTs(ts);
-    // Save real quiz answers so returning customers get their correct archetype
-    localStorage.setItem("lqm_answers",JSON.stringify(answers));
-    localStorage.setItem("lqm_delivery",JSON.stringify({ref,ts,confirmed:false}));
-    // ── KEY FIX 1: advance phase so delivery gate actually renders ──
-    setPhase("paid");
-    setShowDeliveryGate(true);
+    // Save quiz state so we can restore it when Stripe redirects back
+    // lqm_delivery is intentionally NOT written here — only written after
+    // Stripe confirms payment via ?paid=main redirect. This prevents
+    // anyone who clicks unlock but doesn't pay from getting free access.
+    localStorage.setItem("lqm_pending_session",JSON.stringify({
+      answers, charType
+    }));
   }
   function confirmDelivery(){
     const stored=JSON.parse(localStorage.getItem("lqm_delivery")||"{}");
@@ -163,14 +161,35 @@ export default function App() {
     const paid=params.get("paid");
     const cancelled=params.get("cancelled");
 
-    // Scenario A: returning from Stripe add-on payment (?paid=neural/vital)
+    // Scenario A1: returning from Stripe main report payment (?paid=main)
+    // lqm_delivery is written HERE — only after Stripe confirms payment
+    if(paid==="main"){
+      const saved=JSON.parse(localStorage.getItem("lqm_pending_session")||"null");
+      if(saved&&saved.answers){
+        const ref="LQM-"+new Date().getFullYear()+"-"+Math.random().toString(36).substring(2,10).toUpperCase();
+        const ts=new Date().toLocaleString("en-GB",{day:"2-digit",month:"short",year:"numeric",hour:"2-digit",minute:"2-digit"});
+        localStorage.setItem("lqm_answers",JSON.stringify(saved.answers));
+        localStorage.setItem("lqm_delivery",JSON.stringify({ref,ts,confirmed:false}));
+        localStorage.removeItem("lqm_pending_session");
+        setAnswers(saved.answers);
+        setCharType(saved.charType||calcType(saved.answers));
+        setDeliveryRef(ref);
+        setDeliveryTs(ts);
+        setPhase("paid");
+        setShowDeliveryGate(true);
+      }
+      window.history.replaceState({},"",window.location.pathname);
+      return;
+    }
+
+    // Scenario A2: returning from Stripe add-on payment (?paid=neural/vital)
     if(paid==="neural"||paid==="vital"){
-      setUnlock(paid);                          // write to localStorage
+      setUnlock(paid);
       const saved=JSON.parse(localStorage.getItem("lqm_session_state")||"null");
       if(saved&&saved.answers){
         setAnswers(saved.answers);
         setCharType(saved.charType||calcType(saved.answers));
-        setUnlocks(getUnlocks());               // read back including new unlock
+        setUnlocks(getUnlocks());
         setPhase("paid");
         setActiveView("hub");
         localStorage.removeItem("lqm_session_state");
@@ -194,23 +213,25 @@ export default function App() {
       return;
     }
 
-    // Scenario C: page refresh — restore paid customer with their real archetype
+    // Scenario C: page refresh — restore a genuine paying customer
+    // Only fires if lqm_delivery exists AND was confirmed (customer clicked
+    // "I Confirm Receipt"). This means they definitely paid and accessed
+    // the report at least once. Unconfirmed delivery = not yet paid.
     const delivery=localStorage.getItem("lqm_delivery");
     if(delivery&&phase==="landing"){
-      const savedAnswers=JSON.parse(localStorage.getItem("lqm_answers")||"null");
-      // Use real saved answers; only fall back to defaults if somehow missing
-      const restoreAnswers=(savedAnswers&&savedAnswers.length>=10)
-        ? savedAnswers
-        : ["A","B","A","C","D","A","B","C","D","A"];
-      setAnswers(restoreAnswers);
-      setCharType(calcType(restoreAnswers));
-      setUnlocks(getUnlocks());
-      setPhase("paid");
       const deliveryData=JSON.parse(delivery);
-      setDeliveryRef(deliveryData.ref);
-      setDeliveryTs(deliveryData.ts);
-      // Show delivery gate only if customer hasn't confirmed yet
-      if(!deliveryData.confirmed) setShowDeliveryGate(true);
+      if(deliveryData.confirmed){
+        const savedAnswers=JSON.parse(localStorage.getItem("lqm_answers")||"null");
+        const restoreAnswers=(savedAnswers&&savedAnswers.length>=10)
+          ? savedAnswers
+          : ["A","B","A","C","D","A","B","C","D","A"];
+        setAnswers(restoreAnswers);
+        setCharType(calcType(restoreAnswers));
+        setUnlocks(getUnlocks());
+        setPhase("paid");
+        setDeliveryRef(deliveryData.ref);
+        setDeliveryTs(deliveryData.ts);
+      }
     }
   },[]);
 
