@@ -6,6 +6,7 @@ const STRIPE_MAIN  = "https://buy.stripe.com/00w8wR50Xber8VZfkka3u00";
 const STRIPE_MAIN_FULL = "https://buy.stripe.com/4gMfZjeBxdmzc8b0pqa3u04";
 const STRIPE_BRAIN = "https://buy.stripe.com/8x2eVfgJF4Q37RVb44a3u02";
 const STRIPE_VITAL = "https://buy.stripe.com/eVq5kF651gyLgorc88a3u03";
+const STRIPE_BUNDLE = "https://buy.stripe.com/dRm8wR3WT4Q30pt5JKa3u05";
 
 function getUnlocks() { try { return JSON.parse(localStorage.getItem("lqm_unlocks")||"{}"); } catch { return {}; } }
 function setUnlock(key) { const u=getUnlocks(); u[key]=true; localStorage.setItem("lqm_unlocks",JSON.stringify(u)); }
@@ -182,9 +183,10 @@ export default function App() {
       return;
     }
 
-    // Scenario A2: returning from Stripe add-on payment (?paid=neural/vital)
-    if(paid==="neural"||paid==="vital"){
-      setUnlock(paid);
+    // Scenario A2: returning from Stripe add-on payment (?paid=neural/vital/both)
+    if(paid==="neural"||paid==="vital"||paid==="both"){
+      if(paid==="both"){ setUnlock("neural"); setUnlock("vital"); }
+      else { setUnlock(paid); }
       const saved=JSON.parse(localStorage.getItem("lqm_session_state")||"null");
       if(saved&&saved.answers){
         setAnswers(saved.answers);
@@ -342,7 +344,7 @@ export default function App() {
           {!showLegal && phase==="paid"       && <>
             {showDeliveryGate && <DeliveryGate ref_={deliveryRef} ts={deliveryTs} type={TYPES[charType]} onConfirm={confirmDelivery}/>}
             {!showDeliveryGate && <>
-              {activeView==="hub"      && <Hub type={TYPES[charType]} unlocks={unlocks} onOpenNeural={()=>setActiveAddon("neural")} onOpenVital={()=>setActiveAddon("vital")} onViewReport={()=>setActiveView("report")} onUnlockNeural={()=>handleAddonRedirect(STRIPE_BRAIN)} onUnlockVital={()=>handleAddonRedirect(STRIPE_VITAL)} onSimulateNeural={()=>handleUnlockAddon("neural")} onSimulateVital={()=>handleUnlockAddon("vital")}/>}
+              {activeView==="hub"      && <Hub type={TYPES[charType]} unlocks={unlocks} onOpenNeural={()=>setActiveAddon("neural")} onOpenVital={()=>setActiveAddon("vital")} onViewReport={()=>setActiveView("report")} onUnlockNeural={()=>handleAddonRedirect(STRIPE_BRAIN)} onUnlockVital={()=>handleAddonRedirect(STRIPE_VITAL)} onUnlockBundle={()=>handleAddonRedirect(STRIPE_BUNDLE)} onSimulateNeural={()=>handleUnlockAddon("neural")} onSimulateVital={()=>handleUnlockAddon("vital")}/>}
               {activeView==="report"   && <><Report type={TYPES[charType]} deliveryRef={deliveryRef} deliveryTs={deliveryTs} visualAnswer={answers[10]}/><button onClick={()=>setActiveView("hub")} style={{width:"100%",marginTop:16,border:"1px solid rgba(0,200,255,0.32)",borderRadius:100,padding:"13px",fontSize:14,fontWeight:700,background:"rgba(0,200,255,0.07)",color:E_BLUE,cursor:"pointer",fontFamily:"'Space Grotesk',sans-serif",letterSpacing:".05em",transition:"all .18s"}} onMouseEnter={e=>{e.currentTarget.style.background="rgba(0,200,255,0.16)";e.currentTarget.style.borderColor="rgba(0,200,255,0.65)";}} onMouseLeave={e=>{e.currentTarget.style.background="rgba(0,200,255,0.07)";e.currentTarget.style.borderColor="rgba(0,200,255,0.32)";}}>⌂ Back to My Hub</button></>}
             </>}
           </>}
@@ -506,7 +508,26 @@ const TERMS_TEXT=`<h1 style="font-family:'Bebas Neue',sans-serif;font-size:36px;
 // ══════════════════════════════════════════════════════════════════════════
 // LQM HUB — Central dashboard after report unlock
 // ══════════════════════════════════════════════════════════════════════════
-function Hub({type, unlocks, onOpenNeural, onOpenVital, onViewReport, onUnlockNeural, onUnlockVital, onSimulateNeural, onSimulateVital}) {
+function RotatingTestimonial({quotes, accentColor}) {
+  const [idx, setIdx] = useState(0);
+  const [visible, setVisible] = useState(true);
+  useEffect(() => {
+    if(quotes.length <= 1) return;
+    const t = setInterval(() => {
+      setVisible(false);
+      setTimeout(() => { setIdx(i => (i+1) % quotes.length); setVisible(true); }, 500);
+    }, 5000);
+    return () => clearInterval(t);
+  }, [quotes.length]);
+  return (
+    <div style={{transition:"opacity .5s", opacity:visible?1:0, padding:"10px 14px", background:"rgba(255,255,255,0.03)", border:`1px solid ${accentColor}22`, borderLeft:`3px solid ${accentColor}`, borderRadius:"0 10px 10px 0", marginBottom:14}}>
+      <p style={{fontFamily:"'Crimson Pro',serif", fontStyle:"italic", fontSize:14, color:"rgba(255,255,255,0.72)", lineHeight:1.55, marginBottom:4}}>"{quotes[idx].text}"</p>
+      <p style={{fontSize:12, color:"rgba(255,255,255,0.38)", fontWeight:700, letterSpacing:".06em"}}>— {quotes[idx].author}</p>
+    </div>
+  );
+}
+
+function Hub({type, unlocks, onOpenNeural, onOpenVital, onViewReport, onUnlockNeural, onUnlockVital, onUnlockBundle, onSimulateNeural, onSimulateVital}) {
   // Read live progress from localStorage
   const brainData = (() => { try { return JSON.parse(localStorage.getItem("lqm_brain")||"{}"); } catch { return {}; } })();
   const livingData = (() => { try { return JSON.parse(localStorage.getItem("lqm_living")||"{}"); } catch { return {}; } })();
@@ -587,9 +608,15 @@ function Hub({type, unlocks, onOpenNeural, onOpenVital, onViewReport, onUnlockNe
                   ))}
                   {brainStreak>0 && <span style={{fontSize:12, color:AMBER, fontWeight:700, marginLeft:"auto"}}>🔥 {brainStreak} day streak</span>}
                 </div>
-              </>) : (
-                <p style={{fontSize:13, color:DIMMED, marginBottom:12}}>6 cognitive challenges · XP system · 21-day transformation</p>
-              )}
+              </>) : (<>
+                <p style={{fontSize:14, color:"rgba(255,255,255,0.82)", fontWeight:500, lineHeight:1.5, marginBottom:4}}>Most people never train the muscle between their ears.</p>
+                <p style={{fontSize:13, color:DIMMED, marginBottom:12}}>6 challenges · 6 minutes a day · 21 days to a measurably sharper mind.</p>
+                <RotatingTestimonial accentColor={E_BLUE} quotes={[
+                  {text:"By week two I was noticeably faster at decisions. I didn't expect a daily challenge to actually work.",author:"Jamie, 34"},
+                  {text:"The streak system kept me honest. 21 days straight — my focus is unrecognisable.",author:"Marcus, 29"},
+                  {text:"I thought brain training was gimmicky. This changed my mind completely.",author:"Sophie, 43"}
+                ]}/>
+              </>)}
             </div>
           </div>
           <div style={{flexShrink:0}}>
@@ -630,9 +657,15 @@ function Hub({type, unlocks, onOpenNeural, onOpenVital, onViewReport, onUnlockNe
                   ))}
                   {quantumStreak>0 && <span style={{fontSize:12, color:AMBER, fontWeight:700, marginLeft:"auto"}}>🔥 {quantumStreak} day streak</span>}
                 </div>
-              </>) : (
-                <p style={{fontSize:13, color:DIMMED, marginBottom:12}}>Daily checklist · 5 quantum laws · 21-day transformation</p>
-              )}
+              </>) : (<>
+                <p style={{fontSize:14, color:"rgba(255,255,255,0.82)", fontWeight:500, lineHeight:1.5, marginBottom:4}}>Your biology is either working for you or against you.</p>
+                <p style={{fontSize:13, color:DIMMED, marginBottom:12}}>5 quantum laws · sleep, breath, movement, temperance, nourishment · built around your archetype.</p>
+                <RotatingTestimonial accentColor="#34D399" quotes={[
+                  {text:"I've read every wellness book going. This is the first thing that actually stuck because it's tied to who I am.",author:"Rachel, 41"},
+                  {text:"Simple enough to do daily, powerful enough to actually change things.",author:"Priya, 37"},
+                  {text:"By week three I realised I hadn't needed my usual 3pm coffee in days.",author:"Tom, 45"}
+                ]}/>
+              </>)}
             </div>
           </div>
           <div style={{flexShrink:0}}>
@@ -643,6 +676,40 @@ function Hub({type, unlocks, onOpenNeural, onOpenVital, onViewReport, onUnlockNe
           </div>
         </div>
       </div>
+
+      {/* Bundle banner — show when neither or only one unlocked */}
+      {!(unlocks.neural && unlocks.vital) && (
+        <div style={{background:"linear-gradient(135deg,rgba(251,191,36,0.06),rgba(0,200,255,0.04))", border:"1px solid rgba(251,191,36,0.28)", borderRadius:16, padding:"18px 20px", marginBottom:16, position:"relative", overflow:"hidden"}}>
+          <div style={{position:"absolute",top:0,left:0,right:0,height:2,background:"linear-gradient(90deg,rgba(251,191,36,0.6),rgba(0,200,255,0.5),rgba(52,211,153,0.5))"}}/>
+          {(!unlocks.neural && !unlocks.vital) ? (<>
+            <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:12,marginBottom:12}}>
+              <div style={{flex:1}}>
+                <p style={{fontSize:11,fontWeight:700,color:AMBER,letterSpacing:".14em",textTransform:"uppercase",marginBottom:5}}>⭐ Complete Your LQM System</p>
+                <p style={{fontSize:16,fontWeight:700,color:WHITE,marginBottom:4}}>Both Add-Ons · <span style={{color:AMBER}}>£8 today</span></p>
+                <p style={{fontSize:13,color:DIMMED,lineHeight:1.5}}>Brain Training <span style={{color:"rgba(255,255,255,0.3)"}}>+</span> Quantum Living. 21 days of cognitive training and daily wellness practice — built around your archetype. Purchased separately: £10.</p>
+              </div>
+              <div style={{textAlign:"right",flexShrink:0}}>
+                <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:32,letterSpacing:1,color:AMBER}}>£8</div>
+                <div style={{fontSize:11,color:DIMMED,textDecoration:"line-through"}}>£10</div>
+              </div>
+            </div>
+            <button onClick={e=>{e.stopPropagation();onUnlockBundle();}} style={{width:"100%",border:"none",borderRadius:100,padding:"11px",fontSize:14,fontWeight:700,background:"linear-gradient(135deg,rgba(251,191,36,0.85),rgba(251,191,36,0.65))",color:"#070F1E",cursor:"pointer",fontFamily:"'Space Grotesk',sans-serif",letterSpacing:".04em",transition:"all .18s"}}
+              onMouseEnter={e=>e.currentTarget.style.transform="translateY(-2px)"} onMouseLeave={e=>e.currentTarget.style.transform="translateY(0)"}>
+              Get the Complete System → £8
+            </button>
+          </>) : (
+            // One unlocked — smart upsell
+            <div>
+              <p style={{fontSize:11,fontWeight:700,color:AMBER,letterSpacing:".14em",textTransform:"uppercase",marginBottom:5}}>⭐ You're Halfway There</p>
+              <p style={{fontSize:15,fontWeight:700,color:WHITE,marginBottom:4}}>Add {unlocks.neural ? "Quantum Living" : "Brain Training"} for just <span style={{color:AMBER}}>£5</span></p>
+              <p style={{fontSize:13,color:DIMMED,lineHeight:1.5,marginBottom:12}}>{unlocks.neural ? "Your biology is either working for you or against you. Complete your LQM system." : "Most people never train the muscle between their ears. Now's the time."}</p>
+              <button onClick={e=>{e.stopPropagation(); unlocks.neural ? onUnlockVital() : onUnlockNeural();}} style={{width:"100%",border:"none",borderRadius:100,padding:"11px",fontSize:14,fontWeight:700,background:"linear-gradient(135deg,rgba(251,191,36,0.8),rgba(251,191,36,0.55))",color:"#070F1E",cursor:"pointer",fontFamily:"'Space Grotesk',sans-serif",letterSpacing:".04em"}}>
+                {unlocks.neural ? "Unlock Quantum Living → £5" : "Unlock Brain Training → £5"}
+              </button>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Today's focus — only show if at least one addon unlocked */}
       {(unlocks.neural || unlocks.vital) && (
@@ -661,7 +728,7 @@ function Hub({type, unlocks, onOpenNeural, onOpenVital, onViewReport, onUnlockNe
   );
 }
 
-function AddOnShop({unlocks, onUnlockNeural, onUnlockVital, onOpenNeural, onOpenVital, onSimulateNeural, onSimulateVital}) {
+function AddOnShop({unlocks, onUnlockNeural, onUnlockVital, onUnlockBundle, onOpenNeural, onOpenVital, onSimulateNeural, onSimulateVital}) {
   return (
     <div style={{marginTop:32}}>
       {/* Section header */}
@@ -669,23 +736,29 @@ function AddOnShop({unlocks, onUnlockNeural, onUnlockVital, onOpenNeural, onOpen
         <div style={{height:1,background:`linear-gradient(90deg,transparent,${BORDER},transparent)`,marginBottom:24}}/>
         <p style={{fontSize:14,fontWeight:700,letterSpacing:".16em",textTransform:"uppercase",color:E_BLUE,marginBottom:10}}>⚡ LQM Add-On Suite</p>
         <h2 style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"clamp(24px,5vw,38px)",letterSpacing:2,color:WHITE,marginBottom:8}}>Go Deeper. Perform Better.</h2>
-        <p style={{fontFamily:"'Crimson Pro',serif",fontStyle:"italic",fontSize:16,color:MUTED,maxWidth:440,margin:"0 auto",lineHeight:1.7}}>Two powerful extensions to your LQM profile — each unlocked for just £5.</p>
+        <p style={{fontFamily:"'Crimson Pro',serif",fontStyle:"italic",fontSize:16,color:MUTED,maxWidth:440,margin:"0 auto",lineHeight:1.7}}>Two powerful extensions built around your specific archetype — each unlocked once, yours forever.</p>
       </div>
 
       {/* Neural Protocol card */}
       <div style={{background:`linear-gradient(145deg,${DARK2},${DARK})`,border:`1px solid ${unlocks.neural?"rgba(0,200,255,0.4)":BORDER2}`,borderTop:`2px solid ${unlocks.neural?E_BLUE:"rgba(0,200,255,0.25)"}`,borderRadius:20,overflow:"hidden",marginBottom:14,boxShadow:unlocks.neural?`0 0 30px rgba(0,200,255,0.08)`:"none"}}>
         <div style={{padding:"24px 24px 20px"}}>
-          <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:16}}>
-            <div>
-              <p style={{fontSize:16,fontWeight:700,color:E_BLUE,letterSpacing:".14em",textTransform:"uppercase",marginBottom:8}}>⚡ Add-On 1</p>
-              <h3 style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:28,letterSpacing:2,color:WHITE,marginBottom:4}}>Brain Training</h3>
-              <p style={{fontFamily:"'Crimson Pro',serif",fontStyle:"italic",fontSize:15,color:MUTED}}>Daily cognitive challenges — 6 rounds, ~6-7 minutes</p>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:6}}>
+            <div style={{flex:1,paddingRight:12}}>
+              <p style={{fontSize:13,fontWeight:700,color:E_BLUE,letterSpacing:".14em",textTransform:"uppercase",marginBottom:6}}>⚡ Brain Training</p>
+              <h3 style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:28,letterSpacing:2,color:WHITE,marginBottom:6}}>Neural Protocol</h3>
+              <p style={{fontFamily:"'Crimson Pro',serif",fontStyle:"italic",fontSize:15,color:MUTED,lineHeight:1.55,marginBottom:4}}>Most people never train the muscle between their ears. You're not most people.</p>
+              <p style={{fontSize:13,color:DIMMED,marginBottom:14}}>6 challenges · 6 minutes a day · 21 days to a measurably sharper mind</p>
             </div>
             <div style={{textAlign:"right",flexShrink:0}}>
               <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:36,letterSpacing:1,color:WHITE}}>£5</div>
-              <div style={{fontSize:14,color:DIMMED}}>one-time</div>
+              <div style={{fontSize:12,color:DIMMED}}>one-time</div>
             </div>
           </div>
+          {!unlocks.neural && <RotatingTestimonial accentColor={E_BLUE} quotes={[
+            {text:"By week two I was noticeably faster at decisions. I didn't expect a daily challenge to actually work.",author:"Jamie, 34"},
+            {text:"The streak system kept me honest. 21 days straight — my focus is unrecognisable.",author:"Marcus, 29"},
+            {text:"I thought brain training was gimmicky. This changed my mind completely.",author:"Sophie, 43"}
+          ]}/>}
           <div style={{display:"flex",flexDirection:"column",gap:8,marginBottom:20}}>
             {[["🎨","Stroop Challenge — executive function & conflict resolution"],["🧠","2-Back Test — working memory & fluid intelligence"],["🔷","Pattern Matrix — spatial reasoning & abstract logic"],["⚡","Reaction Velocity — processing speed & decision time"],["🔄","Cognitive Switch — mental flexibility & task switching"],["🛡️","Neural Defense — sustained attention & visual tracking"]].map(([ic,tx])=>(
               <div key={tx} style={{display:"flex",gap:10,alignItems:"center"}}>
@@ -710,20 +783,48 @@ function AddOnShop({unlocks, onUnlockNeural, onUnlockVital, onOpenNeural, onOpen
         </div>
       </div>
 
+      {/* Bundle strip — only when both locked */}
+      {!unlocks.neural && !unlocks.vital && (
+        <div style={{background:"linear-gradient(135deg,rgba(251,191,36,0.07),rgba(0,200,255,0.03))",border:"1px solid rgba(251,191,36,0.3)",borderRadius:16,padding:"18px 20px",marginBottom:14,position:"relative",overflow:"hidden"}}>
+          <div style={{position:"absolute",top:0,left:0,right:0,height:2,background:"linear-gradient(90deg,rgba(251,191,36,0.7),rgba(0,200,255,0.5),rgba(52,211,153,0.5))"}}/>
+          <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:12,marginBottom:12}}>
+            <div style={{flex:1}}>
+              <p style={{fontSize:11,fontWeight:700,color:AMBER,letterSpacing:".14em",textTransform:"uppercase",marginBottom:4}}>⭐ Best Value</p>
+              <p style={{fontSize:16,fontWeight:700,color:WHITE,marginBottom:3}}>Complete LQM System — <span style={{color:AMBER}}>£8 today</span></p>
+              <p style={{fontSize:13,color:DIMMED,lineHeight:1.5}}>Both add-ons. Brain Training + Quantum Living. That's 21 days of cognitive training and daily wellness practice built around your archetype. Purchased separately: £10.</p>
+            </div>
+            <div style={{textAlign:"right",flexShrink:0}}>
+              <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:34,color:AMBER}}>£8</div>
+              <div style={{fontSize:11,color:DIMMED,textDecoration:"line-through"}}>£10</div>
+            </div>
+          </div>
+          <button onClick={onUnlockBundle||undefined} style={{width:"100%",border:"none",borderRadius:100,padding:"13px",fontSize:14,fontWeight:700,background:"linear-gradient(135deg,rgba(251,191,36,0.85),rgba(251,191,36,0.65))",color:"#070F1E",cursor:"pointer",fontFamily:"'Space Grotesk',sans-serif",letterSpacing:".05em",transition:"all .2s"}}
+            onMouseEnter={e=>e.currentTarget.style.transform="translateY(-2px)"} onMouseLeave={e=>e.currentTarget.style.transform="translateY(0)"}>
+            Get the Complete System → £8
+          </button>
+        </div>
+      )}
+
       {/* Vital Laws card */}
       <div style={{background:`linear-gradient(145deg,${DARK2},${DARK})`,border:`1px solid ${unlocks.vital?"rgba(52,211,153,0.4)":BORDER2}`,borderTop:`2px solid ${unlocks.vital?"#34D399":"rgba(52,211,153,0.25)"}`,borderRadius:20,overflow:"hidden",marginBottom:28,boxShadow:unlocks.vital?`0 0 30px rgba(52,211,153,0.07)`:"none"}}>
         <div style={{padding:"24px 24px 20px"}}>
-          <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:16}}>
-            <div>
-              <p style={{fontSize:16,fontWeight:700,color:"#34D399",letterSpacing:".14em",textTransform:"uppercase",marginBottom:8}}>🌱 Add-On 2</p>
-              <h3 style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:28,letterSpacing:2,color:WHITE,marginBottom:4}}>Quantum Living</h3>
-              <p style={{fontFamily:"'Crimson Pro',serif",fontStyle:"italic",fontSize:15,color:MUTED}}>5 Quantum Laws + daily wellness insights</p>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:6}}>
+            <div style={{flex:1,paddingRight:12}}>
+              <p style={{fontSize:13,fontWeight:700,color:"#34D399",letterSpacing:".14em",textTransform:"uppercase",marginBottom:6}}>🌿 Quantum Living</p>
+              <h3 style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:28,letterSpacing:2,color:WHITE,marginBottom:6}}>5 Laws of Living</h3>
+              <p style={{fontFamily:"'Crimson Pro',serif",fontStyle:"italic",fontSize:15,color:MUTED,lineHeight:1.55,marginBottom:4}}>Your biology is either working for you or against you. These five laws determine which.</p>
+              <p style={{fontSize:13,color:DIMMED,marginBottom:14}}>Sleep · breath · temperance · movement · nourishment — the protocol for human performance</p>
             </div>
             <div style={{textAlign:"right",flexShrink:0}}>
               <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:36,letterSpacing:1,color:WHITE}}>£5</div>
-              <div style={{fontSize:14,color:DIMMED}}>one-time</div>
+              <div style={{fontSize:12,color:DIMMED}}>one-time</div>
             </div>
           </div>
+          {!unlocks.vital && <RotatingTestimonial accentColor="#34D399" quotes={[
+            {text:"I've read every wellness book going. This is the first thing that actually stuck because it's tied to who I am.",author:"Rachel, 41"},
+            {text:"Simple enough to do daily, powerful enough to actually change things.",author:"Priya, 37"},
+            {text:"By week three I realised I hadn't needed my usual 3pm coffee in days.",author:"Tom, 45"}
+          ]}/>}
           <div style={{display:"flex",flexDirection:"column",gap:8,marginBottom:20}}>
             {[["🌙","Law I — Proper Sleep — the quantum rest protocol"],["🌿","Law II — Fresh Air — the oxygen advantage"],["⚖️","Law III — Temperance — the art of enough"],["⚡","Law IV — Exercise — the moving brain"],["🌱","Law V — Simple Nourishment — the quantum plate"]].map(([ic,tx])=>(
               <div key={tx} style={{display:"flex",gap:10,alignItems:"center"}}>
@@ -748,9 +849,9 @@ function AddOnShop({unlocks, onUnlockNeural, onUnlockVital, onOpenNeural, onOpen
         </div>
       </div>
 
-      {/* Bundle note */}
+      {/* Footer note */}
       <div style={{textAlign:"center",background:"rgba(255,255,255,0.02)",border:`1px solid ${BORDER2}`,borderRadius:14,padding:"16px 20px",marginBottom:8}}>
-        <p style={{fontSize:16,color:MUTED,lineHeight:1.6}}>Each add-on is <strong style={{color:WHITE}}>£5</strong> — £10 for both. No subscriptions. Yours forever.</p>
+        <p style={{fontSize:15,color:MUTED,lineHeight:1.65}}>Each add-on is <strong style={{color:WHITE}}>£5</strong> — or get both for <strong style={{color:AMBER}}>£8</strong> with the Complete System. No subscriptions. Yours forever.</p>
       </div>
     </div>
   );
