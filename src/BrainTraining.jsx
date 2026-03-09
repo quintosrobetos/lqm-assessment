@@ -397,7 +397,7 @@ export default function BrainTraining({ onBack, archetype }){
         const newStreak=userData.lastDay===yesterday?streak+1:userData.lastDay===today?streak:1;
         const bonus=Math.floor(total*(newStreak*0.05));
         const final=total+bonus;
-        const updated={totalXP:totalXP+final,streak:newStreak,lastDay:today,bestScore:Math.max(final,userData.bestScore||0)};
+        const updated={totalXP:totalXP+final,streak:newStreak,lastDay:today,bestScore:Math.max(final,userData.bestScore||0),lastSession:{scores:newScores,total,date:today}};
         
         // Check for level up
         const oldLevel = getLevel(totalXP);
@@ -469,7 +469,7 @@ export default function BrainTraining({ onBack, archetype }){
 
       <div style={{width:"100%",maxWidth:560,padding:"32px 20px 0"}}>
         {screen==="difficulty" && <DifficultySelection onSelect={(d)=>{setDifficulty(d);setScreen("intro");}}/>}
-        {screen==="intro"     && <Intro onStart={startProtocol} onQuickPlay={()=>{setIsQuickPlay(true);setRound(5);setScores([]);setScreen("challenge");}} xp={totalXP} streak={streak} level={level} userData={userData} difficulty={difficulty} challengeData={challengeData}/>}
+        {screen==="intro"     && <Intro onStart={startProtocol} onQuickPlay={()=>{setIsQuickPlay(true);setRound(5);setScores([]);setScreen("challenge");}} xp={totalXP} streak={streak} level={level} userData={userData} difficulty={difficulty} challengeData={challengeData} onViewLastSession={()=>{setScores(userData.lastSession.scores);setIsQuickPlay(false);setScreen("results");}}/>}
         {screen==="science"   && <ScienceCard card={SCIENCE_CARDS[round]} round={round} onBegin={()=>setScreen("challenge")}/>}
         {screen==="challenge" && round===0 && <StroopChallenge   key="s" difficulty={DIFFICULTY[difficulty]} onComplete={handleRoundComplete}/>}
         {screen==="challenge" && round===1 && <NBackChallenge    key="n" difficulty={DIFFICULTY[difficulty]} onComplete={handleRoundComplete}/>}
@@ -484,7 +484,7 @@ export default function BrainTraining({ onBack, archetype }){
 }
 
 // ── Intro ─────────────────────────────────────────────────────────────────
-function Intro({onStart,onQuickPlay,xp,streak,level,userData,challengeData}){
+function Intro({onStart,onQuickPlay,xp,streak,level,userData,challengeData,onViewLastSession}){
   const [showRounds, setShowRounds] = useState(false);
   const nextLevel = LEVELS.find(l=>l.min>xp);
   const pct = nextLevel ? Math.min(100,((xp-level.min)/(nextLevel.min-level.min))*100) : 100;
@@ -674,6 +674,25 @@ function Intro({onStart,onQuickPlay,xp,streak,level,userData,challengeData}){
         onMouseLeave={e=>{e.currentTarget.style.background="transparent";e.currentTarget.style.borderColor=`${PURPLE}55`;}}>
         🛡️ Quick Play: Neural Defense Only
       </button>
+
+      {/* ── 7. LAST SESSION RECALL — tertiary, only shown if a session exists ── */}
+      {userData.lastSession && (() => {
+        const ls = userData.lastSession;
+        const todayStr = new Date().toISOString().split("T")[0];
+        const yestStr  = new Date(Date.now()-86400000).toISOString().split("T")[0];
+        const dateLabel = ls.date===todayStr ? "today" : ls.date===yestStr ? "yesterday"
+          : new Date(ls.date).toLocaleDateString("en-GB",{day:"numeric",month:"short"});
+        return (
+          <button onClick={onViewLastSession}
+            style={{width:"100%",border:"none",borderRadius:100,padding:"11px",marginTop:10,
+              fontSize:13,fontWeight:600,fontFamily:"'Space Grotesk',sans-serif",cursor:"pointer",
+              background:"transparent",color:DIMMED,transition:"color .2s",letterSpacing:".03em"}}
+            onMouseEnter={e=>e.currentTarget.style.color=MUTED}
+            onMouseLeave={e=>e.currentTarget.style.color=DIMMED}>
+            ↩ Last session: {ls.total} pts · {dateLabel}
+          </button>
+        );
+      })()}
 
     </div>
   );
