@@ -316,13 +316,13 @@ export default function App() {
     else{setCharType(calcType(a));setPhase("processing");let st=0;const iv=setInterval(()=>{st++;setProcStep(st);if(st>=5){clearInterval(iv);setTimeout(()=>{setTimerOn(true);setPhase("teaser");},600);}},850);}
   };
 
+  // ── Add-on views are full-page — render outside App's padded/overflow:hidden container ──
+  if(activeAddon==="neural" && unlocks.neural) return <BrainTraining archetype={charType} onBack={()=>setActiveAddon(null)}/>;
+  if(activeAddon==="vital"  && unlocks.vital)  return <QuantumLiving  archetype={charType} onBack={()=>setActiveAddon(null)}/>;
+
   return(
     <div style={{minHeight:"100vh",background:`radial-gradient(ellipse 90% 45% at 50% -5%,rgba(0,200,255,0.06) 0%,transparent 65%),${BG}`,fontFamily:"'Space Grotesk',sans-serif",color:WHITE,display:"flex",flexDirection:"column",alignItems:"center",padding:"0 16px 80px",position:"relative",overflow:"hidden"}}>
       <Particles/>
-
-      {/* ── Active Add-on views ── */}
-      {activeAddon==="neural" && unlocks.neural && <BrainTraining archetype={charType} onBack={()=>setActiveAddon(null)}/>}
-      {activeAddon==="vital"  && unlocks.vital  && <QuantumLiving  archetype={charType} onBack={()=>setActiveAddon(null)}/>}
 
       {/* ── Main app ── */}
       {!activeAddon && <>
