@@ -1820,6 +1820,7 @@ function NeuralDefense({onComplete, difficulty}){
 // ══════════════════════════════════════════════════════════════════════════
 function Results({scores,level,newLevel,streak,dailyAction,arch,challengeData,isQuickPlay,bestScore,onBack,onRetry}){
   const [expandedInsights, setExpandedInsights] = useState(new Set());
+  const [showDetails, setShowDetails] = useState(false); // progressive disclosure — hides focus/21-day/blueprint by default
 
   function toggleInsight(i){
     setExpandedInsights(prev => {
@@ -1891,14 +1892,15 @@ function Results({scores,level,newLevel,streak,dailyAction,arch,challengeData,is
         {streak>0&&<div style={{display:"inline-flex",alignItems:"center",gap:8,background:"rgba(251,191,36,0.06)",border:"1px solid rgba(251,191,36,0.16)",borderRadius:100,padding:"6px 14px",fontSize:14,color:AMBER,fontWeight:600}}>🔥 {streak}-day streak · +{streak*5}% bonus</div>}
       </div>
 
-      {/* ── 3. TODAY'S FOCUS — action is the headline, science is the footnote ── */}
-      <div style={{
+      {/* ── 3. TODAY'S FOCUS — hidden until user expands full analysis ── */}
+      {showDetails && (<div style={{
         background:`linear-gradient(135deg,rgba(0,200,255,0.07),rgba(0,200,255,0.02))`,
         border:`1px solid ${E_BLUE}44`,
         borderLeft:`4px solid ${E_BLUE}`,
         borderRadius:"0 16px 16px 0",
         padding:"22px 22px 18px",
         marginBottom:14,
+        animation:"fadeUp .3s ease both",
       }}>
         {/* Label */}
         <p style={{fontSize:11,fontWeight:700,color:E_BLUE,letterSpacing:".2em",textTransform:"uppercase",marginBottom:10}}>⚡ Today's Focus</p>
@@ -1917,16 +1919,17 @@ function Results({scores,level,newLevel,streak,dailyAction,arch,challengeData,is
           <span style={{fontSize:13,flexShrink:0,marginTop:1,opacity:.6}}>🔬</span>
           <p style={{fontSize:13,color:DIMMED,lineHeight:1.6,fontStyle:"italic"}}>{dailyAction.science}</p>
         </div>
-      </div>
+      </div>)}
 
-      {/* ── 4. 21-DAY COMEBACK — momentum message leads, data follows ── */}
-      {challengeData && (
+      {/* ── 4. 21-DAY COMEBACK — hidden until user expands full analysis ── */}
+      {showDetails && challengeData && (
         <div style={{
           background:`linear-gradient(135deg,rgba(251,191,36,0.06),rgba(251,191,36,0.02))`,
           border:`1px solid rgba(251,191,36,0.22)`,
           borderRadius:16,
           padding:"20px",
           marginBottom:14,
+          animation:"fadeUp .35s ease both",
         }}>
           {/* Comeback message — this is the emotional lead */}
           <div style={{display:"flex",gap:14,alignItems:"center",marginBottom:16,paddingBottom:16,borderBottom:`1px solid rgba(255,255,255,0.06)`}}>
@@ -2032,8 +2035,8 @@ function Results({scores,level,newLevel,streak,dailyAction,arch,challengeData,is
         </div>
       )}
 
-      {/* ── 7. COGNITIVE BLUEPRINT — discoverable insight cards ── */}
-      {arch && (
+      {/* ── 7. COGNITIVE BLUEPRINT — hidden until user expands full analysis ── */}
+      {showDetails && arch && (
         <div style={{
           background:`linear-gradient(135deg,${arch.color}0a,transparent)`,
           border:`1px solid ${arch.color}33`,
@@ -2041,6 +2044,7 @@ function Results({scores,level,newLevel,streak,dailyAction,arch,challengeData,is
           borderRadius:"0 16px 16px 0",
           padding:"20px",
           marginBottom:14,
+          animation:"fadeUp .4s ease both",
         }}>
           {/* Section header */}
           <p style={{fontSize:11,fontWeight:700,color:arch.color,letterSpacing:".2em",textTransform:"uppercase",marginBottom:6}}>⚛ {arch.name}</p>
@@ -2124,6 +2128,24 @@ function Results({scores,level,newLevel,streak,dailyAction,arch,challengeData,is
           </div>
         </div>
       )}
+
+      {/* ── 7b. PROGRESSIVE DISCLOSURE TOGGLE ─────────────────────────────── */}
+      <button
+        onClick={()=>setShowDetails(d=>!d)}
+        style={{
+          width:"100%",border:`1px solid ${showDetails?"rgba(255,255,255,0.14)":"rgba(0,200,255,0.28)"}`,
+          borderRadius:100,padding:"13px",marginBottom:10,
+          fontSize:13,fontWeight:700,
+          background:showDetails?"rgba(255,255,255,0.03)":"rgba(0,200,255,0.06)",
+          color:showDetails?DIMMED:E_BLUE,cursor:"pointer",
+          fontFamily:"'Space Grotesk',sans-serif",letterSpacing:".05em",
+          transition:"all .2s",
+        }}
+        onMouseEnter={e=>{e.currentTarget.style.borderColor=E_BLUE;e.currentTarget.style.color=E_BLUE;}}
+        onMouseLeave={e=>{e.currentTarget.style.borderColor=showDetails?"rgba(255,255,255,0.14)":"rgba(0,200,255,0.28)";e.currentTarget.style.color=showDetails?DIMMED:E_BLUE;}}
+      >
+        {showDetails ? "↑ Hide full analysis" : "📋 See full analysis →"}
+      </button>
 
       {/* ── 8. BUTTONS ── */}
       <div style={{display:"flex",gap:10}}>
