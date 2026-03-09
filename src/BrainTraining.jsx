@@ -205,10 +205,20 @@ function ShapeEl({shape,color,size=36}){
 
 // ── Pattern Matrix puzzles ────────────────────────────────────────────────
 const PATTERN_PUZZLES = [
+  // ── Original 4 puzzles ─────────────────────────────────────────────────
   { grid:[{sh:"circle",co:"#EF4444"},{sh:"square",co:"#EF4444"},{sh:"triangle",co:"#EF4444"},{sh:"circle",co:"#3B82F6"},{sh:"square",co:"#3B82F6"},{sh:"triangle",co:"#3B82F6"},{sh:"circle",co:"#22C55E"},{sh:"square",co:"#22C55E"},null], answer:{sh:"triangle",co:"#22C55E"}, options:[{sh:"triangle",co:"#22C55E"},{sh:"diamond",co:"#22C55E"},{sh:"triangle",co:"#F59E0B"},{sh:"circle",co:"#22C55E"}], rule:"Each row cycles through three shapes. Each row has its own colour." },
   { grid:[{sh:"diamond",co:"#F59E0B"},{sh:"diamond",co:"#EF4444"},{sh:"diamond",co:"#3B82F6"},{sh:"circle",co:"#F59E0B"},{sh:"circle",co:"#EF4444"},{sh:"circle",co:"#3B82F6"},{sh:"square",co:"#F59E0B"},{sh:"square",co:"#EF4444"},null], answer:{sh:"square",co:"#3B82F6"}, options:[{sh:"square",co:"#3B82F6"},{sh:"square",co:"#22C55E"},{sh:"circle",co:"#3B82F6"},{sh:"diamond",co:"#3B82F6"}], rule:"Each column has a unique colour. Each row uses the same shape." },
   { grid:[{sh:"circle",co:"#EF4444"},{sh:"square",co:"#3B82F6"},{sh:"triangle",co:"#22C55E"},{sh:"square",co:"#22C55E"},{sh:"triangle",co:"#EF4444"},{sh:"circle",co:"#3B82F6"},{sh:"triangle",co:"#3B82F6"},{sh:"circle",co:"#22C55E"},null], answer:{sh:"square",co:"#EF4444"}, options:[{sh:"square",co:"#EF4444"},{sh:"square",co:"#22C55E"},{sh:"triangle",co:"#EF4444"},{sh:"circle",co:"#EF4444"}], rule:"Each shape and each colour appears exactly once per row and column." },
   { grid:[{sh:"circle",co:"#A78BFA"},{sh:"circle",co:"#A78BFA"},{sh:"square",co:"#A78BFA"},{sh:"circle",co:"#F472B6"},{sh:"square",co:"#F472B6"},{sh:"square",co:"#F472B6"},{sh:"square",co:"#22C55E"},{sh:"square",co:"#22C55E"},null], answer:{sh:"circle",co:"#22C55E"}, options:[{sh:"circle",co:"#22C55E"},{sh:"square",co:"#22C55E"},{sh:"circle",co:"#F472B6"},{sh:"triangle",co:"#22C55E"}], rule:"Count shapes per row — each colour follows a 2-1 or 1-2 distribution pattern." },
+  // ── 8 new puzzles — 495 unique 4-from-12 combinations per session ──────
+  { grid:[{sh:"circle",co:"#3B82F6"},{sh:"square",co:"#EF4444"},{sh:"circle",co:"#3B82F6"},{sh:"square",co:"#EF4444"},{sh:"circle",co:"#3B82F6"},{sh:"square",co:"#EF4444"},{sh:"circle",co:"#3B82F6"},{sh:"square",co:"#EF4444"},null], answer:{sh:"circle",co:"#3B82F6"}, options:[{sh:"circle",co:"#3B82F6"},{sh:"square",co:"#3B82F6"},{sh:"circle",co:"#EF4444"},{sh:"square",co:"#EF4444"}], rule:"Two shapes alternate in a checkerboard pattern. Each shape keeps its own colour throughout." },
+  { grid:[{sh:"circle",co:"#F59E0B"},{sh:"square",co:"#F59E0B"},{sh:"triangle",co:"#F59E0B"},{sh:"circle",co:"#A78BFA"},{sh:"square",co:"#A78BFA"},{sh:"triangle",co:"#A78BFA"},{sh:"circle",co:"#3B82F6"},{sh:"square",co:"#3B82F6"},null], answer:{sh:"triangle",co:"#3B82F6"}, options:[{sh:"triangle",co:"#3B82F6"},{sh:"diamond",co:"#3B82F6"},{sh:"triangle",co:"#A78BFA"},{sh:"circle",co:"#3B82F6"}], rule:"Each row shares the same colour. Each column always shows the same shape." },
+  { grid:[{sh:"circle",co:"#EF4444"},{sh:"square",co:"#22C55E"},{sh:"triangle",co:"#3B82F6"},{sh:"square",co:"#EF4444"},{sh:"triangle",co:"#22C55E"},{sh:"circle",co:"#3B82F6"},{sh:"triangle",co:"#EF4444"},{sh:"circle",co:"#22C55E"},null], answer:{sh:"square",co:"#3B82F6"}, options:[{sh:"square",co:"#3B82F6"},{sh:"triangle",co:"#3B82F6"},{sh:"square",co:"#EF4444"},{sh:"circle",co:"#3B82F6"}], rule:"Each row shifts the shapes one position to the left. Colours stay fixed to their column." },
+  { grid:[{sh:"diamond",co:"#A78BFA"},{sh:"circle",co:"#EF4444"},{sh:"square",co:"#3B82F6"},{sh:"circle",co:"#F59E0B"},{sh:"square",co:"#22C55E"},{sh:"diamond",co:"#EF4444"},{sh:"diamond",co:"#A78BFA"},{sh:"circle",co:"#EF4444"},null], answer:{sh:"square",co:"#3B82F6"}, options:[{sh:"square",co:"#3B82F6"},{sh:"diamond",co:"#3B82F6"},{sh:"square",co:"#A78BFA"},{sh:"circle",co:"#3B82F6"}], rule:"The bottom row is an exact copy of the top row. The middle row is independent." },
+  { grid:[{sh:"circle",co:"#EF4444"},{sh:"square",co:"#3B82F6"},{sh:"triangle",co:"#22C55E"},{sh:"triangle",co:"#EF4444"},{sh:"circle",co:"#3B82F6"},{sh:"square",co:"#22C55E"},{sh:"square",co:"#EF4444"},{sh:"triangle",co:"#3B82F6"},null], answer:{sh:"circle",co:"#22C55E"}, options:[{sh:"circle",co:"#22C55E"},{sh:"triangle",co:"#22C55E"},{sh:"circle",co:"#3B82F6"},{sh:"diamond",co:"#22C55E"}], rule:"Each shape appears exactly 3 times across the full grid. Each colour appears exactly 3 times too." },
+  { grid:[{sh:"square",co:"#EF4444"},{sh:"square",co:"#EF4444"},{sh:"square",co:"#EF4444"},{sh:"square",co:"#EF4444"},{sh:"circle",co:"#3B82F6"},{sh:"square",co:"#EF4444"},{sh:"square",co:"#EF4444"},{sh:"square",co:"#EF4444"},null], answer:{sh:"square",co:"#EF4444"}, options:[{sh:"square",co:"#EF4444"},{sh:"circle",co:"#3B82F6"},{sh:"square",co:"#3B82F6"},{sh:"circle",co:"#EF4444"}], rule:"All 8 border cells share the same shape and colour. The centre cell is the exception. Complete the border." },
+  { grid:[{sh:"circle",co:"#3B82F6"},{sh:"square",co:"#EF4444"},{sh:"square",co:"#EF4444"},{sh:"circle",co:"#3B82F6"},{sh:"circle",co:"#3B82F6"},{sh:"square",co:"#EF4444"},{sh:"circle",co:"#3B82F6"},{sh:"circle",co:"#3B82F6"},null], answer:{sh:"circle",co:"#3B82F6"}, options:[{sh:"circle",co:"#3B82F6"},{sh:"square",co:"#EF4444"},{sh:"circle",co:"#EF4444"},{sh:"square",co:"#3B82F6"}], rule:"Each row, the number of circles increases by one (1→2→3). The number of squares decreases accordingly." },
+  { grid:[{sh:"circle",co:"#F59E0B"},{sh:"square",co:"#A78BFA"},{sh:"triangle",co:"#EF4444"},{sh:"triangle",co:"#F59E0B"},{sh:"circle",co:"#A78BFA"},{sh:"square",co:"#EF4444"},{sh:"square",co:"#F59E0B"},{sh:"triangle",co:"#A78BFA"},null], answer:{sh:"circle",co:"#EF4444"}, options:[{sh:"circle",co:"#EF4444"},{sh:"square",co:"#EF4444"},{sh:"circle",co:"#F59E0B"},{sh:"diamond",co:"#EF4444"}], rule:"Each row, the last shape moves to the front. Colours stay fixed to their column." },
 ];
 
 // ── Reaction shapes/colors ────────────────────────────────────────────────
@@ -1232,6 +1242,7 @@ function NeuralDefense({onComplete, difficulty}){
   const shapesRef = useRef([]); // Mirror of shapes state — read synchronously in handleShoot
   const lastShotRef = useRef(0);  // timestamp of last accepted shot — enforces 200ms cooldown
   const comboRef = useRef(0);     // mirrors combo state for sync read inside handleShoot
+  const bonusStarTimerRef = useRef(null); // one-shot timeout per wave for the ⭐ bonus star
   
   const SHAPES_POOL = [
     {type:"circle", color:E_BLUE, pts:10},
@@ -1265,7 +1276,7 @@ function NeuralDefense({onComplete, difficulty}){
     const spawnRate = w===1 ? SPAWN_RATE_WAVE1 : w===2 ? SPAWN_RATE_WAVE2 : SPAWN_RATE_WAVE3;
     const fallSpeed = w===1 ? FALL_SPEED_WAVE1 : w===2 ? FALL_SPEED_WAVE2 : FALL_SPEED_WAVE3;
     
-    // Spawn shapes periodically
+    // Spawn shapes periodically — ±15% speed jitter per shape prevents timing memorisation
     spawnTimerRef.current = setInterval(()=>{
       const shape = SHAPES_POOL[Math.floor(Math.random()*SHAPES_POOL.length)];
       const id = nextId.current++;
@@ -1274,10 +1285,28 @@ function NeuralDefense({onComplete, difficulty}){
         ...shape,
         x: Math.random() * (GAME_WIDTH - SHAPE_SIZE),
         y: -SHAPE_SIZE,
-        speed: fallSpeed,
+        speed: fallSpeed * (0.85 + Math.random() * 0.3), // ±15% jitter
         spawnTime: Date.now(),
       }]);
     }, spawnRate);
+
+    // ⭐ BONUS STAR — one per wave at a random time (5–25s in)
+    // Worth 30 pts, falls fast (~1.5s across screen), missing it has NO penalty
+    const starDelay = (5 + Math.random() * 20) * 1000;
+    bonusStarTimerRef.current = setTimeout(()=>{
+      const id = nextId.current++;
+      setShapes(prev => [...prev, {
+        id,
+        type: "star",
+        color: "#FFD700",
+        pts: 30,
+        x: Math.random() * (GAME_WIDTH - SHAPE_SIZE),
+        y: -SHAPE_SIZE,
+        speed: 5.5, // crosses 500px canvas in ~1.5s at 60fps
+        spawnTime: Date.now(),
+        isBonusStar: true,
+      }]);
+    }, starDelay);
     
     // Wave countdown timer
     let timeLeft = WAVE_DURATION;
@@ -1287,6 +1316,7 @@ function NeuralDefense({onComplete, difficulty}){
       if(timeLeft <= 0){
         clearInterval(spawnTimerRef.current);
         clearInterval(waveTimerRef.current);
+        clearTimeout(bonusStarTimerRef.current); // cancel star if it hasn't fired yet
         if(w < 3){
           setWaveTransition({wave: w + 1}); // show transition overlay during 2s gap
           setTimeout(()=> startWave(w+1), 2000);
@@ -1300,6 +1330,7 @@ function NeuralDefense({onComplete, difficulty}){
   function finishGame(){
     clearInterval(spawnTimerRef.current);
     clearInterval(waveTimerRef.current);
+    clearTimeout(bonusStarTimerRef.current);
     if(gameLoopRef.current) cancelAnimationFrame(gameLoopRef.current);
     
     const accuracy = hitsRef.current + missesRef.current > 0
@@ -1320,11 +1351,12 @@ function NeuralDefense({onComplete, difficulty}){
       setShapes(prev => {
         const updated = prev.map(s => ({...s, y: s.y + s.speed}));
         // Remove shapes that reached bottom (missed)
-        const missed = updated.filter(s => s.y > GAME_HEIGHT);
-        if(missed.length > 0){
-          setMisses(m => m + missed.length);
-          missesRef.current += missed.length; // Keep ref in sync for finishGame accuracy calculation
-          // 💥 COMBO BREAK — reset streak on any miss
+        const allMissed = updated.filter(s => s.y > GAME_HEIGHT);
+        const regularMissed = allMissed.filter(s => !s.isBonusStar); // bonus star misses = no penalty
+        if(regularMissed.length > 0){
+          setMisses(m => m + regularMissed.length);
+          missesRef.current += regularMissed.length; // Keep ref in sync for finishGame accuracy calculation
+          // 💥 COMBO BREAK — reset streak on any regular miss
           comboRef.current = 0;
           setCombo(0);
           // 🔊 MISS SOUND
@@ -1333,6 +1365,7 @@ function NeuralDefense({onComplete, difficulty}){
           setScreenFlash('red');
           setTimeout(() => setScreenFlash(null), 200);
         }
+        // Bonus star exits bottom silently — no combo break, no flash, no miss count
         const remaining = updated.filter(s => s.y <= GAME_HEIGHT);
         shapesRef.current = remaining; // Keep ref in sync for synchronous reads in handleShoot
         return remaining;
@@ -1361,6 +1394,7 @@ function NeuralDefense({onComplete, difficulty}){
     return ()=>{
       clearInterval(spawnTimerRef.current);
       clearInterval(waveTimerRef.current);
+      clearTimeout(bonusStarTimerRef.current);
       if(gameLoopRef.current) cancelAnimationFrame(gameLoopRef.current);
     };
   }, []);
@@ -1521,6 +1555,7 @@ function NeuralDefense({onComplete, difficulty}){
     if(type==="square") return <div style={{width:size,height:size,background:color,borderRadius:4,boxShadow:`0 0 12px ${color}88`}}/>;
     if(type==="triangle") return <div style={{width:0,height:0,borderLeft:`${size/2}px solid transparent`,borderRight:`${size/2}px solid transparent`,borderBottom:`${size}px solid ${color}`,filter:`drop-shadow(0 0 8px ${color}88)`}}/>;
     if(type==="diamond") return <div style={{width:size,height:size,background:color,transform:"rotate(45deg)",borderRadius:4,boxShadow:`0 0 12px ${color}88`}}/>;
+    if(type==="star") return <div style={{width:size,height:size,fontSize:size*0.88,lineHeight:"1",textAlign:"center",filter:`drop-shadow(0 0 10px #FFD700) drop-shadow(0 0 22px #FFD70066)`,animation:"pulse 0.5s ease-in-out infinite",userSelect:"none"}}>⭐</div>;
   }
 
   if(phase === "ready"){
@@ -1535,7 +1570,8 @@ function NeuralDefense({onComplete, difficulty}){
             Shapes fall from above.<br/>
             <strong style={{color:PURPLE}}>Move your shield</strong> left and right,<br/>
             then <strong style={{color:PURPLE}}>tap to block</strong> before they hit bottom.<br/>
-            <span style={{fontSize:14,color:DIMMED}}>3 waves · Increasing speed · Every hit counts</span>
+            <span style={{fontSize:14,color:DIMMED}}>3 waves · Increasing speed · Every hit counts</span><br/>
+            <span style={{fontSize:14,color:"#FFD700"}}>⭐ Watch for gold stars — catch them for 30 bonus points!</span>
           </p>
           <div style={{background:"rgba(251,191,36,0.08)",border:"1px solid rgba(251,191,36,0.25)",borderRadius:12,padding:"12px 16px",marginBottom:12}}>
             <p style={{fontSize:14,color:AMBER,fontWeight:700,marginBottom:4}}>🛡️ Shield Tip:</p>
