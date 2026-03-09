@@ -514,7 +514,7 @@ function Intro({onStart,onQuickPlay,xp,streak,level,userData,challengeData}){
         <h1 style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"clamp(38px,8vw,60px)",letterSpacing:2,color:WHITE,lineHeight:1.0,marginBottom:16}}>
           Train Your<br/><span style={{color:E_BLUE}}>Quantum Mind</span>
         </h1>
-        <p style={{fontFamily:"'Crimson Pro',serif",fontStyle:"italic",fontSize:16,color:MUTED,lineHeight:1.75,maxWidth:320,margin:"0 auto"}}>
+        <p style={{fontFamily:"'Crimson Pro',serif",fontStyle:"italic",fontSize:18,color:"rgba(255,255,255,0.92)",lineHeight:1.75,maxWidth:340,margin:"0 auto",textShadow:"0 0 20px rgba(0,200,255,0.15)",animation:"pulse 3.5s ease-in-out infinite"}}>
           "The exercised brain builds new neural pathways throughout life. Consistency compounds."
         </p>
       </div>
@@ -529,6 +529,11 @@ function Intro({onStart,onQuickPlay,xp,streak,level,userData,challengeData}){
         onMouseLeave={e=>{e.currentTarget.style.transform="translateY(0)";e.currentTarget.style.boxShadow=`0 8px 32px rgba(0,200,255,0.28)`;}}>
         ⚡ Begin Full Protocol →
       </button>
+
+      {/* ── 2b. BENCHMARK CONTEXT — sets expectation before they start ──── */}
+      <p style={{textAlign:"center",fontSize:12,color:DIMMED,letterSpacing:".04em",marginBottom:12,marginTop:-2}}>
+        Avg score: ~420 pts · Top 20%: 480+ · Elite: 600+
+      </p>
 
       {/* ── 3. XP STRIP — slim, one row, no visual noise at zero ─────────── */}
       <div className="fu2" style={{
