@@ -364,6 +364,7 @@ export default function BrainTraining({ onBack, archetype }){
   const [round,   setRound]   = useState(0);
   const [scores,  setScores]  = useState([]);
   const [isQuickPlay, setIsQuickPlay] = useState(false);
+  const [fromRecall, setFromRecall] = useState(false); // true when viewing last session results — back goes to intro not hub
   const [userData,setUserData]= useState(loadBrain);
   const [dailyAction]         = useState(()=>DAILY_ACTIONS[new Date().getDay()]);
   const [challengeData, setChallengeData] = useState(null);
@@ -479,7 +480,7 @@ export default function BrainTraining({ onBack, archetype }){
 
       <div style={{width:"100%",maxWidth:560,padding:"32px 20px 0"}}>
         {screen==="difficulty" && <DifficultySelection onSelect={(d)=>{setDifficulty(d);setScreen("intro");}}/>}
-        {screen==="intro"     && <Intro onStart={startProtocol} onQuickPlay={()=>{setIsQuickPlay(true);setRound(5);setScores([]);setScreen("challenge");}} xp={totalXP} streak={streak} level={level} userData={userData} difficulty={difficulty} challengeData={challengeData} onViewLastSession={()=>{setScores(userData.lastSession.scores);setIsQuickPlay(false);setScreen("results");}}/>}
+        {screen==="intro"     && <Intro onStart={startProtocol} onQuickPlay={()=>{setIsQuickPlay(true);setRound(5);setScores([]);setScreen("challenge");}} xp={totalXP} streak={streak} level={level} userData={userData} difficulty={difficulty} challengeData={challengeData} onViewLastSession={()=>{setScores(userData.lastSession.scores);setIsQuickPlay(false);setFromRecall(true);setScreen("results");}}/>}
         {screen==="science"   && <ScienceCard card={SCIENCE_CARDS[round]} round={round} onBegin={()=>setScreen("challenge")}/>}
         {screen==="challenge" && round===0 && <StroopChallenge   key="s" difficulty={DIFFICULTY[difficulty]} onComplete={handleRoundComplete}/>}
         {screen==="challenge" && round===1 && <NBackChallenge    key="n" difficulty={DIFFICULTY[difficulty]} onComplete={handleRoundComplete}/>}
@@ -487,7 +488,7 @@ export default function BrainTraining({ onBack, archetype }){
         {screen==="challenge" && round===3 && <ReactionChallenge key="r" difficulty={DIFFICULTY[difficulty]} onComplete={handleRoundComplete}/>}
         {screen==="challenge" && round===4 && <SwitchChallenge   key="sw" difficulty={DIFFICULTY[difficulty]} onComplete={handleRoundComplete}/>}
         {screen==="challenge" && round===5 && <NeuralDefense     key="nd" difficulty={DIFFICULTY[difficulty]} onComplete={handleRoundComplete}/>}
-        {screen==="results"   && <Results scores={scores} level={level} newLevel={getLevel(totalXP)} streak={streak} dailyAction={dailyAction} arch={arch} challengeData={challengeData} isQuickPlay={isQuickPlay} bestScore={userData.bestScore||0} onBack={onBack} onRetry={()=>{setIsQuickPlay(false);setRound(0);setScores([]);setScreen("science");}}/>}
+        {screen==="results"   && <Results scores={scores} level={level} newLevel={getLevel(totalXP)} streak={streak} dailyAction={dailyAction} arch={arch} challengeData={challengeData} isQuickPlay={isQuickPlay} bestScore={userData.bestScore||0} fromRecall={fromRecall} onBack={fromRecall ? ()=>{setFromRecall(false);setScreen("intro");} : onBack} onRetry={()=>{setIsQuickPlay(false);setFromRecall(false);setRound(0);setScores([]);setScreen("science");}}/>}
       </div>
     </div>
   );
@@ -685,7 +686,7 @@ function Intro({onStart,onQuickPlay,xp,streak,level,userData,challengeData,onVie
         🛡️ Quick Play: Neural Defense Only
       </button>
 
-      {/* ── 7. LAST SESSION RECALL — tertiary, only shown if a session exists ── */}
+      {/* ── 7. LAST SESSION RECALL — clearly visible card, only shown if a session exists ── */}
       {userData.lastSession && (() => {
         const ls = userData.lastSession;
         const todayStr = new Date().toISOString().split("T")[0];
@@ -694,12 +695,19 @@ function Intro({onStart,onQuickPlay,xp,streak,level,userData,challengeData,onVie
           : new Date(ls.date).toLocaleDateString("en-GB",{day:"numeric",month:"short"});
         return (
           <button onClick={onViewLastSession}
-            style={{width:"100%",border:"none",borderRadius:100,padding:"11px",marginTop:10,
-              fontSize:13,fontWeight:600,fontFamily:"'Space Grotesk',sans-serif",cursor:"pointer",
-              background:"transparent",color:DIMMED,transition:"color .2s",letterSpacing:".03em"}}
-            onMouseEnter={e=>e.currentTarget.style.color=MUTED}
-            onMouseLeave={e=>e.currentTarget.style.color=DIMMED}>
-            ↩ Last session: {ls.total} pts · {dateLabel}
+            style={{width:"100%",border:`1px solid rgba(0,200,255,0.28)`,borderRadius:12,
+              padding:"13px 18px",marginTop:12,
+              fontSize:14,fontWeight:600,fontFamily:"'Space Grotesk',sans-serif",cursor:"pointer",
+              background:"rgba(0,200,255,0.05)",color:MUTED,
+              display:"flex",alignItems:"center",justifyContent:"space-between",
+              transition:"all .18s",letterSpacing:".02em"}}
+            onMouseEnter={e=>{e.currentTarget.style.background="rgba(0,200,255,0.1)";e.currentTarget.style.borderColor="rgba(0,200,255,0.55)";e.currentTarget.style.color=WHITE;}}
+            onMouseLeave={e=>{e.currentTarget.style.background="rgba(0,200,255,0.05)";e.currentTarget.style.borderColor="rgba(0,200,255,0.28)";e.currentTarget.style.color=MUTED;}}>
+            <span style={{display:"flex",alignItems:"center",gap:8}}>
+              <span style={{fontSize:16}}>📋</span>
+              <span>View last session results</span>
+            </span>
+            <span style={{fontSize:13,color:E_BLUE,fontWeight:700}}>{ls.total} pts · {dateLabel} →</span>
           </button>
         );
       })()}
@@ -1873,7 +1881,7 @@ function NeuralDefense({onComplete, difficulty}){
 // ══════════════════════════════════════════════════════════════════════════
 
 // ══════════════════════════════════════════════════════════════════════════
-function Results({scores,level,newLevel,streak,dailyAction,arch,challengeData,isQuickPlay,bestScore,onBack,onRetry}){
+function Results({scores,level,newLevel,streak,dailyAction,arch,challengeData,isQuickPlay,bestScore,onBack,onRetry,fromRecall}){
   const [expandedInsights, setExpandedInsights] = useState(new Set());
   const [showDetails, setShowDetails] = useState(false); // progressive disclosure — hides focus/21-day/blueprint by default
 
@@ -2209,7 +2217,7 @@ function Results({scores,level,newLevel,streak,dailyAction,arch,challengeData,is
           onMouseLeave={e=>{e.currentTarget.style.color=MUTED;e.currentTarget.style.borderColor=BORDER;}}>↺ Retry</button>
         <button onClick={onBack} style={{flex:2,border:"none",borderRadius:100,padding:"14px",fontSize:14,fontWeight:700,background:`linear-gradient(135deg,${E_BLUE2},${E_BLUE})`,color:BG,cursor:"pointer",fontFamily:"'Space Grotesk',sans-serif",letterSpacing:".05em",transition:"all .2s"}}
           onMouseEnter={e=>e.currentTarget.style.transform="translateY(-2px)"}
-          onMouseLeave={e=>e.currentTarget.style.transform="translateY(0)"}>← Back to LQM</button>
+          onMouseLeave={e=>e.currentTarget.style.transform="translateY(0)"}>{fromRecall ? "← Back to Home" : "← Back to LQM"}</button>
       </div>
     </div>
   );
