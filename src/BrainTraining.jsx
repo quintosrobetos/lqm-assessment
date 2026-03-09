@@ -1193,6 +1193,8 @@ function NeuralDefense({onComplete, difficulty}){
   const [shieldActive, setShieldActive] = useState(false); // Shield glow effect
   
   const [hintDismissed, setHintDismissed] = useState(false);
+  const [combo, setCombo] = useState(0);               // consecutive hits without a miss
+  const [waveTransition, setWaveTransition] = useState(null); // {wave:n} during 2s gap between waves
 
   const gameLoopRef = useRef(null);
   const spawnTimerRef = useRef(null);
@@ -1204,6 +1206,8 @@ function NeuralDefense({onComplete, difficulty}){
   const hitsRef = useRef(0);
   const missesRef = useRef(0); // Mirrors misses state — avoids stale closure in finishGame
   const shapesRef = useRef([]); // Mirror of shapes state — read synchronously in handleShoot
+  const lastShotRef = useRef(0);  // timestamp of last accepted shot — enforces 200ms cooldown
+  const comboRef = useRef(0);     // mirrors combo state for sync read inside handleShoot
   
   const SHAPES_POOL = [
     {type:"circle", color:E_BLUE, pts:10},
@@ -1222,11 +1226,15 @@ function NeuralDefense({onComplete, difficulty}){
     setShapes([]); shapesRef.current = [];
     setParticles([]);
     setHintDismissed(false);
+    setCombo(0); comboRef.current = 0;
+    setWaveTransition(null);
+    lastShotRef.current = 0;
     reactionTimes.current = [];
     startWave(1);
   }
 
   function startWave(w){
+    setWaveTransition(null); // clear any between-wave overlay
     setWave(w);
     setWaveTime(WAVE_DURATION);
     
@@ -1256,6 +1264,7 @@ function NeuralDefense({onComplete, difficulty}){
         clearInterval(spawnTimerRef.current);
         clearInterval(waveTimerRef.current);
         if(w < 3){
+          setWaveTransition({wave: w + 1}); // show transition overlay during 2s gap
           setTimeout(()=> startWave(w+1), 2000);
         } else {
           finishGame();
@@ -1291,6 +1300,9 @@ function NeuralDefense({onComplete, difficulty}){
         if(missed.length > 0){
           setMisses(m => m + missed.length);
           missesRef.current += missed.length; // Keep ref in sync for finishGame accuracy calculation
+          // 💥 COMBO BREAK — reset streak on any miss
+          comboRef.current = 0;
+          setCombo(0);
           // 🔊 MISS SOUND
           playMissSound();
           // ❌ SCREEN FLASH on miss
@@ -1331,6 +1343,11 @@ function NeuralDefense({onComplete, difficulty}){
 
   function handleShoot(){
     if(phase !== "playing") return;
+
+    // ── CHANGE 2: 200ms cooldown — prevents spam-tap scoring exploit ──────
+    const now = Date.now();
+    if(now - lastShotRef.current < 200) return;
+    lastShotRef.current = now;
     
     // Dismiss the tap hint on first shot
     setHintDismissed(true);
@@ -1367,10 +1384,17 @@ function NeuralDefense({onComplete, difficulty}){
     });
     
     if(bestTarget){
+      // ── CHANGE 3: Combo multiplier ────────────────────────────────────
+      const newCombo = comboRef.current + 1;
+      comboRef.current = newCombo;
+      setCombo(newCombo);
+      const multiplier = newCombo >= 10 ? 2.0 : newCombo >= 5 ? 1.5 : 1.0;
+      const earnedPts = Math.round(bestTarget.pts * multiplier);
+
       // ── Update game state ─────────────────────────────────────────────
-      scoreRef.current += bestTarget.pts;
+      scoreRef.current += earnedPts;
       hitsRef.current += 1;
-      reactionTimes.current.push(Date.now() - bestTarget.spawnTime);
+      reactionTimes.current.push(now - bestTarget.spawnTime);
       
       // Remove hit shape from state
       setShapes(prev => prev.filter(s => s.id !== bestTarget.id));
@@ -1420,14 +1444,29 @@ function NeuralDefense({onComplete, difficulty}){
       // Single batched update — no per-particle renders, no freeze
       setParticles(prev => [...prev, ...newParticles]);
       
-      // 🎯 Score popup
-      setScorePopups(prev => [...prev, {
-        id: nextPopupId.current++,
-        x: cx, y: bestTarget.y,
-        value: `+${bestTarget.pts}`,
-        color: bestTarget.color,
-        life: 30,
-      }]);
+      // 🎯 Score popup — shows multiplied value
+      setScorePopups(prev => {
+        const next = [...prev, {
+          id: nextPopupId.current++,
+          x: cx, y: bestTarget.y,
+          value: `+${earnedPts}`,
+          color: multiplier >= 2.0 ? VIOLET : multiplier >= 1.5 ? AMBER : bestTarget.color,
+          life: 30,
+        }];
+        // 🔥 Combo milestone popup — appears when threshold is first crossed
+        if(newCombo === 5 || newCombo === 10){
+          next.push({
+            id: nextPopupId.current++,
+            x: GAME_WIDTH / 2,
+            y: GAME_HEIGHT / 2 - 40,
+            value: newCombo >= 10 ? "COMBO ×2!" : "COMBO ×1.5!",
+            color: newCombo >= 10 ? VIOLET : AMBER,
+            life: 45,
+            isCombo: true,
+          });
+        }
+        return next;
+      });
     }
   }
 
@@ -1448,7 +1487,7 @@ function NeuralDefense({onComplete, difficulty}){
 
   function handleTouchEnd(e){
     if(phase !== "playing") return;
-    // Fire shoot on tap (touchend = tap on mobile)
+    e.preventDefault(); // CHANGE 1: stops browser synthesising a ghost onClick ~300ms after touchend
     handleShoot();
   }
 
@@ -1511,6 +1550,18 @@ function NeuralDefense({onComplete, difficulty}){
             <div style={{display:"flex",gap:12,alignItems:"center"}}>
               <span style={{fontSize:13,color:MUTED}}>🎯 <strong style={{color:GREEN}}>{hits}</strong> hits</span>
               <span style={{fontSize:13,color:MUTED}}>❌ <strong style={{color:RED}}>{misses}</strong> missed</span>
+              {combo >= 3 && (
+                <span style={{
+                  fontSize:11, fontWeight:700, letterSpacing:".08em",
+                  padding:"2px 8px", borderRadius:100,
+                  background: combo >= 10 ? `rgba(167,139,250,0.18)` : `rgba(251,191,36,0.15)`,
+                  color: combo >= 10 ? VIOLET : AMBER,
+                  border: `1px solid ${combo >= 10 ? "rgba(167,139,250,0.4)" : "rgba(251,191,36,0.35)"}`,
+                  animation:"pulse 0.8s infinite"
+                }}>
+                  🔥 ×{combo >= 10 ? "2" : "1.5"}
+                </span>
+              )}
             </div>
           </div>
           {/* Centre: Score */}
@@ -1575,19 +1626,23 @@ function NeuralDefense({onComplete, difficulty}){
           }}/>
         ))}
         
-        {/* 🎯 SCORE POPUPS - Floating numbers */}
+        {/* 🎯 SCORE POPUPS - Floating numbers + combo milestones */}
         {scorePopups.map(popup => (
           <div key={popup.id} style={{
             position:"absolute",
-            left:popup.x - 20,
+            left: popup.isCombo ? popup.x - 60 : popup.x - 20,
             top:popup.y,
-            fontSize:20,
+            fontSize: popup.isCombo ? 26 : 20,
             fontWeight:800,
+            fontFamily: popup.isCombo ? "'Bebas Neue',sans-serif" : "inherit",
+            letterSpacing: popup.isCombo ? 2 : 0,
             color:popup.color,
-            opacity:popup.life / 30,
+            opacity: popup.isCombo ? popup.life / 45 : popup.life / 30,
             pointerEvents:"none",
             textShadow:`0 0 10px ${popup.color}, 0 0 20px ${popup.color}`,
-            transform:`scale(${1 + (30 - popup.life) / 30 * 0.5})`
+            transform: popup.isCombo
+              ? `scale(${1.2 + (45 - popup.life) / 45 * 0.3}) translateY(${-(45 - popup.life) * 0.8}px)`
+              : `scale(${1 + (30 - popup.life) / 30 * 0.5})`
           }}>{popup.value}</div>
         ))}
         
@@ -1684,6 +1739,53 @@ function NeuralDefense({onComplete, difficulty}){
             <div style={{marginBottom:4}}>Tap anywhere to shoot</div>
             <div style={{fontSize:11,color:PURPLE,background:"rgba(139,92,246,0.1)",padding:"4px 8px",borderRadius:6}}>
               🛡️ Shield blocks incoming shapes
+            </div>
+          </div>
+        )}
+
+        {/* 🌊 WAVE TRANSITION OVERLAY — fills the 2s gap between waves */}
+        {waveTransition && (
+          <div style={{
+            position:"absolute", inset:0,
+            background:"rgba(7,15,30,0.88)",
+            display:"flex", flexDirection:"column",
+            alignItems:"center", justifyContent:"center",
+            pointerEvents:"none",
+            animation:"fadeUp 0.35s ease both",
+          }}>
+            <div style={{
+              fontSize:11, fontWeight:700, letterSpacing:".22em",
+              textTransform:"uppercase", color:PURPLE,
+              marginBottom:10, opacity:0.8,
+            }}>Get ready</div>
+            <div style={{
+              fontFamily:"'Bebas Neue',sans-serif",
+              fontSize:52, letterSpacing:4,
+              color:WHITE, lineHeight:1,
+              textShadow:`0 0 30px ${PURPLE}, 0 0 60px ${PURPLE}44`,
+              marginBottom:6,
+            }}>WAVE {waveTransition.wave}</div>
+            <div style={{
+              fontFamily:"'Bebas Neue',sans-serif",
+              fontSize:18, letterSpacing:3,
+              color:waveTransition.wave === 3 ? RED : AMBER,
+              marginBottom:20,
+            }}>{waveTransition.wave === 3 ? "⚡ MAXIMUM SPEED" : "↑ SPEED INCREASE"}</div>
+            <div style={{
+              display:"flex", gap:6,
+            }}>
+              {[1,2,3].map(w=>(
+                <div key={w} style={{
+                  width:32, height:6, borderRadius:3,
+                  background: w < waveTransition.wave
+                    ? GREEN
+                    : w === waveTransition.wave
+                    ? `linear-gradient(90deg,${PURPLE},${E_BLUE})`
+                    : BORDER2,
+                  transition:"all .3s",
+                  boxShadow: w === waveTransition.wave ? `0 0 10px ${PURPLE}` : "none",
+                }}/>
+              ))}
             </div>
           </div>
         )}
