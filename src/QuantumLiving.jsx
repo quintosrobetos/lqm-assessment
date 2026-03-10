@@ -1019,9 +1019,12 @@ export default function QuantumLiving({ onBack, archetype }) {
           })()}
 
           {/* Footer */}
-          <div style={{padding:"0 20px 14px"}}>
-            <p style={{fontSize:10,color:"rgba(255,255,255,0.2)",lineHeight:1.6,fontStyle:"italic"}}>
-              Grounded in traditional healing wisdom, modern nutritional science, and the foundational principles of the LQM Method.
+          <div style={{padding:"0 20px 16px",borderTop:"1px solid rgba(0,200,255,0.08)",marginTop:4}}>
+            <p style={{fontSize:11,color:"rgba(0,200,255,0.45)",lineHeight:1.7,fontStyle:"italic",marginBottom:6}}>
+              A note on the source material
+            </p>
+            <p style={{fontSize:11,color:"rgba(255,255,255,0.38)",lineHeight:1.75}}>
+              Back to Eden identifies eight laws of health: Nutrition, Exercise, Water, Sunlight, Temperance, Air, Rest, and Trust in Divine Power. The 5 Quantum Laws are a distillation of those principles into a daily practice framework — consolidating Water and Sunlight as supporting practices within Breath and Motion, and weaving spiritual grounding throughout Quantum Balance rather than separating it. The source is the same. The application is designed for modern life.
             </p>
           </div>
         </div>
