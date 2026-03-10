@@ -220,7 +220,7 @@ const FUN_FACTS = [
   { ingredient:"Epsom Salt", fact:"A warm Epsom salt bath is one of the most accessible ways to raise magnesium levels — a mineral deficient in an estimated 75% of the population. Magnesium is required for over 300 enzymatic processes in the body, including energy production, nerve signalling, muscle recovery, and the regulation of stress hormones." },
   { ingredient:"Oil of Oregano", fact:"Carvacrol and thymol in oil of oregano have demonstrated broad-spectrum antimicrobial activity against bacteria, fungi, and parasites in peer-reviewed research. Hippocrates used oregano as a medicine. Across Mediterranean cultures for millennia, it has been trusted as one of nature's most powerful natural antimicrobials." },
   { ingredient:"Apple Cider Vinegar", fact:"A tablespoon of raw apple cider vinegar before a carbohydrate-rich meal has been shown in multiple clinical studies to reduce blood glucose response by up to 34% and improve insulin sensitivity. Acetic acid inhibits starch-digesting enzymes, slowing glucose absorption and producing more stable, sustained energy." },
-  { ingredient:"Flaxseed & Sulphur Proteins", fact:"Research in nutritional biochemistry has highlighted the importance of combining cold-pressed seed oils with sulphur-rich proteins — such as flaxseed oil with cottage cheese or quark — to produce water-soluble essential fatty acids more readily absorbed at a cellular level. This pairing, studied extensively since the 1950s, pointed toward the critical role of essential fats in cellular energy and membrane health." },
+  { ingredient:"Budwig Protocol", fact:"The Budwig Protocol, developed by biochemist Dr Johanna Budwig, combines cold-pressed flaxseed oil with sulphur-rich proteins — such as cottage cheese or quark — to create water-soluble essential fatty acids more readily absorbed at the cellular level. This electron-rich pairing was proposed to support cellular oxygen uptake and energy metabolism. Widely referenced in nutritional science and practised in integrative health." },
 ];
 const DAY_NUM = Math.trunc(Date.now() / 86400000); // days since epoch — changes once per day at midnight
 const todayFact = FUN_FACTS[DAY_NUM % FUN_FACTS.length];
@@ -861,7 +861,7 @@ export default function QuantumLiving({ onBack, archetype }) {
                 <p style={{fontSize:15,fontWeight:700,color:"rgba(255,255,255,0.92)",letterSpacing:".03em"}}>The Healing Intelligence</p>
               </div>
             </div>
-            <p style={{fontFamily:"'Crimson Pro',serif",fontStyle:"italic",fontSize:11,color:"rgba(0,200,255,0.35)",textAlign:"right",lineHeight:1.5}}>Three principles<br/>of the body</p>
+            <p style={{fontFamily:"'Crimson Pro',serif",fontStyle:"italic",fontSize:13,color:"rgba(0,200,255,0.58)",textAlign:"right",lineHeight:1.6}}>Three principles<br/>of the body</p>
           </div>
 
           {/* Quote */}
@@ -966,23 +966,24 @@ export default function QuantumLiving({ onBack, archetype }) {
                             transition:"box-shadow .3s ease, border-color .3s ease",
                           }}>
                             <span style={{
-                              fontSize:9,fontWeight:700,
-                              color: isActive ? "rgba(5,13,26,0.9)" : `rgba(0,200,255,${isActive?"ff":["cc","88","55"][i]})`,
-                              letterSpacing:".18em",
+                              fontSize:15,fontWeight:900,
+                              color: isActive ? "rgba(5,13,26,1)" : "#00C8FF",
+                              letterSpacing:".12em",
+                              textShadow: isActive ? "none" : `0 0 8px rgba(0,200,255,${["0.8","0.55","0.4"][i]})`,
                             }}>{orb.num}</span>
                           </div>
                         </div>
 
                         {/* Label below orb */}
                         <p style={{
-                          fontSize:9,fontWeight:700,letterSpacing:".1em",
+                          fontSize:11,fontWeight:700,letterSpacing:".08em",
                           textTransform:"uppercase",textAlign:"center",
-                          maxWidth: sz + 24,lineHeight:1.4,
+                          maxWidth: sz + 28,lineHeight:1.4,
                           color: isActive
                             ? "#00C8FF"
                             : isDimmed
-                              ? "rgba(255,255,255,0.18)"
-                              : `rgba(0,200,255,${["0.7","0.5","0.38"][i]})`,
+                              ? "rgba(255,255,255,0.22)"
+                              : `rgba(0,200,255,${["0.82","0.62","0.48"][i]})`,
                           transition:"color .3s",
                         }}>{orb.label}</p>
 
@@ -1001,7 +1002,7 @@ export default function QuantumLiving({ onBack, archetype }) {
                     animation:"fadeUp .3s ease both",
                   }}>
                     <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:10}}>
-                      <span style={{fontSize:9,fontWeight:700,color:"rgba(0,200,255,0.5)",letterSpacing:".2em"}}>{active.num}</span>
+                      <span style={{fontSize:11,fontWeight:800,color:"rgba(0,200,255,0.75)",letterSpacing:".2em"}}>{active.num}</span>
                       <p style={{fontSize:13,fontWeight:700,color:"#00C8FF",letterSpacing:".07em",textTransform:"uppercase"}}>{active.label}</p>
                     </div>
                     <p style={{fontSize:14,color:"rgba(255,255,255,0.82)",lineHeight:1.9,fontWeight:400}}>{active.text}</p>
@@ -1010,7 +1011,7 @@ export default function QuantumLiving({ onBack, archetype }) {
 
                 {/* Idle prompt */}
                 {!active && (
-                  <p style={{textAlign:"center",fontSize:10,color:"rgba(0,200,255,0.3)",letterSpacing:".12em",textTransform:"uppercase",fontStyle:"italic"}}>Tap an orb to reveal</p>
+                  <p style={{textAlign:"center",fontSize:11,color:"rgba(0,200,255,0.42)",letterSpacing:".1em",textTransform:"uppercase",fontStyle:"italic"}}>Tap an orb to reveal</p>
                 )}
 
               </div>
