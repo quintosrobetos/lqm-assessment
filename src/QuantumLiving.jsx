@@ -439,8 +439,9 @@ export default function QuantumLiving({ onBack, archetype }) {
       @keyframes hiCardPulse{0%,100%{border-color:rgba(200,185,154,0.18);box-shadow:none;}50%{border-color:rgba(200,185,154,0.42);box-shadow:0 0 12px rgba(200,185,154,0.1);}}
       @keyframes guidePulse{0%,100%{opacity:0.5;transform:translateX(0);}50%{opacity:1;transform:translateX(3px);}}
       @keyframes todayDone{0%,100%{opacity:0.7;transform:scale(1);}50%{opacity:1;transform:scale(1.1);}}
-      @keyframes hiZonePulse{0%{opacity:0;transform:scale(0.95);}15%{opacity:0.75;}70%{opacity:0;transform:scale(1.08);}100%{opacity:0;transform:scale(1.12);}}
-      @keyframes hiDotPulse{0%,100%{opacity:1;}50%{opacity:0.35;}}
+      @keyframes orbIdle{0%,100%{transform:scale(1);filter:brightness(1);}50%{transform:scale(1.07);filter:brightness(1.35);}}
+      @keyframes orbBloom{0%{transform:scale(1);}40%{transform:scale(1.12);}100%{transform:scale(1.06);}}
+      @keyframes orbRing{0%{transform:scale(1);opacity:0.6;}100%{transform:scale(2.2);opacity:0;}}
     `;
     document.head.appendChild(s);
     return () => { const el = document.getElementById(id); if(el) el.remove(); };
@@ -838,164 +839,178 @@ export default function QuantumLiving({ onBack, archetype }) {
           </div>
         )}
 
-        {/* ── THE HEALING INTELLIGENCE — dot-body diagram ── */}
+        {/* ── THE HEALING INTELLIGENCE — cyan orbs ── */}
         <div style={{
           marginBottom:16,borderRadius:20,overflow:"hidden",
-          background:"linear-gradient(160deg,rgba(200,185,154,0.06) 0%,rgba(52,211,153,0.04) 100%)",
-          border:"1px solid rgba(200,185,154,0.22)",
+          background:"linear-gradient(160deg,rgba(0,200,255,0.04) 0%,rgba(0,200,255,0.02) 100%)",
+          border:"1px solid rgba(0,200,255,0.15)",
           animation:"fadeUp .5s .22s ease both",
         }}>
 
           {/* Header */}
-          <div style={{padding:"16px 20px",borderBottom:"1px solid rgba(200,185,154,0.14)",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+          <div style={{padding:"16px 20px",borderBottom:"1px solid rgba(0,200,255,0.1)",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
             <div style={{display:"flex",alignItems:"center",gap:12}}>
-              <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
-                <line x1="14" y1="26" x2="14" y2="4" stroke="rgba(200,185,154,0.5)" strokeWidth="1.2" strokeLinecap="round"/>
-                <ellipse cx="14" cy="10" rx="4.5" ry="2.8" transform="rotate(-30 14 10)" fill="none" stroke="rgba(200,185,154,0.45)" strokeWidth="1"/>
-                <ellipse cx="14" cy="16" rx="4.5" ry="2.8" transform="rotate(30 14 16)" fill="none" stroke="rgba(200,185,154,0.45)" strokeWidth="1"/>
-                <ellipse cx="11" cy="7" rx="3" ry="1.8" transform="rotate(-60 11 7)" fill="none" stroke="rgba(200,185,154,0.3)" strokeWidth="0.8"/>
-                <ellipse cx="17" cy="19" rx="3" ry="1.8" transform="rotate(60 17 19)" fill="none" stroke="rgba(200,185,154,0.3)" strokeWidth="0.8"/>
-                <circle cx="14" cy="4" r="1.2" fill="rgba(200,185,154,0.5)"/>
+              <svg width="24" height="24" viewBox="0 0 28 28" fill="none">
+                <line x1="14" y1="26" x2="14" y2="4" stroke="rgba(0,200,255,0.5)" strokeWidth="1.2" strokeLinecap="round"/>
+                <ellipse cx="14" cy="10" rx="4.5" ry="2.8" transform="rotate(-30 14 10)" fill="none" stroke="rgba(0,200,255,0.45)" strokeWidth="1"/>
+                <ellipse cx="14" cy="16" rx="4.5" ry="2.8" transform="rotate(30 14 16)" fill="none" stroke="rgba(0,200,255,0.45)" strokeWidth="1"/>
+                <circle cx="14" cy="4" r="1.2" fill="rgba(0,200,255,0.6)"/>
               </svg>
               <div>
-                <p style={{fontSize:10,fontWeight:700,color:"rgba(200,185,154,0.5)",letterSpacing:".18em",textTransform:"uppercase",marginBottom:2}}>Foundation</p>
-                <p style={{fontSize:15,fontWeight:700,color:"rgba(200,185,154,0.88)",letterSpacing:".04em"}}>The Healing Intelligence</p>
+                <p style={{fontSize:10,fontWeight:700,color:"rgba(0,200,255,0.5)",letterSpacing:".18em",textTransform:"uppercase",marginBottom:2}}>Foundation</p>
+                <p style={{fontSize:15,fontWeight:700,color:"rgba(255,255,255,0.92)",letterSpacing:".03em"}}>The Healing Intelligence</p>
               </div>
             </div>
-            <p style={{fontFamily:"'Crimson Pro',serif",fontStyle:"italic",fontSize:11,color:"rgba(200,185,154,0.38)",textAlign:"right",lineHeight:1.5}}>Three principles<br/>of the body</p>
+            <p style={{fontFamily:"'Crimson Pro',serif",fontStyle:"italic",fontSize:11,color:"rgba(0,200,255,0.35)",textAlign:"right",lineHeight:1.5}}>Three principles<br/>of the body</p>
           </div>
 
           {/* Quote */}
-          <div style={{padding:"16px 20px 12px"}}>
-            <p style={{fontFamily:"'Crimson Pro',serif",fontStyle:"italic",fontSize:15,color:"rgba(200,185,154,0.82)",lineHeight:1.75,borderLeft:"2px solid rgba(200,185,154,0.22)",paddingLeft:14}}>
+          <div style={{padding:"16px 20px 20px"}}>
+            <p style={{fontFamily:"'Crimson Pro',serif",fontStyle:"italic",fontSize:15,color:"rgba(255,255,255,0.75)",lineHeight:1.8,borderLeft:"2px solid rgba(0,200,255,0.3)",paddingLeft:14}}>
               "The most sophisticated healing system ever known is not in any clinic or laboratory. It is in you."
             </p>
           </div>
 
-          {/* Interactive body diagram */}
+          {/* Three orbs */}
           {(()=>{
-            const BZ = [
-              {color:"#C8A96E",num:"01",label:"Head & Mind",    title:"The Body Knows",           text:"The human body has an innate intelligence — a self-correcting, self-repairing capacity refined over hundreds of thousands of years. Inflammation resolves when its cause is removed. The liver regenerates. The gut microbiome rebalances. The immune system adapts. None of this requires intervention. It requires cooperation."},
-              {color:"#7BAE8E",num:"02",label:"Heart & Core",   title:"The Right Conditions",     text:"Modern research now confirms what traditional healers understood intuitively: given the right conditions — clean air, whole food, sufficient rest, movement, and temperance — the body consistently moves toward health. This is not optimism. It is biology. The 5 Quantum Laws are simply the creation of those conditions, daily."},
-              {color:"#5A9E9A",num:"03",label:"Foundation",     title:"Nature's Original Design", text:"Every plant in nature's pharmacy — every herb, root, and seed — carries compounds shaped by millions of years of co-evolution with the human body. Garlic's allicin. Turmeric's curcumin. The essential fatty acids in cold-pressed seeds. The prebiotics in raw honey. These are not supplements. They are signals the body already knows how to read."},
+            const ORBS = [
+              {
+                intensity: 1.0,   // brightest
+                size: 72,
+                num: "01",
+                label: "The Body Knows",
+                text: "The human body has an innate intelligence — a self-correcting, self-repairing capacity refined over hundreds of thousands of years. Inflammation resolves when its cause is removed. The liver regenerates. The gut microbiome rebalances. The immune system adapts. None of this requires intervention. It requires cooperation.",
+              },
+              {
+                intensity: 0.72,  // mid
+                size: 60,
+                num: "02",
+                label: "The Right Conditions",
+                text: "Modern research now confirms what traditional healers understood intuitively: given the right conditions — clean air, whole food, sufficient rest, movement, and temperance — the body consistently moves toward health. This is not optimism. It is biology. The 5 Quantum Laws are simply the creation of those conditions, daily.",
+              },
+              {
+                intensity: 0.50,  // softest
+                size: 50,
+                num: "03",
+                label: "Nature's Original Design",
+                text: "Every plant in nature's pharmacy — every herb, root, and seed — carries compounds shaped by millions of years of co-evolution with the human body. Garlic's allicin. Turmeric's curcumin. The essential fatty acids in cold-pressed seeds. The prebiotics in raw honey. These are not supplements. They are signals the body already knows how to read.",
+              },
             ];
-            // Individually placed dots — each forms part of the anatomical body shape
-            const D0=[[50,6,4],[44,10,4],[56,10,4],[39,15,3],[49,14,5],[59,15,5],[36,20,3],[46,19,4],[54,19,4],[63,20,5],[38,25,3],[47,24,4],[54,24,4],[62,25,4],[40,29,3],[50,28,5],[60,29,4],[46,33,2],[54,33,2],[50,36,2],[40,40,3],[60,40,4],[30,44,3],[70,44,5],[20,48,3],[80,48,5],[12,53,3],[88,53,5],[7,58,2],[93,58,4],[4,63,2],[96,63,3]];
-            const D1=[[13,66,3],[24,64,4],[36,63,4],[46,62,5],[54,62,5],[64,63,5],[76,64,5],[87,66,3],[16,76,3],[26,74,4],[38,73,4],[50,72,5],[62,73,4],[74,74,5],[84,76,3],[19,87,3],[30,85,4],[42,84,4],[50,83,4],[58,84,4],[70,85,5],[81,87,3],[22,97,3],[32,95,4],[44,94,4],[50,93,4],[56,94,4],[68,95,4],[78,97,3],[24,108,3],[35,106,3],[46,105,3],[54,105,3],[65,106,4],[76,108,3],[27,119,3],[38,117,3],[50,116,3],[62,117,3],[73,119,3],[30,129,3],[42,127,3],[54,127,3],[64,128,3],[70,130,3],[26,140,3],[38,138,3],[50,137,3],[62,138,3],[74,140,3],[24,151,3],[36,149,3],[50,148,3],[64,149,3],[76,151,3],[2,76,2],[1,92,2],[0,110,2],[0,128,2],[1,145,2],[2,158,2],[0,165,2],[4,170,2],[8,170,2],[11,168,2],[98,76,2],[99,92,2],[100,110,2],[100,128,2],[99,145,2],[98,158,2],[100,165,2],[96,170,2],[92,170,2],[89,168,2]];
-            const D2=[[22,167,3],[33,165,4],[46,164,5],[54,164,5],[67,165,5],[78,167,4],[20,179,3],[28,179,4],[36,179,3],[64,179,4],[72,179,4],[80,179,3],[19,191,3],[27,191,3],[35,191,3],[65,191,3],[73,191,3],[81,191,3],[19,203,3],[27,203,3],[35,203,3],[65,203,3],[73,203,3],[81,203,3],[19,215,2],[26,215,2],[34,215,2],[66,215,2],[74,215,2],[81,215,2],[20,225,2],[26,225,2],[33,225,2],[67,225,2],[74,225,2],[80,225,2],[20,236,2],[25,236,2],[32,236,2],[68,236,2],[75,236,2],[80,236,2],[20,248,2],[25,248,2],[31,248,2],[69,248,2],[75,248,2],[80,248,2],[20,258,2],[24,258,2],[30,258,2],[70,258,2],[76,258,2],[80,258,2],[21,267,2],[24,267,2],[28,267,2],[72,267,2],[76,267,2],[79,267,2],[21,275,2],[24,275,2],[76,275,2],[79,275,2],[18,280,2],[22,280,2],[26,281,2],[30,280,2],[70,280,2],[74,280,2],[78,281,2],[82,280,2]];
-
-            const active = bodyZone !== null ? BZ[bodyZone] : null;
-            const dotOp = (zone) => bodyZone===null ? 0.10 : bodyZone===zone ? 1.0 : 0.04;
+            const active = bodyZone !== null ? ORBS[bodyZone] : null;
 
             return (
-              <div style={{padding:"0 16px 20px"}}>
-                <div style={{display:"flex",alignItems:"center",justifyContent:"center",gap:8}}>
+              <div style={{padding:"0 20px 20px"}}>
 
-                  {/* Left labels — premium: no boxes, clean text only */}
-                  <div style={{display:"flex",flexDirection:"column",gap:14,alignItems:"flex-end",minWidth:80}}>
-                    {BZ.map((z,i)=>(
-                      <div key={i} onClick={()=>setBodyZone(bodyZone===i?null:i)} style={{
-                        display:"flex",alignItems:"center",justifyContent:"flex-end",gap:7,
-                        cursor:"pointer",padding:"2px 0",
-                        opacity: bodyZone===null ? 0.55 : bodyZone===i ? 1 : 0.22,
-                        transition:"opacity .3s ease",
-                      }}>
-                        <div style={{textAlign:"right"}}>
-                          <p style={{fontSize:7,fontWeight:700,color:z.color,letterSpacing:".22em",textTransform:"uppercase",marginBottom:1,opacity:.7}}>{z.num}</p>
-                          <p style={{fontSize:10,fontWeight:700,letterSpacing:".07em",textTransform:"uppercase",color:bodyZone===i?z.color:"rgba(255,255,255,0.75)",transition:"color .3s"}}>{z.label}</p>
+                {/* Orb row */}
+                <div style={{display:"flex",justifyContent:"space-around",alignItems:"center",marginBottom:20}}>
+                  {ORBS.map((orb,i)=>{
+                    const isActive = bodyZone === i;
+                    const isDimmed = bodyZone !== null && !isActive;
+                    const sz = orb.size;
+                    // Cyan at different intensities
+                    const coreAlpha  = isActive ? "cc" : isDimmed ? "18" : (["55","3a","28"][i]);
+                    const glowAlpha  = isActive ? "55" : isDimmed ? "05" : (["28","18","10"][i]);
+                    const ringAlpha  = isActive ? "88" : isDimmed ? "08" : (["44","2a","18"][i]);
+                    return (
+                      <div key={i}
+                        onClick={()=>setBodyZone(bodyZone===i?null:i)}
+                        style={{
+                          display:"flex",flexDirection:"column",alignItems:"center",gap:10,
+                          cursor:"pointer",userSelect:"none",
+                        }}>
+
+                        {/* Orb container — rings + core */}
+                        <div style={{position:"relative",width:sz,height:sz,flexShrink:0}}>
+
+                          {/* Outer expanding ring — always animating, visible on idle */}
+                          <div style={{
+                            position:"absolute",
+                            inset: isActive ? -18 : -12,
+                            borderRadius:"50%",
+                            border:`1px solid rgba(0,200,255,${ringAlpha})`,
+                            animation: isActive
+                              ? "orbRing 1.6s ease-out infinite"
+                              : `orbIdle ${2.2 + i*0.4}s ease-in-out infinite`,
+                            pointerEvents:"none",
+                          }}/>
+
+                          {/* Mid ring — only on active */}
+                          {isActive && (
+                            <div style={{
+                              position:"absolute",inset:-8,borderRadius:"50%",
+                              border:"1px solid rgba(0,200,255,0.5)",
+                              animation:"orbRing 1.6s 0.4s ease-out infinite",
+                              pointerEvents:"none",
+                            }}/>
+                          )}
+
+                          {/* Core orb */}
+                          <div style={{
+                            width:"100%",height:"100%",borderRadius:"50%",
+                            background: isActive
+                              ? `radial-gradient(circle at 38% 35%, rgba(0,200,255,0.9), rgba(0,200,255,0.35))`
+                              : `radial-gradient(circle at 38% 35%, rgba(0,200,255,${coreAlpha}), rgba(0,140,200,${glowAlpha}))`,
+                            border:`1.5px solid rgba(0,200,255,${isActive?"bb":ringAlpha})`,
+                            boxShadow: isActive
+                              ? `0 0 40px rgba(0,200,255,0.7), 0 0 80px rgba(0,200,255,0.3), inset 0 0 20px rgba(0,200,255,0.2)`
+                              : isDimmed
+                                ? "none"
+                                : `0 0 ${[20,14,9][i]}px rgba(0,200,255,${["0.4","0.25","0.15"][i]})`,
+                            display:"flex",alignItems:"center",justifyContent:"center",
+                            flexDirection:"column",gap:1,
+                            animation: isActive
+                              ? "orbBloom .35s cubic-bezier(.4,0,.2,1) both"
+                              : isDimmed
+                                ? "none"
+                                : `orbIdle ${2.2 + i*0.4}s ease-in-out infinite`,
+                            transition:"box-shadow .3s ease, border-color .3s ease",
+                          }}>
+                            <span style={{
+                              fontSize:9,fontWeight:700,
+                              color: isActive ? "rgba(5,13,26,0.9)" : `rgba(0,200,255,${isActive?"ff":["cc","88","55"][i]})`,
+                              letterSpacing:".18em",
+                            }}>{orb.num}</span>
+                          </div>
                         </div>
-                        <div style={{
-                          width:5,height:5,borderRadius:"50%",flexShrink:0,
-                          background:bodyZone===i?z.color:"rgba(255,255,255,0.18)",
-                          boxShadow:bodyZone===i?`0 0 8px ${z.color}`:"none",
-                          transition:"all .3s",
-                        }}/>
+
+                        {/* Label below orb */}
+                        <p style={{
+                          fontSize:9,fontWeight:700,letterSpacing:".1em",
+                          textTransform:"uppercase",textAlign:"center",
+                          maxWidth: sz + 24,lineHeight:1.4,
+                          color: isActive
+                            ? "#00C8FF"
+                            : isDimmed
+                              ? "rgba(255,255,255,0.18)"
+                              : `rgba(0,200,255,${["0.7","0.5","0.38"][i]})`,
+                          transition:"color .3s",
+                        }}>{orb.label}</p>
+
                       </div>
-                    ))}
-                  </div>
-
-                  {/* Human figure — individually placed anatomical dots */}
-                  <svg viewBox="0 0 100 285" width="96" height="228" style={{flexShrink:0,overflow:"visible"}}>
-
-                    {/* White body outline — always present, fades when a zone is active */}
-                    <g style={{opacity:bodyZone===null?0.42:0.16,transition:"opacity .4s ease",pointerEvents:"none"}}>
-                      {/* Head */}
-                      <circle cx="50" cy="17" r="13" stroke="rgba(255,255,255,0.9)" strokeWidth="1.3" fill="rgba(255,255,255,0.03)"/>
-                      {/* Neck */}
-                      <path d="M 44,29 L 42,38 M 56,29 L 58,38" stroke="rgba(255,255,255,0.7)" strokeWidth="1.1" fill="none" strokeLinecap="round"/>
-                      {/* Torso + legs — one continuous path */}
-                      <path strokeLinecap="round" strokeLinejoin="round" fill="none"
-                        stroke="rgba(255,255,255,0.75)" strokeWidth="1.3"
-                        d="M 42,38 Q 26,39 14,47 L 21,170 L 18,228 L 15,274 Q 19,283 27,283 Q 33,283 34,276 L 36,228 L 38,178 Q 43,174 50,174 Q 57,174 62,178 L 64,228 L 66,276 Q 67,283 73,283 Q 81,283 85,274 L 82,228 L 79,170 L 86,47 Q 74,39 58,38 Z"/>
-                      {/* Left arm + hand */}
-                      <path strokeLinecap="round" strokeLinejoin="round" fill="none"
-                        stroke="rgba(255,255,255,0.65)" strokeWidth="1.1"
-                        d="M 14,47 L 4,56 L 1,100 L 0,148 L -1,162 Q 2,172 10,170 L 13,153 L 17,140"/>
-                      {/* Right arm + hand */}
-                      <path strokeLinecap="round" strokeLinejoin="round" fill="none"
-                        stroke="rgba(255,255,255,0.65)" strokeWidth="1.1"
-                        d="M 86,47 L 96,56 L 99,100 L 100,148 L 101,162 Q 98,172 90,170 L 87,153 L 83,140"/>
-                    </g>
-
-                    {/* Zone 0 dots — head, neck, shoulders */}
-                    <g style={{transition:"opacity .45s ease",filter:bodyZone===0?`drop-shadow(0 0 6px ${"#C8A96E"}) drop-shadow(0 0 12px ${"#C8A96E"}44)`:"none"}} opacity={dotOp(0)} onClick={()=>setBodyZone(bodyZone===0?null:0)} cursor="pointer">
-                      {D0.map(([cx,cy,r],i)=><circle key={i} cx={cx} cy={cy} r={r} fill="#C8A96E"/>)}
-                    </g>
-                    {/* Zone 1 dots — chest, torso, arms */}
-                    <g style={{transition:"opacity .45s ease",filter:bodyZone===1?`drop-shadow(0 0 6px ${"#7BAE8E"}) drop-shadow(0 0 12px ${"#7BAE8E"}44)`:"none"}} opacity={dotOp(1)} onClick={()=>setBodyZone(bodyZone===1?null:1)} cursor="pointer">
-                      {D1.map(([cx,cy,r],i)=><circle key={i} cx={cx} cy={cy} r={r} fill="#7BAE8E"/>)}
-                    </g>
-                    {/* Zone 2 dots — hips, legs */}
-                    <g style={{transition:"opacity .45s ease",filter:bodyZone===2?`drop-shadow(0 0 6px ${"#5A9E9A"}) drop-shadow(0 0 12px ${"#5A9E9A"}44)`:"none"}} opacity={dotOp(2)} onClick={()=>setBodyZone(bodyZone===2?null:2)} cursor="pointer">
-                      {D2.map(([cx,cy,r],i)=><circle key={i} cx={cx} cy={cy} r={r} fill="#5A9E9A"/>)}
-                    </g>
-
-                    {/* Staggered pulse rings when idle */}
-                    {bodyZone===null && [
-                      {cx:50,cy:35, r:30,c:"#C8A96E",d:"0s"},
-                      {cx:50,cy:105,r:30,c:"#7BAE8E",d:"0.9s"},
-                      {cx:50,cy:220,r:28,c:"#5A9E9A",d:"1.8s"},
-                    ].map((p,i)=>(
-                      <circle key={i} cx={p.cx} cy={p.cy} r={p.r} fill="none"
-                        stroke={p.c} strokeWidth="1.8"
-                        style={{opacity:0,animation:`hiZonePulse 2.6s ${p.d} ease-out infinite`}}/>
-                    ))}
-
-                    {/* Active zone glow dot */}
-                    {bodyZone!==null && (
-                      <circle cx="50" cy={[35,105,220][bodyZone]} r="4"
-                        fill={BZ[bodyZone].color}
-                        style={{filter:`drop-shadow(0 0 4px ${BZ[bodyZone].color})`,animation:"hiDotPulse 1.8s ease-in-out infinite"}}/>
-                    )}
-                  </svg>
-
-                  {/* Right — minimal: principle title only */}
-                  <div style={{minWidth:64,maxWidth:80}}>
-                    {active ? (
-                      <div>
-                        <p style={{fontSize:7,fontWeight:700,color:active.color,letterSpacing:".2em",textTransform:"uppercase",marginBottom:4,opacity:.7}}>{active.num}</p>
-                        <p style={{fontSize:11,fontWeight:700,color:active.color,letterSpacing:".06em",lineHeight:1.5}}>{active.title}</p>
-                        <div style={{width:20,height:1,background:active.color,opacity:.35,marginTop:6}}/>
-                      </div>
-                    ) : (
-                      <p style={{fontSize:9,color:"rgba(200,185,154,0.32)",lineHeight:1.7,fontStyle:"italic"}}>Tap a zone<br/>to reveal</p>
-                    )}
-                  </div>
-
+                    );
+                  })}
                 </div>
 
-                {/* Principle text — slides in below on tap */}
+                {/* Revealed principle text */}
                 {active && (
                   <div style={{
-                    marginTop:12,padding:"14px 16px",borderRadius:14,
-                    background:`${active.color}09`,
-                    border:`1px solid ${active.color}22`,
-                    borderLeft:`2px solid ${active.color}66`,
-                    animation:"fadeUp .28s ease both",
+                    padding:"16px 18px",borderRadius:14,
+                    background:"rgba(0,200,255,0.05)",
+                    border:"1px solid rgba(0,200,255,0.2)",
+                    borderLeft:"3px solid rgba(0,200,255,0.7)",
+                    animation:"fadeUp .3s ease both",
                   }}>
-                    <p style={{fontSize:12,fontWeight:700,color:active.color,letterSpacing:".1em",textTransform:"uppercase",marginBottom:8}}>{active.title}</p>
-                    <p style={{fontSize:14,color:"rgba(255,255,255,0.8)",lineHeight:1.9,fontWeight:400}}>{active.text}</p>
+                    <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:10}}>
+                      <span style={{fontSize:9,fontWeight:700,color:"rgba(0,200,255,0.5)",letterSpacing:".2em"}}>{active.num}</span>
+                      <p style={{fontSize:13,fontWeight:700,color:"#00C8FF",letterSpacing:".07em",textTransform:"uppercase"}}>{active.label}</p>
+                    </div>
+                    <p style={{fontSize:14,color:"rgba(255,255,255,0.82)",lineHeight:1.9,fontWeight:400}}>{active.text}</p>
                   </div>
+                )}
+
+                {/* Idle prompt */}
+                {!active && (
+                  <p style={{textAlign:"center",fontSize:10,color:"rgba(0,200,255,0.3)",letterSpacing:".12em",textTransform:"uppercase",fontStyle:"italic"}}>Tap an orb to reveal</p>
                 )}
 
               </div>
@@ -1003,8 +1018,8 @@ export default function QuantumLiving({ onBack, archetype }) {
           })()}
 
           {/* Footer */}
-          <div style={{padding:"4px 20px 14px"}}>
-            <p style={{fontSize:10,color:"rgba(200,185,154,0.28)",lineHeight:1.6,fontStyle:"italic"}}>
+          <div style={{padding:"0 20px 14px"}}>
+            <p style={{fontSize:10,color:"rgba(255,255,255,0.2)",lineHeight:1.6,fontStyle:"italic"}}>
               Grounded in traditional healing wisdom, modern nutritional science, and the foundational principles of the LQM Method.
             </p>
           </div>
