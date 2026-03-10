@@ -222,7 +222,7 @@ const FUN_FACTS = [
   { ingredient:"Apple Cider Vinegar", fact:"A tablespoon of raw apple cider vinegar before a carbohydrate-rich meal has been shown in multiple clinical studies to reduce blood glucose response by up to 34% and improve insulin sensitivity. Acetic acid inhibits starch-digesting enzymes, slowing glucose absorption and producing more stable, sustained energy." },
   { ingredient:"Flaxseed & Sulphur Proteins", fact:"Research in nutritional biochemistry has highlighted the importance of combining cold-pressed seed oils with sulphur-rich proteins — such as flaxseed oil with cottage cheese or quark — to produce water-soluble essential fatty acids more readily absorbed at a cellular level. This pairing, studied extensively since the 1950s, pointed toward the critical role of essential fats in cellular energy and membrane health." },
 ];
-const DAY_NUM = Math.trunc(Date.now() * 0.0000115741);
+const DAY_NUM = Math.trunc(Date.now() / 86400000); // days since epoch — changes once per day at midnight
 const todayFact = FUN_FACTS[DAY_NUM % FUN_FACTS.length];
 
 // ── Archetype-specific law notes ─────────────────────────────────────────
@@ -433,6 +433,8 @@ export default function QuantumLiving({ onBack, archetype }) {
       @keyframes todayBadge{0%,100%{opacity:0.8;transform:scale(1);}50%{opacity:1;transform:scale(1.06);}}
       @keyframes shopGlow{0%,100%{box-shadow:0 0 0 0 rgba(52,211,153,0.0);border-color:rgba(52,211,153,0.25);}50%{box-shadow:0 0 20px rgba(52,211,153,0.2);border-color:rgba(52,211,153,0.55);}}
       @keyframes pct20Pulse{0%,100%{color:#ffffff;text-shadow:0 0 8px rgba(255,255,255,0.3);}50%{color:#34D399;text-shadow:0 0 20px rgba(52,211,153,0.8),0 0 40px rgba(52,211,153,0.3);}}
+      @keyframes hiCardPulse{0%,100%{border-color:rgba(200,185,154,0.18);box-shadow:none;}50%{border-color:rgba(200,185,154,0.42);box-shadow:0 0 12px rgba(200,185,154,0.1);}}
+      @keyframes guidePulse{0%,100%{opacity:0.5;transform:translateX(0);}50%{opacity:1;transform:translateX(3px);}}
     `;
     document.head.appendChild(s);
     return () => { const el = document.getElementById(id); if(el) el.remove(); };
@@ -672,8 +674,10 @@ export default function QuantumLiving({ onBack, archetype }) {
           {/* Circular row */}
           <div style={{display:"flex",justifyContent:"space-between",gap:4,marginBottom:12}}>
             {LAWS.map((law,i)=>{
-              const isToday = i === todayLawIdx;
+              const isToday  = i === todayLawIdx;
               const isTicked = checklist[i];
+              // Visual states: today=big+glow+pulse, ticked-not-today=small+dim+quiet, untouched=small+dim
+              const circleSize = isToday ? 62 : 48;
               return (
                 <button key={i}
                   onClick={()=>{ if(isToday){ toggleCheck(i); } setActiveLaw(i); }}
@@ -681,69 +685,113 @@ export default function QuantumLiving({ onBack, archetype }) {
                     flex:1,display:"flex",flexDirection:"column",alignItems:"center",gap:5,
                     background:"transparent",border:"none",cursor:"pointer",padding:"4px 0",
                     fontFamily:"'Space Grotesk',sans-serif",
+                    opacity: (!isToday && !isTicked) ? 0.45 : 1,
+                    transition:"opacity .3s",
                   }}>
 
-                  {/* Outer ring — pulsates only for today's unticked law */}
-                  <div style={{position:"relative",width:isToday?60:52,height:isToday?60:52,flexShrink:0}}>
-                    {isToday && !isTicked && (
-                      <div style={{
-                        position:"absolute",inset:-4,borderRadius:"50%",
-                        border:`2px solid ${law.color}88`,
+                  <div style={{position:"relative",width:circleSize,height:circleSize,flexShrink:0}}>
+
+                    {/* Double pulse rings — only today, only unticked */}
+                    {isToday && !isTicked && (<>
+                      <div style={{position:"absolute",inset:-6,borderRadius:"50%",
+                        border:`1.5px solid ${law.color}55`,
                         animation:"todayRing 2.4s ease-in-out infinite",
-                        pointerEvents:"none",
-                      }}/>
+                        pointerEvents:"none"}}/>
+                      <div style={{position:"absolute",inset:-12,borderRadius:"50%",
+                        border:`1px solid ${law.color}22`,
+                        animation:"todayRing 2.4s 0.4s ease-in-out infinite",
+                        pointerEvents:"none"}}/>
+                    </>)}
+
+                    {/* Today done — solid glow ring */}
+                    {isToday && isTicked && (
+                      <div style={{position:"absolute",inset:-4,borderRadius:"50%",
+                        border:`2px solid ${law.color}`,
+                        boxShadow:`0 0 14px ${law.color}66`,
+                        pointerEvents:"none"}}/>
                     )}
+
                     {/* Circle */}
                     <div style={{
                       width:"100%",height:"100%",borderRadius:"50%",
-                      background: isTicked
-                        ? `radial-gradient(circle at 40% 35%, ${law.color}cc, ${law.color}88)`
-                        : `radial-gradient(circle at 35% 35%, ${law.color}33, ${law.color}0e)`,
-                      border:`2px solid ${isTicked ? law.color : (isToday ? law.color : law.color+"55")}`,
-                      boxShadow: isToday && !isTicked
-                        ? `0 0 22px ${law.color}55`
-                        : isTicked ? `0 0 14px ${law.color}55` : "none",
+                      background: isToday && isTicked
+                        ? `radial-gradient(circle at 38% 32%, ${law.color}ee, ${law.color}99)`
+                        : isToday
+                          ? `radial-gradient(circle at 38% 32%, ${law.color}44, ${law.color}18)`
+                          : isTicked
+                            ? `rgba(52,211,153,0.08)`  // quiet green tint for non-today ticked
+                            : `radial-gradient(circle at 38% 32%, ${law.color}1a, ${law.color}08)`,
+                      border: isToday
+                        ? `2px solid ${law.color}${isTicked?"":"99"}`
+                        : isTicked
+                          ? `1px solid rgba(52,211,153,0.4)` // quiet green border
+                          : `1.5px solid ${law.color}33`,
+                      boxShadow: isToday && !isTicked ? `0 0 28px ${law.color}44, 0 0 8px ${law.color}33` : "none",
                       display:"flex",alignItems:"center",justifyContent:"center",
-                      fontSize:isToday?24:20,
-                      transition:"all .3s cubic-bezier(.4,0,.2,1)",
+                      fontSize: isToday ? 26 : isTicked ? 14 : 18,
+                      transition:"all .35s cubic-bezier(.4,0,.2,1)",
                     }}>
                       {isTicked
-                        ? <span style={{color:BG,fontWeight:900,fontSize:isToday?22:18}}>✓</span>
+                        ? <span style={{
+                            color: isToday ? BG : "rgba(52,211,153,0.7)",
+                            fontWeight:900,
+                            fontSize: isToday ? 24 : 13,
+                          }}>✓</span>
                         : <span className={`law-icon-${i}`}>{law.icon}</span>}
                     </div>
                   </div>
 
                   {/* Label */}
                   <p style={{
-                    fontSize:isToday?10:9,fontWeight:700,
-                    color: isTicked ? GREEN : (isToday ? law.color : DIMMED),
+                    fontSize: isToday ? 10 : 8,
+                    fontWeight:700,
+                    color: isToday && isTicked ? law.color
+                         : isToday ? law.color
+                         : isTicked ? "rgba(52,211,153,0.5)"
+                         : DIMMED,
                     letterSpacing:".06em",textTransform:"uppercase",
                     lineHeight:1.2,textAlign:"center",
-                    transition:"color .2s",maxWidth:62,
+                    transition:"color .2s",maxWidth:60,
                   }}>
                     {law.title.replace("Quantum ","")}
                   </p>
 
-                  {/* Focus label or tick dot */}
+                  {/* Indicator below label */}
                   {isToday && !isTicked && (
                     <span style={{
                       fontSize:8,fontWeight:700,color:law.color,
-                      background:`${law.color}15`,border:`1px solid ${law.color}44`,
-                      borderRadius:100,padding:"2px 6px",letterSpacing:".08em",
-                      textTransform:"uppercase",animation:"focusGlow 2s ease-in-out infinite",
-                    }}>Focus</span>
+                      background:`${law.color}15`,border:`1px solid ${law.color}55`,
+                      borderRadius:100,padding:"2px 8px",letterSpacing:".1em",
+                      textTransform:"uppercase",animation:"focusGlow 1.8s ease-in-out infinite",
+                    }}>Today</span>
                   )}
-                  {isTicked && (
-                    <div style={{width:6,height:6,borderRadius:"50%",background:GREEN,boxShadow:`0 0 5px ${GREEN}`}}/>
+                  {isToday && isTicked && (
+                    <span style={{fontSize:8,fontWeight:700,color:law.color,letterSpacing:".08em"}}>Done ✓</span>
+                  )}
+                  {!isToday && isTicked && (
+                    <div style={{width:5,height:5,borderRadius:"50%",background:"rgba(52,211,153,0.45)"}}/>
                   )}
                 </button>
               );
             })}
           </div>
 
-          {/* Hint */}
-          <div style={{padding:"8px 12px",background:"rgba(251,191,36,0.03)",border:"1px solid rgba(251,191,36,0.1)",borderRadius:8,marginBottom:10}}>
-            <p style={{fontSize:12,color:"rgba(251,191,36,0.5)",lineHeight:1.5}}>💡 Tap today's law to mark done · tap any law to explore its full science</p>
+          {/* Deliberate guidance hint */}
+          <div style={{
+            padding:"10px 14px",marginBottom:10,
+            background:`linear-gradient(90deg,${todayLaw.color}08,transparent)`,
+            border:`1px solid ${todayLaw.color}22`,
+            borderLeft:`2px solid ${todayLaw.color}55`,
+            borderRadius:"0 10px 10px 0",
+            display:"flex",alignItems:"center",gap:10,
+          }}>
+            <span style={{fontSize:14,animation:"guidePulse 2s ease-in-out infinite",flexShrink:0}}>→</span>
+            <div>
+              <p style={{fontSize:12,fontWeight:700,color:todayLaw.color,marginBottom:2}}>
+                Tap <strong style={{textDecoration:"underline",textUnderlineOffset:3}}>{todayLaw.title}</strong> to log today's practice
+              </p>
+              <p style={{fontSize:11,color:DIMMED,lineHeight:1.4}}>Tap any other law to explore its full science and practices</p>
+            </div>
           </div>
 
           {/* All 5 done celebration + milestone displays */}
@@ -823,7 +871,7 @@ export default function QuantumLiving({ onBack, archetype }) {
           <div style={{padding:"18px 20px 4px"}}>
             <p style={{
               fontFamily:"'Crimson Pro',serif",fontStyle:"italic",
-              fontSize:17,color:"rgba(200,185,154,0.75)",
+              fontSize:17,color:"rgba(200,185,154,0.88)",
               lineHeight:1.75,
               borderLeft:"2px solid rgba(200,185,154,0.25)",
               paddingLeft:14,marginBottom:0,
@@ -875,8 +923,8 @@ export default function QuantumLiving({ onBack, archetype }) {
                       transition:"all .2s",
                     }}>{p.icon}</div>
                     <div style={{flex:1}}>
-                      <p style={{fontSize:13,fontWeight:700,color:isOpen ? "rgba(200,185,154,0.9)" : "rgba(200,185,154,0.55)",letterSpacing:".06em",textTransform:"uppercase",marginBottom:isOpen?0:3,transition:"color .2s"}}>{p.title}</p>
-                      {!isOpen && <p style={{fontSize:12,color:"rgba(255,255,255,0.35)",lineHeight:1.5,fontStyle:"italic"}}>{p.preview}</p>}
+                      <p style={{fontSize:13,fontWeight:700,color:isOpen ? "rgba(200,185,154,0.95)" : "rgba(200,185,154,0.82)",letterSpacing:".06em",textTransform:"uppercase",marginBottom:isOpen?0:3,transition:"color .2s"}}>{p.title}</p>
+                      {!isOpen && <p style={{fontSize:12,color:"rgba(255,255,255,0.58)",lineHeight:1.55,fontStyle:"italic"}}>{p.preview}</p>}
                     </div>
                     <div style={{
                       width:20,height:20,borderRadius:"50%",flexShrink:0,
