@@ -333,6 +333,8 @@ const SHOP_CATEGORIES = [
 export default function QuantumLiving({ onBack, archetype }) {
   const [activeLaw, setActiveLaw] = useState(null);
   const [activeShop, setActiveShop] = useState(false);
+  const [hiOpen, setHiOpen] = useState(0);           // which HI accordion card is open (0/1/2)
+  const [natureExpanded, setNatureExpanded] = useState(false); // nature's wisdom expand toggle
   const todayKey = new Date().toISOString().split("T")[0]; // "2026-02-25"
 
   const [checklist, setChecklist] = useState(() => {
@@ -621,15 +623,33 @@ export default function QuantumLiving({ onBack, archetype }) {
           <p style={{fontSize:15,color:"rgba(255,255,255,0.75)",lineHeight:1.8}}>{todayFact.fact}</p>
         </div>
 
-        {/* Nature's Wisdom — Back to Eden tradition, tied to today's law */}
-        <div style={{background:`linear-gradient(135deg,${todayLaw.color}06,rgba(255,255,255,0.02))`,border:`1px solid ${todayLaw.color}22`,borderLeft:`3px solid ${todayLaw.color}55`,borderRadius:"0 12px 12px 0",padding:"14px 16px",marginBottom:16,animation:"fadeUp .5s .14s ease both"}}>
-          <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:8}}>
-            <span style={{fontSize:13}}>📖</span>
-            <p style={{fontSize:11,fontWeight:700,color:todayLaw.color,letterSpacing:".12em",textTransform:"uppercase"}}>Nature's Wisdom · {todayLaw.subtitle}</p>
-          </div>
-          <p style={{fontSize:14,color:"rgba(255,255,255,0.68)",lineHeight:1.8,fontWeight:300,fontStyle:"italic"}}>{todayLaw.natureWisdom}</p>
-          <p style={{fontSize:10,color:DIMMED,marginTop:8,letterSpacing:".06em"}}>Traditional healing wisdom · Referenced in Back to Eden</p>
-        </div>
+        {/* Nature's Wisdom — expandable, first sentence as invitation */}
+        {(() => {
+          const preview = todayLaw.natureWisdom.split('.')[0] + '.';
+          const hasMore = todayLaw.natureWisdom.length > preview.length + 5;
+          return (
+            <div style={{background:`linear-gradient(135deg,${todayLaw.color}06,rgba(255,255,255,0.02))`,border:`1px solid ${todayLaw.color}22`,borderLeft:`3px solid ${todayLaw.color}55`,borderRadius:"0 12px 12px 0",padding:"14px 16px",marginBottom:16,animation:"fadeUp .5s .14s ease both"}}>
+              <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:8}}>
+                <span style={{fontSize:13}}>📖</span>
+                <p style={{fontSize:11,fontWeight:700,color:todayLaw.color,letterSpacing:".12em",textTransform:"uppercase"}}>Nature's Wisdom · {todayLaw.subtitle}</p>
+              </div>
+              <p style={{fontSize:14,color:"rgba(255,255,255,0.68)",lineHeight:1.8,fontWeight:300,fontStyle:"italic"}}>
+                {natureExpanded ? todayLaw.natureWisdom : preview}
+              </p>
+              {hasMore && (
+                <button onClick={()=>setNatureExpanded(v=>!v)}
+                  style={{marginTop:8,background:"none",border:"none",cursor:"pointer",padding:0,
+                    fontFamily:"'Space Grotesk',sans-serif",fontWeight:700,fontSize:12,
+                    color:todayLaw.color,letterSpacing:".06em",opacity:0.8,transition:"opacity .15s"}}
+                  onMouseEnter={e=>e.currentTarget.style.opacity="1"}
+                  onMouseLeave={e=>e.currentTarget.style.opacity="0.8"}>
+                  {natureExpanded ? "↑ Show less" : "Read more →"}
+                </button>
+              )}
+              <p style={{fontSize:10,color:DIMMED,marginTop:natureExpanded?8:4,letterSpacing:".06em"}}>Traditional healing wisdom · Referenced in Back to Eden</p>
+            </div>
+          );
+        })()}
 
         {/* ── THE 5 QUANTUM LAWS — circular thumbnails with integrated checklist ── */}
         <div style={{marginBottom:16,animation:"fadeUp .5s .16s ease both"}}>
@@ -767,86 +787,125 @@ export default function QuantumLiving({ onBack, archetype }) {
           </div>
         )}
 
-        {/* ── THE HEALING INTELLIGENCE — the philosophical centrepiece ── */}
+        {/* ── THE HEALING INTELLIGENCE — accordion reveal, parchment palette ── */}
         <div style={{
           marginBottom:16,borderRadius:20,overflow:"hidden",
-          background:"linear-gradient(145deg,rgba(245,158,11,0.07) 0%,rgba(167,139,250,0.05) 50%,rgba(52,211,153,0.04) 100%)",
-          border:"1px solid rgba(245,158,11,0.25)",
+          background:"linear-gradient(160deg,rgba(200,185,154,0.06) 0%,rgba(52,211,153,0.04) 100%)",
+          border:"1px solid rgba(200,185,154,0.22)",
           animation:"fadeUp .5s .22s ease both",
         }}>
-          {/* Header bar */}
+
+          {/* Header with inline botanical SVG */}
           <div style={{
-            background:"linear-gradient(90deg,rgba(245,158,11,0.14),rgba(245,158,11,0.05))",
-            borderBottom:"1px solid rgba(245,158,11,0.18)",
-            padding:"13px 20px",
-            display:"flex",alignItems:"center",gap:10,
+            padding:"16px 20px",
+            borderBottom:"1px solid rgba(200,185,154,0.14)",
+            display:"flex",alignItems:"center",justifyContent:"space-between",
           }}>
-            <span style={{fontSize:18}}>✦</span>
-            <span style={{fontSize:11,fontWeight:700,color:"#F59E0B",letterSpacing:".16em",textTransform:"uppercase"}}>The Healing Intelligence</span>
+            <div style={{display:"flex",alignItems:"center",gap:12}}>
+              {/* Botanical SVG — herb sprig */}
+              <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <line x1="14" y1="26" x2="14" y2="4" stroke="rgba(200,185,154,0.5)" strokeWidth="1.2" strokeLinecap="round"/>
+                <ellipse cx="14" cy="10" rx="4.5" ry="2.8" transform="rotate(-30 14 10)" fill="none" stroke="rgba(200,185,154,0.45)" strokeWidth="1"/>
+                <ellipse cx="14" cy="16" rx="4.5" ry="2.8" transform="rotate(30 14 16)" fill="none" stroke="rgba(200,185,154,0.45)" strokeWidth="1"/>
+                <ellipse cx="11" cy="7" rx="3" ry="1.8" transform="rotate(-60 11 7)" fill="none" stroke="rgba(200,185,154,0.3)" strokeWidth="0.8"/>
+                <ellipse cx="17" cy="19" rx="3" ry="1.8" transform="rotate(60 17 19)" fill="none" stroke="rgba(200,185,154,0.3)" strokeWidth="0.8"/>
+                <circle cx="14" cy="4" r="1.2" fill="rgba(200,185,154,0.5)"/>
+              </svg>
+              <div>
+                <p style={{fontSize:10,fontWeight:700,color:"rgba(200,185,154,0.55)",letterSpacing:".18em",textTransform:"uppercase",marginBottom:2}}>Foundation</p>
+                <p style={{fontSize:15,fontWeight:700,color:"rgba(200,185,154,0.88)",letterSpacing:".04em"}}>The Healing Intelligence</p>
+              </div>
+            </div>
+            <p style={{fontFamily:"'Crimson Pro',serif",fontStyle:"italic",fontSize:12,color:"rgba(200,185,154,0.45)",maxWidth:140,textAlign:"right",lineHeight:1.5}}>Three principles of the body</p>
           </div>
 
-          {/* Body */}
-          <div style={{padding:"22px 20px 20px"}}>
-            {/* Opening quote */}
+          {/* Opening quote */}
+          <div style={{padding:"18px 20px 4px"}}>
             <p style={{
               fontFamily:"'Crimson Pro',serif",fontStyle:"italic",
-              fontSize:19,color:"rgba(245,158,11,0.9)",
-              lineHeight:1.7,marginBottom:18,
-              borderLeft:"2px solid rgba(245,158,11,0.35)",
-              paddingLeft:14,
+              fontSize:17,color:"rgba(200,185,154,0.75)",
+              lineHeight:1.75,
+              borderLeft:"2px solid rgba(200,185,154,0.25)",
+              paddingLeft:14,marginBottom:0,
             }}>
               "The most sophisticated healing system ever known is not in any clinic or laboratory. It is in you."
             </p>
+          </div>
 
-            {/* Three principles */}
+          {/* Accordion principles */}
+          <div style={{padding:"12px 20px 18px",display:"flex",flexDirection:"column",gap:6}}>
             {[
               {
                 icon:"◎",
                 title:"The Body Knows",
+                preview:"Innate intelligence. Self-correcting. Self-repairing.",
                 text:"The human body has an innate intelligence — a self-correcting, self-repairing capacity refined over hundreds of thousands of years. Inflammation resolves when its cause is removed. The liver regenerates. The gut microbiome rebalances. The immune system adapts. None of this requires intervention. It requires cooperation.",
               },
               {
                 icon:"◈",
                 title:"The Right Conditions",
+                preview:"Given clean air, whole food, rest and temperance — the body moves toward health.",
                 text:"Modern research now confirms what traditional healers understood intuitively: given the right conditions — clean air, whole food, sufficient rest, movement, and temperance — the body consistently moves toward health. This is not optimism. It is biology. The 5 Quantum Laws are simply the creation of those conditions, daily.",
               },
               {
                 icon:"⬡",
                 title:"Nature's Original Design",
+                preview:"Every plant in nature's pharmacy carries compounds shaped by millions of years of co-evolution.",
                 text:"Every plant in nature's pharmacy — every herb, root, and seed — carries compounds shaped by millions of years of co-evolution with the human body. Garlic's allicin. Turmeric's curcumin. The essential fatty acids in cold-pressed seeds. The prebiotics in raw honey. These are not supplements. They are signals the body already knows how to read.",
               },
-            ].map((p,i)=>(
-              <div key={i} style={{
-                display:"flex",gap:14,alignItems:"flex-start",
-                marginBottom:i<2?16:0,
-                paddingBottom:i<2?16:0,
-                borderBottom:i<2?"1px solid rgba(245,158,11,0.1)":undefined,
-              }}>
-                <div style={{
-                  flexShrink:0,width:32,height:32,borderRadius:10,
-                  background:"rgba(245,158,11,0.1)",
-                  border:"1px solid rgba(245,158,11,0.25)",
-                  display:"flex",alignItems:"center",justifyContent:"center",
-                  fontSize:14,color:"#F59E0B",fontWeight:700,marginTop:2,
-                }}>{p.icon}</div>
-                <div>
-                  <p style={{fontSize:13,fontWeight:700,color:"rgba(245,158,11,0.8)",letterSpacing:".08em",textTransform:"uppercase",marginBottom:5}}>{p.title}</p>
-                  <p style={{fontSize:14,color:"rgba(255,255,255,0.72)",lineHeight:1.85,fontWeight:300}}>{p.text}</p>
+            ].map((p,i)=>{
+              const isOpen = hiOpen === i;
+              return (
+                <div key={i}
+                  onClick={()=>setHiOpen(isOpen ? -1 : i)}
+                  style={{
+                    borderRadius:12,cursor:"pointer",overflow:"hidden",
+                    border:`1px solid ${isOpen ? "rgba(200,185,154,0.3)" : "rgba(200,185,154,0.1)"}`,
+                    background:isOpen ? "rgba(200,185,154,0.06)" : "rgba(200,185,154,0.02)",
+                    transition:"all .22s ease",
+                  }}>
+                  {/* Card header row — always visible */}
+                  <div style={{display:"flex",alignItems:"center",gap:12,padding:"13px 16px"}}>
+                    <div style={{
+                      flexShrink:0,width:30,height:30,borderRadius:8,
+                      background:isOpen ? "rgba(200,185,154,0.14)" : "rgba(200,185,154,0.06)",
+                      border:`1px solid ${isOpen ? "rgba(200,185,154,0.35)" : "rgba(200,185,154,0.15)"}`,
+                      display:"flex",alignItems:"center",justifyContent:"center",
+                      fontSize:13,color:isOpen ? "rgba(200,185,154,0.9)" : "rgba(200,185,154,0.45)",
+                      transition:"all .2s",
+                    }}>{p.icon}</div>
+                    <div style={{flex:1}}>
+                      <p style={{fontSize:13,fontWeight:700,color:isOpen ? "rgba(200,185,154,0.9)" : "rgba(200,185,154,0.55)",letterSpacing:".06em",textTransform:"uppercase",marginBottom:isOpen?0:3,transition:"color .2s"}}>{p.title}</p>
+                      {!isOpen && <p style={{fontSize:12,color:"rgba(255,255,255,0.35)",lineHeight:1.5,fontStyle:"italic"}}>{p.preview}</p>}
+                    </div>
+                    <div style={{
+                      width:20,height:20,borderRadius:"50%",flexShrink:0,
+                      background:"rgba(200,185,154,0.08)",
+                      display:"flex",alignItems:"center",justifyContent:"center",
+                      fontSize:10,color:"rgba(200,185,154,0.5)",
+                      transform:isOpen?"rotate(180deg)":"rotate(0deg)",
+                      transition:"transform .22s ease",
+                    }}>▾</div>
+                  </div>
+                  {/* Expanded text */}
+                  {isOpen && (
+                    <div style={{padding:"0 16px 16px 58px"}}>
+                      <p style={{fontSize:14,color:"rgba(255,255,255,0.72)",lineHeight:1.9,fontWeight:300}}>{p.text}</p>
+                    </div>
+                  )}
                 </div>
-              </div>
-            ))}
+              );
+            })}
+          </div>
 
-            {/* Closing attribution */}
-            <div style={{
-              marginTop:18,paddingTop:14,
-              borderTop:"1px solid rgba(245,158,11,0.12)",
-              display:"flex",alignItems:"center",gap:10,
-            }}>
-              <span style={{fontSize:14}}>📖</span>
-              <p style={{fontSize:12,color:"rgba(255,255,255,0.35)",lineHeight:1.6,fontStyle:"italic"}}>
-                Grounded in traditional healing wisdom, modern nutritional science, and the foundational principles of the LQM Method. The 5 Quantum Laws are the daily practice of these principles.
-              </p>
-            </div>
+          {/* Footer attribution */}
+          <div style={{
+            padding:"10px 20px 16px",
+            display:"flex",alignItems:"center",gap:8,
+          }}>
+            <p style={{fontSize:11,color:"rgba(200,185,154,0.35)",lineHeight:1.6,fontStyle:"italic"}}>
+              Grounded in traditional healing wisdom, modern nutritional science, and the foundational principles of the LQM Method.
+            </p>
           </div>
         </div>
 
