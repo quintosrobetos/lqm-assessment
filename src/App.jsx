@@ -109,7 +109,7 @@ const ORIGINAL = 27, DISCOUNTED = 9, TIMER_SECS = 5 * 60;
 // ── TEST MODE ──────────────────────────────────────────────────────────────
 // Set to true to show the "Unlock All" button in the footer for testing.
 // Set to false before going live to real customers.
-const TEST_MODE = true;
+const TEST_MODE = false;
 // ──────────────────────────────────────────────────────────────────────────
 
 function Particles() {
