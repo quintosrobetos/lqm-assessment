@@ -342,7 +342,10 @@ export default function QuantumLiving({ onBack, archetype }) {
       const saved = JSON.parse(localStorage.getItem("lqm_living") || "{}");
       // Only restore ticks if they were saved TODAY
       if(saved.checklistDate === todayKey && Array.isArray(saved.checklist)) {
-        return saved.checklist;
+        // Sanitize: only today's law index can be true — prevents multi-tick
+        // corruption from any previous session where DAY_NUM rotated intra-day
+        const safeLawIdx = DAY_NUM % 5;
+        return saved.checklist.map((v, i) => i === safeLawIdx ? v : false);
       }
     } catch{}
     return [false,false,false,false,false];
@@ -435,6 +438,7 @@ export default function QuantumLiving({ onBack, archetype }) {
       @keyframes pct20Pulse{0%,100%{color:#ffffff;text-shadow:0 0 8px rgba(255,255,255,0.3);}50%{color:#34D399;text-shadow:0 0 20px rgba(52,211,153,0.8),0 0 40px rgba(52,211,153,0.3);}}
       @keyframes hiCardPulse{0%,100%{border-color:rgba(200,185,154,0.18);box-shadow:none;}50%{border-color:rgba(200,185,154,0.42);box-shadow:0 0 12px rgba(200,185,154,0.1);}}
       @keyframes guidePulse{0%,100%{opacity:0.5;transform:translateX(0);}50%{opacity:1;transform:translateX(3px);}}
+      @keyframes todayDone{0%,100%{opacity:0.7;transform:scale(1);}50%{opacity:1;transform:scale(1.1);}}
       @keyframes hiZonePulse{0%{opacity:0.55;}60%{opacity:0;}100%{opacity:0;}}
       @keyframes hiDotPulse{0%,100%{opacity:1;}50%{opacity:0.35;}}
     `;
@@ -701,11 +705,11 @@ export default function QuantumLiving({ onBack, archetype }) {
                         pointerEvents:"none"}}/>
                     )}
 
-                    {/* Today done — solid glow ring */}
+                    {/* Today done — gentle pulse ring */}
                     {isToday && isTicked && (
                       <div style={{position:"absolute",inset:-4,borderRadius:"50%",
-                        border:`2px solid ${law.color}`,
-                        boxShadow:`0 0 14px ${law.color}66`,
+                        border:`1.5px solid ${law.color}bb`,
+                        animation:"todayDone 2.8s ease-in-out infinite",
                         pointerEvents:"none"}}/>
                     )}
 
@@ -713,9 +717,9 @@ export default function QuantumLiving({ onBack, archetype }) {
                     <div style={{
                       width:"100%",height:"100%",borderRadius:"50%",
                       background: isToday && isTicked
-                        ? `radial-gradient(circle at 38% 32%, ${law.color}ee, ${law.color}99)`
+                        ? `radial-gradient(circle at 38% 32%, ${law.color}55, ${law.color}28)`
                         : isToday
-                          ? `radial-gradient(circle at 38% 32%, ${law.color}44, ${law.color}18)`
+                          ? `radial-gradient(circle at 38% 32%, ${law.color}38, ${law.color}14)`
                           : isTicked
                             ? `rgba(52,211,153,0.08)`  // quiet green tint for non-today ticked
                             : `radial-gradient(circle at 38% 32%, ${law.color}1a, ${law.color}08)`,
@@ -724,16 +728,17 @@ export default function QuantumLiving({ onBack, archetype }) {
                         : isTicked
                           ? `1px solid rgba(52,211,153,0.4)` // quiet green border
                           : `1.5px solid ${law.color}33`,
-                      boxShadow: isToday && !isTicked ? `0 0 28px ${law.color}44, 0 0 8px ${law.color}33` : "none",
+                      boxShadow: isToday && !isTicked ? `0 0 22px ${law.color}33, 0 0 6px ${law.color}22` : isToday && isTicked ? `0 0 16px ${law.color}33` : "none",
                       display:"flex",alignItems:"center",justifyContent:"center",
                       fontSize: isToday ? 26 : isTicked ? 14 : 18,
                       transition:"all .35s cubic-bezier(.4,0,.2,1)",
                     }}>
                       {isTicked
                         ? <span style={{
-                            color: isToday ? BG : "rgba(52,211,153,0.7)",
+                            color: isToday ? law.color : "rgba(52,211,153,0.55)",
                             fontWeight:900,
-                            fontSize: isToday ? 24 : 13,
+                            fontSize: isToday ? 22 : 13,
+                            filter: isToday ? `drop-shadow(0 0 4px ${law.color}88)` : "none",
                           }}>✓</span>
                         : <span className={`law-icon-${i}`}>{law.icon}</span>}
                     </div>
@@ -833,7 +838,7 @@ export default function QuantumLiving({ onBack, archetype }) {
           </div>
         )}
 
-        {/* ── THE HEALING INTELLIGENCE — interactive body diagram ── */}
+        {/* ── THE HEALING INTELLIGENCE — dot-body diagram ── */}
         <div style={{
           marginBottom:16,borderRadius:20,overflow:"hidden",
           background:"linear-gradient(160deg,rgba(200,185,154,0.06) 0%,rgba(52,211,153,0.04) 100%)",
@@ -853,16 +858,16 @@ export default function QuantumLiving({ onBack, archetype }) {
                 <circle cx="14" cy="4" r="1.2" fill="rgba(200,185,154,0.5)"/>
               </svg>
               <div>
-                <p style={{fontSize:10,fontWeight:700,color:"rgba(200,185,154,0.55)",letterSpacing:".18em",textTransform:"uppercase",marginBottom:2}}>Foundation</p>
+                <p style={{fontSize:10,fontWeight:700,color:"rgba(200,185,154,0.5)",letterSpacing:".18em",textTransform:"uppercase",marginBottom:2}}>Foundation</p>
                 <p style={{fontSize:15,fontWeight:700,color:"rgba(200,185,154,0.88)",letterSpacing:".04em"}}>The Healing Intelligence</p>
               </div>
             </div>
-            <p style={{fontFamily:"'Crimson Pro',serif",fontStyle:"italic",fontSize:12,color:"rgba(200,185,154,0.45)",maxWidth:120,textAlign:"right",lineHeight:1.5}}>Tap each zone to discover</p>
+            <p style={{fontFamily:"'Crimson Pro',serif",fontStyle:"italic",fontSize:11,color:"rgba(200,185,154,0.38)",textAlign:"right",lineHeight:1.5}}>Three principles<br/>of the body</p>
           </div>
 
           {/* Quote */}
-          <div style={{padding:"16px 20px 10px"}}>
-            <p style={{fontFamily:"'Crimson Pro',serif",fontStyle:"italic",fontSize:16,color:"rgba(200,185,154,0.85)",lineHeight:1.75,borderLeft:"2px solid rgba(200,185,154,0.25)",paddingLeft:14}}>
+          <div style={{padding:"16px 20px 12px"}}>
+            <p style={{fontFamily:"'Crimson Pro',serif",fontStyle:"italic",fontSize:15,color:"rgba(200,185,154,0.82)",lineHeight:1.75,borderLeft:"2px solid rgba(200,185,154,0.22)",paddingLeft:14}}>
               "The most sophisticated healing system ever known is not in any clinic or laboratory. It is in you."
             </p>
           </div>
@@ -870,133 +875,106 @@ export default function QuantumLiving({ onBack, archetype }) {
           {/* Interactive body diagram */}
           {(()=>{
             const BZ = [
-              {color:"#C8A96E",label:"Head & Mind",    title:"The Body Knows",           text:"The human body has an innate intelligence — a self-correcting, self-repairing capacity refined over hundreds of thousands of years. Inflammation resolves when its cause is removed. The liver regenerates. The gut microbiome rebalances. The immune system adapts. None of this requires intervention. It requires cooperation."},
-              {color:"#7BAE8E",label:"Heart & Core",   title:"The Right Conditions",     text:"Modern research now confirms what traditional healers understood intuitively: given the right conditions — clean air, whole food, sufficient rest, movement, and temperance — the body consistently moves toward health. This is not optimism. It is biology. The 5 Quantum Laws are simply the creation of those conditions, daily."},
-              {color:"#5A9E9A",label:"Foundation",     title:"Nature's Original Design", text:"Every plant in nature's pharmacy — every herb, root, and seed — carries compounds shaped by millions of years of co-evolution with the human body. Garlic's allicin. Turmeric's curcumin. The essential fatty acids in cold-pressed seeds. The prebiotics in raw honey. These are not supplements. They are signals the body already knows how to read."},
+              {color:"#C8A96E",num:"01",label:"Head & Mind",    title:"The Body Knows",           text:"The human body has an innate intelligence — a self-correcting, self-repairing capacity refined over hundreds of thousands of years. Inflammation resolves when its cause is removed. The liver regenerates. The gut microbiome rebalances. The immune system adapts. None of this requires intervention. It requires cooperation."},
+              {color:"#7BAE8E",num:"02",label:"Heart & Core",   title:"The Right Conditions",     text:"Modern research now confirms what traditional healers understood intuitively: given the right conditions — clean air, whole food, sufficient rest, movement, and temperance — the body consistently moves toward health. This is not optimism. It is biology. The 5 Quantum Laws are simply the creation of those conditions, daily."},
+              {color:"#5A9E9A",num:"03",label:"Foundation",     title:"Nature's Original Design", text:"Every plant in nature's pharmacy — every herb, root, and seed — carries compounds shaped by millions of years of co-evolution with the human body. Garlic's allicin. Turmeric's curcumin. The essential fatty acids in cold-pressed seeds. The prebiotics in raw honey. These are not supplements. They are signals the body already knows how to read."},
             ];
+            // Individually placed dots — each forms part of the anatomical body shape
+            const D0=[[60,20,11],[48,17,6],[72,17,6],[56,28,5],[64,28,5],[58,9,5],[62,9,4],[50,10,3],[70,10,3],[44,20,3],[76,20,3],[54,34,3],[66,34,3],[57,42,3],[63,42,3],[60,47,3],[48,54,5],[72,54,5],[36,59,5],[84,59,5],[26,63,4],[94,63,4],[18,66,3],[102,66,3]];
+            const D1=[[16,76,4],[104,76,4],[44,70,6],[76,70,6],[60,68,6],[34,78,5],[86,78,5],[50,78,5],[70,78,5],[14,90,4],[106,90,4],[38,90,5],[82,90,5],[52,88,5],[68,88,5],[60,87,5],[15,104,3],[105,104,3],[42,102,5],[78,102,5],[54,100,5],[66,100,5],[60,100,5],[16,118,3],[104,118,3],[44,114,5],[76,114,5],[56,112,5],[64,112,5],[60,111,5],[18,132,3],[102,132,3],[46,126,4],[74,126,4],[57,124,4],[63,124,4],[60,123,4],[20,144,3],[100,144,3],[48,138,4],[72,138,4],[58,136,4],[62,136,4],[50,150,4],[70,150,4],[58,148,4],[62,148,4]];
+            const D2=[[44,162,6],[76,162,6],[56,160,5],[64,160,5],[60,159,5],[36,168,5],[84,168,5],[48,170,5],[72,170,5],[44,182,5],[50,182,4],[76,182,5],[70,182,4],[40,194,5],[48,194,4],[80,194,5],[72,194,4],[38,206,4],[46,206,4],[82,206,4],[74,206,4],[38,218,4],[44,218,3],[82,218,4],[76,218,3],[38,230,4],[82,230,4],[38,242,4],[82,242,4],[38,254,3],[82,254,3],[38,266,3],[82,266,3],[40,276,3],[80,276,3]];
+
             const active = bodyZone !== null ? BZ[bodyZone] : null;
+            const dotOp = (zone) => bodyZone===null ? 0.28 : bodyZone===zone ? 0.92 : 0.10;
+
             return (
-              <div style={{padding:"0 20px 20px"}}>
+              <div style={{padding:"0 16px 20px"}}>
+                <div style={{display:"flex",alignItems:"center",justifyContent:"center",gap:8}}>
 
-                {/* Figure row */}
-                <div style={{display:"flex",alignItems:"center",justifyContent:"center",gap:10,marginBottom:12}}>
-
-                  {/* Left zone labels — also tap targets */}
-                  <div style={{display:"flex",flexDirection:"column",gap:4,alignItems:"flex-end",minWidth:78}}>
+                  {/* Left labels — premium: no boxes, clean text only */}
+                  <div style={{display:"flex",flexDirection:"column",gap:14,alignItems:"flex-end",minWidth:80}}>
                     {BZ.map((z,i)=>(
                       <div key={i} onClick={()=>setBodyZone(bodyZone===i?null:i)} style={{
-                        display:"flex",alignItems:"center",gap:6,cursor:"pointer",
-                        padding:"5px 8px",borderRadius:8,
-                        background:bodyZone===i?`${z.color}18`:"transparent",
-                        border:`1px solid ${bodyZone===i?z.color+"44":"transparent"}`,
-                        transition:"all .22s",
+                        display:"flex",alignItems:"center",justifyContent:"flex-end",gap:7,
+                        cursor:"pointer",padding:"2px 0",
+                        opacity: bodyZone===null ? 0.55 : bodyZone===i ? 1 : 0.22,
+                        transition:"opacity .3s ease",
                       }}>
-                        <span style={{fontSize:9,fontWeight:700,letterSpacing:".06em",textTransform:"uppercase",textAlign:"right",lineHeight:1.4,color:bodyZone===i?z.color:"rgba(255,255,255,0.35)"}}>{z.label}</span>
-                        <div style={{width:6,height:6,borderRadius:"50%",flexShrink:0,background:bodyZone===i?z.color:"rgba(255,255,255,0.16)",boxShadow:bodyZone===i?`0 0 7px ${z.color}`:"none",transition:"all .22s"}}/>
+                        <div style={{textAlign:"right"}}>
+                          <p style={{fontSize:7,fontWeight:700,color:z.color,letterSpacing:".22em",textTransform:"uppercase",marginBottom:1,opacity:.7}}>{z.num}</p>
+                          <p style={{fontSize:10,fontWeight:700,letterSpacing:".07em",textTransform:"uppercase",color:bodyZone===i?z.color:"rgba(255,255,255,0.75)",transition:"color .3s"}}>{z.label}</p>
+                        </div>
+                        <div style={{
+                          width:5,height:5,borderRadius:"50%",flexShrink:0,
+                          background:bodyZone===i?z.color:"rgba(255,255,255,0.18)",
+                          boxShadow:bodyZone===i?`0 0 8px ${z.color}`:"none",
+                          transition:"all .3s",
+                        }}/>
                       </div>
                     ))}
                   </div>
 
-                  {/* SVG human figure */}
-                  <svg viewBox="0 0 120 285" width="108" height="256" style={{flexShrink:0,overflow:"visible"}}>
-                    <defs>
-                      {/* Dot texture — mixed sizes for organic feel */}
-                      <pattern id="hiBodyDots" x="0" y="0" width="18" height="18" patternUnits="userSpaceOnUse">
-                        <circle cx="4"  cy="4"  r="3.5" fill="white"/>
-                        <circle cx="14" cy="4"  r="2"   fill="white"/>
-                        <circle cx="4"  cy="14" r="2"   fill="white"/>
-                        <circle cx="14" cy="14" r="4"   fill="white"/>
-                        <circle cx="9"  cy="9"  r="1.5" fill="white"/>
-                      </pattern>
-                      <mask id="hiBodyMask">
-                        <rect x="0" y="0" width="120" height="285" fill="url(#hiBodyDots)"/>
-                      </mask>
-                      {/* Zone 0: Head + neck + shoulders */}
-                      <clipPath id="hiZ0">
-                        <circle cx="60" cy="22" r="16"/>
-                        <rect x="53" y="36" width="14" height="17"/>
-                        <path d="M28,53 Q42,46 53,44 L67,44 Q78,46 92,53 L88,92 Q72,86 60,86 Q48,86 32,92 Z"/>
-                      </clipPath>
-                      {/* Zone 1: Chest + torso */}
-                      <clipPath id="hiZ1">
-                        <path d="M32,92 Q48,86 60,86 Q72,86 88,92 L84,166 Q70,160 60,160 Q50,160 36,166 Z"/>
-                      </clipPath>
-                      {/* Zone 2: Hips + legs */}
-                      <clipPath id="hiZ2">
-                        <path d="M36,166 Q50,160 60,160 Q70,160 84,166 L86,194 L34,194 Z"/>
-                        <rect x="36" y="192" width="21" height="88" rx="7"/>
-                        <rect x="63" y="192" width="21" height="88" rx="7"/>
-                      </clipPath>
-                    </defs>
+                  {/* Human figure — individually placed anatomical dots */}
+                  <svg viewBox="0 0 120 285" width="96" height="228" style={{flexShrink:0,overflow:"visible"}}>
 
-                    {/* Zone 0 fill */}
-                    <g clipPath="url(#hiZ0)" mask="url(#hiBodyMask)"
-                       style={{opacity:bodyZone===0?0.92:0.24,transition:"opacity .4s ease"}}>
-                      <rect x="0" y="0" width="120" height="285" fill="#C8A96E"/>
+                    {/* Zone 0 dots — head, neck, shoulders */}
+                    <g style={{transition:"opacity .4s ease"}} opacity={dotOp(0)} onClick={()=>setBodyZone(bodyZone===0?null:0)} cursor="pointer">
+                      {D0.map(([cx,cy,r],i)=><circle key={i} cx={cx} cy={cy} r={r} fill="#C8A96E"/>)}
                     </g>
-                    {/* Zone 1 fill */}
-                    <g clipPath="url(#hiZ1)" mask="url(#hiBodyMask)"
-                       style={{opacity:bodyZone===1?0.92:0.24,transition:"opacity .4s ease"}}>
-                      <rect x="0" y="0" width="120" height="285" fill="#7BAE8E"/>
+                    {/* Zone 1 dots — chest, torso, arms */}
+                    <g style={{transition:"opacity .4s ease"}} opacity={dotOp(1)} onClick={()=>setBodyZone(bodyZone===1?null:1)} cursor="pointer">
+                      {D1.map(([cx,cy,r],i)=><circle key={i} cx={cx} cy={cy} r={r} fill="#7BAE8E"/>)}
                     </g>
-                    {/* Zone 2 fill */}
-                    <g clipPath="url(#hiZ2)" mask="url(#hiBodyMask)"
-                       style={{opacity:bodyZone===2?0.92:0.24,transition:"opacity .4s ease"}}>
-                      <rect x="0" y="0" width="120" height="285" fill="#5A9E9A"/>
+                    {/* Zone 2 dots — hips, legs */}
+                    <g style={{transition:"opacity .4s ease"}} opacity={dotOp(2)} onClick={()=>setBodyZone(bodyZone===2?null:2)} cursor="pointer">
+                      {D2.map(([cx,cy,r],i)=><circle key={i} cx={cx} cy={cy} r={r} fill="#5A9E9A"/>)}
                     </g>
 
-                    {/* Full-zone hit areas — ensures tapping between dots works */}
-                    <rect x="26" y="4"   width="68" height="90"  fill="rgba(0,0,0,0.001)" style={{cursor:"pointer"}} onClick={()=>setBodyZone(bodyZone===0?null:0)}/>
-                    <rect x="30" y="90"  width="60" height="78"  fill="rgba(0,0,0,0.001)" style={{cursor:"pointer"}} onClick={()=>setBodyZone(bodyZone===1?null:1)}/>
-                    <rect x="28" y="160" width="64" height="126" fill="rgba(0,0,0,0.001)" style={{cursor:"pointer"}} onClick={()=>setBodyZone(bodyZone===2?null:2)}/>
-
-                    {/* Pulse rings — one per zone, staggered, when nothing selected */}
+                    {/* Staggered pulse rings when idle */}
                     {bodyZone===null && [
-                      {cx:60,cy:57, r:38,c:"#C8A96E",d:"0s"},
-                      {cx:60,cy:129,r:32,c:"#7BAE8E",d:"0.85s"},
-                      {cx:60,cy:228,r:28,c:"#5A9E9A",d:"1.7s"},
+                      {cx:60,cy:42, r:36,c:"#C8A96E",d:"0s"},
+                      {cx:60,cy:110,r:30,c:"#7BAE8E",d:"0.9s"},
+                      {cx:60,cy:218,r:26,c:"#5A9E9A",d:"1.8s"},
                     ].map((p,i)=>(
                       <circle key={i} cx={p.cx} cy={p.cy} r={p.r} fill="none"
-                        stroke={p.c} strokeWidth="1.2"
-                        style={{opacity:0,animation:`hiZonePulse 2.6s ${p.d} ease-out infinite`}}/>
+                        stroke={p.c} strokeWidth="1"
+                        style={{opacity:0,animation:`hiZonePulse 2.8s ${p.d} ease-out infinite`}}/>
                     ))}
 
-                    {/* Active zone indicator dot */}
+                    {/* Active zone glow dot */}
                     {bodyZone!==null && (
-                      <circle cx="60" cy={[57,129,228][bodyZone]} r="4.5"
+                      <circle cx="60" cy={[42,110,218][bodyZone]} r="3.5"
                         fill={BZ[bodyZone].color}
-                        style={{
-                          filter:`drop-shadow(0 0 5px ${BZ[bodyZone].color})`,
-                          animation:"hiDotPulse 1.6s ease-in-out infinite",
-                        }}/>
+                        style={{filter:`drop-shadow(0 0 4px ${BZ[bodyZone].color})`,animation:"hiDotPulse 1.8s ease-in-out infinite"}}/>
                     )}
                   </svg>
 
-                  {/* Right: active info or prompt */}
-                  <div style={{minWidth:68,maxWidth:88}}>
+                  {/* Right — minimal: principle title only */}
+                  <div style={{minWidth:64,maxWidth:80}}>
                     {active ? (
-                      <div style={{padding:"8px 10px",borderRadius:10,background:`${active.color}12`,border:`1px solid ${active.color}33`}}>
-                        <p style={{fontSize:9,fontWeight:700,color:active.color,letterSpacing:".1em",textTransform:"uppercase",marginBottom:3}}>{active.label}</p>
-                        <p style={{fontSize:11,color:"rgba(255,255,255,0.65)",lineHeight:1.5,fontStyle:"italic"}}>{active.title}</p>
+                      <div>
+                        <p style={{fontSize:7,fontWeight:700,color:active.color,letterSpacing:".2em",textTransform:"uppercase",marginBottom:4,opacity:.7}}>{active.num}</p>
+                        <p style={{fontSize:11,fontWeight:700,color:active.color,letterSpacing:".06em",lineHeight:1.5}}>{active.title}</p>
+                        <div style={{width:20,height:1,background:active.color,opacity:.35,marginTop:6}}/>
                       </div>
                     ) : (
-                      <p style={{fontSize:10,color:"rgba(200,185,154,0.4)",lineHeight:1.6,fontStyle:"italic"}}>Tap the figure or labels to explore</p>
+                      <p style={{fontSize:9,color:"rgba(200,185,154,0.32)",lineHeight:1.7,fontStyle:"italic"}}>Tap a zone<br/>to reveal</p>
                     )}
                   </div>
 
                 </div>
 
-                {/* Full principle text — reveals below figure on tap */}
+                {/* Principle text — slides in below on tap */}
                 {active && (
                   <div style={{
-                    padding:"14px 16px",borderRadius:14,
-                    background:`${active.color}0d`,
-                    border:`1px solid ${active.color}2a`,
-                    borderLeft:`3px solid ${active.color}77`,
-                    animation:"fadeUp .3s ease both",
+                    marginTop:12,padding:"14px 16px",borderRadius:14,
+                    background:`${active.color}09`,
+                    border:`1px solid ${active.color}22`,
+                    borderLeft:`2px solid ${active.color}66`,
+                    animation:"fadeUp .28s ease both",
                   }}>
-                    <p style={{fontSize:13,fontWeight:700,color:active.color,letterSpacing:".08em",textTransform:"uppercase",marginBottom:8}}>{active.title}</p>
-                    <p style={{fontSize:14,color:"rgba(255,255,255,0.82)",lineHeight:1.9,fontWeight:400}}>{active.text}</p>
+                    <p style={{fontSize:12,fontWeight:700,color:active.color,letterSpacing:".1em",textTransform:"uppercase",marginBottom:8}}>{active.title}</p>
+                    <p style={{fontSize:14,color:"rgba(255,255,255,0.8)",lineHeight:1.9,fontWeight:400}}>{active.text}</p>
                   </div>
                 )}
 
@@ -1004,9 +982,9 @@ export default function QuantumLiving({ onBack, archetype }) {
             );
           })()}
 
-          {/* Footer attribution */}
-          <div style={{padding:"4px 20px 16px"}}>
-            <p style={{fontSize:11,color:"rgba(200,185,154,0.32)",lineHeight:1.6,fontStyle:"italic"}}>
+          {/* Footer */}
+          <div style={{padding:"4px 20px 14px"}}>
+            <p style={{fontSize:10,color:"rgba(200,185,154,0.28)",lineHeight:1.6,fontStyle:"italic"}}>
               Grounded in traditional healing wisdom, modern nutritional science, and the foundational principles of the LQM Method.
             </p>
           </div>
