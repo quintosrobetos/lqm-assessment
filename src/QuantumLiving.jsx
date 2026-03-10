@@ -620,45 +620,60 @@ export default function QuantumLiving({ onBack, archetype }) {
           </div>
         )}
 
-        {/* ── SECTION 3: NATURAL INTELLIGENCE — daily fact + nature wisdom ── */}
-        <div style={{background:"rgba(52,211,153,0.04)",border:"1px solid rgba(52,211,153,0.15)",borderRadius:14,padding:"16px 18px",marginBottom:10,animation:"fadeUp .5s .12s ease both"}}>
-          <div style={{marginBottom:10}}>
-            <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:4}}>
-              <span style={{fontSize:15}}>🌿</span>
-              <p style={{fontSize:11,fontWeight:700,color:"rgba(52,211,153,0.6)",letterSpacing:".14em",textTransform:"uppercase"}}>Today's Natural Intelligence</p>
-            </div>
-            <p style={{fontSize:17,fontWeight:700,color:GREEN,letterSpacing:".04em"}}>{todayFact.ingredient}</p>
-          </div>
-          <p style={{fontSize:15,color:"rgba(255,255,255,0.75)",lineHeight:1.8}}>{todayFact.fact}</p>
-        </div>
+        {/* ── SECTION 3: NATURAL INTELLIGENCE — collapsed single card ── */}
+        <div
+          onClick={()=>setNatureExpanded(v=>!v)}
+          style={{
+            background: natureExpanded
+              ? `linear-gradient(135deg,${todayLaw.color}08,rgba(52,211,153,0.04))`
+              : "rgba(255,255,255,0.03)",
+            border: natureExpanded
+              ? `1px solid ${todayLaw.color}40`
+              : "1px solid rgba(255,255,255,0.09)",
+            borderLeft: `3px solid ${natureExpanded ? todayLaw.color : "rgba(52,211,153,0.4)"}`,
+            borderRadius:"0 14px 14px 0",
+            padding:"13px 16px",
+            marginBottom:16,
+            cursor:"pointer",
+            transition:"all .3s ease",
+            animation:"fadeUp .5s .12s ease both",
+          }}>
 
-        {/* Nature's Wisdom — expandable, first sentence as invitation */}
-        {(() => {
-          const preview = todayLaw.natureWisdom.split('.')[0] + '.';
-          const hasMore = todayLaw.natureWisdom.length > preview.length + 5;
-          return (
-            <div style={{background:`linear-gradient(135deg,${todayLaw.color}06,rgba(255,255,255,0.02))`,border:`1px solid ${todayLaw.color}22`,borderLeft:`3px solid ${todayLaw.color}55`,borderRadius:"0 12px 12px 0",padding:"14px 16px",marginBottom:16,animation:"fadeUp .5s .14s ease both"}}>
-              <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:8}}>
-                <span style={{fontSize:13}}>📖</span>
-                <p style={{fontSize:11,fontWeight:700,color:todayLaw.color,letterSpacing:".12em",textTransform:"uppercase"}}>Nature's Wisdom · {todayLaw.subtitle}</p>
+          {/* Header row — always visible */}
+          <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+            <div style={{display:"flex",alignItems:"center",gap:8}}>
+              <span style={{fontSize:14}}>🌿</span>
+              <div>
+                <p style={{fontSize:10,fontWeight:700,color:"rgba(52,211,153,0.55)",letterSpacing:".14em",textTransform:"uppercase",marginBottom:2}}>Today's Natural Intelligence</p>
+                <p style={{fontSize:15,fontWeight:700,color:GREEN,letterSpacing:".03em"}}>{todayFact.ingredient}</p>
               </div>
-              <p style={{fontSize:14,color:"rgba(255,255,255,0.68)",lineHeight:1.8,fontWeight:300,fontStyle:"italic"}}>
-                {natureExpanded ? todayLaw.natureWisdom : preview}
-              </p>
-              {hasMore && (
-                <button onClick={()=>setNatureExpanded(v=>!v)}
-                  style={{marginTop:8,background:"none",border:"none",cursor:"pointer",padding:0,
-                    fontFamily:"'Space Grotesk',sans-serif",fontWeight:700,fontSize:12,
-                    color:todayLaw.color,letterSpacing:".06em",opacity:0.8,transition:"opacity .15s"}}
-                  onMouseEnter={e=>e.currentTarget.style.opacity="1"}
-                  onMouseLeave={e=>e.currentTarget.style.opacity="0.8"}>
-                  {natureExpanded ? "↑ Show less" : "Read more →"}
-                </button>
-              )}
-              <p style={{fontSize:10,color:DIMMED,marginTop:natureExpanded?8:4,letterSpacing:".06em"}}>Traditional healing wisdom · Referenced in Back to Eden</p>
             </div>
-          );
-        })()}
+            <span style={{
+              fontSize:11,fontWeight:700,
+              color: natureExpanded ? todayLaw.color : "rgba(255,255,255,0.3)",
+              letterSpacing:".06em",transition:"color .3s",flexShrink:0,marginLeft:8,
+            }}>{natureExpanded ? "↑ Less" : "Read →"}</span>
+          </div>
+
+          {/* Expanded content */}
+          {natureExpanded && (
+            <div style={{marginTop:14,animation:"fadeUp .25s ease both"}}>
+              <p style={{fontSize:14,color:"rgba(255,255,255,0.78)",lineHeight:1.85,marginBottom:16}}>
+                {todayFact.fact}
+              </p>
+              <div style={{borderTop:`1px solid ${todayLaw.color}22`,paddingTop:14}}>
+                <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:8}}>
+                  <span style={{fontSize:12}}>📖</span>
+                  <p style={{fontSize:10,fontWeight:700,color:todayLaw.color,letterSpacing:".14em",textTransform:"uppercase"}}>Nature's Wisdom · {todayLaw.subtitle}</p>
+                </div>
+                <p style={{fontSize:13,color:"rgba(255,255,255,0.65)",lineHeight:1.85,fontWeight:300,fontStyle:"italic"}}>
+                  {todayLaw.natureWisdom}
+                </p>
+                <p style={{fontSize:10,color:DIMMED,marginTop:10,letterSpacing:".06em"}}>Traditional healing wisdom · Referenced in Back to Eden</p>
+              </div>
+            </div>
+          )}
+        </div>
 
         {/* ── THE 5 QUANTUM LAWS — circular thumbnails with integrated checklist ── */}
         <div style={{marginBottom:16,animation:"fadeUp .5s .16s ease both"}}>
