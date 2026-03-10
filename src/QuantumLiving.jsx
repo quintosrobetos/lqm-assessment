@@ -128,7 +128,7 @@ const LAWS = [
     ],
     avoid: ["Substances that create dependency (alcohol, nicotine, recreational drugs)", "Chronic overwork masquerading as productivity", "Digital overstimulation — endless scrolling and consumption without creation", "Neglecting the inner life — spiritual emptiness is as real a depletion as physical exhaustion", "Extreme regimes that cannot be sustained"],
     lqmNote: "Systems Architects often violate temperance through over-optimisation — adding more to an already full system. Visionary types burn intensely at the start and crash. But every archetype benefits from anchoring their balance in something beyond performance. The most sustainable version of yourself is the complete you — body, mind and spirit working together.",
-    natureWisdom: "Back to Eden identifies temperance as one of the eight laws of health — a governing principle above diet, exercise, and sleep. Traditional healers used activated charcoal compresses and clay poultices to draw out what overloads the body. But the deeper teaching is this: the body heals itself when we stop overloading it. Periods of simplicity — eating less, being still, removing stimulants — allow the liver, kidneys, and lymphatic system to restore what chronic excess depletes. The body was designed to self-heal. Temperance creates the conditions for that healing.",
+    natureWisdom: "Back to Eden identifies temperance as one of the eight laws of health — a governing principle above diet, exercise, and sleep. Traditional healers used activated charcoal compresses and clay poultices to draw out what overloads the body. But the deeper teaching is this: the body heals itself when we stop overloading it. Periods of simplicity — eating less, being still, removing stimulants — allow the liver, kidneys, and lymphatic system to restore what chronic excess depletes. Modern science has confirmed what traditional healers understood intuitively: when the body is given a sufficient window without food, it activates autophagy — a profound cellular self-cleaning process so significant it was awarded the Nobel Prize in Medicine in 2016. The body dismantles its own damaged components and recycles them. It does not need assistance — it needs permission. The body was designed to self-heal. Temperance is not restriction. It is the creation of the conditions in which healing becomes inevitable.",
   },
   {
     num: "04",
@@ -174,7 +174,7 @@ const LAWS = [
     ],
     avoid: ["Ultra-processed foods with long ingredient lists", "Refined sugar as a primary fuel source — it creates energy spikes followed by crashes that impair sustained focus", "Harmful substances that damage the body's natural systems", "Eating in a chronic state of stress — cortisol impairs digestion and nutrient absorption"],
     lqmNote: "Your body is the hardware your quantum mind runs on. No software upgrade compensates for failing hardware. Nourishing your body simply and consistently is one of the highest-leverage practices available to you.",
-    natureWisdom: "Back to Eden teaches that herbs are not condiments — they are nature's pharmacy growing freely in the earth. Turmeric, ginger, garlic, parsley, and rosemary have been used for thousands of years as everyday medicines, not occasional flavourings. Adding them generously to every meal is one of the simplest and highest-return health practices available. The principle is this: the closer food is to its natural state, the more healing intelligence it carries. A handful of parsley contains more vitamin C than an orange. A clove of crushed garlic is a natural antimicrobial. Nature provided abundantly — we simply stopped looking.",
+    natureWisdom: "Back to Eden teaches that herbs are not condiments — they are nature's pharmacy growing freely in the earth. Turmeric, ginger, garlic, parsley, and rosemary have been used for thousands of years as everyday medicines, not occasional flavourings. Adding them generously to every meal is one of the simplest and highest-return health practices available. A handful of parsley contains more vitamin C than an orange. A clove of crushed garlic is a natural antimicrobial. The principle is this: the closer food is to its natural state, the more healing intelligence it carries. Research in nutritional biochemistry has also revealed the vital importance of essential fatty acid combinations — pairing cold-pressed seed oils with sulphur-rich proteins to create forms of fat that the body can utilise directly at a cellular level for energy and membrane repair. The cells of the body are not passive consumers of nutrition. They are active participants in a conversation with everything you eat. Feed them well, and they know exactly what to do. Nature provided abundantly — we simply stopped looking.",
   },
 ];
 
@@ -215,6 +215,12 @@ const FUN_FACTS = [
   { ingredient:"Ashwagandha", fact:"Withaferin A in ashwagandha has been shown to reduce cortisol by 27% over 60 days in clinical trials. It's the most studied adaptogen for stress reduction and sleep quality improvement." },
   { ingredient:"Saffron", fact:"Saffron contains safranal and crocin — compounds shown in multiple studies to be as effective as low-dose antidepressants for mild to moderate depression, with no significant side effects reported." },
   { ingredient:"Lion's Mane Mushroom", fact:"Lion's Mane is the only known food that stimulates Nerve Growth Factor (NGF) production — the protein responsible for growing and maintaining neurons. It's the most studied natural compound for neuroplasticity." },
+  { ingredient:"Intermittent Fasting", fact:"When the body is given a window without food, it activates autophagy — a cellular self-cleaning process so significant it was awarded the 2016 Nobel Prize in Medicine. During autophagy, damaged cellular components are broken down and recycled, reducing the inflammation linked to accelerated ageing and chronic disease." },
+  { ingredient:"Castor Oil", fact:"Castor oil packs applied to the abdomen have been used in traditional healing for centuries to support lymphatic circulation and liver function. The ricinoleic acid in castor oil penetrates deeply into tissue and has demonstrated significant anti-inflammatory properties, making it one of traditional medicine's most versatile topical remedies." },
+  { ingredient:"Epsom Salt", fact:"A warm Epsom salt bath is one of the most accessible ways to raise magnesium levels — a mineral deficient in an estimated 75% of the population. Magnesium is required for over 300 enzymatic processes in the body, including energy production, nerve signalling, muscle recovery, and the regulation of stress hormones." },
+  { ingredient:"Oil of Oregano", fact:"Carvacrol and thymol in oil of oregano have demonstrated broad-spectrum antimicrobial activity against bacteria, fungi, and parasites in peer-reviewed research. Hippocrates used oregano as a medicine. Across Mediterranean cultures for millennia, it has been trusted as one of nature's most powerful natural antimicrobials." },
+  { ingredient:"Apple Cider Vinegar", fact:"A tablespoon of raw apple cider vinegar before a carbohydrate-rich meal has been shown in multiple clinical studies to reduce blood glucose response by up to 34% and improve insulin sensitivity. Acetic acid inhibits starch-digesting enzymes, slowing glucose absorption and producing more stable, sustained energy." },
+  { ingredient:"Flaxseed & Sulphur Proteins", fact:"Research in nutritional biochemistry has highlighted the importance of combining cold-pressed seed oils with sulphur-rich proteins — such as flaxseed oil with cottage cheese or quark — to produce water-soluble essential fatty acids more readily absorbed at a cellular level. This pairing, studied extensively since the 1950s, pointed toward the critical role of essential fats in cellular energy and membrane health." },
 ];
 const DAY_NUM = Math.trunc(Date.now() * 0.0000115741);
 const todayFact = FUN_FACTS[DAY_NUM % FUN_FACTS.length];
@@ -760,6 +766,89 @@ export default function QuantumLiving({ onBack, archetype }) {
             </div>
           </div>
         )}
+
+        {/* ── THE HEALING INTELLIGENCE — the philosophical centrepiece ── */}
+        <div style={{
+          marginBottom:16,borderRadius:20,overflow:"hidden",
+          background:"linear-gradient(145deg,rgba(245,158,11,0.07) 0%,rgba(167,139,250,0.05) 50%,rgba(52,211,153,0.04) 100%)",
+          border:"1px solid rgba(245,158,11,0.25)",
+          animation:"fadeUp .5s .22s ease both",
+        }}>
+          {/* Header bar */}
+          <div style={{
+            background:"linear-gradient(90deg,rgba(245,158,11,0.14),rgba(245,158,11,0.05))",
+            borderBottom:"1px solid rgba(245,158,11,0.18)",
+            padding:"13px 20px",
+            display:"flex",alignItems:"center",gap:10,
+          }}>
+            <span style={{fontSize:18}}>✦</span>
+            <span style={{fontSize:11,fontWeight:700,color:"#F59E0B",letterSpacing:".16em",textTransform:"uppercase"}}>The Healing Intelligence</span>
+          </div>
+
+          {/* Body */}
+          <div style={{padding:"22px 20px 20px"}}>
+            {/* Opening quote */}
+            <p style={{
+              fontFamily:"'Crimson Pro',serif",fontStyle:"italic",
+              fontSize:19,color:"rgba(245,158,11,0.9)",
+              lineHeight:1.7,marginBottom:18,
+              borderLeft:"2px solid rgba(245,158,11,0.35)",
+              paddingLeft:14,
+            }}>
+              "The most sophisticated healing system ever known is not in any clinic or laboratory. It is in you."
+            </p>
+
+            {/* Three principles */}
+            {[
+              {
+                icon:"◎",
+                title:"The Body Knows",
+                text:"The human body has an innate intelligence — a self-correcting, self-repairing capacity refined over hundreds of thousands of years. Inflammation resolves when its cause is removed. The liver regenerates. The gut microbiome rebalances. The immune system adapts. None of this requires intervention. It requires cooperation.",
+              },
+              {
+                icon:"◈",
+                title:"The Right Conditions",
+                text:"Modern research now confirms what traditional healers understood intuitively: given the right conditions — clean air, whole food, sufficient rest, movement, and temperance — the body consistently moves toward health. This is not optimism. It is biology. The 5 Quantum Laws are simply the creation of those conditions, daily.",
+              },
+              {
+                icon:"⬡",
+                title:"Nature's Original Design",
+                text:"Every plant in nature's pharmacy — every herb, root, and seed — carries compounds shaped by millions of years of co-evolution with the human body. Garlic's allicin. Turmeric's curcumin. The essential fatty acids in cold-pressed seeds. The prebiotics in raw honey. These are not supplements. They are signals the body already knows how to read.",
+              },
+            ].map((p,i)=>(
+              <div key={i} style={{
+                display:"flex",gap:14,alignItems:"flex-start",
+                marginBottom:i<2?16:0,
+                paddingBottom:i<2?16:0,
+                borderBottom:i<2?"1px solid rgba(245,158,11,0.1)":undefined,
+              }}>
+                <div style={{
+                  flexShrink:0,width:32,height:32,borderRadius:10,
+                  background:"rgba(245,158,11,0.1)",
+                  border:"1px solid rgba(245,158,11,0.25)",
+                  display:"flex",alignItems:"center",justifyContent:"center",
+                  fontSize:14,color:"#F59E0B",fontWeight:700,marginTop:2,
+                }}>{p.icon}</div>
+                <div>
+                  <p style={{fontSize:13,fontWeight:700,color:"rgba(245,158,11,0.8)",letterSpacing:".08em",textTransform:"uppercase",marginBottom:5}}>{p.title}</p>
+                  <p style={{fontSize:14,color:"rgba(255,255,255,0.72)",lineHeight:1.85,fontWeight:300}}>{p.text}</p>
+                </div>
+              </div>
+            ))}
+
+            {/* Closing attribution */}
+            <div style={{
+              marginTop:18,paddingTop:14,
+              borderTop:"1px solid rgba(245,158,11,0.12)",
+              display:"flex",alignItems:"center",gap:10,
+            }}>
+              <span style={{fontSize:14}}>📖</span>
+              <p style={{fontSize:12,color:"rgba(255,255,255,0.35)",lineHeight:1.6,fontStyle:"italic"}}>
+                Grounded in traditional healing wisdom, modern nutritional science, and the foundational principles of the LQM Method. The 5 Quantum Laws are the daily practice of these principles.
+              </p>
+            </div>
+          </div>
+        </div>
 
         {/* ── QUANTUM HEALTH RANGE — premium entry card ── */}
         <div
