@@ -439,7 +439,7 @@ export default function QuantumLiving({ onBack, archetype }) {
       @keyframes hiCardPulse{0%,100%{border-color:rgba(200,185,154,0.18);box-shadow:none;}50%{border-color:rgba(200,185,154,0.42);box-shadow:0 0 12px rgba(200,185,154,0.1);}}
       @keyframes guidePulse{0%,100%{opacity:0.5;transform:translateX(0);}50%{opacity:1;transform:translateX(3px);}}
       @keyframes todayDone{0%,100%{opacity:0.7;transform:scale(1);}50%{opacity:1;transform:scale(1.1);}}
-      @keyframes hiZonePulse{0%{opacity:0.55;}60%{opacity:0;}100%{opacity:0;}}
+      @keyframes hiZonePulse{0%{opacity:0;transform:scale(0.95);}15%{opacity:0.75;}70%{opacity:0;transform:scale(1.08);}100%{opacity:0;transform:scale(1.12);}}
       @keyframes hiDotPulse{0%,100%{opacity:1;}50%{opacity:0.35;}}
     `;
     document.head.appendChild(s);
@@ -880,12 +880,12 @@ export default function QuantumLiving({ onBack, archetype }) {
               {color:"#5A9E9A",num:"03",label:"Foundation",     title:"Nature's Original Design", text:"Every plant in nature's pharmacy — every herb, root, and seed — carries compounds shaped by millions of years of co-evolution with the human body. Garlic's allicin. Turmeric's curcumin. The essential fatty acids in cold-pressed seeds. The prebiotics in raw honey. These are not supplements. They are signals the body already knows how to read."},
             ];
             // Individually placed dots — each forms part of the anatomical body shape
-            const D0=[[60,20,11],[48,17,6],[72,17,6],[56,28,5],[64,28,5],[58,9,5],[62,9,4],[50,10,3],[70,10,3],[44,20,3],[76,20,3],[54,34,3],[66,34,3],[57,42,3],[63,42,3],[60,47,3],[48,54,5],[72,54,5],[36,59,5],[84,59,5],[26,63,4],[94,63,4],[18,66,3],[102,66,3]];
-            const D1=[[16,76,4],[104,76,4],[44,70,6],[76,70,6],[60,68,6],[34,78,5],[86,78,5],[50,78,5],[70,78,5],[14,90,4],[106,90,4],[38,90,5],[82,90,5],[52,88,5],[68,88,5],[60,87,5],[15,104,3],[105,104,3],[42,102,5],[78,102,5],[54,100,5],[66,100,5],[60,100,5],[16,118,3],[104,118,3],[44,114,5],[76,114,5],[56,112,5],[64,112,5],[60,111,5],[18,132,3],[102,132,3],[46,126,4],[74,126,4],[57,124,4],[63,124,4],[60,123,4],[20,144,3],[100,144,3],[48,138,4],[72,138,4],[58,136,4],[62,136,4],[50,150,4],[70,150,4],[58,148,4],[62,148,4]];
-            const D2=[[44,162,6],[76,162,6],[56,160,5],[64,160,5],[60,159,5],[36,168,5],[84,168,5],[48,170,5],[72,170,5],[44,182,5],[50,182,4],[76,182,5],[70,182,4],[40,194,5],[48,194,4],[80,194,5],[72,194,4],[38,206,4],[46,206,4],[82,206,4],[74,206,4],[38,218,4],[44,218,3],[82,218,4],[76,218,3],[38,230,4],[82,230,4],[38,242,4],[82,242,4],[38,254,3],[82,254,3],[38,266,3],[82,266,3],[40,276,3],[80,276,3]];
+            const D0=[[50,7,5],[44,10,4],[56,10,4],[38,15,4],[50,14,5],[62,15,5],[35,21,3],[44,18,4],[50,21,6],[56,18,4],[65,21,5],[37,27,4],[50,27,5],[63,27,5],[39,32,3],[50,32,4],[61,32,4],[47,37,3],[53,37,3],[50,41,3],[42,45,4],[58,45,5],[33,49,4],[67,49,5],[23,54,4],[77,54,6],[14,59,3],[87,59,6],[10,64,3],[91,64,5]];
+            const D1=[[14,67,4],[23,66,5],[33,65,5],[43,64,5],[50,63,6],[57,64,5],[67,65,6],[77,66,6],[86,67,4],[16,77,4],[25,76,5],[37,74,5],[49,73,5],[63,73,6],[75,75,6],[84,76,4],[18,88,4],[27,86,4],[38,84,5],[50,83,5],[62,84,5],[73,86,5],[82,88,4],[20,96,4],[30,94,4],[42,92,4],[50,91,5],[58,92,4],[70,94,5],[80,96,4],[22,107,3],[32,105,4],[43,103,4],[50,102,4],[57,103,4],[68,105,5],[78,107,4],[25,117,3],[35,115,3],[45,113,3],[50,112,4],[55,113,3],[65,115,4],[75,117,3],[28,125,3],[38,123,3],[47,121,3],[50,120,3],[53,121,3],[62,123,4],[72,125,3],[30,135,3],[40,133,3],[48,131,3],[52,131,3],[60,133,3],[70,135,3]];
+            const D2=[[27,141,4],[37,139,4],[47,137,4],[50,136,4],[53,137,4],[63,139,5],[73,141,4],[25,151,4],[35,149,4],[44,147,4],[56,147,4],[65,149,5],[75,151,4],[23,161,3],[31,159,4],[40,158,4],[60,158,4],[69,159,5],[77,161,3],[21,171,3],[29,169,4],[71,169,4],[79,171,3],[21,180,3],[27,179,3],[35,180,3],[65,180,3],[73,179,3],[79,180,3],[20,190,3],[26,189,3],[34,190,3],[66,190,3],[74,189,3],[80,190,3],[20,200,3],[26,199,3],[32,200,3],[68,200,3],[74,199,3],[80,200,3],[21,210,3],[26,209,3],[31,210,3],[69,210,3],[74,209,3],[79,210,3],[21,220,2],[26,219,2],[30,220,2],[70,220,2],[74,219,2],[79,220,2],[22,230,2],[26,229,2],[29,230,2],[71,230,2],[74,229,2],[78,230,2],[23,240,2],[26,239,2],[28,240,2],[72,240,2],[74,239,2],[77,240,2],[23,250,2],[26,249,2],[73,250,2],[76,249,2],[24,260,2],[26,259,2],[74,260,2],[76,259,2],[24,270,2],[27,269,2],[73,270,2],[76,269,2],[22,278,2],[27,277,2],[31,278,2],[69,278,2],[73,277,2],[78,278,2]];
 
             const active = bodyZone !== null ? BZ[bodyZone] : null;
-            const dotOp = (zone) => bodyZone===null ? 0.28 : bodyZone===zone ? 0.92 : 0.10;
+            const dotOp = (zone) => bodyZone===null ? 0.10 : bodyZone===zone ? 1.0 : 0.04;
 
             return (
               <div style={{padding:"0 16px 20px"}}>
@@ -915,35 +915,35 @@ export default function QuantumLiving({ onBack, archetype }) {
                   </div>
 
                   {/* Human figure — individually placed anatomical dots */}
-                  <svg viewBox="0 0 120 285" width="96" height="228" style={{flexShrink:0,overflow:"visible"}}>
+                  <svg viewBox="0 0 100 285" width="96" height="228" style={{flexShrink:0,overflow:"visible"}}>
 
                     {/* Zone 0 dots — head, neck, shoulders */}
-                    <g style={{transition:"opacity .4s ease"}} opacity={dotOp(0)} onClick={()=>setBodyZone(bodyZone===0?null:0)} cursor="pointer">
+                    <g style={{transition:"opacity .45s ease",filter:bodyZone===0?`drop-shadow(0 0 6px ${"#C8A96E"}) drop-shadow(0 0 12px ${"#C8A96E"}44)`:"none"}} opacity={dotOp(0)} onClick={()=>setBodyZone(bodyZone===0?null:0)} cursor="pointer">
                       {D0.map(([cx,cy,r],i)=><circle key={i} cx={cx} cy={cy} r={r} fill="#C8A96E"/>)}
                     </g>
                     {/* Zone 1 dots — chest, torso, arms */}
-                    <g style={{transition:"opacity .4s ease"}} opacity={dotOp(1)} onClick={()=>setBodyZone(bodyZone===1?null:1)} cursor="pointer">
+                    <g style={{transition:"opacity .45s ease",filter:bodyZone===1?`drop-shadow(0 0 6px ${"#7BAE8E"}) drop-shadow(0 0 12px ${"#7BAE8E"}44)`:"none"}} opacity={dotOp(1)} onClick={()=>setBodyZone(bodyZone===1?null:1)} cursor="pointer">
                       {D1.map(([cx,cy,r],i)=><circle key={i} cx={cx} cy={cy} r={r} fill="#7BAE8E"/>)}
                     </g>
                     {/* Zone 2 dots — hips, legs */}
-                    <g style={{transition:"opacity .4s ease"}} opacity={dotOp(2)} onClick={()=>setBodyZone(bodyZone===2?null:2)} cursor="pointer">
+                    <g style={{transition:"opacity .45s ease",filter:bodyZone===2?`drop-shadow(0 0 6px ${"#5A9E9A"}) drop-shadow(0 0 12px ${"#5A9E9A"}44)`:"none"}} opacity={dotOp(2)} onClick={()=>setBodyZone(bodyZone===2?null:2)} cursor="pointer">
                       {D2.map(([cx,cy,r],i)=><circle key={i} cx={cx} cy={cy} r={r} fill="#5A9E9A"/>)}
                     </g>
 
                     {/* Staggered pulse rings when idle */}
                     {bodyZone===null && [
-                      {cx:60,cy:42, r:36,c:"#C8A96E",d:"0s"},
-                      {cx:60,cy:110,r:30,c:"#7BAE8E",d:"0.9s"},
-                      {cx:60,cy:218,r:26,c:"#5A9E9A",d:"1.8s"},
+                      {cx:50,cy:38, r:32,c:"#C8A96E",d:"0s"},
+                      {cx:50,cy:100,r:28,c:"#7BAE8E",d:"0.9s"},
+                      {cx:50,cy:210,r:24,c:"#5A9E9A",d:"1.8s"},
                     ].map((p,i)=>(
                       <circle key={i} cx={p.cx} cy={p.cy} r={p.r} fill="none"
-                        stroke={p.c} strokeWidth="1"
-                        style={{opacity:0,animation:`hiZonePulse 2.8s ${p.d} ease-out infinite`}}/>
+                        stroke={p.c} strokeWidth="1.8"
+                        style={{opacity:0,animation:`hiZonePulse 2.6s ${p.d} ease-out infinite`}}/>
                     ))}
 
                     {/* Active zone glow dot */}
                     {bodyZone!==null && (
-                      <circle cx="60" cy={[42,110,218][bodyZone]} r="3.5"
+                      <circle cx="50" cy={[38,100,210][bodyZone]} r="3.5"
                         fill={BZ[bodyZone].color}
                         style={{filter:`drop-shadow(0 0 4px ${BZ[bodyZone].color})`,animation:"hiDotPulse 1.8s ease-in-out infinite"}}/>
                     )}
