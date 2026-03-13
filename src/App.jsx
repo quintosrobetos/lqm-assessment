@@ -555,9 +555,9 @@ function PrimaryBtn({onClick,children}){
 }
 
 function RestoreAccess({ onBack, onSuccess }) {
-  const [code, setCode]       = React.useState("");
-  const [error, setError]     = React.useState(null);
-  const [status, setStatus]   = React.useState("idle"); // idle | success
+  const [code, setCode]       = useState("");
+  const [error, setError]     = useState(null);
+  const [status, setStatus]   = useState("idle"); // idle | success
 
   function formatInput(raw) {
     // Strip everything except alphanumeric, uppercase, auto-insert dashes
@@ -775,9 +775,9 @@ function RotatingTestimonial({quotes, accentColor}) {
 }
 
 function Hub({type, unlocks, onOpenNeural, onOpenVital, onViewReport, onUnlockNeural, onUnlockVital, onUnlockBundle, onSimulateNeural, onSimulateVital, customerEmail, onSendReport}) {
-  const [emailOpen,   setEmailOpen]   = React.useState(false);
-  const [emailInput,  setEmailInput]  = React.useState(customerEmail||"");
-  const [emailStatus, setEmailStatus] = React.useState("idle"); // idle | sending | sent | error
+  const [emailOpen,   setEmailOpen]   = useState(false);
+  const [emailInput,  setEmailInput]  = useState(customerEmail||"");
+  const [emailStatus, setEmailStatus] = useState("idle"); // idle | sending | sent | error
   // Read live progress from localStorage
   const brainData = (() => { try { return JSON.parse(localStorage.getItem("lqm_brain")||"{}"); } catch { return {}; } })();
   const livingData = (() => { try { return JSON.parse(localStorage.getItem("lqm_living")||"{}"); } catch { return {}; } })();
