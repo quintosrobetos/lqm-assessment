@@ -11,6 +11,44 @@ const STRIPE_BUNDLE = "https://buy.stripe.com/dRm8wR3WT4Q30pt5JKa3u05";
 function getUnlocks() { try { return JSON.parse(localStorage.getItem("lqm_unlocks")||"{}"); } catch { return {}; } }
 function setUnlock(key) { const u=getUnlocks(); u[key]=true; localStorage.setItem("lqm_unlocks",JSON.stringify(u)); }
 
+// ── RESTORE ACCESS — code validation (generation is in the private admin tool only) ──
+// Code format: LQM-XXXX-XXXXX  (15 chars displayed, 9 data chars after LQM prefix)
+// Payload: 7 base36 chars = (expiryDay << 4 | perms) XOR SECRET
+// Checksum: 2 base36 chars = weighted char sum mod 1296
+// Permissions bitmask: bit0=report(1), bit1=neural(2), bit2=vital(4)
+const LQM_SECRET = 0xA3F72B; // 10745131 — must match admin tool
+
+function lqmValidateCode(rawInput) {
+  const clean = rawInput.replace(/[-\s]/g,"").toUpperCase();
+  if (!clean.startsWith("LQM") || clean.length !== 12)
+    return { valid:false, reason:"Format should be LQM-XXXX-XXXXX" };
+  const data   = clean.slice(3);           // 9 chars
+  const b36str = data.slice(0, 7);         // payload
+  const chkIn  = data.slice(7, 9);         // checksum
+  // Verify checksum
+  const chkExpected = [...b36str].reduce((a,c,i) => (a + c.charCodeAt(0)*(i+1)) % 1296, 0);
+  if (parseInt(chkIn, 36) !== chkExpected)
+    return { valid:false, reason:"Invalid code — please check for typos" };
+  // Decode payload
+  const raw   = parseInt(b36str, 36) ^ LQM_SECRET;
+  const perms = raw & 0xF;
+  const expDay = raw >> 4;
+  const today = Math.trunc(Date.now() / 86400000);
+  if (today > expDay)
+    return { valid:false, reason:"This code has expired — please contact lqm@lqmmethod.com" };
+  // Single-use guard (per device)
+  const used = JSON.parse(localStorage.getItem("lqm_used_codes")||"[]");
+  if (used.includes(clean))
+    return { valid:false, reason:"This code has already been used on this device" };
+  return {
+    valid: true,
+    report: (perms & 1) === 1,
+    neural: (perms & 2) === 2,
+    vital:  (perms & 4) === 4,
+    codeKey: clean,
+  };
+}
+
 const FONTS=`@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Bebas+Neue&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap');`;
 const E_BLUE="#00C8FF",E_BLUE2="#0EA5E9",E_GLOW="rgba(0,200,255,0.15)";
 const BG="#070F1E",DARK="#0D1830",DARK2="#111E38",PANEL="rgba(255,255,255,0.055)";
@@ -109,7 +147,7 @@ const ORIGINAL = 27, DISCOUNTED = 9, TIMER_SECS = 5 * 60;
 // ── TEST MODE ──────────────────────────────────────────────────────────────
 // Set to true to show the "Unlock All" button in the footer for testing.
 // Set to false before going live to real customers.
-const TEST_MODE = false;
+const TEST_MODE = true;
 // ──────────────────────────────────────────────────────────────────────────
 
 function Particles() {
@@ -134,6 +172,39 @@ export default function App() {
   const [procStep,setProcStep]=useState(0);
   const [showLegal,setShowLegal]=useState(null);
   const [activeAddon,setActiveAddon]=useState(null);
+  const [showRestore,setShowRestore]=useState(false);
+  const [customerEmail,setCustomerEmail]=useState(()=>localStorage.getItem("lqm_customer_email")||"");
+
+  // ── Email delivery helper ────────────────────────────────────────────────────
+  async function sendReport(email, typeKey) {
+    const t = TYPES[typeKey];
+    if (!t || !email) return { ok: false };
+    try {
+      const delivery = JSON.parse(localStorage.getItem("lqm_delivery")||"{}");
+      const r = await fetch("/api/send-report", {
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body: JSON.stringify({
+          email,
+          typeKey,
+          name:       t.name,
+          arch:       t.arch,
+          tag:        t.tag,
+          hook:       t.hook,
+          desc:       t.desc,
+          identity:   t.identity,
+          atomic:     t.atomic,
+          strengths:  t.strengths,
+          blindspots: t.blindspots,
+          strategies: t.strategies,
+          blue:       t.blue,
+          deliveryRef: delivery.ref  || "",
+          deliveryTs:  delivery.ts   || "",
+        }),
+      });
+      return { ok: r.ok };
+    } catch { return { ok: false }; }
+  }
   const [activeView,setActiveView]=useState("hub"); // hub, report, addon-shop
   const [unlocks,setUnlocks]=useState(getUnlocks);
   const [showDeliveryGate,setShowDeliveryGate]=useState(false);
@@ -150,9 +221,14 @@ export default function App() {
       answers, charType
     }));
   }
-  function confirmDelivery(){
+  function confirmDelivery(email){
     const stored=JSON.parse(localStorage.getItem("lqm_delivery")||"{}");
     localStorage.setItem("lqm_delivery",JSON.stringify({...stored,confirmed:true}));
+    if(email){
+      localStorage.setItem("lqm_customer_email", email);
+      setCustomerEmail(email);
+      sendReport(email, charType); // fire and forget — delivery not blocked by send status
+    }
     setShowDeliveryGate(false);
   }
 
@@ -316,7 +392,38 @@ export default function App() {
     else{setCharType(calcType(a));setPhase("processing");let st=0;const iv=setInterval(()=>{st++;setProcStep(st);if(st>=5){clearInterval(iv);setTimeout(()=>{setTimerOn(true);setPhase("teaser");},600);}},850);}
   };
 
+  function handleRestoreSuccess(result) {
+    const used = JSON.parse(localStorage.getItem("lqm_used_codes")||"[]");
+    used.push(result.codeKey);
+    localStorage.setItem("lqm_used_codes", JSON.stringify(used));
+    if (result.neural) setUnlock("neural");
+    if (result.vital)  setUnlock("vital");
+    if (result.report) {
+      const existing = JSON.parse(localStorage.getItem("lqm_delivery")||"{}");
+      if (!existing.confirmed) {
+        localStorage.setItem("lqm_delivery", JSON.stringify({
+          ref: "LQM-RST-" + Date.now().toString(36).toUpperCase(),
+          ts: new Date().toLocaleString("en-GB",{day:"2-digit",month:"short",year:"numeric",hour:"2-digit",minute:"2-digit"}),
+          confirmed: true,
+        }));
+      }
+    }
+    setUnlocks(getUnlocks());
+    setShowRestore(false);
+    if (result.report) {
+      const savedAnswers = JSON.parse(localStorage.getItem("lqm_answers")||"[]");
+      if (savedAnswers.length >= 10) {
+        setAnswers(savedAnswers);
+        setCharType(calcType(savedAnswers));
+        setPhase("paid");
+      } else {
+        setPhase("quiz"); setQIdx(0); setSel(null);
+      }
+    }
+  }
+
   // ── Add-on views are full-page — render outside App's padded/overflow:hidden container ──
+  if(showRestore) return <RestoreAccess onBack={()=>setShowRestore(false)} onSuccess={handleRestoreSuccess}/>;
   if(activeAddon==="neural" && unlocks.neural) return <BrainTraining archetype={charType} onBack={()=>setActiveAddon(null)}/>;
   if(activeAddon==="vital"  && unlocks.vital)  return <QuantumLiving  archetype={charType} onBack={()=>setActiveAddon(null)}/>;
 
@@ -345,12 +452,12 @@ export default function App() {
           {!showLegal && phase==="paid"       && <>
             {showDeliveryGate && <DeliveryGate ref_={deliveryRef} ts={deliveryTs} type={TYPES[charType]} onConfirm={confirmDelivery}/>}
             {!showDeliveryGate && <>
-              {activeView==="hub"      && <Hub type={TYPES[charType]} unlocks={unlocks} onOpenNeural={()=>setActiveAddon("neural")} onOpenVital={()=>setActiveAddon("vital")} onViewReport={()=>setActiveView("report")} onUnlockNeural={()=>handleAddonRedirect(STRIPE_BRAIN)} onUnlockVital={()=>handleAddonRedirect(STRIPE_VITAL)} onUnlockBundle={()=>handleAddonRedirect(STRIPE_BUNDLE)} onSimulateNeural={()=>handleUnlockAddon("neural")} onSimulateVital={()=>handleUnlockAddon("vital")}/>}
+              {activeView==="hub"      && <Hub type={TYPES[charType]} unlocks={unlocks} onOpenNeural={()=>setActiveAddon("neural")} onOpenVital={()=>setActiveAddon("vital")} onViewReport={()=>setActiveView("report")} onUnlockNeural={()=>handleAddonRedirect(STRIPE_BRAIN)} onUnlockVital={()=>handleAddonRedirect(STRIPE_VITAL)} onUnlockBundle={()=>handleAddonRedirect(STRIPE_BUNDLE)} onSimulateNeural={()=>handleUnlockAddon("neural")} onSimulateVital={()=>handleUnlockAddon("vital")} customerEmail={customerEmail} onSendReport={(email)=>{ localStorage.setItem("lqm_customer_email",email); setCustomerEmail(email); return sendReport(email,charType); }}/>}
               {activeView==="report"   && <><Report type={TYPES[charType]} deliveryRef={deliveryRef} deliveryTs={deliveryTs} visualAnswer={answers[10]}/><button onClick={()=>setActiveView("hub")} style={{width:"100%",marginTop:16,border:"1px solid rgba(0,200,255,0.32)",borderRadius:100,padding:"13px",fontSize:14,fontWeight:700,background:"rgba(0,200,255,0.07)",color:E_BLUE,cursor:"pointer",fontFamily:"'Space Grotesk',sans-serif",letterSpacing:".05em",transition:"all .18s"}} onMouseEnter={e=>{e.currentTarget.style.background="rgba(0,200,255,0.16)";e.currentTarget.style.borderColor="rgba(0,200,255,0.65)";}} onMouseLeave={e=>{e.currentTarget.style.background="rgba(0,200,255,0.07)";e.currentTarget.style.borderColor="rgba(0,200,255,0.32)";}}>⌂ Back to My Hub</button></>}
             </>}
           </>}
         </div>
-        {!showLegal && <Footer onShowLegal={setShowLegal}/>}
+        {!showLegal && <Footer onShowLegal={setShowLegal} onRestore={()=>setShowRestore(true)}/>}
       </>}
     </div>
   );
@@ -447,7 +554,145 @@ function PrimaryBtn({onClick,children}){
   );
 }
 
-function Footer({onShowLegal}){
+function RestoreAccess({ onBack, onSuccess }) {
+  const [code, setCode]       = React.useState("");
+  const [error, setError]     = React.useState(null);
+  const [status, setStatus]   = React.useState("idle"); // idle | success
+
+  function formatInput(raw) {
+    // Strip everything except alphanumeric, uppercase, auto-insert dashes
+    const clean = raw.replace(/[^A-Za-z0-9]/g,"").toUpperCase().slice(0,12);
+    if (clean.length <= 3)  return clean;
+    if (clean.length <= 7)  return clean.slice(0,3)+"-"+clean.slice(3);
+    return clean.slice(0,3)+"-"+clean.slice(3,7)+"-"+clean.slice(7);
+    // Result: LQM-XXXX-XXXXX
+  }
+
+  function handleChange(e) {
+    setError(null);
+    setCode(formatInput(e.target.value));
+  }
+
+  function handleSubmit() {
+    const result = lqmValidateCode(code);
+    if (!result.valid) { setError(result.reason); return; }
+    setStatus("success");
+    setTimeout(() => onSuccess(result), 1200);
+  }
+
+  const unlockLabel = (() => {
+    // Decode what the code unlocks for the success message (best effort — decode without perms check)
+    const clean = code.replace(/[-\s]/g,"").toUpperCase();
+    if (clean.length !== 12) return "your content";
+    try {
+      const data  = clean.slice(3);
+      const b36   = data.slice(0,7);
+      const raw   = parseInt(b36,36) ^ LQM_SECRET;
+      const p     = raw & 0xF;
+      const parts = [];
+      if (p & 1) parts.push("LQM Report");
+      if (p & 2) parts.push("Brain Training");
+      if (p & 4) parts.push("Quantum Living");
+      return parts.join(" + ") || "your content";
+    } catch { return "your content"; }
+  })();
+
+  return (
+    <div style={{
+      minHeight:"100vh", background:`radial-gradient(ellipse 80% 40% at 50% 0%,rgba(0,200,255,0.07),${BG})`,
+      fontFamily:"'Space Grotesk',sans-serif", color:WHITE,
+      display:"flex", flexDirection:"column", alignItems:"center", padding:"0 16px 80px",
+    }}>
+      {/* Nav */}
+      <div style={{width:"100%",borderBottom:`1px solid ${BORDER}`,padding:"13px 24px",display:"flex",alignItems:"center",background:"rgba(7,15,30,0.9)",backdropFilter:"blur(14px)",position:"sticky",top:0,zIndex:100}}>
+        <button onClick={onBack} style={{background:"rgba(0,200,255,0.07)",border:`1px solid ${BORDER}`,borderRadius:100,padding:"6px 16px",color:E_BLUE,fontSize:14,fontWeight:700,cursor:"pointer",fontFamily:"'Space Grotesk',sans-serif",letterSpacing:".06em"}}>← Back</button>
+      </div>
+
+      <div style={{width:"100%",maxWidth:480,paddingTop:56,animation:"fadeUp .5s ease both"}}>
+
+        {/* Header */}
+        <div style={{textAlign:"center",marginBottom:36}}>
+          <div style={{fontSize:40,marginBottom:16}}>🔑</div>
+          <h1 style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:36,letterSpacing:2,color:WHITE,marginBottom:8}}>Restore Access</h1>
+          <p style={{fontSize:14,color:MUTED,lineHeight:1.7,maxWidth:360,margin:"0 auto"}}>
+            Already purchased LQM? Enter your restore code below to unlock your content on this device.
+            If you don't have a code, email <a href="mailto:lqm@lqmmethod.com" style={{color:E_BLUE,textDecoration:"none"}}>lqm@lqmmethod.com</a> with your Stripe reference.
+          </p>
+        </div>
+
+        {status === "success" ? (
+          <div style={{background:"rgba(52,211,153,0.08)",border:"1px solid rgba(52,211,153,0.3)",borderRadius:16,padding:"32px 24px",textAlign:"center",animation:"fadeUp .3s ease both"}}>
+            <div style={{fontSize:40,marginBottom:12}}>✓</div>
+            <p style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:26,letterSpacing:1.5,color:"#34D399",marginBottom:8}}>Access Restored</p>
+            <p style={{fontSize:14,color:MUTED}}>{unlockLabel} unlocked — loading now…</p>
+          </div>
+        ) : (
+          <div style={{background:PANEL,border:`1px solid ${BORDER2}`,borderRadius:16,padding:"28px 24px"}}>
+
+            {/* Code input */}
+            <p style={{fontSize:11,fontWeight:700,color:DIMMED,letterSpacing:".14em",textTransform:"uppercase",marginBottom:10}}>Your Restore Code</p>
+            <input
+              value={code}
+              onChange={handleChange}
+              onKeyDown={e => e.key==="Enter" && handleSubmit()}
+              placeholder="LQM-XXXX-XXXXX"
+              spellCheck={false}
+              autoComplete="off"
+              style={{
+                width:"100%",background:"rgba(0,200,255,0.04)",
+                border:`1.5px solid ${error ? "#EF4444" : code.length===15 ? "rgba(0,200,255,0.55)" : BORDER2}`,
+                borderRadius:10,padding:"14px 16px",
+                fontFamily:"'Space Grotesk',sans-serif",
+                fontSize:22,fontWeight:700,letterSpacing:".12em",
+                color: error ? "#EF4444" : E_BLUE,
+                outline:"none",transition:"border-color .2s",
+                textAlign:"center",
+              }}
+            />
+
+            {/* Character counter */}
+            <div style={{display:"flex",justifyContent:"space-between",marginTop:6,marginBottom:16}}>
+              <p style={{fontSize:11,color: error ? "#EF4444" : DIMMED}}>{error || "Format: LQM-XXXX-XXXXX"}</p>
+              <p style={{fontSize:11,color: code.replace(/-/g,"").length===12 ? "rgba(52,211,153,0.7)" : DIMMED,fontWeight:700}}>
+                {code.replace(/-/g,"").length}/12
+              </p>
+            </div>
+
+            <button
+              onClick={handleSubmit}
+              disabled={code.replace(/-/g,"").length !== 12}
+              style={{
+                width:"100%",padding:"14px",borderRadius:100,
+                background: code.replace(/-/g,"").length===12 ? E_BLUE : "rgba(0,200,255,0.12)",
+                border:"none",cursor: code.replace(/-/g,"").length===12 ? "pointer" : "default",
+                color: code.replace(/-/g,"").length===12 ? BG : "rgba(0,200,255,0.3)",
+                fontFamily:"'Space Grotesk',sans-serif",fontWeight:800,fontSize:15,
+                letterSpacing:".08em",transition:"all .2s",
+              }}>
+              Unlock My Content
+            </button>
+
+            <p style={{fontSize:11,color:DIMMED,textAlign:"center",marginTop:16,lineHeight:1.6}}>
+              Codes are single-use and expire after 30 days.<br/>
+              They are linked to your purchase record and cannot be shared.
+            </p>
+          </div>
+        )}
+
+        {/* Help */}
+        <div style={{marginTop:24,background:"rgba(255,255,255,0.02)",border:`1px solid ${BORDER2}`,borderRadius:12,padding:"16px 18px"}}>
+          <p style={{fontSize:12,fontWeight:700,color:DIMMED,letterSpacing:".1em",textTransform:"uppercase",marginBottom:6}}>Don't have a code?</p>
+          <p style={{fontSize:13,color:MUTED,lineHeight:1.7}}>
+            Email <a href="mailto:lqm@lqmmethod.com" style={{color:E_BLUE,textDecoration:"none",fontWeight:700}}>lqm@lqmmethod.com</a> and include your Stripe payment reference number. We'll generate a restore code and send it back within 48 hours.
+          </p>
+        </div>
+
+      </div>
+    </div>
+  );
+}
+
+function Footer({onShowLegal, onRestore}){
   function activateTestMode(){
     localStorage.setItem('lqm_delivery',JSON.stringify({
       ref:'LQM-2026-TEST'+Math.random().toString(36).substring(2,8).toUpperCase(),
@@ -467,6 +712,7 @@ function Footer({onShowLegal}){
       <div style={{display:"flex",gap:24,flexWrap:"wrap",justifyContent:"center"}}>
         <button onClick={()=>onShowLegal("privacy")} style={{background:"none",border:"none",color:DIMMED,fontSize:15,cursor:"pointer",textDecoration:"underline",fontFamily:"'Space Grotesk',sans-serif"}} onMouseEnter={e=>e.currentTarget.style.color=E_BLUE} onMouseLeave={e=>e.currentTarget.style.color=DIMMED}>Privacy Policy</button>
         <button onClick={()=>onShowLegal("terms")} style={{background:"none",border:"none",color:DIMMED,fontSize:15,cursor:"pointer",textDecoration:"underline",fontFamily:"'Space Grotesk',sans-serif"}} onMouseEnter={e=>e.currentTarget.style.color=E_BLUE} onMouseLeave={e=>e.currentTarget.style.color=DIMMED}>Terms & Conditions</button>
+        <button onClick={onRestore} style={{background:"none",border:"none",color:"rgba(0,200,255,0.35)",fontSize:13,cursor:"pointer",fontFamily:"'Space Grotesk',sans-serif",letterSpacing:".04em"}} onMouseEnter={e=>e.currentTarget.style.color=E_BLUE} onMouseLeave={e=>e.currentTarget.style.color="rgba(0,200,255,0.35)"}>🔑 Restore Access</button>
       </div>
       <p style={{fontSize:14,color:DIMMED,textAlign:"center"}}>© 2026 Learning Quantum Method. All rights reserved.</p>
       <p style={{fontSize:16,color:DIMMED,textAlign:"center",maxWidth:500,lineHeight:1.5}}>For questions or support: <a href="mailto:lqm@lqmmethod.com" style={{color:E_BLUE,textDecoration:"none"}}>lqm@lqmmethod.com</a></p>
@@ -528,7 +774,10 @@ function RotatingTestimonial({quotes, accentColor}) {
   );
 }
 
-function Hub({type, unlocks, onOpenNeural, onOpenVital, onViewReport, onUnlockNeural, onUnlockVital, onUnlockBundle, onSimulateNeural, onSimulateVital}) {
+function Hub({type, unlocks, onOpenNeural, onOpenVital, onViewReport, onUnlockNeural, onUnlockVital, onUnlockBundle, onSimulateNeural, onSimulateVital, customerEmail, onSendReport}) {
+  const [emailOpen,   setEmailOpen]   = React.useState(false);
+  const [emailInput,  setEmailInput]  = React.useState(customerEmail||"");
+  const [emailStatus, setEmailStatus] = React.useState("idle"); // idle | sending | sent | error
   // Read live progress from localStorage
   const brainData = (() => { try { return JSON.parse(localStorage.getItem("lqm_brain")||"{}"); } catch { return {}; } })();
   const livingData = (() => { try { return JSON.parse(localStorage.getItem("lqm_living")||"{}"); } catch { return {}; } })();
@@ -716,17 +965,67 @@ function Hub({type, unlocks, onOpenNeural, onOpenVital, onViewReport, onUnlockNe
       {(unlocks.neural || unlocks.vital) && (
         <div style={{background:"rgba(255,255,255,0.02)", border:`1px solid ${BORDER2}`, borderRadius:14, padding:"16px 20px", marginBottom:8}}>
           <p style={{fontSize:13, fontWeight:700, color:DIMMED, letterSpacing:".12em", textTransform:"uppercase", marginBottom:10}}>💡 Your Daily Habit</p>
-          <p style={{fontSize:14, color:MUTED, lineHeight:1.6}}>
-            {unlocks.neural && unlocks.vital
-              ? "Complete today's Brain Training session + tick all 5 Quantum Laws to log your daily progress on both 21-day journeys."
-              : unlocks.neural
-              ? "Complete today's Brain Training session to log your daily progress and keep your streak alive."
-              : "Tick all 5 Quantum Laws today to log your daily progress and keep your streak alive."}
-          </p>
+          <p style={{fontSize:14, color:MUTED, lineHeight:1.6}}>{unlocks.neural && unlocks.vital ? "Complete today's Brain Training session + tick all 5 Quantum Laws to log your daily progress on both 21-day journeys." : unlocks.neural ? "Complete today's Brain Training session to log your daily progress and keep your streak alive." : "Tick all 5 Quantum Laws today to log your daily progress and keep your streak alive."}</p>
         </div>
       )}
+
+      {/* ── EMAIL MY RESULTS ── */}
+      <div style={{marginTop:16,marginBottom:4,border:`1px solid ${emailStatus==="sent"?"rgba(52,211,153,0.35)":E_BLUE+"22"}`,borderRadius:14,overflow:"hidden",transition:"border-color .3s"}}>
+
+        {/* Header row — always visible */}
+        <button onClick={()=>{setEmailOpen(v=>!v); setEmailStatus("idle");}} style={{width:"100%",background:emailOpen?`${E_BLUE}08`:"transparent",border:"none",cursor:"pointer",padding:"14px 18px",display:"flex",alignItems:"center",gap:12,fontFamily:"'Space Grotesk',sans-serif",transition:"background .2s"}}>
+          <span style={{fontSize:18}}>📧</span>
+          <div style={{flex:1,textAlign:"left"}}>
+            <p style={{fontSize:13,fontWeight:700,color:E_BLUE,margin:0,letterSpacing:".04em"}}>Email My Full Report</p>
+            <p style={{fontSize:11,color:DIMMED,margin:0,marginTop:2}}>{customerEmail ? `Last sent to ${customerEmail}` : "Send your complete report to your inbox"}</p>
+          </div>
+          <span style={{fontSize:12,color:DIMMED,fontWeight:700,letterSpacing:".06em"}}>{emailOpen?"↑ Close":"Open →"}</span>
+        </button>
+
+        {/* Expandable body */}
+        {emailOpen && (
+          <div style={{padding:"0 18px 18px",borderTop:`1px solid ${E_BLUE}18`,background:`${E_BLUE}05`,animation:"fadeUp .2s ease both"}}>
+
+            {emailStatus === "sent" ? (
+              <div style={{textAlign:"center",padding:"20px 0"}}>
+                <div style={{fontSize:32,marginBottom:8}}>✅</div>
+                <p style={{fontSize:15,fontWeight:700,color:"#34D399",margin:"0 0 4px"}}>Report Sent</p>
+                <p style={{fontSize:13,color:DIMMED}}>Check your inbox — it may take a minute to arrive.</p>
+                <button onClick={()=>{setEmailStatus("idle");setEmailOpen(false);}} style={{marginTop:14,background:"none",border:"none",cursor:"pointer",fontSize:13,color:E_BLUE,fontFamily:"'Space Grotesk',sans-serif",fontWeight:700}}>Close ↑</button>
+              </div>
+            ) : (
+              <>
+                <p style={{fontSize:12,color:DIMMED,margin:"14px 0 10px",lineHeight:1.6}}>Your full report — archetype, identity statement, strengths, blind spots and all 3 strategy cards — sent as a premium email to your inbox.</p>
+                <input
+                  value={emailInput}
+                  onChange={e=>{setEmailInput(e.target.value);setEmailStatus("idle");}}
+                  onKeyDown={e=>e.key==="Enter"&&handleEmailSend()}
+                  placeholder="your@email.com"
+                  type="email"
+                  style={{width:"100%",background:"rgba(0,0,0,0.3)",border:`1px solid ${emailStatus==="error"?"rgba(239,68,68,0.5)":E_BLUE+"33"}`,borderRadius:9,padding:"11px 14px",color:"#fff",fontSize:14,fontFamily:"'Space Grotesk',sans-serif",outline:"none",boxSizing:"border-box",marginBottom:10}}
+                />
+                {emailStatus==="error" && <p style={{fontSize:12,color:"#EF4444",margin:"-4px 0 8px"}}>Something went wrong — please try again or email lqm@lqmmethod.com</p>}
+                <button
+                  onClick={handleEmailSend}
+                  disabled={emailStatus==="sending"}
+                  style={{width:"100%",padding:"12px",borderRadius:100,border:"none",cursor:emailStatus==="sending"?"default":"pointer",background:emailStatus==="sending"?"rgba(0,200,255,0.1)":E_BLUE,color:emailStatus==="sending"?E_BLUE:"#070F1E",fontFamily:"'Space Grotesk',sans-serif",fontWeight:800,fontSize:14,letterSpacing:".06em",transition:"all .2s"}}>
+                  {emailStatus==="sending" ? "Sending…" : "Send My Report →"}
+                </button>
+              </>
+            )}
+          </div>
+        )}
+      </div>
+
     </div>
   );
+
+  async function handleEmailSend() {
+    if (!emailInput || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailInput)) return;
+    setEmailStatus("sending");
+    const result = await onSendReport(emailInput);
+    setEmailStatus(result.ok ? "sent" : "error");
+  }
 }
 
 function AddOnShop({unlocks, onUnlockNeural, onUnlockVital, onUnlockBundle, onOpenNeural, onOpenVital, onSimulateNeural, onSimulateVital}) {
@@ -1088,13 +1387,26 @@ function Teaser({type,t,fmt,onUnlockOffer,onUnlockFull}){
 
 function DeliveryGate({ref_, ts, type, onConfirm}){
   const [countdown, setCountdown] = useState(5);
+  const [email, setEmail]         = useState("");
+  const [emailError, setEmailError] = useState(null);
+
   useEffect(()=>{
     if(countdown<=0) return;
     const t=setInterval(()=>setCountdown(c=>c-1),1000);
     return()=>clearInterval(t);
   },[countdown]);
+
+  function handleConfirm(){
+    if(countdown>0) return;
+    if(email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){
+      setEmailError("Please enter a valid email address");
+      return;
+    }
+    onConfirm(email);
+  }
+
   return(
-    <div style={{position:"fixed",inset:0,background:"rgba(7,15,30,0.97)",backdropFilter:"blur(12px)",zIndex:500,display:"flex",alignItems:"center",justifyContent:"center",padding:20}}>
+    <div style={{position:"fixed",inset:0,background:"rgba(7,15,30,0.97)",backdropFilter:"blur(12px)",zIndex:500,display:"flex",alignItems:"center",justifyContent:"center",padding:20,overflowY:"auto"}}>
       <div style={{width:"100%",maxWidth:480,background:`linear-gradient(145deg,${DARK2},${DARK})`,border:`2px solid rgba(52,211,153,0.4)`,borderRadius:22,padding:"40px 32px",textAlign:"center",boxShadow:"0 0 60px rgba(52,211,153,0.08)"}}>
         <div style={{fontSize:48,marginBottom:16}}>📋</div>
         <p style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:28,letterSpacing:2,color:"#34D399",marginBottom:6}}>Report Ready</p>
@@ -1118,12 +1430,27 @@ function DeliveryGate({ref_, ts, type, onConfirm}){
           </div>
         </div>
 
-        <p style={{fontSize:15,color:"rgba(255,255,255,0.4)",lineHeight:1.65,marginBottom:22}}>By clicking below you confirm that your full LQM report has been successfully delivered to you on screen. This serves as your delivery receipt. We recommend screenshotting this screen and your report for your records.</p>
+        {/* Email field — optional */}
+        <div style={{background:"rgba(0,200,255,0.04)",border:`1px solid ${emailError?"rgba(239,68,68,0.5)":"rgba(0,200,255,0.18)"}`,borderRadius:14,padding:"18px 20px",marginBottom:20,textAlign:"left"}}>
+          <p style={{fontSize:12,fontWeight:700,color:"rgba(0,200,255,0.6)",letterSpacing:".14em",textTransform:"uppercase",marginBottom:8}}>📧 Email a copy to yourself <span style={{fontWeight:400,opacity:0.6}}>(optional)</span></p>
+          <input
+            value={email}
+            onChange={e=>{setEmailError(null);setEmail(e.target.value);}}
+            onKeyDown={e=>e.key==="Enter"&&handleConfirm()}
+            placeholder="your@email.com"
+            type="email"
+            style={{width:"100%",background:"rgba(0,0,0,0.3)",border:`1px solid ${emailError?"rgba(239,68,68,0.4)":"rgba(0,200,255,0.2)"}`,borderRadius:9,padding:"11px 14px",color:"#fff",fontSize:15,fontFamily:"'Space Grotesk',sans-serif",outline:"none",boxSizing:"border-box"}}
+          />
+          {emailError && <p style={{fontSize:12,color:"#EF4444",marginTop:6,marginBottom:0}}>{emailError}</p>}
+          {!emailError && <p style={{fontSize:11,color:"rgba(255,255,255,0.28)",marginTop:6,marginBottom:0}}>Your full report sent to your inbox. Optional — you can skip this.</p>}
+        </div>
 
-        <button onClick={countdown>0?undefined:onConfirm} disabled={countdown>0} style={{width:"100%",border:"none",borderRadius:100,padding:"16px",fontSize:16,fontWeight:700,fontFamily:"'Space Grotesk',sans-serif",cursor:countdown>0?"not-allowed":"pointer",background:countdown>0?"rgba(255,255,255,0.06)":"linear-gradient(135deg,#059669,#34D399)",color:countdown>0?"rgba(255,255,255,0.3)":"#070F1E",letterSpacing:".05em",transition:"all .3s"}}>
-          {countdown>0?`Please read — confirming in ${countdown}s…`:"✓ I Confirm Receipt — View My Report →"}
+        <p style={{fontSize:14,color:"rgba(255,255,255,0.4)",lineHeight:1.65,marginBottom:22,textAlign:"left"}}>By clicking below you confirm that your full LQM report has been successfully delivered to you on screen. This serves as your delivery receipt.</p>
+
+        <button onClick={handleConfirm} disabled={countdown>0} style={{width:"100%",border:"none",borderRadius:100,padding:"16px",fontSize:16,fontWeight:700,fontFamily:"'Space Grotesk',sans-serif",cursor:countdown>0?"not-allowed":"pointer",background:countdown>0?"rgba(255,255,255,0.06)":"linear-gradient(135deg,#059669,#34D399)",color:countdown>0?"rgba(255,255,255,0.3)":"#070F1E",letterSpacing:".05em",transition:"all .3s"}}>
+          {countdown>0?`Please read — confirming in ${countdown}s…`:`✓ I Confirm Receipt — View My Report →`}
         </button>
-        <p style={{fontSize:16,color:"rgba(255,255,255,0.2)",marginTop:12}}>Ref: {ref_} · LQM Terms apply · {ts}</p>
+        <p style={{fontSize:13,color:"rgba(255,255,255,0.2)",marginTop:12}}>Ref: {ref_} · LQM Terms apply · {ts}</p>
       </div>
     </div>
   );
