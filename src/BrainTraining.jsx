@@ -46,6 +46,9 @@ function createVoice(clip) {
 }
 // Shared audio context - created once to prevent browser blocking
 let _audioCtx = null;
+// Module-level gate — updated by the speaker toggle, read by all sound functions
+// Using a plain object so closures always read the current value without re-render
+let _gameSoundOn = { value: true };
 function getAudioCtx() {
   if (!_audioCtx || _audioCtx.state === "closed") {
     _audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -55,6 +58,7 @@ function getAudioCtx() {
 }
 
 function playShootSound() {
+  if (!_gameSoundOn.value) return;
   try {
     const ctx = getAudioCtx();
     const osc = ctx.createOscillator();
@@ -69,6 +73,7 @@ function playShootSound() {
 }
 
 function playHitSound() {
+  if (!_gameSoundOn.value) return;
   try {
     const ctx = getAudioCtx();
     const osc = ctx.createOscillator();
@@ -84,6 +89,7 @@ function playHitSound() {
 }
 
 function playMissSound() {
+  if (!_gameSoundOn.value) return;
   try {
     const ctx = getAudioCtx();
     const osc = ctx.createOscillator();
@@ -425,14 +431,19 @@ export default function BrainTraining({ onBack, archetype }){
   const [challengeData, setChallengeData] = useState(null);
   const arch = archetype && ARCHETYPE_DATA[archetype] ? ARCHETYPE_DATA[archetype] : null;
 
-  // ── Voice narration toggle — persists to localStorage ──
+  // ── Voice narration + game sound toggle — persists to localStorage ──
   const [soundOn, setSoundOn] = useState(()=>{
-    try { return localStorage.getItem("lqm_bt_sound") !== "off"; }
+    try {
+      const on = localStorage.getItem("lqm_bt_sound") !== "off";
+      _gameSoundOn.value = on; // initialise gate to match saved preference
+      return on;
+    }
     catch { return true; }
   });
   function toggleSound() {
     setSoundOn(prev => {
       const next = !prev;
+      _gameSoundOn.value = next; // sync game sound gate immediately
       try { localStorage.setItem("lqm_bt_sound", next ? "on" : "off"); } catch {}
       return next;
     });
@@ -1726,7 +1737,7 @@ function NeuralDefense({onComplete, difficulty, soundOn, voiceClip}){
             </p>
           </div>
           <button onClick={()=>{stopVoice();startGame();}} style={{border:"none",borderRadius:100,padding:"14px 40px",fontSize:16,fontWeight:700,fontFamily:"'Space Grotesk',sans-serif",cursor:"pointer",background:`linear-gradient(135deg,${PURPLE}cc,${PURPLE})`,color:WHITE,letterSpacing:".05em",boxShadow:`0 6px 28px ${PURPLE}44`,animation:"pulse 2s infinite"}}>
-            ⚡ Launch Defense →
+            ⚡ Start →
           </button>
         </div>
       </div>
