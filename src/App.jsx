@@ -127,23 +127,6 @@ function FlameIcon({size=16}) {
   );
 }
 
-// ── AtomIcon — glowing nucleus with three orbits, representing thought & life ──
-function AtomIcon({size=16}) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24"
-      style={{display:"inline-block",verticalAlign:"middle",flexShrink:0,
-        animation:"atomGlow 2.4s ease-in-out infinite"}}>
-      <ellipse cx="12" cy="12" rx="10.5" ry="3.8" fill="none" stroke="#00C8FF" strokeWidth="1.1" opacity="0.85"/>
-      <ellipse cx="12" cy="12" rx="10.5" ry="3.8" fill="none" stroke="#7DD3FC" strokeWidth="0.9" opacity="0.65" transform="rotate(60 12 12)"/>
-      <ellipse cx="12" cy="12" rx="10.5" ry="3.8" fill="none" stroke="#BAE6FD" strokeWidth="0.8" opacity="0.50" transform="rotate(120 12 12)"/>
-      <circle cx="22.5" cy="12" r="1.6" fill="#00C8FF" opacity="0.9"/>
-      <circle cx="7.25" cy="5.05" r="1.4" fill="#7DD3FC" opacity="0.78"/>
-      <circle cx="7.25" cy="18.95" r="1.3" fill="#BAE6FD" opacity="0.65"/>
-      <circle cx="12" cy="12" r="2.6" fill="#FFFFFF" opacity="0.98"/>
-      <circle cx="12" cy="12" r="1.4" fill="#00C8FF" opacity="0.5"/>
-    </svg>
-  );
-}
 function StrengthBars({strengths,color}){
   const widths=[95,88,82,76];
   return <div style={{marginTop:8}}>{strengths.map((s,i)=>(<div key={i} style={{marginBottom:14}}><div style={{display:"flex",justifyContent:"space-between",marginBottom:6}}><span style={{fontSize:13,fontWeight:600,color:WHITE}}>{s}</span><span style={{fontSize:12,color,fontWeight:700}}>{widths[i]}%</span></div><div style={{height:6,background:"rgba(255,255,255,0.06)",borderRadius:100,overflow:"hidden"}}><div style={{height:"100%",width:`${widths[i]}%`,background:`linear-gradient(90deg,${color}88,${color})`,borderRadius:100,boxShadow:`0 0 8px ${color}66`}}/></div></div>))}</div>;
