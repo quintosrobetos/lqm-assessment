@@ -1198,8 +1198,9 @@ function ReactionChallenge({onComplete, difficulty, soundOn, voiceClip}){
   function handleTap(){
     if(phase==="waiting"){
       clearTimeout(goRef.current);
-      setPhase("miss"); setMsg("Too early! Wait for the shape.");
-      setTimeout(()=>{ const next=rep+1; if(next<REPS){setRep(next);nextRep(next);}else finish(times,score); },1100);
+      setPhase("miss"); setMsg("Too early! −15 pts. Wait for the shape.");
+      const earlyScore = Math.max(0, score - 15); setScore(earlyScore);
+      setTimeout(()=>{ const next=rep+1; if(next<REPS){setRep(next);nextRep(next);}else finish(times,earlyScore); },1100);
     } else if(phase==="go"){
       const rt=Date.now()-tStart.current;
       const newTimes=[...times,rt];
