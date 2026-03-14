@@ -315,7 +315,7 @@ const SCIENCE_CARDS = [
   { round:6, icon:"🛡️", name:"Neural Defense", tag:"Sustained Attention", color:"#8B5CF6",
     headline:"Real-time visual tracking and reaction under sustained pressure.",
     science:"Action video game research by Bavelier et al. (2003, 2012) demonstrates significant improvements in visual attention, multiple object tracking, and reaction time. Unlike isolated reaction tests, sustained gameplay requires continuous vigilance, spatial prediction, and rapid target acquisition — training the brain's attentional networks under dynamic conditions. This transfers to real-world performance in high-stakes, fast-moving environments.",
-    task:"Shapes fall from above. Move your shield left and right, then tap to block them before they reach the bottom. Three waves with increasing speed. Your reaction time, accuracy, and sustained attention are measured throughout.",
+    task:"Shapes fall from above in three waves of increasing speed. Move your shield left and right to aim beneath them, then tap to fire and destroy each shape before it reaches the bottom. Don't let any escape — every miss breaks your combo and costs accuracy. This trains your brain's sustained attention, spatial prediction and rapid target acquisition under real pressure.",
     metric:"Brain region trained: Visual cortex · Parietal cortex · Sustained attention networks" },
 ];
 
@@ -1616,21 +1616,15 @@ function NeuralDefense({onComplete, difficulty}){
           <h2 style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:26,letterSpacing:2,color:WHITE,marginBottom:10}}>Neural Defense</h2>
           <p style={{fontSize:16,color:MUTED,lineHeight:1.85,marginBottom:20}}>
             <strong style={{color:WHITE}}>THE OBJECTIVE:</strong><br/>
-            Shapes fall from above.<br/>
-            <strong style={{color:PURPLE}}>Move your shield</strong> left and right,<br/>
-            then <strong style={{color:PURPLE}}>tap to block</strong> before they hit bottom.<br/>
-            <span style={{fontSize:14,color:DIMMED}}>3 waves · Increasing speed · Every hit counts</span><br/>
-            <span style={{fontSize:14,color:"#FFD700"}}>⭐ Watch for gold stars — catch them for 30 bonus points!</span>
+            Shapes fall from above in three waves.<br/>
+            <strong style={{color:PURPLE}}>Move your shield</strong> left and right to aim,<br/>
+            then <strong style={{color:PURPLE}}>tap to fire</strong> and destroy every shape.<br/>
+            <span style={{fontSize:14,color:DIMMED}}>Don't let any reach the bottom — each miss breaks your combo</span><br/>
+            <span style={{fontSize:14,color:"#FFD700"}}>⭐ Watch for gold stars — destroy them for 30 bonus points!</span>
           </p>
-          <div style={{background:"rgba(251,191,36,0.08)",border:"1px solid rgba(251,191,36,0.25)",borderRadius:12,padding:"12px 16px",marginBottom:12}}>
-            <p style={{fontSize:14,color:AMBER,fontWeight:700,marginBottom:4}}>🛡️ Shield Tip:</p>
-            <p style={{fontSize:14,color:MUTED,lineHeight:1.6}}>
-              Click/tap anywhere to shoot. Position your shield under falling shapes - when they're close, they'll be destroyed!
-            </p>
-          </div>
           <div style={{background:"rgba(139,92,246,0.08)",border:"1px solid rgba(139,92,246,0.25)",borderRadius:12,padding:"16px 18px",marginBottom:22}}>
             <p style={{fontSize:14,color:MUTED,lineHeight:1.75}}>
-              This trains sustained visual attention and reaction time under continuous pressure — the same skills measured in action game research.
+              This trains your brain's <strong style={{color:WHITE}}>sustained attention, spatial prediction and rapid target acquisition</strong> — the attentional networks that govern performance under real pressure.
             </p>
           </div>
           <button onClick={startGame} style={{border:"none",borderRadius:100,padding:"14px 40px",fontSize:16,fontWeight:700,fontFamily:"'Space Grotesk',sans-serif",cursor:"pointer",background:`linear-gradient(135deg,${PURPLE}cc,${PURPLE})`,color:WHITE,letterSpacing:".05em",boxShadow:`0 6px 28px ${PURPLE}44`,animation:"pulse 2s infinite"}}>
