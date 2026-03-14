@@ -808,6 +808,24 @@ function RotatingTestimonial({quotes, accentColor}) {
   );
 }
 
+// ── AtomIcon — glowing nucleus with three orbits, representing thought & life ──
+function AtomIcon({size=24}) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24"
+      style={{display:"inline-block",verticalAlign:"middle",flexShrink:0,
+        animation:"atomGlow 2.4s ease-in-out infinite"}}>
+      <ellipse cx="12" cy="12" rx="10.5" ry="3.8" fill="none" stroke="#00C8FF" strokeWidth="1.1" opacity="0.85"/>
+      <ellipse cx="12" cy="12" rx="10.5" ry="3.8" fill="none" stroke="#7DD3FC" strokeWidth="0.9" opacity="0.65" transform="rotate(60 12 12)"/>
+      <ellipse cx="12" cy="12" rx="10.5" ry="3.8" fill="none" stroke="#BAE6FD" strokeWidth="0.8" opacity="0.50" transform="rotate(120 12 12)"/>
+      <circle cx="22.5" cy="12" r="1.6" fill="#00C8FF" opacity="0.9"/>
+      <circle cx="7.25" cy="5.05" r="1.4" fill="#7DD3FC" opacity="0.78"/>
+      <circle cx="7.25" cy="18.95" r="1.3" fill="#BAE6FD" opacity="0.65"/>
+      <circle cx="12" cy="12" r="2.6" fill="#FFFFFF" opacity="0.98"/>
+      <circle cx="12" cy="12" r="1.4" fill="#00C8FF" opacity="0.5"/>
+    </svg>
+  );
+}
+
 function Hub({type, unlocks, onOpenNeural, onOpenVital, onViewReport, onUnlockNeural, onUnlockVital, onUnlockBundle, onSimulateNeural, onSimulateVital, customerEmail, onSendReport}) {
   const [emailOpen,   setEmailOpen]   = useState(false);
   const [emailInput,  setEmailInput]  = useState(customerEmail||"");
@@ -870,7 +888,7 @@ function Hub({type, unlocks, onOpenNeural, onOpenVital, onViewReport, onUnlockNe
         onMouseLeave={e=>{e.currentTarget.style.transform="translateY(0)";e.currentTarget.style.boxShadow="none";}}>
         <div style={{display:"flex", alignItems:"flex-start", justifyContent:"space-between", gap:12}}>
           <div style={{display:"flex", alignItems:"flex-start", gap:14, flex:1}}>
-            <div style={{width:46, height:46, borderRadius:14, background:"rgba(0,200,255,0.1)", border:"1px solid rgba(0,200,255,0.3)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:22, flexShrink:0}}>⚡</div>
+            <div style={{width:46, height:46, borderRadius:14, background:"rgba(0,200,255,0.1)", border:"1px solid rgba(0,200,255,0.3)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}><AtomIcon size={28}/></div>
             <div style={{flex:1}}>
               <p style={{fontSize:13, fontWeight:700, color:E_BLUE, letterSpacing:".12em", textTransform:"uppercase", marginBottom:3}}>Brain Training</p>
               <p style={{fontSize:18, fontWeight:700, color:WHITE, marginBottom:4}}>Neural Protocol</p>
@@ -1659,7 +1677,7 @@ function Dashboard({type, unlocks, onViewReport, onOpenBrain, onOpenQuantum, onU
           onMouseEnter={e=>{e.currentTarget.style.transform="translateY(-3px)";e.currentTarget.style.borderColor=unlocks.neural?E_BLUE:"rgba(0,200,255,0.3)";}}
           onMouseLeave={e=>{e.currentTarget.style.transform="translateY(0)";e.currentTarget.style.borderColor=unlocks.neural?"rgba(0,200,255,0.4)":BORDER2;}}>
           <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:16}}>
-            <div style={{width:48,height:48,borderRadius:12,background:"rgba(0,200,255,0.1)",border:`1px solid ${BORDER}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:24}}>⚡</div>
+            <div style={{width:48,height:48,borderRadius:12,background:"rgba(0,200,255,0.1)",border:`1px solid ${BORDER}`,display:"flex",alignItems:"center",justifyContent:"center"}}><AtomIcon size={30}/></div>
             {unlocks.neural 
               ? <div style={{padding:"4px 12px",background:"rgba(0,200,255,0.12)",border:`1px solid ${BORDER}`,borderRadius:100,fontSize:12,color:E_BLUE,fontWeight:700}}>UNLOCKED</div>
               : <div style={{padding:"4px 12px",background:"rgba(251,191,36,0.12)",border:"1px solid rgba(251,191,36,0.3)",borderRadius:100,fontSize:12,color:AMBER,fontWeight:700}}>£5</div>
