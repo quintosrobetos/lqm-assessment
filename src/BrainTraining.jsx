@@ -91,8 +91,8 @@ const PANEL   = "rgba(255,255,255,0.045)";
 const BORDER  = "rgba(0,200,255,0.18)";
 const BORDER2 = "rgba(255,255,255,0.08)";
 const WHITE   = "#FFFFFF";
-const MUTED   = "rgba(255,255,255,0.75)";  // Improved contrast
-const DIMMED  = "rgba(255,255,255,0.40)";  // Improved contrast
+const MUTED   = "rgba(255,255,255,0.82)";
+const DIMMED  = "rgba(255,255,255,0.55)";
 const E_BLUE  = "#00C8FF";
 const E_BLUE2 = "#0EA5E9";
 const GREEN   = "#34D399";
@@ -270,7 +270,7 @@ function GlobalStyles(){
       @keyframes fadeUp{from{opacity:0;transform:translateY(18px);}to{opacity:1;transform:translateY(0);}}
       @keyframes popIn{0%{transform:scale(0.8);opacity:0;}100%{transform:scale(1);opacity:1;}}
       @keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.35;}}
-      @keyframes scaleIn{from{transform:scale(1.15);opacity:0;}to{transform:scale(1);opacity:1;}}
+      @keyframes scaleIn{from{transform:scale(1.15);opacity:0;}to{transform:scale(1);opacity:1;}}@keyframes flamePulse{0%,100%{filter:drop-shadow(0 0 2px #00C8FF) drop-shadow(0 0 5px rgba(0,200,255,0.35));transform:scaleY(1);}40%{filter:drop-shadow(0 0 5px #00C8FF) drop-shadow(0 0 14px rgba(0,200,255,0.65)) drop-shadow(0 0 26px rgba(0,200,255,0.25));transform:scaleY(1.06);}70%{filter:drop-shadow(0 0 3px #00C8FF) drop-shadow(0 0 8px rgba(0,200,255,0.45));transform:scaleY(0.97);}}@keyframes atomGlow{0%,100%{filter:drop-shadow(0 0 3px rgba(0,200,255,0.6)) drop-shadow(0 0 1px #fff);}50%{filter:drop-shadow(0 0 8px rgba(0,200,255,1)) drop-shadow(0 0 18px rgba(0,200,255,0.45)) drop-shadow(0 0 2px #fff);}}
       .fu{animation:fadeUp .5s ease both;}
       .fu1{animation:fadeUp .5s .08s ease both;}
       .fu2{animation:fadeUp .5s .18s ease both;}
@@ -358,6 +358,47 @@ function DifficultySelection({onSelect}){
 // ════════════════════════════════════════════════════════════════════════════
 // MAIN COMPONENT
 // ════════════════════════════════════════════════════════════════════════════
+
+// ── FlameIcon — white-core blue flame, pulsating glow ──
+function FlameIcon({size=16}) {
+  const w = Math.round(size * 0.75);
+  return (
+    <svg width={w} height={size} viewBox="0 0 15 20"
+      style={{display:"inline-block",verticalAlign:"middle",flexShrink:0,
+        transformOrigin:"center bottom",
+        animation:"flamePulse 1.9s ease-in-out infinite"}}>
+      <path d="M7.5 1C7.5 1 4.5 4.5 4.5 8C4.5 8 3 6 3.5 3.5C1 5.5 1 9.5 3 11.5C2 13 2 15 3 16.5C4.2 18.5 5.8 19.5 7.5 19.5C9.2 19.5 10.8 18.5 12 16.5C13 15 13 13 12 11.5C14 9.5 14 5.5 11.5 3.5C12 6 10.5 8 10.5 8C10.5 4.5 7.5 1 7.5 1Z"
+        fill="#7DD3FC" opacity="0.92"/>
+      <path d="M7.5 8C7.5 8 6 10 6 12C6 12 5 11 5.5 9.5C4 11 4.5 13.5 6 15C6.5 16 7 17 7.5 17C8 17 8.5 16 9 15C10.5 13.5 11 11 9.5 9.5C10 11 9 12 9 12C9 10 7.5 8 7.5 8Z"
+        fill="#FFFFFF" opacity="0.96"/>
+    </svg>
+  );
+}
+
+// ── AtomIcon — glowing nucleus with three orbits, representing thought & life ──
+function AtomIcon({size=16}) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24"
+      style={{display:"inline-block",verticalAlign:"middle",flexShrink:0,
+        animation:"atomGlow 2.4s ease-in-out infinite"}}>
+      <ellipse cx="12" cy="12" rx="10.5" ry="3.8" fill="none" stroke="#00C8FF" strokeWidth="1.1" opacity="0.85"/>
+      <ellipse cx="12" cy="12" rx="10.5" ry="3.8" fill="none" stroke="#7DD3FC" strokeWidth="0.9" opacity="0.65" transform="rotate(60 12 12)"/>
+      <ellipse cx="12" cy="12" rx="10.5" ry="3.8" fill="none" stroke="#BAE6FD" strokeWidth="0.8" opacity="0.50" transform="rotate(120 12 12)"/>
+      <circle cx="22.5" cy="12" r="1.6" fill="#00C8FF" opacity="0.9"/>
+      <circle cx="7.25" cy="5.05" r="1.4" fill="#7DD3FC" opacity="0.78"/>
+      <circle cx="7.25" cy="18.95" r="1.3" fill="#BAE6FD" opacity="0.65"/>
+      <circle cx="12" cy="12" r="2.6" fill="#FFFFFF" opacity="0.98"/>
+      <circle cx="12" cy="12" r="1.4" fill="#00C8FF" opacity="0.5"/>
+    </svg>
+  );
+}
+
+// ── BTIcon — renders custom SVG for 🧠 and 🔥, emoji for all others ──
+function BTIcon({icon, size=18}) {
+  if (icon === "🧠") return <AtomIcon size={size}/>;
+  if (icon === "🔥") return <FlameIcon size={size}/>;
+  return <span style={{fontSize:size}}>{iconStr}</span>;
+}
 export default function BrainTraining({ onBack, archetype }){
   const [screen,  setScreen]  = useState("difficulty");
   const [difficulty, setDifficulty] = useState(null);
@@ -473,7 +514,7 @@ export default function BrainTraining({ onBack, archetype }){
           <span style={{fontSize:14,color:E_BLUE,fontWeight:700,letterSpacing:".12em"}}>BRAIN TRAINING</span>
         </div>
         <div style={{display:"flex",alignItems:"center",gap:12}}>
-          {streak>0&&<span style={{fontSize:15,color:AMBER,fontWeight:700}}>🔥{streak}</span>}
+          {streak>0&&<span style={{fontSize:15,color:AMBER,fontWeight:700}}><FlameIcon size={15}/>{streak}</span>}
           <span style={{fontSize:14,color:level.color,fontWeight:700}}>{totalXP} XP</span>
         </div>
       </div>
@@ -542,7 +583,7 @@ function Intro({onStart,onQuickPlay,xp,streak,level,userData,challengeData,onVie
       </button>
 
       {/* ── 2b. BENCHMARK CONTEXT — sets expectation before they start ──── */}
-      <p style={{textAlign:"center",fontSize:12,color:DIMMED,letterSpacing:".04em",marginBottom:12,marginTop:-2}}>
+      <p style={{textAlign:"center",fontSize:15,color:MUTED,letterSpacing:".04em",marginBottom:12,marginTop:-2}}>
         Avg score: ~420 pts · Top 20%: 480+ · Elite: 600+
       </p>
 
@@ -559,7 +600,7 @@ function Intro({onStart,onQuickPlay,xp,streak,level,userData,challengeData,onVie
             <span style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:16,letterSpacing:2,color:level.color}}>{level.name}</span>
           </div>
           <div style={{display:"flex",alignItems:"center",gap:10}}>
-            {nextLevel && <span style={{fontSize:12,color:DIMMED}}>{nextLevel.min-xp} XP to <span style={{color:nextLevel.color}}>{nextLevel.name}</span></span>}
+            {nextLevel && <span style={{fontSize:14,color:MUTED}}>{nextLevel.min-xp} XP to <span style={{color:nextLevel.color}}>{nextLevel.name}</span></span>}
             <span style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:16,letterSpacing:1,color:WHITE}}>{xp} XP</span>
           </div>
         </div>
@@ -576,9 +617,9 @@ function Intro({onStart,onQuickPlay,xp,streak,level,userData,challengeData,onVie
           borderTop:"none",borderRadius:"0 0 14px 14px",
           display:"flex",alignItems:"center",gap:8
         }}>
-          <span style={{fontSize:15}}>🔥</span>
+          <FlameIcon size={17}/>
           <span style={{fontSize:14,color:AMBER,fontWeight:600}}>{streak}-day streak</span>
-          <span style={{fontSize:13,color:DIMMED,marginLeft:"auto"}}>+{streak*5}% XP bonus active</span>
+          <span style={{fontSize:14,color:MUTED,marginLeft:"auto"}}>+{streak*5}% XP bonus active</span>
         </div>
       )}
 
@@ -593,16 +634,16 @@ function Intro({onStart,onQuickPlay,xp,streak,level,userData,challengeData,onVie
               <p style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:20,letterSpacing:2,color:WHITE}}>Day {currentDay} of 21</p>
             </div>
             <div style={{textAlign:"right"}}>
-              <p style={{fontSize:12,color:DIMMED,marginBottom:2}}>Complete</p>
+              <p style={{fontSize:14,color:MUTED,marginBottom:2}}>Complete</p>
               <p style={{fontSize:22,fontWeight:700,color:GREEN}}>{completionPct}%</p>
             </div>
           </div>
           <div style={{height:5,background:"rgba(255,255,255,0.06)",borderRadius:100,overflow:"hidden"}}>
             <div style={{height:"100%",width:`${(currentDay/21)*100}%`,background:`linear-gradient(90deg,${E_BLUE},${GREEN})`,borderRadius:100}}/>
           </div>
-          {currentDay>=7  && <p style={{fontSize:12,color:GREEN,marginTop:6,fontWeight:600}}>✓ Week 1 milestone reached!</p>}
-          {currentDay>=14 && <p style={{fontSize:12,color:GREEN,marginTop:2,fontWeight:600}}>✓ Week 2 milestone reached!</p>}
-          {currentDay>=21 && <p style={{fontSize:12,color:AMBER,marginTop:2,fontWeight:700}}>🏆 21-Day Transformation Complete!</p>}
+          {currentDay>=7  && <p style={{fontSize:15,color:GREEN,marginTop:6,fontWeight:600}}>✓ Week 1 milestone reached!</p>}
+          {currentDay>=14 && <p style={{fontSize:15,color:GREEN,marginTop:2,fontWeight:600}}>✓ Week 2 milestone reached!</p>}
+          {currentDay>=21 && <p style={{fontSize:15,color:AMBER,marginTop:2,fontWeight:700}}>🏆 21-Day Transformation Complete!</p>}
         </div>
       )}
 
@@ -621,10 +662,10 @@ function Intro({onStart,onQuickPlay,xp,streak,level,userData,challengeData,onVie
           onMouseEnter={e=>e.currentTarget.style.background="rgba(255,255,255,0.06)"}
           onMouseLeave={e=>e.currentTarget.style.background=PANEL}>
           <div style={{display:"flex",alignItems:"center",gap:12}}>
-            <span style={{fontSize:19}}>🧠</span>
+            <AtomIcon size={20}/>
             <div style={{textAlign:"left"}}>
-              <p style={{fontSize:14,fontWeight:700,color:WHITE,marginBottom:1}}>6 Science-Backed Challenges</p>
-              <p style={{fontSize:12,color:DIMMED}}>~6–7 min · Executive function to sustained attention</p>
+              <p style={{fontSize:15,fontWeight:700,color:WHITE,marginBottom:1}}>6 Science-Backed Challenges</p>
+              <p style={{fontSize:15,color:MUTED}}>~6–7 min · Executive function to sustained attention</p>
             </div>
           </div>
           {/* Animated chevron */}
@@ -656,7 +697,7 @@ function Intro({onStart,onQuickPlay,xp,streak,level,userData,challengeData,onVie
                   width:36,height:36,borderRadius:10,flexShrink:0,
                   background:`${r.color}10`,border:`1px solid ${r.color}30`,
                   display:"flex",alignItems:"center",justifyContent:"center",fontSize:16
-                }}>{r.icon}</div>
+                }}><BTIcon icon={r.icon} size={16}/></div>
                 <div style={{flex:1,minWidth:0}}>
                   <div style={{display:"flex",alignItems:"center",gap:7,flexWrap:"wrap",marginBottom:2}}>
                     <p style={{fontSize:14,fontWeight:600,color:WHITE}}>{r.name}</p>
@@ -667,9 +708,9 @@ function Intro({onStart,onQuickPlay,xp,streak,level,userData,challengeData,onVie
                       padding:"1px 7px",whiteSpace:"nowrap"
                     }}>{r.tag}</span>
                   </div>
-                  <p style={{fontSize:12,color:DIMMED,fontStyle:"italic"}}>{r.brain}</p>
+                  <p style={{fontSize:15,color:MUTED,lineHeight:1.7,fontStyle:"italic"}}>{r.brain}</p>
                 </div>
-                <span style={{fontSize:12,color:DIMMED,fontWeight:600,flexShrink:0,opacity:.7}}>{i+1}</span>
+                <span style={{fontSize:14,color:MUTED,fontWeight:600,flexShrink:0,opacity:.7}}>{i+1}</span>
               </div>
             ))}
           </div>
@@ -726,7 +767,7 @@ function ScienceCard({card:c,round,onBegin}){
       </div>
       <div style={{background:`linear-gradient(145deg,${DARK2},${DARK})`,border:`1px solid ${c.color}33`,borderTop:`2px solid ${c.color}`,borderRadius:18,overflow:"hidden",marginBottom:14}}>
         <div style={{padding:"28px 24px 20px",textAlign:"center",borderBottom:`1px solid ${BORDER2}`}}>
-          <div style={{fontSize:44,marginBottom:12}}>{c.icon}</div>
+          <div style={{marginBottom:12,display:"flex",justifyContent:"center"}}><BTIcon icon={c.icon} size={44}/></div>
           <p style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:26,letterSpacing:2,color:WHITE,marginBottom:6}}>{c.name}</p>
           <p style={{fontFamily:"'Crimson Pro',serif",fontStyle:"italic",fontSize:16,color:c.color,lineHeight:1.65}}>{c.headline}</p>
         </div>
@@ -845,7 +886,7 @@ function StroopChallenge({onComplete, difficulty}){
           <p style={{fontSize:14,color:MUTED,lineHeight:1.7,marginBottom:20}}>The word says one thing. The ink shows another.<br/>Tap the colour of the <strong style={{color:WHITE}}>INK</strong> — ignore the word.</p>
           <div style={{display:"flex",justifyContent:"center",alignItems:"center",gap:16,marginBottom:24}}>
             <div style={{padding:"12px 20px",background:"rgba(59,130,246,0.1)",border:"2px solid #3B82F6",borderRadius:12,fontFamily:"'Bebas Neue',sans-serif",fontSize:30,letterSpacing:2,color:"#EF4444"}}>BLUE</div>
-            <span style={{color:DIMMED,fontSize:12}}>→ tap Red</span>
+            <span style={{color:MUTED,fontSize:14}}>→ tap Red</span>
           </div>
           <button onClick={()=>{finishedRef.current=false; setSt(true);startRef.current=Date.now();}} style={{border:"none",borderRadius:100,padding:"14px 40px",fontSize:16,fontWeight:700,fontFamily:"'Space Grotesk',sans-serif",cursor:"pointer",background:`linear-gradient(135deg,${E_BLUE2},${E_BLUE})`,color:BG,letterSpacing:".05em"}}>Start →</button>
         </div>
@@ -926,7 +967,7 @@ function NBackChallenge({onComplete, difficulty}){
       </div>
       {phase==="ready"?(
         <div style={{background:PANEL,border:`1px solid ${BORDER2}`,borderRadius:18,padding:"32px 24px",textAlign:"center"}}>
-          <div style={{fontSize:44,marginBottom:14}}>🧠</div>
+          <div style={{marginBottom:14,display:"flex",justifyContent:"center"}}><AtomIcon size={52}/></div>
           <h2 style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:26,letterSpacing:2,color:WHITE,marginBottom:10}}>2-Back Memory Test</h2>
           <p style={{fontSize:16,color:MUTED,lineHeight:1.85,marginBottom:16}}>
             <strong style={{color:WHITE}}>THE RULE:</strong><br/>
@@ -1627,7 +1668,7 @@ function NeuralDefense({onComplete, difficulty}){
                   border: `1px solid ${combo >= 10 ? "rgba(167,139,250,0.4)" : "rgba(251,191,36,0.35)"}`,
                   animation:"pulse 0.8s infinite"
                 }}>
-                  🔥 ×{combo >= 10 ? "2" : "1.5"}
+                  <FlameIcon size={13}/> ×{combo >= 10 ? "2" : "1.5"}
                 </span>
               )}
             </div>
@@ -1803,9 +1844,9 @@ function NeuralDefense({onComplete, difficulty}){
         
         {/* Tap instruction — only shown until first shot */}
         {!hintDismissed && (
-          <div style={{position:"absolute",bottom:50,left:"50%",transform:"translateX(-50%)",fontSize:13,color:DIMMED,pointerEvents:"none",textAlign:"center",transition:"opacity .3s"}}>
+          <div style={{position:"absolute",bottom:50,left:"50%",transform:"translateX(-50%)",fontSize:14,color:MUTED,pointerEvents:"none",textAlign:"center",transition:"opacity .3s"}}>
             <div style={{marginBottom:4}}>Tap anywhere to shoot</div>
-            <div style={{fontSize:11,color:PURPLE,background:"rgba(139,92,246,0.1)",padding:"4px 8px",borderRadius:6}}>
+            <div style={{fontSize:14,color:PURPLE,background:"rgba(139,92,246,0.12)",padding:"5px 10px",borderRadius:6}}>
               🛡️ Shield blocks incoming shapes
             </div>
           </div>
@@ -1952,7 +1993,7 @@ function Results({scores,level,newLevel,streak,dailyAction,arch,challengeData,is
         <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:72,letterSpacing:2,color:gradeColor,lineHeight:1,marginBottom:4}}>{total}</div>
         <p style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:18,letterSpacing:4,color:gradeColor,marginBottom:8}}>{grade}</p>
         {avgMs&&<p style={{fontSize:16,color:MUTED,marginBottom:10}}>Avg reaction time: <strong style={{color:WHITE}}>{avgMs}ms</strong>{avgMs<270?"  ⚡":avgMs<370?"  ✓":""}</p>}
-        {streak>0&&<div style={{display:"inline-flex",alignItems:"center",gap:8,background:"rgba(251,191,36,0.06)",border:"1px solid rgba(251,191,36,0.16)",borderRadius:100,padding:"6px 14px",fontSize:14,color:AMBER,fontWeight:600}}>🔥 {streak}-day streak · +{streak*5}% bonus</div>}
+        {streak>0&&<div style={{display:"inline-flex",alignItems:"center",gap:8,background:"rgba(251,191,36,0.06)",border:"1px solid rgba(251,191,36,0.16)",borderRadius:100,padding:"6px 14px",fontSize:14,color:AMBER,fontWeight:600}}><FlameIcon size={14}/> {streak}-day streak · +{streak*5}% bonus</div>}
       </div>
 
       {/* ── 3. TODAY'S FOCUS — hidden until user expands full analysis ── */}
@@ -1980,7 +2021,7 @@ function Results({scores,level,newLevel,streak,dailyAction,arch,challengeData,is
           borderRadius:10,
         }}>
           <span style={{fontSize:13,flexShrink:0,marginTop:1,opacity:.6}}>🔬</span>
-          <p style={{fontSize:13,color:DIMMED,lineHeight:1.6,fontStyle:"italic"}}>{dailyAction.science}</p>
+          <p style={{fontSize:15,color:MUTED,lineHeight:1.75,fontStyle:"italic"}}>{dailyAction.science}</p>
         </div>
       </div>)}
 
@@ -2000,7 +2041,7 @@ function Results({scores,level,newLevel,streak,dailyAction,arch,challengeData,is
               width:44,height:44,borderRadius:12,flexShrink:0,
               background:"rgba(251,191,36,0.1)",border:"1px solid rgba(251,191,36,0.25)",
               display:"flex",alignItems:"center",justifyContent:"center",fontSize:22
-            }}>🔥</div>
+            }}><FlameIcon size={18}/></div>
             <div>
               <p style={{fontSize:16,fontWeight:700,color:WHITE,marginBottom:3}}>
                 {streak>1 ? `${streak}-day streak — you're building momentum.` : "Day 1 complete. The streak starts now."}
@@ -2012,7 +2053,7 @@ function Results({scores,level,newLevel,streak,dailyAction,arch,challengeData,is
           </div>
           {/* Progress — supporting data below the message */}
           <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
-            <p style={{fontSize:12,fontWeight:700,color:DIMMED,letterSpacing:".1em",textTransform:"uppercase"}}>🧠 21-Day Challenge</p>
+            <p style={{fontSize:12,fontWeight:700,color:DIMMED,letterSpacing:".1em",textTransform:"uppercase"}}></p>
             <span style={{fontSize:13,color:E_BLUE,fontWeight:700}}>Day {challengeData.currentDay||1} of 21</span>
           </div>
           <div style={{height:6,background:"rgba(255,255,255,0.06)",borderRadius:100,overflow:"hidden",marginBottom:10}}>
@@ -2023,7 +2064,7 @@ function Results({scores,level,newLevel,streak,dailyAction,arch,challengeData,is
             {[{day:7,label:"Week 1",icon:"⭐"},{day:14,label:"Week 2",icon:"🌟"},{day:21,label:"Complete",icon:"🏆"}].map(m=>(
               <div key={m.day} style={{textAlign:"center",flex:1}}>
                 <div style={{fontSize:18,marginBottom:2,opacity:(challengeData.currentDay||0)>=m.day?1:0.25}}>{m.icon}</div>
-                <p style={{fontSize:10,color:(challengeData.currentDay||0)>=m.day?AMBER:DIMMED,fontWeight:700}}>{m.label}</p>
+                <p style={{fontSize:12,color:(challengeData.currentDay||0)>=m.day?AMBER:DIMMED,fontWeight:700}}>{m.label}</p>
               </div>
             ))}
           </div>
@@ -2040,7 +2081,7 @@ function Results({scores,level,newLevel,streak,dailyAction,arch,challengeData,is
             <div key={i} style={{marginBottom:i<scores.length-1?14:0}}>
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:5}}>
                 <div style={{display:"flex",alignItems:"center",gap:8}}>
-                  <span style={{fontSize:16}}>{m.icon}</span>
+                  <BTIcon icon={m.icon} size={18}/>
                   <div><p style={{fontSize:15,fontWeight:600,color:WHITE}}>{m.label}</p><p style={{fontSize:16,color:DIMMED}}>{m.tag}</p></div>
                 </div>
                 <div style={{display:"flex",alignItems:"center",gap:8}}>
@@ -2062,16 +2103,16 @@ function Results({scores,level,newLevel,streak,dailyAction,arch,challengeData,is
           <p style={{fontSize:15,fontWeight:700,color:DIMMED,letterSpacing:".12em",textTransform:"uppercase",marginBottom:14}}>📊 How You Rank</p>
           <div style={{marginBottom:16}}>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"baseline",marginBottom:8}}>
-              <span style={{fontSize:13,color:DIMMED}}>Population percentile (estimated)</span>
+              <span style={{fontSize:14,color:MUTED}}>Population percentile (estimated)</span>
               <span style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:22,letterSpacing:1,color:benchmark.color}}>{benchmark.label}</span>
             </div>
             <div style={{height:10,background:"rgba(255,255,255,0.05)",borderRadius:100,overflow:"hidden"}}>
               <div style={{height:"100%",width:`${benchmark.bar}%`,background:`linear-gradient(90deg,${benchmark.color}66,${benchmark.color})`,borderRadius:100,transition:"width 1.4s ease"}}/>
             </div>
             <div style={{display:"flex",justifyContent:"space-between",marginTop:5}}>
-              <span style={{fontSize:11,color:DIMMED}}>0</span>
-              <span style={{fontSize:11,color:DIMMED}}>Average</span>
-              <span style={{fontSize:11,color:DIMMED}}>Elite</span>
+              <span style={{fontSize:13,color:MUTED}}>0</span>
+              <span style={{fontSize:13,color:MUTED}}>Average</span>
+              <span style={{fontSize:13,color:MUTED}}>Elite</span>
             </div>
           </div>
           <div style={{display:"flex",gap:10}}>
@@ -2122,7 +2163,7 @@ function Results({scores,level,newLevel,streak,dailyAction,arch,challengeData,is
               const insight = arch.strengths[s.label];
               if(!insight) return null;
               const roundIconsByLabel={"Stroop Challenge":"🎨","2-Back Test":"🧠","Pattern Matrix":"🔷","Reaction Velocity":"⚡","Cognitive Switch":"🔄","Neural Defense":"🛡️"};
-              const icon = roundIconsByLabel[s.label] || "🧠";
+              const iconStr = roundIconsByLabel[s.label] || "🧠";
               const question = insightQuestions[s.label] || "What does this score reveal?";
               const isOpen = expandedInsights.has(i);
 
@@ -2148,12 +2189,12 @@ function Results({scores,level,newLevel,streak,dailyAction,arch,challengeData,is
                       width:32,height:32,borderRadius:8,flexShrink:0,
                       background:`${arch.color}14`,border:`1px solid ${arch.color}30`,
                       display:"flex",alignItems:"center",justifyContent:"center",fontSize:15,
-                    }}>{icon}</div>
+                    }}>{iconStr}</div>
 
                     {/* Label + question */}
                     <div style={{flex:1,minWidth:0}}>
                       <p style={{fontSize:13,fontWeight:700,color:arch.color,letterSpacing:".07em",marginBottom:2}}>{s.label}</p>
-                      <p style={{fontSize:13,color:isOpen?MUTED:DIMMED,lineHeight:1.45,transition:"color .2s"}}>{question}</p>
+                      <p style={{fontSize:13,color:isOpen?MUTED:MUTED,lineHeight:1.45,transition:"color .2s"}}>{question}</p>
                     </div>
 
                     {/* Animated chevron */}
