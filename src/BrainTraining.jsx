@@ -32,12 +32,14 @@ import {
 // ── Voice narration — intro clips only, never during gameplay ──────────────
 // Files live in /public: stroop.mp3, twoback.mp3, pattern.mp3,
 //                        reaction.mp3, switch.mp3, defense.mp3, welcome.mp3
-const VOICE_MAP = ["stroop","twoback","pattern","reaction","switch","defense"];
+// Files in /public — stroop.mp3 uses single extension (upload correctly named)
+// others were uploaded as name.mp3.mp3 so we reference them as-is
+const VOICE_MAP = ["stroop.mp3","twoback.mp3.mp3","pattern.mp3.mp3","reaction.mp3.mp3","switch.mp3.mp3","defense.mp3.mp3"];
 
 function createVoice(clip) {
   // Returns an Audio object ready to play, or null on failure
   try {
-    const a = new Audio(`/${clip}.mp3`);
+    const a = new Audio(`/${clip}`);
     a.volume = 0.92;
     return a;
   } catch { return null; }
