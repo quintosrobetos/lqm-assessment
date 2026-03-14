@@ -34,7 +34,7 @@ import {
 //                        reaction.mp3, switch.mp3, defense.mp3, welcome.mp3
 // Files in /public — stroop.mp3 uses single extension (upload correctly named)
 // others were uploaded as name.mp3.mp3 so we reference them as-is
-const VOICE_MAP = ["stroop.mp3","twoback.mp3.mp3","pattern.mp3.mp3","reaction.mp3.mp3","switch.mp3.mp3","defense.mp3.mp3"];
+const VOICE_MAP = ["stroop.mp3.mp3","twoback.mp3.mp3","pattern.mp3.mp3","reaction.mp3.mp3","switch.mp3.mp3","defense.mp3.mp3"];
 
 function createVoice(clip) {
   // Returns an Audio object ready to play, or null on failure
@@ -562,7 +562,7 @@ export default function BrainTraining({ onBack, archetype }){
 
       <div style={{width:"100%",maxWidth:560,padding:"32px 20px 0"}}>
         {screen==="difficulty" && <DifficultySelection onSelect={(d)=>{setDifficulty(d);setScreen("intro");}}/>}
-        {screen==="intro"     && <Intro onStart={startProtocol} onQuickPlay={()=>{setIsQuickPlay(true);setRound(5);setScores([]);setScreen("challenge");}} xp={totalXP} streak={streak} level={level} userData={userData} difficulty={difficulty} challengeData={challengeData} onViewLastSession={()=>{setScores(userData.lastSession.scores);setIsQuickPlay(false);setFromRecall(true);setScreen("results");}}/>}
+        {screen==="intro"     && <Intro onStart={startProtocol} onQuickPlay={()=>{setIsQuickPlay(true);setRound(5);setScores([]);setScreen("challenge");}} xp={totalXP} streak={streak} level={level} userData={userData} difficulty={difficulty} challengeData={challengeData} soundOn={soundOn} onViewLastSession={()=>{setScores(userData.lastSession.scores);setIsQuickPlay(false);setFromRecall(true);setScreen("results");}}/>}
         {screen==="science"   && <ScienceCard card={SCIENCE_CARDS[round]} round={round} onBegin={()=>setScreen("challenge")}/>}
         {screen==="challenge" && round===0 && <StroopChallenge   key="s"  difficulty={DIFFICULTY[difficulty]} onComplete={handleRoundComplete} soundOn={soundOn} voiceClip={VOICE_MAP[0]}/>}
         {screen==="challenge" && round===1 && <NBackChallenge    key="n"  difficulty={DIFFICULTY[difficulty]} onComplete={handleRoundComplete} soundOn={soundOn} voiceClip={VOICE_MAP[1]}/>}
@@ -577,7 +577,8 @@ export default function BrainTraining({ onBack, archetype }){
 }
 
 // ── Intro ─────────────────────────────────────────────────────────────────
-function Intro({onStart,onQuickPlay,xp,streak,level,userData,challengeData,onViewLastSession}){
+function Intro({onStart,onQuickPlay,xp,streak,level,userData,challengeData,onViewLastSession,soundOn}){
+  const stopWelcome = useVoiceIntro("welcome.mp3.mp3", soundOn);
   const [showRounds, setShowRounds] = useState(false);
   const nextLevel = LEVELS.find(l=>l.min>xp);
   const pct = nextLevel ? Math.min(100,((xp-level.min)/(nextLevel.min-level.min))*100) : 100;
@@ -613,7 +614,7 @@ function Intro({onStart,onQuickPlay,xp,streak,level,userData,challengeData,onVie
       </div>
 
       {/* ── 2. PRIMARY CTA — dominant, top position ──────────────────────── */}
-      <button className="fu1" onClick={onStart}
+      <button className="fu1" onClick={()=>{stopWelcome();onStart();}}
         style={{width:"100%",border:"none",borderRadius:100,padding:"18px",fontSize:17,fontWeight:700,
           fontFamily:"'Space Grotesk',sans-serif",cursor:"pointer",letterSpacing:".06em",
           background:`linear-gradient(135deg,${E_BLUE2},${E_BLUE})`,color:BG,
@@ -759,7 +760,7 @@ function Intro({onStart,onQuickPlay,xp,streak,level,userData,challengeData,onVie
       </div>
 
       {/* ── 6. QUICK PLAY — secondary entry point ────────────────────────── */}
-      <button onClick={onQuickPlay}
+      <button onClick={()=>{stopWelcome();onQuickPlay();}}
         style={{width:"100%",border:`1.5px solid ${PURPLE}55`,borderRadius:100,padding:"14px",
           fontSize:15,fontWeight:600,fontFamily:"'Space Grotesk',sans-serif",cursor:"pointer",
           letterSpacing:".05em",background:"transparent",color:PURPLE,transition:"all .2s"}}
