@@ -1050,16 +1050,7 @@ function NBackChallenge({onComplete, difficulty, soundOn, voiceClip}){
             as the square from <strong style={{color:WHITE}}>2 items ago.</strong><br/>
             <span style={{fontSize:14,color:DIMMED}}>(Ignore colour — only position matters)</span>
           </p>
-          <div style={{background:"rgba(167,139,250,0.08)",border:"1px solid rgba(167,139,250,0.25)",borderRadius:12,padding:"16px 18px",marginBottom:22}}>
-            <p style={{fontSize:16,fontWeight:700,color:VIOLET,marginBottom:8,letterSpacing:".06em"}}>EXAMPLE WALKTHROUGH:</p>
-            <p style={{fontSize:15,color:MUTED,lineHeight:1.75,textAlign:"left"}}>
-              <strong style={{color:WHITE}}>Item 1:</strong> Top-left → <span style={{color:DIMMED}}>(just remember it)</span><br/>
-              <strong style={{color:WHITE}}>Item 2:</strong> Centre → <span style={{color:DIMMED}}>(just remember it)</span><br/>
-              <strong style={{color:WHITE}}>Item 3:</strong> Top-left → <span style={{color:VIOLET}}>MATCH!</span> <span style={{color:DIMMED}}>(same as item 1)</span><br/>
-              <strong style={{color:WHITE}}>Item 4:</strong> Bottom-right → <span style={{color:DIMMED}}>No match</span><br/>
-              <strong style={{color:WHITE}}>Item 5:</strong> Bottom-right → <span style={{color:VIOLET}}>MATCH!</span> <span style={{color:DIMMED}}>(same as item 4)</span>
-            </p>
-          </div>
+
           <button onClick={()=>{stopVoice();runSequence();}} style={{border:"none",borderRadius:100,padding:"14px 40px",fontSize:16,fontWeight:700,fontFamily:"'Space Grotesk',sans-serif",cursor:"pointer",background:`linear-gradient(135deg,${VIOLET}cc,${VIOLET})`,color:BG,letterSpacing:".05em"}}>Start →</button>
         </div>
       ):(
@@ -1076,7 +1067,7 @@ function NBackChallenge({onComplete, difficulty, soundOn, voiceClip}){
             </div>
           </div>
           <button onClick={handleMatch} disabled={!canMatch} style={{width:"100%",border:`2px solid ${canMatch?VIOLET:"rgba(255,255,255,0.08)"}`,borderRadius:100,padding:"18px",fontSize:15,fontWeight:700,background:canMatch?"rgba(167,139,250,0.1)":"rgba(255,255,255,0.02)",color:canMatch?VIOLET:DIMMED,cursor:canMatch?"pointer":"default",fontFamily:"'Space Grotesk',sans-serif",letterSpacing:".04em",transition:"all .2s"}}>
-            {responded?"✓ Matched":canMatch?"⚡ MATCH — Same position as 2 ago":"Watching..."}
+            {responded?"✓ Matched":canMatch?"⚡ Match":"Watching..."}
           </button>
         </div>
       )}
@@ -1092,8 +1083,6 @@ function MatrixChallenge({onComplete, difficulty, soundOn, voiceClip}){
   const stopVoice = useVoiceIntro(voiceClip, soundOn);
   const MAX_HINTS = difficulty?.matrix?.hints !== undefined ? difficulty.matrix.hints : 1;
   const NUM_PUZZLES = difficulty?.matrix?.puzzles || 4;
-  // Pre-select puzzles at round start — shuffle pool then slice to NUM_PUZZLES
-  // This ensures difficulty setting is honoured and random start can't cause truncation
   const [puzzles] = useState(()=>[...PATTERN_PUZZLES].sort(()=>Math.random()-.5).slice(0,NUM_PUZZLES));
   const [pidx, setPidx]= useState(0);
   const [score,setScore]= useState(0);
@@ -1101,6 +1090,7 @@ function MatrixChallenge({onComplete, difficulty, soundOn, voiceClip}){
   const [fb,   setFb]  = useState(null);
   const [hint, setHint]= useState(false);
   const [usedHint,setUH]=useState(false);
+  const [started, setStarted] = useState(false);
   const p=puzzles[pidx];
 
   function handleAnswer(opt){
@@ -1124,31 +1114,48 @@ function MatrixChallenge({onComplete, difficulty, soundOn, voiceClip}){
         <div><p style={{fontSize:15,fontWeight:700,color:DIMMED,letterSpacing:".1em",textTransform:"uppercase",marginBottom:3}}>Pattern Matrix</p><p style={{fontSize:15,color:MUTED}}>Puzzle {done+1} of {puzzles.length} · {score} pts</p></div>
         <span style={{fontSize:16,color:GREEN,fontWeight:700,background:"rgba(52,211,153,0.08)",border:"1px solid rgba(52,211,153,0.2)",borderRadius:100,padding:"4px 12px"}}>Spatial Reasoning</span>
       </div>
-      <div style={{background:PANEL,border:`1px solid ${BORDER2}`,borderRadius:18,padding:"24px",marginBottom:12}}>
-        <p style={{fontSize:16,color:DIMMED,textAlign:"center",marginBottom:16,letterSpacing:".08em",textTransform:"uppercase"}}>Find the missing piece</p>
-        <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:10,maxWidth:240,margin:"0 auto"}}>
-          {p.grid.map((cell,i)=>(
-            <div key={i} style={{aspectRatio:"1",borderRadius:12,background:"rgba(255,255,255,0.04)",border:`1.5px solid ${cell?BORDER2:"rgba(0,200,255,0.45)"}`,display:"flex",alignItems:"center",justifyContent:"center",boxShadow:!cell?`0 0 18px rgba(0,200,255,0.12)`:"none"}}>
-              {cell?<ShapeEl shape={cell.sh} color={cell.co} size={44}/>:<span style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:24,color:E_BLUE,opacity:.65}}>?</span>}
-            </div>
-          ))}
+
+      {!started ? (
+        <div style={{background:PANEL,border:`1px solid ${BORDER2}`,borderRadius:18,padding:"36px 24px",textAlign:"center"}}>
+          <div style={{fontSize:48,marginBottom:14}}>🔷</div>
+          <h2 style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:28,letterSpacing:2,color:WHITE,marginBottom:10}}>Pattern Matrix</h2>
+          <p style={{fontSize:16,color:MUTED,lineHeight:1.8,marginBottom:20}}>
+            A 3×3 grid is shown with <strong style={{color:WHITE}}>one piece missing.</strong><br/>
+            Study the pattern — a rule governs both <strong style={{color:WHITE}}>shape and colour.</strong><br/>
+            Select the correct missing piece from the four options below.<br/>
+            <span style={{fontSize:14,color:DIMMED}}>{NUM_PUZZLES} puzzles · Hint available (−15 pts)</span>
+          </p>
+          <button onClick={()=>{stopVoice();setStarted(true);}} style={{border:"none",borderRadius:100,padding:"14px 40px",fontSize:16,fontWeight:700,fontFamily:"'Space Grotesk',sans-serif",cursor:"pointer",background:`linear-gradient(135deg,${GREEN}cc,${GREEN})`,color:BG,letterSpacing:".05em"}}>Start →</button>
         </div>
-      </div>
-      {hint&&<div style={{background:"rgba(52,211,153,0.05)",border:"1px solid rgba(52,211,153,0.2)",borderRadius:12,padding:"10px 16px",marginBottom:12,fontSize:16,color:"rgba(52,211,153,0.85)",fontStyle:"italic"}}>💡 {p.rule}</div>}
-      {!hint&&!fb&&<button onClick={()=>{setHint(true);setUH(true);}} style={{background:"none",border:"none",color:DIMMED,fontSize:15,cursor:"pointer",textDecoration:"underline",fontFamily:"'Space Grotesk',sans-serif",marginBottom:12,display:"block",margin:"0 auto 12px"}}>Hint? (−15 pts)</button>}
-      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
-        {p.options.map((opt,i)=>{
-          const correct=fb&&opt.sh===p.answer.sh&&opt.co===p.answer.co;
-          return(
-            <button key={i} onClick={()=>!fb&&handleAnswer(opt)} style={{border:`1.5px solid ${correct?GREEN:BORDER2}`,borderRadius:14,padding:"18px",background:correct?"rgba(52,211,153,0.1)":"rgba(255,255,255,0.03)",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",transition:"all .15s",minHeight:74}}
-              onMouseEnter={e=>!fb&&(e.currentTarget.style.borderColor=GREEN)}
-              onMouseLeave={e=>!fb&&(e.currentTarget.style.borderColor=BORDER2)}>
-              <ShapeEl shape={opt.sh} color={opt.co} size={46}/>
-            </button>
-          );
-        })}
-      </div>
-      <FeedbackPop show={!!fb} correct={fb?.ok} pts={fb?.pts}/>
+      ) : (
+        <>
+          <div style={{background:PANEL,border:`1px solid ${BORDER2}`,borderRadius:18,padding:"24px",marginBottom:12}}>
+            <p style={{fontSize:16,color:DIMMED,textAlign:"center",marginBottom:16,letterSpacing:".08em",textTransform:"uppercase"}}>Find the missing piece</p>
+            <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:10,maxWidth:240,margin:"0 auto"}}>
+              {p.grid.map((cell,i)=>(
+                <div key={i} style={{aspectRatio:"1",borderRadius:12,background:"rgba(255,255,255,0.04)",border:`1.5px solid ${cell?BORDER2:"rgba(0,200,255,0.45)"}`,display:"flex",alignItems:"center",justifyContent:"center",boxShadow:!cell?`0 0 18px rgba(0,200,255,0.12)`:"none"}}>
+                  {cell?<ShapeEl shape={cell.sh} color={cell.co} size={44}/>:<span style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:24,color:E_BLUE,opacity:.65}}>?</span>}
+                </div>
+              ))}
+            </div>
+          </div>
+          {hint&&<div style={{background:"rgba(52,211,153,0.05)",border:"1px solid rgba(52,211,153,0.2)",borderRadius:12,padding:"10px 16px",marginBottom:12,fontSize:16,color:"rgba(52,211,153,0.85)",fontStyle:"italic"}}>💡 {p.rule}</div>}
+          {!hint&&!fb&&<button onClick={()=>{setHint(true);setUH(true);}} style={{background:"none",border:"none",color:DIMMED,fontSize:15,cursor:"pointer",textDecoration:"underline",fontFamily:"'Space Grotesk',sans-serif",marginBottom:12,display:"block",margin:"0 auto 12px"}}>Hint? (−15 pts)</button>}
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
+            {p.options.map((opt,i)=>{
+              const correct=fb&&opt.sh===p.answer.sh&&opt.co===p.answer.co;
+              return(
+                <button key={i} onClick={()=>!fb&&handleAnswer(opt)} style={{border:`1.5px solid ${correct?GREEN:BORDER2}`,borderRadius:14,padding:"18px",background:correct?"rgba(52,211,153,0.1)":"rgba(255,255,255,0.03)",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",transition:"all .15s",minHeight:74}}
+                  onMouseEnter={e=>!fb&&(e.currentTarget.style.borderColor=GREEN)}
+                  onMouseLeave={e=>!fb&&(e.currentTarget.style.borderColor=BORDER2)}>
+                  <ShapeEl shape={opt.sh} color={opt.co} size={46}/>
+                </button>
+              );
+            })}
+          </div>
+          <FeedbackPop show={!!fb} correct={fb?.ok} pts={fb?.pts}/>
+        </>
+      )}
     </div>
   );
 }
