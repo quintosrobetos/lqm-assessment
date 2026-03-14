@@ -29,7 +29,19 @@ import {
   playMilestoneSound
 } from "./sounds";
 
-// ── Gameplay sound effects ──
+// ── Voice narration — intro clips only, never during gameplay ──────────────
+// Files live in /public: stroop.mp3, twoback.mp3, pattern.mp3,
+//                        reaction.mp3, switch.mp3, defense.mp3, welcome.mp3
+const VOICE_MAP = ["stroop","twoback","pattern","reaction","switch","defense"];
+
+function createVoice(clip) {
+  // Returns an Audio object ready to play, or null on failure
+  try {
+    const a = new Audio(`/${clip}.mp3`);
+    a.volume = 0.92;
+    return a;
+  } catch { return null; }
+}
 // Shared audio context - created once to prevent browser blocking
 let _audioCtx = null;
 function getAudioCtx() {
@@ -405,12 +417,24 @@ export default function BrainTraining({ onBack, archetype }){
   const [round,   setRound]   = useState(0);
   const [scores,  setScores]  = useState([]);
   const [isQuickPlay, setIsQuickPlay] = useState(false);
-  const [fromRecall, setFromRecall] = useState(false); // true when viewing last session results — back goes to intro not hub
+  const [fromRecall, setFromRecall] = useState(false);
   const [userData,setUserData]= useState(loadBrain);
   const [dailyAction]         = useState(()=>DAILY_ACTIONS[new Date().getDay()]);
   const [challengeData, setChallengeData] = useState(null);
-  // const [showMilestone, setShowMilestone] = useState(null); // Disabled for now
   const arch = archetype && ARCHETYPE_DATA[archetype] ? ARCHETYPE_DATA[archetype] : null;
+
+  // ── Voice narration toggle — persists to localStorage ──
+  const [soundOn, setSoundOn] = useState(()=>{
+    try { return localStorage.getItem("lqm_bt_sound") !== "off"; }
+    catch { return true; }
+  });
+  function toggleSound() {
+    setSoundOn(prev => {
+      const next = !prev;
+      try { localStorage.setItem("lqm_bt_sound", next ? "on" : "off"); } catch {}
+      return next;
+    });
+  }
 
   // Initialize 21-day challenge on mount
   useEffect(() => {
@@ -516,6 +540,21 @@ export default function BrainTraining({ onBack, archetype }){
         <div style={{display:"flex",alignItems:"center",gap:12}}>
           {streak>0&&<span style={{fontSize:15,color:AMBER,fontWeight:700}}><FlameIcon size={15}/>{streak}</span>}
           <span style={{fontSize:14,color:level.color,fontWeight:700}}>{totalXP} XP</span>
+          {/* ── Voice narration toggle ── */}
+          <button
+            onClick={toggleSound}
+            title={soundOn ? "Turn voice off" : "Turn voice on"}
+            style={{
+              background: soundOn ? "rgba(0,200,255,0.1)" : "rgba(255,255,255,0.05)",
+              border: `1px solid ${soundOn ? "rgba(0,200,255,0.35)" : "rgba(255,255,255,0.12)"}`,
+              borderRadius:100, width:34, height:34,
+              display:"flex", alignItems:"center", justifyContent:"center",
+              cursor:"pointer", transition:"all .2s", flexShrink:0,
+              fontSize:16,
+            }}
+          >
+            {soundOn ? "🔊" : "🔇"}
+          </button>
         </div>
       </div>
 
@@ -523,12 +562,12 @@ export default function BrainTraining({ onBack, archetype }){
         {screen==="difficulty" && <DifficultySelection onSelect={(d)=>{setDifficulty(d);setScreen("intro");}}/>}
         {screen==="intro"     && <Intro onStart={startProtocol} onQuickPlay={()=>{setIsQuickPlay(true);setRound(5);setScores([]);setScreen("challenge");}} xp={totalXP} streak={streak} level={level} userData={userData} difficulty={difficulty} challengeData={challengeData} onViewLastSession={()=>{setScores(userData.lastSession.scores);setIsQuickPlay(false);setFromRecall(true);setScreen("results");}}/>}
         {screen==="science"   && <ScienceCard card={SCIENCE_CARDS[round]} round={round} onBegin={()=>setScreen("challenge")}/>}
-        {screen==="challenge" && round===0 && <StroopChallenge   key="s" difficulty={DIFFICULTY[difficulty]} onComplete={handleRoundComplete}/>}
-        {screen==="challenge" && round===1 && <NBackChallenge    key="n" difficulty={DIFFICULTY[difficulty]} onComplete={handleRoundComplete}/>}
-        {screen==="challenge" && round===2 && <MatrixChallenge   key="m" difficulty={DIFFICULTY[difficulty]} onComplete={handleRoundComplete}/>}
-        {screen==="challenge" && round===3 && <ReactionChallenge key="r" difficulty={DIFFICULTY[difficulty]} onComplete={handleRoundComplete}/>}
-        {screen==="challenge" && round===4 && <SwitchChallenge   key="sw" difficulty={DIFFICULTY[difficulty]} onComplete={handleRoundComplete}/>}
-        {screen==="challenge" && round===5 && <NeuralDefense     key="nd" difficulty={DIFFICULTY[difficulty]} onComplete={handleRoundComplete}/>}
+        {screen==="challenge" && round===0 && <StroopChallenge   key="s"  difficulty={DIFFICULTY[difficulty]} onComplete={handleRoundComplete} soundOn={soundOn} voiceClip={VOICE_MAP[0]}/>}
+        {screen==="challenge" && round===1 && <NBackChallenge    key="n"  difficulty={DIFFICULTY[difficulty]} onComplete={handleRoundComplete} soundOn={soundOn} voiceClip={VOICE_MAP[1]}/>}
+        {screen==="challenge" && round===2 && <MatrixChallenge   key="m"  difficulty={DIFFICULTY[difficulty]} onComplete={handleRoundComplete} soundOn={soundOn} voiceClip={VOICE_MAP[2]}/>}
+        {screen==="challenge" && round===3 && <ReactionChallenge key="r"  difficulty={DIFFICULTY[difficulty]} onComplete={handleRoundComplete} soundOn={soundOn} voiceClip={VOICE_MAP[3]}/>}
+        {screen==="challenge" && round===4 && <SwitchChallenge   key="sw" difficulty={DIFFICULTY[difficulty]} onComplete={handleRoundComplete} soundOn={soundOn} voiceClip={VOICE_MAP[4]}/>}
+        {screen==="challenge" && round===5 && <NeuralDefense     key="nd" difficulty={DIFFICULTY[difficulty]} onComplete={handleRoundComplete} soundOn={soundOn} voiceClip={VOICE_MAP[5]}/>}
         {screen==="results"   && <Results scores={scores} level={level} newLevel={getLevel(totalXP)} streak={streak} dailyAction={dailyAction} arch={arch} challengeData={challengeData} isQuickPlay={isQuickPlay} bestScore={userData.bestScore||0} fromRecall={fromRecall} onBack={fromRecall ? ()=>{setFromRecall(false);setScreen("intro");} : onBack} onRetry={()=>{setIsQuickPlay(false);setFromRecall(false);setRound(0);setScores([]);setScreen("science");}}/>}
       </div>
     </div>
@@ -831,7 +870,38 @@ function FeedbackPop({show,correct,pts}){
 // ══════════════════════════════════════════════════════════════════════════
 // ROUND 1 — STROOP
 // ══════════════════════════════════════════════════════════════════════════
-function StroopChallenge({onComplete, difficulty}){
+// ── useVoiceIntro — plays narration on the ready screen, stops on game start ──
+// Used identically by all 6 challenge components.
+// Rules: plays once on mount if soundOn. Returns stopVoice() to call when
+// the player hits Start. Cleans up on unmount. Never touches gameplay.
+function useVoiceIntro(voiceClip, soundOn) {
+  const audioRef = useRef(null);
+
+  useEffect(() => {
+    if (!soundOn || !voiceClip) return;
+    const a = createVoice(voiceClip);
+    if (!a) return;
+    audioRef.current = a;
+    // Small delay so the screen renders before audio fires
+    const t = setTimeout(() => { a.play().catch(() => {}); }, 300);
+    return () => {
+      clearTimeout(t);
+      if (audioRef.current) { audioRef.current.pause(); audioRef.current = null; }
+    };
+  }, []); // mount only — intentional, clip doesn't change mid-challenge
+
+  function stopVoice() {
+    if (audioRef.current) { audioRef.current.pause(); audioRef.current = null; }
+  }
+
+  return stopVoice;
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+// ROUND 1 — STROOP CHALLENGE
+// ══════════════════════════════════════════════════════════════════════════
+function StroopChallenge({onComplete, difficulty, soundOn, voiceClip}){
+  const stopVoice = useVoiceIntro(voiceClip, soundOn);
   const TIME = difficulty?.stroop?.time || 45;
   const NUM_ROUNDS = difficulty?.stroop?.rounds || 18;
   const [items]   = useState(()=>Array.from({length:NUM_ROUNDS},genStroopRound));
@@ -888,7 +958,7 @@ function StroopChallenge({onComplete, difficulty}){
             <div style={{padding:"12px 20px",background:"rgba(59,130,246,0.1)",border:"2px solid #3B82F6",borderRadius:12,fontFamily:"'Bebas Neue',sans-serif",fontSize:30,letterSpacing:2,color:"#EF4444"}}>BLUE</div>
             <span style={{color:MUTED,fontSize:14}}>→ tap Red</span>
           </div>
-          <button onClick={()=>{finishedRef.current=false; setSt(true);startRef.current=Date.now();}} style={{border:"none",borderRadius:100,padding:"14px 40px",fontSize:16,fontWeight:700,fontFamily:"'Space Grotesk',sans-serif",cursor:"pointer",background:`linear-gradient(135deg,${E_BLUE2},${E_BLUE})`,color:BG,letterSpacing:".05em"}}>Start →</button>
+          <button onClick={()=>{stopVoice();finishedRef.current=false; setSt(true);startRef.current=Date.now();}} style={{border:"none",borderRadius:100,padding:"14px 40px",fontSize:16,fontWeight:700,fontFamily:"'Space Grotesk',sans-serif",cursor:"pointer",background:`linear-gradient(135deg,${E_BLUE2},${E_BLUE})`,color:BG,letterSpacing:".05em"}}>Start →</button>
         </div>
       ):(
         <div>
@@ -916,7 +986,8 @@ function StroopChallenge({onComplete, difficulty}){
 // ══════════════════════════════════════════════════════════════════════════
 // ROUND 2 — N-BACK
 // ══════════════════════════════════════════════════════════════════════════
-function NBackChallenge({onComplete, difficulty}){
+function NBackChallenge({onComplete, difficulty, soundOn, voiceClip}){
+  const stopVoice = useVoiceIntro(voiceClip, soundOn);
   const N = difficulty?.nback?.n || 2;
   const DISP = difficulty?.nback?.display || 1700;
   const ISI = difficulty?.nback?.isi || 500;
@@ -986,7 +1057,7 @@ function NBackChallenge({onComplete, difficulty}){
               <strong style={{color:WHITE}}>Item 5:</strong> Bottom-right → <span style={{color:VIOLET}}>MATCH!</span> <span style={{color:DIMMED}}>(same as item 4)</span>
             </p>
           </div>
-          <button onClick={runSequence} style={{border:"none",borderRadius:100,padding:"14px 40px",fontSize:16,fontWeight:700,fontFamily:"'Space Grotesk',sans-serif",cursor:"pointer",background:`linear-gradient(135deg,${VIOLET}cc,${VIOLET})`,color:BG,letterSpacing:".05em"}}>Start →</button>
+          <button onClick={()=>{stopVoice();runSequence();}} style={{border:"none",borderRadius:100,padding:"14px 40px",fontSize:16,fontWeight:700,fontFamily:"'Space Grotesk',sans-serif",cursor:"pointer",background:`linear-gradient(135deg,${VIOLET}cc,${VIOLET})`,color:BG,letterSpacing:".05em"}}>Start →</button>
         </div>
       ):(
         <div>
@@ -1014,7 +1085,8 @@ function NBackChallenge({onComplete, difficulty}){
 // ══════════════════════════════════════════════════════════════════════════
 // ROUND 3 — PATTERN MATRIX
 // ══════════════════════════════════════════════════════════════════════════
-function MatrixChallenge({onComplete, difficulty}){
+function MatrixChallenge({onComplete, difficulty, soundOn, voiceClip}){
+  const stopVoice = useVoiceIntro(voiceClip, soundOn);
   const MAX_HINTS = difficulty?.matrix?.hints !== undefined ? difficulty.matrix.hints : 1;
   const NUM_PUZZLES = difficulty?.matrix?.puzzles || 4;
   // Pre-select puzzles at round start — shuffle pool then slice to NUM_PUZZLES
@@ -1081,7 +1153,8 @@ function MatrixChallenge({onComplete, difficulty}){
 // ══════════════════════════════════════════════════════════════════════════
 // ROUND 4 — REACTION VELOCITY
 // ══════════════════════════════════════════════════════════════════════════
-function ReactionChallenge({onComplete, difficulty}){
+function ReactionChallenge({onComplete, difficulty, soundOn, voiceClip}){
+  const stopVoice = useVoiceIntro(voiceClip, soundOn);
   const REPS = difficulty?.reaction?.reps || 8;
   const MIN_DELAY = difficulty?.reaction?.minDelay || 1000;
   const MAX_DELAY = difficulty?.reaction?.maxDelay || 2500;
@@ -1139,7 +1212,7 @@ function ReactionChallenge({onComplete, difficulty}){
         {phase==="hit"&&<><p style={{fontSize:38}}>✓</p><p style={{fontSize:15,fontWeight:700,color:GREEN}}>{msg}</p></>}
         {phase==="miss"&&<><p style={{fontSize:38}}>✗</p><p style={{fontSize:16,color:RED,textAlign:"center"}}>{msg}</p></>}
       </div>
-      {phase==="ready"&&<button onClick={()=>nextRep(0)} style={{width:"100%",border:"none",borderRadius:100,padding:"16px",fontSize:16,fontWeight:700,fontFamily:"'Space Grotesk',sans-serif",cursor:"pointer",background:`linear-gradient(135deg,${AMBER}cc,${AMBER})`,color:BG,letterSpacing:".05em"}}>Start →</button>}
+      {phase==="ready"&&<button onClick={()=>{stopVoice();nextRep(0);}} style={{width:"100%",border:"none",borderRadius:100,padding:"16px",fontSize:16,fontWeight:700,fontFamily:"'Space Grotesk',sans-serif",cursor:"pointer",background:`linear-gradient(135deg,${AMBER}cc,${AMBER})`,color:BG,letterSpacing:".05em"}}>Start →</button>}
     </div>
   );
 }
@@ -1147,7 +1220,8 @@ function ReactionChallenge({onComplete, difficulty}){
 // ══════════════════════════════════════════════════════════════════════════
 // ROUND 5 — COGNITIVE SWITCH
 // ══════════════════════════════════════════════════════════════════════════
-function SwitchChallenge({onComplete, difficulty}){
+function SwitchChallenge({onComplete, difficulty, soundOn, voiceClip}){
+  const stopVoice = useVoiceIntro(voiceClip, soundOn);
   const NUM_ITEMS = difficulty?.switch?.items || 12;
   const SHAPE_BTNS=["circle","square","triangle","diamond"];
   const COLOR_BTNS=[{n:"Red",c:"#EF4444"},{n:"Blue",c:"#3B82F6"},{n:"Green",c:"#22C55E"},{n:"Amber",c:"#F59E0B"}];
@@ -1201,7 +1275,7 @@ function SwitchChallenge({onComplete, difficulty}){
             </div>
           </div>
           <p style={{fontSize:16,color:AMBER,marginBottom:22}}>⚠ The rule switches mid-task without warning.</p>
-          <button onClick={()=>setSt(true)} style={{border:"none",borderRadius:100,padding:"14px 40px",fontSize:16,fontWeight:700,fontFamily:"'Space Grotesk',sans-serif",cursor:"pointer",background:`linear-gradient(135deg,${RED}cc,${RED})`,color:WHITE,letterSpacing:".05em"}}>Start →</button>
+          <button onClick={()=>{stopVoice();setSt(true);}} style={{border:"none",borderRadius:100,padding:"14px 40px",fontSize:16,fontWeight:700,fontFamily:"'Space Grotesk',sans-serif",cursor:"pointer",background:`linear-gradient(135deg,${RED}cc,${RED})`,color:WHITE,letterSpacing:".05em"}}>Start →</button>
         </div>
       ):(
         <div>
@@ -1246,7 +1320,8 @@ function SwitchChallenge({onComplete, difficulty}){
 // ══════════════════════════════════════════════════════════════════════════
 // ROUND 6 — NEURAL DEFENSE
 // ══════════════════════════════════════════════════════════════════════════
-function NeuralDefense({onComplete, difficulty}){
+function NeuralDefense({onComplete, difficulty, soundOn, voiceClip}){
+  const stopVoice = useVoiceIntro(voiceClip, soundOn);
   const GAME_WIDTH = 400;
   const GAME_HEIGHT = 500;
   const SHIELD_WIDTH = 60;
@@ -1292,6 +1367,9 @@ function NeuralDefense({onComplete, difficulty}){
   const lastShotRef = useRef(0);  // timestamp of last accepted shot — enforces 200ms cooldown
   const comboRef = useRef(0);     // mirrors combo state for sync read inside handleShoot
   const bonusStarTimerRef = useRef(null); // one-shot timeout per wave for the ⭐ bonus star
+  const waveRef = useRef(1);            // mirrors wave state — safe synchronous read inside game loop
+  const shieldWidthRef = useRef(60);    // mirrors curShieldWidth — safe sync read in event handlers
+  const [curShieldWidth, setCurShieldWidth] = useState(60); // reactive shield width for render
   
   const SHAPES_POOL = [
     {type:"circle", color:E_BLUE, pts:10},
@@ -1302,7 +1380,8 @@ function NeuralDefense({onComplete, difficulty}){
 
   function startGame(){
     setPhase("playing");
-    setWave(1);
+    setWave(1); waveRef.current = 1;
+    setCurShieldWidth(60); shieldWidthRef.current = 60;
     setScore(0); scoreRef.current = 0;
     setHits(0); hitsRef.current = 0;
     setMisses(0); missesRef.current = 0;
@@ -1319,7 +1398,9 @@ function NeuralDefense({onComplete, difficulty}){
 
   function startWave(w){
     setWaveTransition(null); // clear any between-wave overlay
-    setWave(w);
+    setWave(w); waveRef.current = w;
+    // Wave 3: narrow the shield to 48px — harder target acquisition
+    if (w === 3) { setCurShieldWidth(48); shieldWidthRef.current = 48; }
     setWaveTime(WAVE_DURATION);
     
     const spawnRate = w===1 ? SPAWN_RATE_WAVE1 : w===2 ? SPAWN_RATE_WAVE2 : SPAWN_RATE_WAVE3;
@@ -1408,6 +1489,13 @@ function NeuralDefense({onComplete, difficulty}){
           // 💥 COMBO BREAK — reset streak on any regular miss
           comboRef.current = 0;
           setCombo(0);
+          // ⚡ WAVE 3 PENALTY — −5pts per miss to raise stakes in final wave
+          if (waveRef.current === 3) {
+            const penalty = regularMissed.length * 5;
+            const newScore = Math.max(0, scoreRef.current - penalty);
+            scoreRef.current = newScore;
+            setScore(newScore);
+          }
           // 🔊 MISS SOUND
           playMissSound();
           // ❌ SCREEN FLASH on miss
@@ -1463,7 +1551,7 @@ function NeuralDefense({onComplete, difficulty}){
     playShootSound();
     
     // 🎆 LIGHTNING BOLT EFFECT
-    const shieldCenter = shieldX + SHIELD_WIDTH/2;
+    const shieldCenter = shieldX + shieldWidthRef.current/2;
     setLightningBolts(prev => [...prev, {
       id: Math.random(),
       x: shieldCenter,
@@ -1580,16 +1668,16 @@ function NeuralDefense({onComplete, difficulty}){
   function handleMouseMove(e){
     if(phase !== "playing") return;
     const rect = e.currentTarget.getBoundingClientRect();
-    const x = e.clientX - rect.left - SHIELD_WIDTH/2;
-    setShieldX(Math.max(0, Math.min(GAME_WIDTH - SHIELD_WIDTH, x)));
+    const x = e.clientX - rect.left - shieldWidthRef.current/2;
+    setShieldX(Math.max(0, Math.min(GAME_WIDTH - shieldWidthRef.current, x)));
   }
 
   function handleTouchMove(e){
     if(phase !== "playing") return;
     e.preventDefault();
     const rect = e.currentTarget.getBoundingClientRect();
-    const x = e.touches[0].clientX - rect.left - SHIELD_WIDTH/2;
-    setShieldX(Math.max(0, Math.min(GAME_WIDTH - SHIELD_WIDTH, x)));
+    const x = e.touches[0].clientX - rect.left - shieldWidthRef.current/2;
+    setShieldX(Math.max(0, Math.min(GAME_WIDTH - shieldWidthRef.current, x)));
   }
 
   function handleTouchEnd(e){
@@ -1627,7 +1715,7 @@ function NeuralDefense({onComplete, difficulty}){
               This trains your brain's <strong style={{color:WHITE}}>sustained attention, spatial prediction and rapid target acquisition</strong> — the attentional networks that govern performance under real pressure.
             </p>
           </div>
-          <button onClick={startGame} style={{border:"none",borderRadius:100,padding:"14px 40px",fontSize:16,fontWeight:700,fontFamily:"'Space Grotesk',sans-serif",cursor:"pointer",background:`linear-gradient(135deg,${PURPLE}cc,${PURPLE})`,color:WHITE,letterSpacing:".05em",boxShadow:`0 6px 28px ${PURPLE}44`,animation:"pulse 2s infinite"}}>
+          <button onClick={()=>{stopVoice();startGame();}} style={{border:"none",borderRadius:100,padding:"14px 40px",fontSize:16,fontWeight:700,fontFamily:"'Space Grotesk',sans-serif",cursor:"pointer",background:`linear-gradient(135deg,${PURPLE}cc,${PURPLE})`,color:WHITE,letterSpacing:".05em",boxShadow:`0 6px 28px ${PURPLE}44`,animation:"pulse 2s infinite"}}>
             ⚡ Launch Defense →
           </button>
         </div>
@@ -1826,7 +1914,7 @@ function NeuralDefense({onComplete, difficulty}){
           position:"absolute",
           left:shieldX,
           bottom:20,
-          width:SHIELD_WIDTH,
+          width:curShieldWidth,
           height:12,
           background:`linear-gradient(90deg,${PURPLE}44,${PURPLE},${PURPLE}44)`,
           borderRadius:6,
