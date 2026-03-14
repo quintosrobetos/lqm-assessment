@@ -397,7 +397,7 @@ function AtomIcon({size=16}) {
 function BTIcon({icon, size=18}) {
   if (icon === "🧠") return <AtomIcon size={size}/>;
   if (icon === "🔥") return <FlameIcon size={size}/>;
-  return <span style={{fontSize:size}}>{iconStr}</span>;
+  return <span style={{fontSize:size}}>{icon}</span>;
 }
 export default function BrainTraining({ onBack, archetype }){
   const [screen,  setScreen]  = useState("difficulty");
