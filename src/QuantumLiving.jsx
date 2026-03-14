@@ -1,1478 +1,2264 @@
-import { useState, useEffect } from "react";
+// ════════════════════════════════════════════════════════════════════════════
+// LQM BRAIN TRAINING — 6 Science-Backed Cognitive Challenges
+// ════════════════════════════════════════════════════════════════════════════
+
+import { useState, useEffect, useRef } from "react";
 import { 
   getChallengeData, 
   enrollInChallenge, 
   updateChallengeProgress,
+  storeBaselineScores,
+  calculateImprovement,
   getStreak,
-  getDaysActive,
+  getDaysUntilNextMilestone,
+  getMilestoneStatus,
   getCompletionPercentage,
+  getDaysActive,
   isChallengeComplete
 } from "./challenge21";
-import { trackQuantumDay } from "./firebase";
-import { playQuantumSound, playMilestoneSound } from "./sounds";
+import { 
+  trackBrainTrainingStart, 
+  trackChallengeResult,
+  trackSessionComplete,
+  trackLevelUp
+} from "./firebase";
+import {
+  playSuccessSound,
+  playCelebrationSound,
+  playLevelUpSound,
+  playMilestoneSound
+} from "./sounds";
 
-const E_BLUE  = "#00C8FF";
-const E_BLUE2 = "#0EA5E9";
+// ── Gameplay sound effects ──
+// Shared audio context - created once to prevent browser blocking
+let _audioCtx = null;
+function getAudioCtx() {
+  if (!_audioCtx || _audioCtx.state === "closed") {
+    _audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  }
+  if (_audioCtx.state === "suspended") _audioCtx.resume();
+  return _audioCtx;
+}
+
+function playShootSound() {
+  try {
+    const ctx = getAudioCtx();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.frequency.setValueAtTime(300, ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(150, ctx.currentTime + 0.1);
+    gain.gain.setValueAtTime(0.15, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.1);
+    osc.start(ctx.currentTime); osc.stop(ctx.currentTime + 0.1);
+  } catch (e) {}
+}
+
+function playHitSound() {
+  try {
+    const ctx = getAudioCtx();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.type = "sine";
+    osc.frequency.setValueAtTime(600, ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(1000, ctx.currentTime + 0.08);
+    gain.gain.setValueAtTime(0.2, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.15);
+    osc.start(ctx.currentTime); osc.stop(ctx.currentTime + 0.15);
+  } catch (e) {}
+}
+
+function playMissSound() {
+  try {
+    const ctx = getAudioCtx();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.frequency.setValueAtTime(200, ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(80, ctx.currentTime + 0.2);
+    gain.gain.setValueAtTime(0.12, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.2);
+    osc.start(ctx.currentTime); osc.stop(ctx.currentTime + 0.2);
+  } catch (e) {}
+}
+
+// ── Brand palette ─────────────────────────────────────────────────────────
 const BG      = "#070F1E";
 const DARK    = "#0D1830";
 const DARK2   = "#111E38";
-const PANEL   = "rgba(255,255,255,0.055)";
+const PANEL   = "rgba(255,255,255,0.045)";
 const BORDER  = "rgba(0,200,255,0.18)";
-const BORDER2 = "rgba(255,255,255,0.09)";
+const BORDER2 = "rgba(255,255,255,0.08)";
 const WHITE   = "#FFFFFF";
-const MUTED   = "rgba(255,255,255,0.72)"; // Improved readability
-const DIMMED  = "rgba(255,255,255,0.40)"; // Improved readability
+const MUTED   = "rgba(255,255,255,0.82)";
+const DIMMED  = "rgba(255,255,255,0.55)";
+const E_BLUE  = "#00C8FF";
+const E_BLUE2 = "#0EA5E9";
 const GREEN   = "#34D399";
 const AMBER   = "#FBBF24";
+const RED     = "#F87171";
+const VIOLET  = "#A78BFA";
+const PURPLE  = "#8B5CF6";
 
-// ── Daily Insights (30 wellness facts, rotates daily) ────────────────────────
-const DAILY_INSIGHTS = [
-  { icon:"🥑", title:"Avocado Power", fact:"Avocados contain more potassium than bananas and are packed with heart-healthy monounsaturated fats that help your body absorb fat-soluble vitamins A, D, E, and K." },
-  { icon:"🧄", title:"Garlic's Secret", fact:"Garlic has been used as a natural antibiotic for thousands of years. Allicin, the compound released when garlic is crushed, has powerful antimicrobial properties that can help fight infections." },
-  { icon:"🫐", title:"Blueberry Brain Boost", fact:"Blueberries are among the most antioxidant-rich foods on Earth. Studies show they can improve memory, reduce oxidative stress, and may delay brain ageing by up to 2.5 years." },
-  { icon:"🥦", title:"Broccoli Defense", fact:"Broccoli contains sulforaphane, a compound that activates your body's natural detoxification enzymes and has been shown to have powerful anti-cancer properties." },
-  { icon:"🌶️", title:"Chili Heat Therapy", fact:"Capsaicin in chili peppers triggers endorphin release (natural painkillers), boosts metabolism by up to 25% temporarily, and may help you live longer according to large population studies." },
-  { icon:"🥬", title:"Leafy Green Gold", fact:"Dark leafy greens like kale and spinach contain lutein and zeaxanthin — compounds that accumulate in your retinas and can reduce age-related vision decline by up to 40%." },
-  { icon:"🍓", title:"Strawberry Surprise", fact:"One cup of strawberries provides more vitamin C than an orange — about 150% of your daily needs. Vitamin C is essential for collagen production, immune function, and iron absorption." },
-  { icon:"🥜", title:"Walnut Wisdom", fact:"Walnuts are the only nut that contains significant omega-3 fatty acids (ALA). Just 7 walnuts a day has been shown to improve cognitive function and reduce inflammation." },
-  { icon:"🍠", title:"Sweet Potato Strength", fact:"Sweet potatoes have a lower glycemic index than white potatoes, meaning they provide steady energy without blood sugar spikes. They're also rich in beta-carotene, which your body converts to vitamin A." },
-  { icon:"🥕", title:"Carrot Vision", fact:"The beta-carotene in carrots really does support eye health. Your body converts it to vitamin A, which is essential for the light-sensing cells in your retinas to function properly." },
-  { icon:"☕", title:"Coffee Clarity", fact:"Coffee doesn't just wake you up — studies show 3-4 cups daily is associated with up to 65% lower risk of Alzheimer's disease and significantly reduced risk of depression." },
-  { icon:"🍵", title:"Green Tea Magic", fact:"Green tea contains L-theanine, an amino acid that promotes calm alertness by increasing alpha brain waves. Combined with caffeine, it creates focused relaxation without jitters." },
-  { icon:"🫘", title:"Bean Longevity", fact:"People in Blue Zones (regions where people live longest) eat beans daily. Beans are protein-rich, high in fibre, stabilise blood sugar, and feed beneficial gut bacteria." },
-  { icon:"🥥", title:"Coconut Health", fact:"Coconut water is naturally rich in electrolytes, making it superior to many sports drinks. The MCT fats in coconut can be quickly converted to energy by your liver." },
-  { icon:"🍋", title:"Lemon Fresh Start", fact:"Starting your day with warm lemon water supports liver function, aids digestion, and provides vitamin C. The citric acid helps your body absorb minerals throughout the day." },
-  { icon:"🧅", title:"Onion Layers", fact:"Onions contain quercetin, a powerful antioxidant and anti-inflammatory compound. Red onions have the highest levels. Crying while cutting them releases sulfur compounds with antimicrobial properties." },
-  { icon:"🍄", title:"Mushroom Medicine", fact:"Mushrooms are the only plant source of vitamin D when exposed to sunlight. Some varieties like shiitake and maitake also contain compounds that boost immune function." },
-  { icon:"🌰", title:"Almond Nutrition", fact:"Almonds are incredibly nutrient-dense — high in vitamin E, magnesium, and healthy fats. Just 23 almonds (1 ounce) contains 6g of protein and 3.5g of fibre." },
-  { icon:"🍯", title:"Honey Healing", fact:"Raw honey has natural antibacterial properties and has been used to treat wounds for millennia. It contains antioxidants and enzymes that support gut health. Darker honey has more antioxidants." },
-  { icon:"🥒", title:"Cucumber Hydration", fact:"Cucumbers are 96% water, making them one of the most hydrating foods. They also contain silica, which supports healthy skin, hair, and nails." },
-  { icon:"🫑", title:"Bell Pepper Power", fact:"Red bell peppers contain 3x more vitamin C than green ones and are one of the best sources of beta-carotene. They're technically fruits, not vegetables." },
-  { icon:"🍅", title:"Tomato Science", fact:"Cooking tomatoes actually increases their lycopene content by up to 35%. Lycopene is a powerful antioxidant linked to reduced heart disease and cancer risk." },
-  { icon:"🧈", title:"Healthy Fat Truth", fact:"Your brain is 60% fat. Omega-3 fatty acids (from walnuts, flaxseed, chia) are essential for brain structure and function. Low-fat diets can impair cognitive performance." },
-  { icon:"💧", title:"Water First", fact:"Even 2% dehydration can impair attention, memory, and mood. Most people mistake thirst for hunger. Try drinking water first before reaching for a snack." },
-  { icon:"🌅", title:"Sunlight Vitamin", fact:"Just 10-30 minutes of midday sun provides enough UVB for your body to produce optimal vitamin D. This regulates calcium absorption, immune function, and mood." },
-  { icon:"🚶", title:"Walking Therapy", fact:"A 20-minute walk in nature reduces cortisol by an average of 21%. Walking meetings have been shown to increase creative thinking by up to 60% compared to sitting." },
-  { icon:"🧘", title:"Breath Control", fact:"Deep breathing activates your parasympathetic nervous system (rest mode). Box breathing — 4 counts in, hold 4, out 4, hold 4 — can lower heart rate and anxiety in under 2 minutes." },
-  { icon:"😴", title:"Sleep Cycles", fact:"Each sleep cycle lasts about 90 minutes. Waking between cycles (after 6, 7.5, or 9 hours) feels better than waking mid-cycle. Set alarms accordingly." },
-  { icon:"🔥", title:"Metabolism Truth", fact:"Muscle tissue burns 3x more calories at rest than fat tissue. Strength training is one of the most effective ways to boost your resting metabolic rate long-term." },
-  { icon:"🌿", title:"Plant Protein", fact:"You don't need meat for complete protein. Combinations like beans + rice, or hummus + whole grain provide all essential amino acids. Many athletes thrive on plant-based diets." },
-];
-
-// ── 5 Quantum Laws ────────────────────────────────────────────────────────────
-const LAWS = [
-  {
-    num: "01",
-    sym: "◎",
-    title: "Quantum Rest",
-    subtitle: "Law of Proper Sleep",
-    color: "#818CF8",
-    glow: "rgba(129,140,248,0.12)",
-    icon: "🌙",
-    principle: "Sleep is not recovery from life. Sleep is where life is built.",
-    truth: "Every cognitive function, emotional regulation, hormonal balance, and physical repair depends on the quality of your sleep. The brain consolidates learning, flushes toxins, and resets motivation architecture during deep sleep. A tired brain is a reactive brain — not a responsive one.",
-    dailyPractice: "Tonight, set your sleep window — the same time to bed as last night, the same time to rise tomorrow. Seven to nine hours is not a luxury. It is the foundation everything else runs on. Protect tonight as fiercely as your most important appointment.",
-    todaySummary: "Set your sleep window tonight — same time to bed, same time to rise.",
-    quantumEdge: "People who sleep 7–9 hours consistently outperform those who sleep less across every measurable cognitive and emotional metric. Sleep is not the opposite of productivity. It is its engine.",
-    practices: [
-      { title:"The Wind-Down Protocol", desc:"One hour before sleep: no screens, dim lights, lower room temperature. Your brain needs a runway, not an emergency landing." },
-      { title:"The Consistent Window", desc:"Wake at the same time every day — even weekends. This anchors your circadian rhythm and dramatically improves sleep quality within 2 weeks." },
-      { title:"The Dark Sanctuary", desc:"Make your bedroom darker than you think necessary. Blackout curtains. No device lights. Darkness triggers melatonin — your natural sleep signal." },
-      { title:"The Morning Light Anchor", desc:"Get natural light within 30 minutes of waking. This resets your internal clock and sets you up for better sleep the following night." },
-    ],
-    avoid: ["Caffeine after 2pm", "Screens within 1 hour of sleep", "Alcohol as a sleep aid (it fragments sleep architecture)", "Irregular sleep schedules"],
-    lqmNote: "Your motivation archetype directly affects your sleep patterns. Systems types often stay up optimising. Visionaries lose hours to creative spirals. Know your pattern — and build your sleep system around it.",
-    natureWisdom: "A warm foot bath for 20 minutes before bed is one of nature's most reliable sleep remedies — it draws blood away from the head, calms the nervous system, and signals the body toward rest. Traditional healers in Back to Eden documented this as foundational. A cup of chamomile or passionflower tea alongside it compounds the effect. These are not supplements — they are nature's original sleep protocol, available to everyone at almost no cost.",
-  },
-  {
-    num: "02",
-    sym: "⟁",
-    title: "Quantum Breath",
-    subtitle: "Law of Fresh Air",
+// ── Difficulty settings ───────────────────────────────────────────────────
+const DIFFICULTY = {
+  beginner: {
+    name: "Beginner",
+    desc: "Gentler pace, more time to respond. Perfect for getting started.",
     color: "#34D399",
-    glow: "rgba(52,211,153,0.12)",
-    icon: "🌿",
-    principle: "The body is designed for oxygen-rich environments. Most people are living in chronic low-grade oxygen debt.",
-    truth: "Fresh air isn't simply pleasant — it's neurologically essential. Oxygen is the primary fuel for your brain. Poor indoor air quality, reduced time outside, and shallow breathing patterns deprive your prefrontal cortex — the seat of focus, decision-making, and emotional regulation — of its primary resource.",
-    dailyPractice: "Step outside today for at least 20 minutes of fresh air. Move while you do it. Open a window at home right now. Breathe slowly, deeply, through your nose. Today's air is today's fuel.",
-    todaySummary: "Get outside today for 20 minutes of fresh air and movement.",
-    quantumEdge: "Studies consistently show that time outdoors in natural environments reduces cortisol, improves focus by up to 20%, and enhances creative thinking. The Quantum Mind needs clean air the way an engine needs clean fuel.",
-    practices: [
-      { title:"The Morning Walk", desc:"20 minutes of walking in fresh air before the day's demands begin. Not a podcast walk — a present walk. Notice your surroundings. Breathe deliberately." },
-      { title:"The Breath Reset", desc:"Box breathing: inhale 4 counts, hold 4 counts, exhale 4 counts, hold 4 counts. Repeat 4 times. Resets the nervous system in under 2 minutes." },
-      { title:"The Open Window Protocol", desc:"Spend the first 30 minutes of work with a window open. Fresh air increases oxygen availability to the brain and improves sustained attention." },
-      { title:"The Nature Immersion", desc:"Once per week, spend 90 minutes in a genuinely natural environment — park, woodland, open space. This has measurable effects on brain function lasting days." },
-    ],
-    avoid: ["Long periods in closed, recirculated air environments without breaks", "Shallow chest breathing as a default pattern", "Smoking and passive smoke exposure", "Heavy indoor chemical exposure (cleaning products, synthetic fragrances)"],
-    lqmNote: "Deep learner types often neglect outdoor time — the research rabbit hole has no fresh air. Relational types thrive when outdoor time includes meaningful connection. Know your archetype's tendencies and design your air practice accordingly.",
-    natureWisdom: "Traditional healers observed that chronic mouth-breathing was one of the most overlooked causes of fatigue, poor focus, and weakened immunity. Back to Eden teaches that nasal breathing — slow, deliberate, through the nose — filters, warms, and humidifies air before it reaches the lungs, activating receptors that chest-breathing bypasses entirely. Steam inhalation with eucalyptus or peppermint — a practice used for centuries — opens airways, reduces congestion, and supports clear, oxygenated breathing at no cost.",
+    stroop: { time: 60, rounds: 15 },
+    nback: { n: 1, length: 10, display: 2000, isi: 700 },
+    matrix: { hints: 2, puzzles: 3 },
+    reaction: { reps: 6, minDelay: 1500, maxDelay: 3500 },
+    switch: { items: 8 },
+    defense: { waveDuration: 30, spawnWave1: 1400, spawnWave2: 1100, spawnWave3: 850, fallWave1: 2.0, fallWave2: 2.8, fallWave3: 3.8 },
   },
-  {
-    num: "03",
-    sym: "◈",
-    title: "Quantum Balance",
-    subtitle: "Law of Temperance",
-    color: "#F59E0B",
-    glow: "rgba(245,158,11,0.12)",
-    icon: "⚖️",
-    principle: "True balance is not just physical and mental. It is the alignment of body, mind and spirit — the complete you.",
-    truth: "Temperance is the art of doing enough — not too much, not too little. It governs everything: work, rest, stimulation, consumption, digital engagement, and spiritual wellbeing. The most enduring performers in history have not simply managed their time and energy — they have anchored themselves in something greater than performance itself. Belief, faith, and a sense of divine purpose are not separate from peak living. They are foundational to it. When the inner life is nourished alongside the outer life, the whole person operates from a place of genuine strength rather than striving.",
-    dailyPractice: "Today, notice one thing you are overdoing — screen time, rushing, negative self-talk. Then notice one thing you are under-doing — rest, stillness, a real conversation. Pick one of those and rebalance it today. Not tomorrow. Today.",
-    todaySummary: "Spot one excess and one deficit in your life today. Rebalance one of them.",
-    quantumEdge: "The nervous system cannot sustain constant activation. Chronic overstimulation leads to burnout, inflammation, and cognitive decline. The Quantum Mind operates in cycles — intense focus followed by genuine recovery. People with a strong sense of faith and spiritual grounding consistently show greater resilience, lower anxiety, and stronger recovery from adversity. Build your life in rhythms, not red lines — and let your belief be the bedrock beneath those rhythms.",
-    practices: [
-      { title:"The Stillness Practice", desc:"Begin or end your day with a period of quiet — not to empty the mind, but to bring it before something greater. Whether through prayer, reading scripture, or simply sitting in grateful silence, stillness anchors the whole day differently to those who never stop." },
-      { title:"The Work-Rest Rhythm", desc:"Work in focused blocks of 90 minutes maximum, followed by genuine breaks of at least 10 minutes. This aligns with your body's natural ultradian rhythms — the same cycles of effort and restoration found throughout the natural world." },
-      { title:"The Screen Sabbath", desc:"One full day per week with minimal screen engagement. The principle of Sabbath — a day set apart for rest, reflection, and renewal — is one of the oldest and wisest productivity insights ever recorded. This is not a detox. It is a recalibration of what matters." },
-      { title:"The Enough Practice", desc:"At the end of each day, write the sentence 'Today I did enough because...' This builds the psychological muscle of sufficiency. Gratitude and sufficiency are the antidote to the depletion of excess — and they are practices with deep roots in faith traditions across history." },
-    ],
-    avoid: ["Substances that create dependency (alcohol, nicotine, recreational drugs)", "Chronic overwork masquerading as productivity", "Digital overstimulation — endless scrolling and consumption without creation", "Neglecting the inner life — spiritual emptiness is as real a depletion as physical exhaustion", "Extreme regimes that cannot be sustained"],
-    lqmNote: "Systems Architects often violate temperance through over-optimisation — adding more to an already full system. Visionary types burn intensely at the start and crash. But every archetype benefits from anchoring their balance in something beyond performance. The most sustainable version of yourself is the complete you — body, mind and spirit working together.",
-    natureWisdom: "Back to Eden identifies temperance as one of the eight laws of health — a governing principle above diet, exercise, and sleep. Traditional healers used activated charcoal compresses and clay poultices to draw out what overloads the body. But the deeper teaching is this: the body heals itself when we stop overloading it. Periods of simplicity — eating less, being still, removing stimulants — allow the liver, kidneys, and lymphatic system to restore what chronic excess depletes. Modern science has confirmed what traditional healers understood intuitively: when the body is given a sufficient window without food, it activates autophagy — a profound cellular self-cleaning process so significant it was awarded the Nobel Prize in Medicine in 2016. The body dismantles its own damaged components and recycles them. It does not need assistance — it needs permission. The body was designed to self-heal. Temperance is not restriction. It is the creation of the conditions in which healing becomes inevitable.",
-  },
-  {
-    num: "04",
-    sym: "△",
-    title: "Quantum Motion",
-    subtitle: "Law of Exercise",
+  standard: {
+    name: "Standard",
+    desc: "The original experience. Balanced challenge for most people.",
     color: "#00C8FF",
-    glow: "rgba(0,200,255,0.12)",
-    icon: "⚡",
-    principle: "The body in motion produces a brain in flow. Physical training is cognitive training.",
-    truth: "Exercise is not a vanity practice. It is neuroscience in action. Physical movement triggers the release of BDNF — Brain-Derived Neurotrophic Factor — which accelerates the growth of new neural connections. It also regulates mood, reduces anxiety, improves sleep quality, and increases the capacity for sustained focus. Moving your body is one of the highest-return investments available to you.",
-    dailyPractice: "Move your body today — not as punishment, not as obligation, but as the most powerful upgrade available to you right now at zero cost. Walk, run, lift, swim, dance, stretch. Pick one. Do it today. The modality matters far less than the doing.",
-    todaySummary: "Move your body today — walk, run, lift, swim or stretch. Pick one and do it.",
-    quantumEdge: "A single session of moderate aerobic exercise improves focus and working memory for up to 2 hours afterwards. Regular exercisers show significantly better stress regulation, emotional resilience, and creative output. You cannot optimise your mind while neglecting your body.",
-    practices: [
-      { title:"The Daily Movement Non-Negotiable", desc:"30 minutes of deliberate physical movement every day. Not optional. This is maintenance, not heroism. A walk counts. Consistency beats intensity." },
-      { title:"The Strength Practice", desc:"Two to three sessions per week of resistance-based movement. Building muscular strength improves metabolic health, bone density, posture, and confidence — all of which affect cognitive performance." },
-      { title:"The Outdoor Run", desc:"Running outdoors — not on a treadmill — combines the benefits of fresh air, movement, and natural environment into a single high-return practice. 20 minutes is sufficient." },
-      { title:"The Movement Snack", desc:"Every 90 minutes of sitting, stand and move for 5 minutes. Walk, stretch, step outside. This prevents the physiological and cognitive decline associated with prolonged sitting." },
-    ],
-    avoid: ["Sedentary periods longer than 2 hours without movement", "Treating exercise as a punishment for eating", "Overtraining without adequate recovery", "Using 'I don't have time' as a reason — a 20-minute walk requires no equipment, no gym, no schedule"],
-    lqmNote: "Deep Learners resist leaving the desk. Systems Architects may over-programme exercise until it becomes another optimisation project. The best movement practice is the one you'll actually do consistently. Start embarrassingly small.",
-    natureWisdom: "Hot and cold hydrotherapy — alternating warm and cold water during bathing — is one of the most powerful and underused natural health practices. Traditional healers used it to stimulate circulation, invigorate the lymphatic system, and boost immune response. Back to Eden dedicates significant attention to water treatments as the body's great restorer after exercise. A simple practice: finish every shower with 30–60 seconds of cold water. This activates the same circulatory pathways, reduces inflammation, and dramatically accelerates recovery from movement.",
+    stroop: { time: 45, rounds: 18 },
+    nback: { n: 2, length: 14, display: 1700, isi: 500 },
+    matrix: { hints: 1, puzzles: 4 },
+    reaction: { reps: 8, minDelay: 1000, maxDelay: 2500 },
+    switch: { items: 12 },
+    defense: { waveDuration: 30, spawnWave1: 1200, spawnWave2: 900, spawnWave3: 650, fallWave1: 2.5, fallWave2: 3.5, fallWave3: 4.8 },
   },
-  {
-    num: "05",
-    sym: "⬡",
-    title: "Quantum Fuel",
-    subtitle: "Law of Simple Nourishment",
+  advanced: {
+    name: "Advanced",
+    desc: "Faster pace, tighter timing. For experienced users seeking maximum challenge.",
     color: "#A78BFA",
-    glow: "rgba(167,139,250,0.12)",
-    icon: "🌱",
-    principle: "The body performs at the level of the fuel it receives. Complexity in diet creates complexity in function.",
-    truth: "The most well-researched diets in the world share one characteristic: they are built around whole, unprocessed plant foods. Fruits, vegetables, legumes, grains, nuts, and seeds provide everything the human brain and body require to function at their highest capacity. Simple, close-to-source food creates stable energy, clear cognition, and sustained physical vitality.",
-    dailyPractice: "At your next meal today, fill at least two-thirds of your plate with whole fruits or vegetables. Choose one food today that is as close to its natural state as possible. The simpler you eat today, the cleaner your energy will feel by this evening.",
-    todaySummary: "At your next meal, fill two-thirds of your plate with whole, natural food.",
-    quantumEdge: "The gut-brain connection is one of the most significant discoveries in modern neuroscience. Your gut microbiome — fed primarily by plant fibre and variety — directly influences neurotransmitter production, mood regulation, and cognitive clarity. What you eat today shapes how your brain performs tomorrow.",
-    practices: [
-      { title:"The Rainbow Rule", desc:"Aim for at least 5 different colours of fruit and vegetables each day. Colour diversity signals nutrient diversity. Make your plate visually striking — nature designed it that way." },
-      { title:"The Whole Food First Principle", desc:"Before eating anything processed, ask: is there a whole food version of this? An apple before apple juice. Whole grain before white bread. Consistently choosing whole creates the compound effect." },
-      { title:"The Hydration Foundation", desc:"Drink water as your primary beverage. Dehydration of as little as 1-2% impairs cognitive performance, mood, and energy. Begin every morning with a large glass of water before anything else." },
-      { title:"The Mindful Meal", desc:"Eat at least one meal per day without a screen. Chew thoroughly. This improves digestion, reduces overeating, and creates a moment of genuine presence in your day." },
-    ],
-    avoid: ["Ultra-processed foods with long ingredient lists", "Refined sugar as a primary fuel source — it creates energy spikes followed by crashes that impair sustained focus", "Harmful substances that damage the body's natural systems", "Eating in a chronic state of stress — cortisol impairs digestion and nutrient absorption"],
-    lqmNote: "Your body is the hardware your quantum mind runs on. No software upgrade compensates for failing hardware. Nourishing your body simply and consistently is one of the highest-leverage practices available to you.",
-    natureWisdom: "Back to Eden teaches that herbs are not condiments — they are nature's pharmacy growing freely in the earth. Turmeric, ginger, garlic, parsley, and rosemary have been used for thousands of years as everyday medicines, not occasional flavourings. Adding them generously to every meal is one of the simplest and highest-return health practices available. A handful of parsley contains more vitamin C than an orange. A clove of crushed garlic is a natural antimicrobial. The principle is this: the closer food is to its natural state, the more healing intelligence it carries. Research in nutritional biochemistry has also revealed the vital importance of essential fatty acid combinations — pairing cold-pressed seed oils with sulphur-rich proteins to create forms of fat that the body can utilise directly at a cellular level for energy and membrane repair. The cells of the body are not passive consumers of nutrition. They are active participants in a conversation with everything you eat. Feed them well, and they know exactly what to do. Nature provided abundantly — we simply stopped looking.",
+    stroop: { time: 35, rounds: 20 },
+    nback: { n: 3, length: 16, display: 1400, isi: 400 },
+    matrix: { hints: 0, puzzles: 4 },
+    reaction: { reps: 10, minDelay: 800, maxDelay: 2000 },
+    switch: { items: 15 },
+    defense: { waveDuration: 30, spawnWave1: 1000, spawnWave2: 700, spawnWave3: 500, fallWave1: 3.0, fallWave2: 4.2, fallWave3: 5.8 },
   },
-];
-
-// ── Daily natural product fun fact ──────────────────────────────────────
-const FUN_FACTS = [
-  { ingredient:"Garlic", fact:"Raw garlic contains allicin — a compound shown in research to reduce cortisol levels and support immune function. Let it sit for 10 minutes after chopping to activate the allicin before eating." },
-  { ingredient:"Turmeric", fact:"Curcumin, the active compound in turmeric, has been shown to cross the blood-brain barrier and reduce neuroinflammation. Adding black pepper increases its absorption by up to 2,000%." },
-  { ingredient:"Blueberries", fact:"Blueberries are one of the few foods shown in studies to directly improve memory and delay cognitive ageing. A handful a day is enough to see measurable effects within 12 weeks." },
-  { ingredient:"Walnuts", fact:"Walnuts are the only nut with significant omega-3 content. Their shape isn't accidental — research confirms they specifically support brain structure and improve working memory." },
-  { ingredient:"Dark Chocolate", fact:"Cacao contains theobromine and flavonoids that increase blood flow to the brain. 70%+ dark chocolate in small amounts has been linked to improved focus and reduced anxiety." },
-  { ingredient:"Green Tea", fact:"L-theanine in green tea produces alert calmness — it increases alpha brain waves, the same state seen in experienced meditators. Combined with caffeine, it's one of nature's best focus compounds." },
-  { ingredient:"Ginger", fact:"Ginger contains gingerols and shogaols that inhibit inflammatory pathways in the brain. Fresh ginger tea before bed has been shown to reduce muscle soreness and improve sleep quality." },
-  { ingredient:"Avocado", fact:"Avocados are rich in oleic acid — the same fat that makes up 25% of the myelin sheath protecting your nerve fibres. They also contain more potassium than a banana, critical for cognitive function." },
-  { ingredient:"Spinach", fact:"Spinach contains lutein and folate, both linked to slower cognitive decline. Research from Tufts University found people who ate leafy greens daily had brains 11 years younger than those who didn't." },
-  { ingredient:"Wild Salmon", fact:"DHA from wild salmon makes up 40% of the polyunsaturated fats in your brain. Low DHA levels are consistently linked to depression, brain fog, and slower learning speeds." },
-  { ingredient:"Oats", fact:"Beta-glucan in oats feeds the beneficial bacteria in your gut — which produce 90% of your body's serotonin. A slow-release breakfast is directly linked to more stable mood throughout the day." },
-  { ingredient:"Cinnamon", fact:"Just half a teaspoon of cinnamon a day has been shown to improve insulin sensitivity, stabilise blood sugar, and increase BDNF — the protein responsible for creating new brain cells." },
-  { ingredient:"Beetroot", fact:"Beetroot is one of the richest dietary sources of nitrates, which convert to nitric oxide in the body — widening blood vessels and increasing oxygen delivery to the prefrontal cortex by up to 16%." },
-  { ingredient:"Broccoli", fact:"Broccoli contains sulforaphane — a compound that activates your body's own antioxidant defence system. It's also one of the best food sources of Vitamin K, essential for cognitive function." },
-  { ingredient:"Eggs", fact:"Eggs are the richest dietary source of choline — the precursor to acetylcholine, the neurotransmitter responsible for memory formation. One egg contains 35% of your daily choline requirement." },
-  { ingredient:"Pomegranate", fact:"Pomegranate juice contains ellagitannins that convert in the gut to urolithins — compounds shown to clear damaged mitochondria from brain cells, essentially performing cellular housekeeping." },
-  { ingredient:"Almonds", fact:"Almonds contain riboflavin and L-carnitine, two nutrients that support neural pathways and have been linked to increased brain activity. They're also one of the best magnesium sources — critical for sleep." },
-  { ingredient:"Olive Oil", fact:"Extra virgin olive oil contains oleocanthal — a natural anti-inflammatory with a mechanism similar to ibuprofen. Regular consumption is one of the most replicated predictors of long-term brain health." },
-  { ingredient:"Fermented Foods", fact:"Kimchi, kefir, and live yoghurt contain live bacteria that communicate with your brain via the vagus nerve. Studies show fermented food consumption correlates strongly with reduced anxiety scores." },
-  { ingredient:"Brazil Nuts", fact:"A single Brazil nut contains your entire daily selenium requirement. Selenium is essential for thyroid function, which directly regulates energy, mood, and metabolic rate." },
-  { ingredient:"Sweet Potato", fact:"Sweet potatoes are one of the richest sources of beta-carotene, which converts to Vitamin A in the body — essential for maintaining the protective layer around brain and spinal cord neurons." },
-  { ingredient:"Lemon", fact:"The scent of lemon alone has been shown in research to increase alertness and cognitive performance. Lemon water first thing in the morning supports liver detoxification and alkalises the body." },
-  { ingredient:"Pumpkin Seeds", fact:"Pumpkin seeds are the richest plant source of zinc, which is essential for nerve signalling. They also contain magnesium, iron, copper and manganese — critical micronutrients for brain function." },
-  { ingredient:"Chamomile", fact:"Chamomile contains apigenin — an antioxidant that binds to GABA receptors in your brain, producing a mild sedative effect. It's one of the most studied natural sleep aids, shown to improve sleep quality." },
-  { ingredient:"Rosemary", fact:"The aroma of rosemary alone has been shown to improve memory performance by 15% in research trials. Carnosic acid in rosemary also protects the brain from oxidative stress and free radical damage." },
-  { ingredient:"Flaxseed", fact:"Ground flaxseed is one of the best plant-based sources of ALA omega-3 fatty acids. It also contains lignans — phytoestrogens shown to reduce inflammation and support hormonal balance." },
-  { ingredient:"Honey", fact:"Raw honey contains prebiotics that feed beneficial gut bacteria, trace minerals, and a small amount of melatonin precursors. A teaspoon of raw honey before bed may improve sleep quality and morning alertness." },
-  { ingredient:"Cayenne Pepper", fact:"Capsaicin in cayenne triggers the release of endorphins and increases thermogenesis — your body's heat production. It's also shown to reduce appetite and increase energy expenditure for several hours after eating." },
-  { ingredient:"Coconut Oil", fact:"Medium-chain triglycerides (MCTs) in coconut oil are converted rapidly to ketones — an alternative fuel source the brain uses efficiently. MCTs have shown promise in early cognitive decline research." },
-  { ingredient:"Black Pepper", fact:"Piperine in black pepper doesn't just enhance nutrient absorption — it also inhibits an enzyme that breaks down serotonin and dopamine in the brain, effectively boosting their availability naturally." },
-  { ingredient:"Watercress", fact:"Watercress has the highest nutrient density of any vegetable tested by the CDC. It contains isothiocyanates shown to protect DNA from damage caused by oxidative stress — a leading driver of ageing." },
-  { ingredient:"Maca Root", fact:"Maca is an adaptogen — a plant that helps your body regulate its stress response. Studies show consistent maca use improves energy, mood, and endurance without stimulant effects or adrenal burden." },
-  { ingredient:"Ashwagandha", fact:"Withaferin A in ashwagandha has been shown to reduce cortisol by 27% over 60 days in clinical trials. It's the most studied adaptogen for stress reduction and sleep quality improvement." },
-  { ingredient:"Saffron", fact:"Saffron contains safranal and crocin — compounds shown in multiple studies to be as effective as low-dose antidepressants for mild to moderate depression, with no significant side effects reported." },
-  { ingredient:"Lion's Mane Mushroom", fact:"Lion's Mane is the only known food that stimulates Nerve Growth Factor (NGF) production — the protein responsible for growing and maintaining neurons. It's the most studied natural compound for neuroplasticity." },
-  { ingredient:"Intermittent Fasting", fact:"When the body is given a window without food, it activates autophagy — a cellular self-cleaning process so significant it was awarded the 2016 Nobel Prize in Medicine. During autophagy, damaged cellular components are broken down and recycled, reducing the inflammation linked to accelerated ageing and chronic disease." },
-  { ingredient:"Castor Oil", fact:"Castor oil packs applied to the abdomen have been used in traditional healing for centuries to support lymphatic circulation and liver function. The ricinoleic acid in castor oil penetrates deeply into tissue and has demonstrated significant anti-inflammatory properties, making it one of traditional medicine's most versatile topical remedies." },
-  { ingredient:"Epsom Salt", fact:"A warm Epsom salt bath is one of the most accessible ways to raise magnesium levels — a mineral deficient in an estimated 75% of the population. Magnesium is required for over 300 enzymatic processes in the body, including energy production, nerve signalling, muscle recovery, and the regulation of stress hormones." },
-  { ingredient:"Oil of Oregano", fact:"Carvacrol and thymol in oil of oregano have demonstrated broad-spectrum antimicrobial activity against bacteria, fungi, and parasites in peer-reviewed research. Hippocrates used oregano as a medicine. Across Mediterranean cultures for millennia, it has been trusted as one of nature's most powerful natural antimicrobials." },
-  { ingredient:"Apple Cider Vinegar", fact:"A tablespoon of raw apple cider vinegar before a carbohydrate-rich meal has been shown in multiple clinical studies to reduce blood glucose response by up to 34% and improve insulin sensitivity. Acetic acid inhibits starch-digesting enzymes, slowing glucose absorption and producing more stable, sustained energy." },
-  { ingredient:"Budwig Protocol", fact:"The Budwig Protocol, developed by biochemist Dr Johanna Budwig, combines cold-pressed flaxseed oil with sulphur-rich proteins — such as cottage cheese or quark — to create water-soluble essential fatty acids more readily absorbed at the cellular level. This electron-rich pairing was proposed to support cellular oxygen uptake and energy metabolism. Widely referenced in nutritional science and practised in integrative health." },
-];
-const DAY_NUM = Math.trunc(Date.now() / 86400000); // days since epoch — changes once per day at midnight
-const todayFact = FUN_FACTS[DAY_NUM % FUN_FACTS.length];
-
-// ── Archetype-specific law notes ─────────────────────────────────────────
-const ARCH_LAW_NOTES = {
-  A: [ // Systems Architect
-    "Systems Architects often sacrifice sleep to optimise output. This is a category error — sleep IS the optimisation. Your system cannot run without its maintenance window. Protect sleep as your highest-leverage system.",
-    "You spend more time in closed, recirculated environments than any other archetype. Fresh air breaks are not indulgence — they are cognitive resets. Schedule them like a system process.",
-    "Your tendency is to over-optimise and over-extend. Temperance is the meta-system — the architecture of architectures. Build rest and sufficiency into your system design, not as afterthoughts.",
-    "Build movement into your system the way you build anything — with clear triggers, not willpower. Habit stacking (movement immediately after a scheduled event) is your highest-success approach here.",
-    "You optimise everything else — now optimise your fuel. A whole-food, plant-rich diet is the highest-return nutritional system available. Batch preparation and simple defaults align with your architecture mindset.",
-  ],
-  B: [ // Deep Learner
-    "Deep Learners are notorious for reading, researching, and consuming into the night. Your best thinking is impossible on insufficient sleep. The insight you're chasing at midnight is available in 90 minutes at 6am — rested.",
-    "Research sessions must include movement and fresh air breaks. The best ideas in your history likely came during a walk, not at a desk. Build outdoor thinking time into your deep work schedule.",
-    "You are at risk of intellectual over-consumption without proportional output. Temperance in learning means: for every 3 things absorbed, one thing must be applied or shared. This is your temperance practice.",
-    "Exercise is cognitive enhancement, not a distraction from learning. BDNF — the protein produced during aerobic exercise — literally accelerates new neural connection formation. Movement is research for your brain.",
-    "Your focus on intellectual nourishment can outpace physical nourishment. Simple, whole plant foods require minimal cognitive load to choose. Set a default plate and protect your decision budget for what matters most.",
-  ],
-  C: [ // Relational Catalyst
-    "Your sleep is often disrupted by unresolved relational tension — replaying conversations, anticipating interactions. Create a '10-minute clear' before bed: write one thing resolved and one thing you choose to release until tomorrow.",
-    "Relational Catalysts recharge differently outdoors — especially in social natural settings. A walk with someone meaningful doubles as relational fuel and fresh air. Combine where possible.",
-    "You give energy generously, often beyond your reserves. Temperance for you means protecting your own energy as the prerequisite to giving well. You cannot pour from empty. This is not selfishness — it is sustainability.",
-    "Group exercise or movement with others is your highest-motivation format. Accountability partners, walking meetings, group classes — the social dimension transforms exercise from obligation to connection.",
-    "Shared meals are sacred for your archetype. Eating together, intentionally, is a relational practice as much as a nutritional one. Prioritise food that nourishes both your body and the social moment.",
-  ],
-  D: [ // Visionary Pioneer
-    "Visionaries enter flow states that override sleep signals entirely. You don't notice tiredness until it's critical. Set a hard stop for creative work — your best vision emerges from a rested brain, not an exhausted one.",
-    "Fresh air and new environments are creative catalysts for Visionaries. Some of your best ideas have come outdoors. This isn't coincidence — novel environments activate novel neural pathways. Use outdoor time intentionally as a creative tool.",
-    "Visionaries burn intensely at the start and collapse later. Temperance is your most countercultural practice — and your highest leverage one. Sustainable intensity outlasts explosive bursts every time.",
-    "Movement for Visionaries works best when it carries novelty — new routes, new environments, new challenges. The treadmill will bore you within weeks. Design movement with the same creative attention you give your best projects.",
-    "Visionaries often forget to eat when in flow, then grab whatever is nearby. Design your nutritional environment in advance so the default choice when flow is interrupted is a good one. Whole foods that require no decision are your friend.",
-  ],
 };
 
+// ── Neural levels ─────────────────────────────────────────────────────────
+const LEVELS = [
+  { name:"Initiate",     min:0,    color:"#64748B" },
+  { name:"Analyst",      min:300,  color:"#38BDF8" },
+  { name:"Strategist",   min:700,  color:"#34D399" },
+  { name:"Architect",    min:1400, color:"#FBBF24" },
+  { name:"Quantum Mind", min:2500, color:"#A78BFA" },
+];
+function getLevel(xp){ return [...LEVELS].reverse().find(l=>xp>=l.min)||LEVELS[0]; }
 
-// ── Discoverable science questions — one per law ──────────────────────────
-// Matches the progressive disclosure pattern in BrainTraining Cognitive Blueprint
-const DISCOVERY_QUESTIONS = [
-  "Why does tonight's sleep determine tomorrow's thinking?",
-  "What does fresh air actually do inside your brain?",
-  "How does temperance protect your cognitive performance?",
-  "Why is movement the most underused cognitive tool available to you?",
-  "How does what you eat today change how your brain works tomorrow?",
+// ── Protocol constants ────────────────────────────────────────────────────
+const TOTAL_ROUNDS = 6; // Single source of truth — update here to change everywhere
+
+// ── Daily actions ─────────────────────────────────────────────────────────
+const DAILY_ACTIONS = [
+  { title:"The Intentional Start", action:"Before touching your phone, write one sentence: the single outcome that would make today a success. Not a list — one sentence.", science:"Primes your prefrontal cortex for goal-directed behaviour before reactive digital inputs can hijack your attentional system." },
+  { title:"The Cognitive Pattern Interrupt", action:"At 3pm, stop for 90 seconds. Name 5 things you can see, 4 you can hear, 3 you can physically feel. Then resume.", science:"Activates the parasympathetic nervous system and clears accumulated cognitive load, preventing the afternoon attention decline from becoming a full drift." },
+  { title:"The Reframe Protocol", action:"Identify one problem you've been avoiding. Rewrite it beginning with 'How might I...' rather than 'The problem is...'", science:"Question framing activates exploratory neural pathways in the prefrontal cortex instead of the threat-response amygdala circuits." },
+  { title:"The Feynman Compression", action:"Choose one thing you've learned this week. Explain it out loud as if to a curious 12-year-old. Notice where your explanation breaks down.", science:"Teaching forces neural compression of knowledge — the act of simplification identifies gaps and deepens encoding by up to 90% compared to passive re-reading." },
+  { title:"The Energy Ledger", action:"At the day's end, score each major activity: energy given vs energy received (-3 to +3). Identify your highest drain and highest gain.", science:"Energy awareness is the prerequisite to intentional design. Most people run on autopilot until depletion. This practice builds metacognitive regulation." },
+  { title:"The Minimum Viable Habit", action:"Choose one behaviour you've postponed. Make it so small it embarrasses you. Do it for exactly 2 minutes today.", science:"Tiny actions bypass the brain's implementation intention resistance. The goal is not the 2 minutes — it is the identity signal of having started." },
+  { title:"The Contrast Method", action:"Spend 90 seconds imagining your ideal day tomorrow. Then 60 seconds identifying the one most likely obstacle. Plan specifically for that obstacle.", science:"Mental contrasting — positive vision followed by obstacle planning — is shown to triple follow-through rates compared to positive visualisation alone." },
 ];
 
-// ── Wellness Marketplace — foundation for future natural product revenue ──
-// One category per law. URLs are placeholders — swap for real product pages.
-// Members who have purchased the Quantum Living add-on see member pricing.
-const SHOP_CATEGORIES = [
-  {
-    lawNum:"01", lawTitle:"Quantum Rest", icon:"🌙", color:"#818CF8",
-    tagline:"Sleep & Recovery",
-    description:"The body repairs, consolidates memory, and recalibrates the nervous system during deep sleep. Every formula in the QL Rest range is built around compounds that research consistently links to sleep quality, circadian alignment, and overnight recovery.",
-    products:[
-      { name:"QL Rest · Deep Sleep Complex", benefit:"Magnesium glycinate and L-theanine — supports sleep onset and deep-wave restoration", tag:"Bestseller" },
-      { name:"QL Rest · Evening Calm", benefit:"Ashwagandha and chamomile — reduces evening cortisol for genuine wind-down", tag:"Member favourite" },
-    ],
-    discount:"20% member saving",
-    comingSoon:true,
-  },
-  {
-    lawNum:"02", lawTitle:"Quantum Breath", icon:"🌿", color:"#34D399",
-    tagline:"Oxygen & Vitality",
-    description:"The lungs are the body's primary interface with the environment. The QL Breath range supports respiratory function, oxygen utilisation, and the sustained energy that comes from breathing well — day and night.",
-    products:[
-      { name:"QL Breath · Vitality Stack", benefit:"Maca root and rhodiola — adaptogenic energy and altitude-equivalent endurance support", tag:"Daily essential" },
-      { name:"QL Breath · Clarity Blend", benefit:"Eucalyptus and peppermint — promotes nasal clarity and alert focus throughout the day", tag:"Natural" },
-    ],
-    discount:"20% member saving",
-    comingSoon:true,
-  },
-  {
-    lawNum:"03", lawTitle:"Quantum Balance", icon:"⚖️", color:"#F59E0B",
-    tagline:"Harmony & Restoration",
-    description:"Temperance is not deprivation — it is calibration. The QL Balance range uses botanicals with the deepest research backing for mood stability, stress adaptation, and the neurological conditions that allow sustained mental clarity.",
-    products:[
-      { name:"QL Balance · Mind Formula", benefit:"Saffron and lion's mane — dual-pathway mood and neuroplasticity support", tag:"Clinical grade" },
-      { name:"QL Balance · Adaptogen Tincture", benefit:"Holy basil (tulsi) and ashwagandha — ancient resilience support with modern validation", tag:"Organic" },
-    ],
-    discount:"20% member saving",
-    comingSoon:true,
-  },
-  {
-    lawNum:"04", lawTitle:"Quantum Motion", icon:"⚡", color:"#00C8FF",
-    tagline:"Performance & Recovery",
-    description:"Movement is the brain's most reliable cognitive enhancer. The QL Motion range supports both the performance phase and the recovery phase — without synthetic stimulants, without compromise.",
-    products:[
-      { name:"QL Motion · Performance Blend", benefit:"Beetroot and cordyceps — natural nitric oxide support and endurance from the ground up", tag:"Pre-movement" },
-      { name:"QL Motion · Recovery Formula", benefit:"Turmeric and ginger — anti-inflammatory support for joints, muscles, and overnight repair", tag:"Post-movement" },
-    ],
-    discount:"20% member saving",
-    comingSoon:true,
-  },
-  {
-    lawNum:"05", lawTitle:"Quantum Fuel", icon:"🌱", color:"#A78BFA",
-    tagline:"Nourishment & Clarity",
-    description:"The Quantum Plate principle: whole food first, supplementation as precision support. The QL Fuel range provides the micronutrient density and cognitive building blocks that modern diets consistently fall short of.",
-    products:[
-      { name:"QL Fuel · Green Superfood", benefit:"Spirulina and chlorella — the most nutrient-dense plant matter on earth, concentrated", tag:"Pure plant" },
-      { name:"QL Fuel · Brain Oil", benefit:"Omega-3 algae DHA — the structural fat of the brain, 100% vegan and sustainably sourced", tag:"Cognitive" },
-    ],
-    discount:"20% member saving",
-    comingSoon:true,
-  },
+// ── Stroop data ───────────────────────────────────────────────────────────
+const STROOP_COLORS = [
+  { name:"RED",   hex:"#EF4444" },
+  { name:"BLUE",  hex:"#3B82F6" },
+  { name:"GREEN", hex:"#22C55E" },
+  { name:"AMBER", hex:"#F59E0B" },
 ];
+function genStroopRound(){
+  const ink  = STROOP_COLORS[Math.floor(Math.random()*STROOP_COLORS.length)];
+  let word   = STROOP_COLORS[Math.floor(Math.random()*STROOP_COLORS.length)];
+  if(Math.random()<0.75){ while(word.name===ink.name) word=STROOP_COLORS[Math.floor(Math.random()*STROOP_COLORS.length)]; }
+  return { word:word.name, inkColor:ink.hex, inkName:ink.name };
+}
 
-
-export default function QuantumLiving({ onBack, archetype }) {
-  const [activeLaw, setActiveLaw] = useState(null);
-  const [activeShop, setActiveShop] = useState(false);
-  const [bodyZone, setBodyZone] = useState(null);    // which body zone is active (0/1/2 or null)
-  const [natureExpanded, setNatureExpanded] = useState(false); // nature's wisdom expand toggle
-  const todayKey = new Date().toISOString().split("T")[0]; // "2026-02-25"
-
-  const [checklist, setChecklist] = useState(() => {
-    try {
-      const saved = JSON.parse(localStorage.getItem("lqm_living") || "{}");
-      // Only restore ticks if they were saved TODAY
-      if(saved.checklistDate === todayKey && Array.isArray(saved.checklist)) {
-        // Sanitize: only today's law index can be true — prevents multi-tick
-        // corruption from any previous session where DAY_NUM rotated intra-day
-        const safeLawIdx = DAY_NUM % 5;
-        return saved.checklist.map((v, i) => i === safeLawIdx ? v : false);
-      }
-    } catch{}
-    return [false,false,false,false,false];
-  });
-
-  const [streak, setStreak] = useState(() => {
-    try { return JSON.parse(localStorage.getItem("lqm_living")||"{}").streak || 0; } catch{ return 0; }
-  });
-  const [challengeData, setChallengeData] = useState(null);
-  const [showMilestone, setShowMilestone] = useState(null);
-  const arch = archetype || null;
-
-  const ARCH_NAMES  = {A:"Systems Architect", B:"Deep Learner", C:"Relational Catalyst", D:"Visionary Pioneer"};
-  const ARCH_COLORS = {A:"#00C8FF", B:"#38BDF8", C:"#34D399", D:"#A78BFA"};
-  const archColor   = arch ? ARCH_COLORS[arch] : E_BLUE;
-  const archName    = arch ? ARCH_NAMES[arch]  : "Your Archetype";
-
-  // Which law is featured today — rotates through 5 on a 5-day cycle
-  const todayLawIdx = DAY_NUM % 5;
-  const todayLaw    = LAWS[todayLawIdx];
-  const todayArchNote = arch && ARCH_LAW_NOTES[arch] ? ARCH_LAW_NOTES[arch][todayLawIdx] : null;
-
-  // Daily archetype-specific micro-tip (rotates independently each day)
-  const ARCH_DAILY = {
-    A: [
-      "Schedule your outdoor break the same way you schedule a meeting — 20 minutes, same time daily. Consistency is your system.",
-      "Sleep is your system's maintenance window. No great architecture runs without downtime. Protect 8 hours tonight.",
-      "Batch your meals for the week tonight. One decision, seven days of optimal fuel. This is how you eat like a Systems Architect.",
-      "Build a movement trigger: every time you close your laptop, stand up and walk for 5 minutes. Habit stacking is your edge.",
-      "Your temperance practice today: identify one thing you are overdoing and one thing you are underdoing. Rebalance one of them.",
-    ],
-    B: [
-      "Your best insight this week is waiting at the end of a 20-minute outdoor walk. Leave the podcast. Think with your feet.",
-      "The research you're chasing at midnight will be there at 6am — rested. Set a hard stop tonight.",
-      "For every 3 things you read today, apply or share one. That is your temperance in action.",
-      "Movement is cognitive enhancement. A 20-minute walk before your deep work session will improve it measurably.",
-      "Simplify today's eating: one meal with no screen, no decision — just presence and whole food.",
-    ],
-    C: [
-      "Invite someone to walk with you today. Fresh air + connection = double the return on 20 minutes.",
-      "Before bed tonight: write one thing resolved and one thing you choose to release until tomorrow. Clear the relational slate.",
-      "You cannot pour from empty. Protecting your energy today is not selfish — it is the prerequisite to giving well.",
-      "Find a movement partner this week. Group exercise transforms obligation into connection for your archetype.",
-      "Eat one meal today with someone you care about, fully present, no phones. This is nourishment in every sense.",
-    ],
-    D: [
-      "Take your thinking outside today. Novel environments activate novel neural pathways — your next idea is outdoors.",
-      "Set a hard stop for creative work tonight — same time as last night. Your best vision comes from a rested brain.",
-      "Sustainable intensity outlasts explosive bursts. Where are you burning too hot right now?",
-      "Change your movement route today. New environment, new stimulation — design movement the way you design everything.",
-      "Prepare your food environment now so when flow is interrupted, the best choice is the obvious choice.",
-    ],
-  };
-  const dailyArchTip = arch && ARCH_DAILY[arch]
-    ? ARCH_DAILY[arch][DAY_NUM % 5]
-    : null;
-
-  // Initialize challenge
-  useEffect(() => {
-    let data = getChallengeData("quantum");
-    if (!data) data = enrollInChallenge("quantum", archetype || "unknown");
-    setChallengeData(data);
-  }, [archetype]);
-
-  // Animations
-  useEffect(()=>{
-    const id = "quantum-living-styles";
-    if(document.getElementById(id)) return;
-    const s = document.createElement("style");
-    s.id = id;
-    s.textContent = `
-      @keyframes fadeUp{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}
-      @keyframes leafFall{from{transform:translateY(-100px) rotate(0deg);opacity:0;}to{transform:translateY(100vh) rotate(720deg);opacity:0.12;}}
-      @keyframes moonGlow{0%,100%{filter:drop-shadow(0 0 8px rgba(129,140,248,0.6));transform:scale(1);}50%{filter:drop-shadow(0 0 16px rgba(129,140,248,0.9));transform:scale(1.05);}}
-      @keyframes leafSway{0%,100%{transform:rotate(-5deg) translateY(0);}50%{transform:rotate(5deg) translateY(-3px);}}
-      @keyframes scalesTilt{0%,100%{transform:rotate(0deg);}25%{transform:rotate(-8deg);}50%{transform:rotate(0deg);}75%{transform:rotate(8deg);}}
-      @keyframes lightningPulse{0%,100%{filter:drop-shadow(0 0 4px rgba(251,191,36,0.6));opacity:1;}50%{filter:drop-shadow(0 0 12px rgba(251,191,36,1));opacity:0.8;}}
-      @keyframes fruitShine{0%,100%{filter:brightness(1) drop-shadow(0 0 4px rgba(52,211,153,0.4));}50%{filter:brightness(1.2) drop-shadow(0 0 8px rgba(52,211,153,0.6));}}
-      .law-icon-0{animation:moonGlow 3s ease-in-out infinite;}
-      .law-icon-1{animation:leafSway 4s ease-in-out infinite;}
-      .law-icon-2{animation:scalesTilt 5s ease-in-out infinite;}
-      .law-icon-3{animation:lightningPulse 2s ease-in-out infinite;}
-      .law-icon-4{animation:fruitShine 3s ease-in-out infinite;}
-      @keyframes focusPulse{0%,100%{box-shadow:0 0 0 0 rgba(255,255,255,0.0);}60%{box-shadow:0 0 0 8px rgba(255,255,255,0.04);}}
-      @keyframes focusGlow{0%,100%{opacity:0.7;}50%{opacity:1;}}
-      .focus-law-item{animation:focusPulse 2.5s ease-in-out infinite;}
-      @keyframes todayRing{0%{transform:scale(1);opacity:0.9;}50%{transform:scale(1.18);opacity:0.35;}100%{transform:scale(1);opacity:0.9;}}
-      @keyframes todayBadge{0%,100%{opacity:0.8;transform:scale(1);}50%{opacity:1;transform:scale(1.06);}}
-      @keyframes shopGlow{0%,100%{box-shadow:0 0 0 0 rgba(52,211,153,0.0);border-color:rgba(52,211,153,0.25);}50%{box-shadow:0 0 20px rgba(52,211,153,0.2);border-color:rgba(52,211,153,0.55);}}
-      @keyframes pct20Pulse{0%,100%{color:#ffffff;text-shadow:0 0 8px rgba(255,255,255,0.3);}50%{color:#34D399;text-shadow:0 0 20px rgba(52,211,153,0.8),0 0 40px rgba(52,211,153,0.3);}}
-      @keyframes hiCardPulse{0%,100%{border-color:rgba(200,185,154,0.18);box-shadow:none;}50%{border-color:rgba(200,185,154,0.42);box-shadow:0 0 12px rgba(200,185,154,0.1);}}
-      @keyframes guidePulse{0%,100%{opacity:0.5;transform:translateX(0);}50%{opacity:1;transform:translateX(3px);}}
-      @keyframes todayDone{0%,100%{opacity:0.7;transform:scale(1);}50%{opacity:1;transform:scale(1.1);}}
-      @keyframes orbIdle{0%,100%{transform:scale(1);filter:brightness(1);}50%{transform:scale(1.07);filter:brightness(1.35);}}
-      @keyframes orbBloom{0%{transform:scale(1);}40%{transform:scale(1.12);}100%{transform:scale(1.06);}}
-      @keyframes orbRing{0%{transform:scale(1);opacity:0.6;}100%{transform:scale(2.2);opacity:0;}}
-    `;
-    document.head.appendChild(s);
-    return () => { const el = document.getElementById(id); if(el) el.remove(); };
-  }, []);
-
-  const score   = checklist.filter(Boolean).length;
-  const allDone = score === 5;
-
-  function toggleCheck(i) {
-    // Focus law: once ticked, lock it — cannot un-tick (streak is logged)
-    if(i === todayLawIdx && checklist[i] === true) return;
-
-    const n = [...checklist];
-    n[i] = !n[i];
-    setChecklist(n);
-
-    // Always persist checklist state with today's date
-    try {
-      const saved = JSON.parse(localStorage.getItem("lqm_living") || "{}");
-      localStorage.setItem("lqm_living", JSON.stringify({
-        ...saved,
-        checklist: n,
-        checklistDate: todayKey
-      }));
-    } catch{}
-
-    // Streak only triggers when TODAY'S FOCUS LAW is first ticked
-    if(i === todayLawIdx && n[i] === true) {
-      try {
-        const saved = JSON.parse(localStorage.getItem("lqm_living") || "{}");
-        // Guard: don't double-count if already logged today
-        if(saved.lastDay === todayKey) return;
-        localStorage.setItem("lqm_living", JSON.stringify({
-          ...saved,
-          checklist: n,
-          checklistDate: todayKey,
-          streak: streak + 1,
-          lastDay: todayKey
-        }));
-      } catch{}
-      setStreak(s => s + 1);
-      playQuantumSound();
-      const updated = updateChallengeProgress("quantum");
-      if(updated){
-        setChallengeData(updated);
-        trackQuantumDay(n.filter(Boolean).length, updated.daysCompleted?.length || 0);
-        if(updated.currentDay >= 7  && !updated.milestones.day_7.unlocked)  { playMilestoneSound(); setShowMilestone("day7");  }
-        else if(updated.currentDay >= 14 && !updated.milestones.day_14.unlocked) { playMilestoneSound(); setShowMilestone("day14"); }
-        else if(updated.currentDay >= 21 && !updated.milestones.day_21.unlocked) { playMilestoneSound(); setShowMilestone("day21"); }
-      }
+// ── N-Back data ───────────────────────────────────────────────────────────
+const NBACK_COLORS = ["#EF4444","#3B82F6","#22C55E","#F59E0B","#A78BFA","#F472B6"];
+function genNBackSequence(length=14,n=2){
+  const seq=[];
+  for(let i=0;i<length;i++){
+    if(i>=n&&Math.random()<0.35){
+      seq.push({...seq[i-n],isMatch:true});
+    } else {
+      let item;
+      do { item={color:NBACK_COLORS[Math.floor(Math.random()*NBACK_COLORS.length)],pos:Math.floor(Math.random()*9)}; }
+      while(i>=n&&item.pos===seq[i-n].pos&&item.color===seq[i-n].color);
+      seq.push({...item,isMatch:false});
     }
   }
+  return seq;
+}
 
-  if (activeLaw !== null) return <LawDetail law={LAWS[activeLaw]} arch={arch} onBack={()=>setActiveLaw(null)}></LawDetail>;
-  if (activeShop) return <QuantumShop onBack={()=>setActiveShop(false)} arch={arch} />;
+// ── Shape helper ──────────────────────────────────────────────────────────
+function ShapeEl({shape,color,size=36}){
+  const s={width:size,height:size,display:"flex",alignItems:"center",justifyContent:"center"};
+  if(shape==="circle")   return <div style={s}><div style={{width:size*.82,height:size*.82,borderRadius:"50%",background:color,boxShadow:`0 0 ${size*.3}px ${color}66`}}/></div>;
+  if(shape==="square")   return <div style={s}><div style={{width:size*.76,height:size*.76,background:color,borderRadius:4,boxShadow:`0 0 ${size*.3}px ${color}66`}}/></div>;
+  if(shape==="triangle") return <div style={s}><svg width={size*.86} height={size*.86} viewBox="0 0 40 40"><polygon points="20,3 37,37 3,37" fill={color}/><polygon points="20,3 37,37 3,37" fill="none" stroke={color} strokeWidth="1" opacity=".4"/></svg></div>;
+  if(shape==="diamond")  return <div style={s}><svg width={size*.86} height={size*.86} viewBox="0 0 40 40"><polygon points="20,2 38,20 20,38 2,20" fill={color}/></svg></div>;
+  return null;
+}
 
-  return (
-    <div style={{minHeight:"100vh", background:`radial-gradient(ellipse 80% 40% at 50% 0%,rgba(52,211,153,0.06) 0%,transparent 60%),${BG}`, fontFamily:"'Space Grotesk',sans-serif", color:WHITE, display:"flex", flexDirection:"column", alignItems:"center", padding:"0 16px 60px", position:"relative", overflow:"hidden"}}>
+// ── Pattern Matrix puzzles ────────────────────────────────────────────────
+const PATTERN_PUZZLES = [
+  // ── Original 4 puzzles ─────────────────────────────────────────────────
+  { grid:[{sh:"circle",co:"#EF4444"},{sh:"square",co:"#EF4444"},{sh:"triangle",co:"#EF4444"},{sh:"circle",co:"#3B82F6"},{sh:"square",co:"#3B82F6"},{sh:"triangle",co:"#3B82F6"},{sh:"circle",co:"#22C55E"},{sh:"square",co:"#22C55E"},null], answer:{sh:"triangle",co:"#22C55E"}, options:[{sh:"triangle",co:"#22C55E"},{sh:"diamond",co:"#22C55E"},{sh:"triangle",co:"#F59E0B"},{sh:"circle",co:"#22C55E"}], rule:"Each row cycles through three shapes. Each row has its own colour." },
+  { grid:[{sh:"diamond",co:"#F59E0B"},{sh:"diamond",co:"#EF4444"},{sh:"diamond",co:"#3B82F6"},{sh:"circle",co:"#F59E0B"},{sh:"circle",co:"#EF4444"},{sh:"circle",co:"#3B82F6"},{sh:"square",co:"#F59E0B"},{sh:"square",co:"#EF4444"},null], answer:{sh:"square",co:"#3B82F6"}, options:[{sh:"square",co:"#3B82F6"},{sh:"square",co:"#22C55E"},{sh:"circle",co:"#3B82F6"},{sh:"diamond",co:"#3B82F6"}], rule:"Each column has a unique colour. Each row uses the same shape." },
+  { grid:[{sh:"circle",co:"#EF4444"},{sh:"square",co:"#3B82F6"},{sh:"triangle",co:"#22C55E"},{sh:"square",co:"#22C55E"},{sh:"triangle",co:"#EF4444"},{sh:"circle",co:"#3B82F6"},{sh:"triangle",co:"#3B82F6"},{sh:"circle",co:"#22C55E"},null], answer:{sh:"square",co:"#EF4444"}, options:[{sh:"square",co:"#EF4444"},{sh:"square",co:"#22C55E"},{sh:"triangle",co:"#EF4444"},{sh:"circle",co:"#EF4444"}], rule:"Each shape and each colour appears exactly once per row and column." },
+  { grid:[{sh:"circle",co:"#A78BFA"},{sh:"circle",co:"#A78BFA"},{sh:"square",co:"#A78BFA"},{sh:"circle",co:"#F472B6"},{sh:"square",co:"#F472B6"},{sh:"square",co:"#F472B6"},{sh:"square",co:"#22C55E"},{sh:"square",co:"#22C55E"},null], answer:{sh:"circle",co:"#22C55E"}, options:[{sh:"circle",co:"#22C55E"},{sh:"square",co:"#22C55E"},{sh:"circle",co:"#F472B6"},{sh:"triangle",co:"#22C55E"}], rule:"Count shapes per row — each colour follows a 2-1 or 1-2 distribution pattern." },
+  // ── 8 new puzzles — 495 unique 4-from-12 combinations per session ──────
+  { grid:[{sh:"circle",co:"#3B82F6"},{sh:"square",co:"#EF4444"},{sh:"circle",co:"#3B82F6"},{sh:"square",co:"#EF4444"},{sh:"circle",co:"#3B82F6"},{sh:"square",co:"#EF4444"},{sh:"circle",co:"#3B82F6"},{sh:"square",co:"#EF4444"},null], answer:{sh:"circle",co:"#3B82F6"}, options:[{sh:"circle",co:"#3B82F6"},{sh:"square",co:"#3B82F6"},{sh:"circle",co:"#EF4444"},{sh:"square",co:"#EF4444"}], rule:"Two shapes alternate in a checkerboard pattern. Each shape keeps its own colour throughout." },
+  { grid:[{sh:"circle",co:"#F59E0B"},{sh:"square",co:"#F59E0B"},{sh:"triangle",co:"#F59E0B"},{sh:"circle",co:"#A78BFA"},{sh:"square",co:"#A78BFA"},{sh:"triangle",co:"#A78BFA"},{sh:"circle",co:"#3B82F6"},{sh:"square",co:"#3B82F6"},null], answer:{sh:"triangle",co:"#3B82F6"}, options:[{sh:"triangle",co:"#3B82F6"},{sh:"diamond",co:"#3B82F6"},{sh:"triangle",co:"#A78BFA"},{sh:"circle",co:"#3B82F6"}], rule:"Each row shares the same colour. Each column always shows the same shape." },
+  { grid:[{sh:"circle",co:"#EF4444"},{sh:"square",co:"#22C55E"},{sh:"triangle",co:"#3B82F6"},{sh:"square",co:"#EF4444"},{sh:"triangle",co:"#22C55E"},{sh:"circle",co:"#3B82F6"},{sh:"triangle",co:"#EF4444"},{sh:"circle",co:"#22C55E"},null], answer:{sh:"square",co:"#3B82F6"}, options:[{sh:"square",co:"#3B82F6"},{sh:"triangle",co:"#3B82F6"},{sh:"square",co:"#EF4444"},{sh:"circle",co:"#3B82F6"}], rule:"Each row shifts the shapes one position to the left. Colours stay fixed to their column." },
+  { grid:[{sh:"diamond",co:"#A78BFA"},{sh:"circle",co:"#EF4444"},{sh:"square",co:"#3B82F6"},{sh:"circle",co:"#F59E0B"},{sh:"square",co:"#22C55E"},{sh:"diamond",co:"#EF4444"},{sh:"diamond",co:"#A78BFA"},{sh:"circle",co:"#EF4444"},null], answer:{sh:"square",co:"#3B82F6"}, options:[{sh:"square",co:"#3B82F6"},{sh:"diamond",co:"#3B82F6"},{sh:"square",co:"#A78BFA"},{sh:"circle",co:"#3B82F6"}], rule:"The bottom row is an exact copy of the top row. The middle row is independent." },
+  { grid:[{sh:"circle",co:"#EF4444"},{sh:"square",co:"#3B82F6"},{sh:"triangle",co:"#22C55E"},{sh:"triangle",co:"#EF4444"},{sh:"circle",co:"#3B82F6"},{sh:"square",co:"#22C55E"},{sh:"square",co:"#EF4444"},{sh:"triangle",co:"#3B82F6"},null], answer:{sh:"circle",co:"#22C55E"}, options:[{sh:"circle",co:"#22C55E"},{sh:"triangle",co:"#22C55E"},{sh:"circle",co:"#3B82F6"},{sh:"diamond",co:"#22C55E"}], rule:"Each shape appears exactly 3 times across the full grid. Each colour appears exactly 3 times too." },
+  { grid:[{sh:"square",co:"#EF4444"},{sh:"square",co:"#EF4444"},{sh:"square",co:"#EF4444"},{sh:"square",co:"#EF4444"},{sh:"circle",co:"#3B82F6"},{sh:"square",co:"#EF4444"},{sh:"square",co:"#EF4444"},{sh:"square",co:"#EF4444"},null], answer:{sh:"square",co:"#EF4444"}, options:[{sh:"square",co:"#EF4444"},{sh:"circle",co:"#3B82F6"},{sh:"square",co:"#3B82F6"},{sh:"circle",co:"#EF4444"}], rule:"All 8 border cells share the same shape and colour. The centre cell is the exception. Complete the border." },
+  { grid:[{sh:"circle",co:"#3B82F6"},{sh:"square",co:"#EF4444"},{sh:"square",co:"#EF4444"},{sh:"circle",co:"#3B82F6"},{sh:"circle",co:"#3B82F6"},{sh:"square",co:"#EF4444"},{sh:"circle",co:"#3B82F6"},{sh:"circle",co:"#3B82F6"},null], answer:{sh:"circle",co:"#3B82F6"}, options:[{sh:"circle",co:"#3B82F6"},{sh:"square",co:"#EF4444"},{sh:"circle",co:"#EF4444"},{sh:"square",co:"#3B82F6"}], rule:"Each row, the number of circles increases by one (1→2→3). The number of squares decreases accordingly." },
+  { grid:[{sh:"circle",co:"#F59E0B"},{sh:"square",co:"#A78BFA"},{sh:"triangle",co:"#EF4444"},{sh:"triangle",co:"#F59E0B"},{sh:"circle",co:"#A78BFA"},{sh:"square",co:"#EF4444"},{sh:"square",co:"#F59E0B"},{sh:"triangle",co:"#A78BFA"},null], answer:{sh:"circle",co:"#EF4444"}, options:[{sh:"circle",co:"#EF4444"},{sh:"square",co:"#EF4444"},{sh:"circle",co:"#F59E0B"},{sh:"diamond",co:"#EF4444"}], rule:"Each row, the last shape moves to the front. Colours stay fixed to their column." },
+];
 
-      {/* Floating leaves */}
-      <div style={{position:"fixed",top:0,left:0,width:"100%",height:"100%",pointerEvents:"none",zIndex:0,opacity:0.12}}>
-        {[...Array(6)].map((_,i)=>(
-          <div key={i} style={{position:"absolute",left:`${10+i*16}%`,top:`${-20-i*15}%`,fontSize:18+i*3,animation:`leafFall ${22+i*4}s linear infinite`,animationDelay:`${i*3}s`}}>🍃</div>
+// ── Reaction shapes/colors ────────────────────────────────────────────────
+const REACTION_SHAPES = ["circle","square","diamond","triangle"];
+const REACTION_COLORS = ["#EF4444","#3B82F6","#22C55E","#F59E0B","#A78BFA"];
+
+// ── Cognitive Switch items ────────────────────────────────────────────────
+const SWITCH_ITEMS = [
+  {shape:"circle",color:"#EF4444",colorName:"Red"},{shape:"square",color:"#3B82F6",colorName:"Blue"},
+  {shape:"circle",color:"#22C55E",colorName:"Green"},{shape:"diamond",color:"#EF4444",colorName:"Red"},
+  {shape:"square",color:"#F59E0B",colorName:"Amber"},{shape:"triangle",color:"#3B82F6",colorName:"Blue"},
+  {shape:"diamond",color:"#22C55E",colorName:"Green"},{shape:"triangle",color:"#EF4444",colorName:"Red"},
+  {shape:"circle",color:"#F59E0B",colorName:"Amber"},{shape:"square",color:"#22C55E",colorName:"Green"},
+  {shape:"triangle",color:"#F59E0B",colorName:"Amber"},{shape:"diamond",color:"#3B82F6",colorName:"Blue"},
+];
+
+// ── Archetype personalisation ─────────────────────────────────────────────
+const ARCHETYPE_DATA = {
+  A: { name:"Systems Architect", color:"#00C8FF",
+    neuralProfile:"Systems Architects excel at pattern recognition and logical sequencing — your Matrix and Stroop scores reflect this natural precision.",
+    strengths:{"Stroop Challenge":"Your executive control is strong — you can override automatic responses. This is the same mental muscle that lets you stay systematic under pressure.","2-Back Test":"Working memory is your architecture. The ability to hold and update multiple information streams simultaneously underpins your systems thinking.","Pattern Matrix":"Visual logic is where your mind is most at home. Abstract rule-finding mirrors how you instinctively approach complex problems.","Reaction Velocity":"Systems types can overthink reactive decisions. If your reaction time was slower here, that's the same pattern showing up in real decisions.","Cognitive Switch":"Rule-switching is your edge — or your gap. Systems Architects who resist switching rules in real life miss adaptive opportunities.","Neural Defense":"Sustained attention under pressure is trainable. Systems minds that treat every wave as a distinct system perform better than those trying to 'win' the whole game."},
+    dailyEdge:"Your quantum edge today: build one system that eliminates a decision you currently make by willpower alone." },
+  B: { name:"Deep Learner", color:"#38BDF8",
+    neuralProfile:"Deep Learners show strong working memory and pattern depth — but may sacrifice speed for accuracy. Your 2-Back and Matrix scores are your cognitive signature.",
+    strengths:{"Stroop Challenge":"Deep Learners often outperform here — your capacity to process conflicting information without rushing is a genuine edge.","2-Back Test":"This is your natural domain. Holding multiple layers of information, updating and comparing — this is how your mind works when it's reading, researching, analysing.","Pattern Matrix":"Abstract reasoning at depth is your strongest cognitive instrument. You don't just find patterns — you understand the logic beneath them.","Reaction Velocity":"This may be your lowest score — and that's the data. Deep Learners can over-process before acting. Speed of first instinct is a trainable skill.","Cognitive Switch":"Switching rules requires releasing the current frame of reference. Deep Learners who struggle here may also resist pivoting on research they've invested in.","Neural Defense":"The game-like format may feel trivial compared to 'serious' challenges. That resistance is the data. Flow under pressure without intellectual validation is a muscle worth building."},
+    dailyEdge:"Your quantum edge today: take the first action on something you've been researching. 70% of information is enough. The rest is field data." },
+  C: { name:"Relational Catalyst", color:"#34D399",
+    neuralProfile:"Relational Catalysts bring high emotional processing capacity — your Focus Filter and Cognitive Switch scores reflect your sensitivity to contextual shifts.",
+    strengths:{"Stroop Challenge":"Social reading requires the same conflict resolution as the Stroop — you process emotional cues and spoken words simultaneously every day. That's this skill applied.","2-Back Test":"Relational working memory — tracking who said what, who needs what — is a unique form of N-Back. Your score reflects this capacity.","Pattern Matrix":"Pattern Matrix is a solo, emotionally neutral task — notice if your score dips here. The absence of social context can reduce Relational motivation.","Reaction Velocity":"Your interpersonal sensitivity makes you fast at reading emotional tone shifts. Does this translate to visual reaction speed? Compare your results.","Cognitive Switch":"Switching between contexts — professional to personal, supportive to assertive — is something you do naturally. Your score here should reflect that strength.","Neural Defense":"Sustained solo performance without external validation is harder for Relational types. If this felt draining, that's meaningful data about your motivational architecture."},
+    dailyEdge:"Your quantum edge today: tell one person specifically what you're working to improve. Verbal commitment is your highest-leverage accountability tool." },
+  D: { name:"Visionary Pioneer", color:"#A78BFA",
+    neuralProfile:"Visionary Pioneers show high creative reasoning — your Conceptual and Pattern scores reflect divergent thinking. Speed and consistency are the areas to develop.",
+    strengths:{"Stroop Challenge":"Visionaries who resist convention do well here — the ability to ignore the obvious answer and trust a different response mirrors creative thinking.","2-Back Test":"If this was your lowest score, that's meaningful data. Sustained, repetitive tracking without novelty is the opposite of what drives Visionaries. That's the gap to train.","Pattern Matrix":"Abstract visual reasoning is a Visionary strength — you think in concepts and futures. This task speaks your language.","Reaction Velocity":"Visionaries have fast instinct but can second-guess it. Your first response is often right. Your score here measures whether you trusted it.","Cognitive Switch":"Switching rules is natural for Visionaries — you reframe constantly. The challenge is switching when mid-flow on a creative idea. That's the real-world version of this test.","Neural Defense":"This is the most game-like challenge. Visionaries often excel here because the novelty and flow are motivating. Use this as evidence that sustained performance doesn't require 'important' stakes."},
+    dailyEdge:"Your quantum edge today: identify the one open project closest to completion. Give it 90 uninterrupted minutes before starting anything new." },
+};
+
+// ── Storage ───────────────────────────────────────────────────────────────
+function loadBrain(){ try{return JSON.parse(localStorage.getItem("lqm_brain")||"{}");}catch{return{};} }
+function saveBrain(d){ localStorage.setItem("lqm_brain",JSON.stringify(d)); }
+
+// ── Global styles ─────────────────────────────────────────────────────────
+function GlobalStyles(){
+  useEffect(()=>{
+    const id="brain-training-styles";
+    if(document.getElementById(id)) return;
+    const s=document.createElement("style");
+    s.id=id;
+    s.textContent=`
+      @keyframes fadeUp{from{opacity:0;transform:translateY(18px);}to{opacity:1;transform:translateY(0);}}
+      @keyframes popIn{0%{transform:scale(0.8);opacity:0;}100%{transform:scale(1);opacity:1;}}
+      @keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.35;}}
+      @keyframes scaleIn{from{transform:scale(1.15);opacity:0;}to{transform:scale(1);opacity:1;}}@keyframes flamePulse{0%,100%{filter:drop-shadow(0 0 2px #00C8FF) drop-shadow(0 0 5px rgba(0,200,255,0.35));transform:scaleY(1);}40%{filter:drop-shadow(0 0 5px #00C8FF) drop-shadow(0 0 14px rgba(0,200,255,0.65)) drop-shadow(0 0 26px rgba(0,200,255,0.25));transform:scaleY(1.06);}70%{filter:drop-shadow(0 0 3px #00C8FF) drop-shadow(0 0 8px rgba(0,200,255,0.45));transform:scaleY(0.97);}}@keyframes atomGlow{0%,100%{filter:drop-shadow(0 0 3px rgba(0,200,255,0.6)) drop-shadow(0 0 1px #fff);}50%{filter:drop-shadow(0 0 8px rgba(0,200,255,1)) drop-shadow(0 0 18px rgba(0,200,255,0.45)) drop-shadow(0 0 2px #fff);}}
+      .fu{animation:fadeUp .5s ease both;}
+      .fu1{animation:fadeUp .5s .08s ease both;}
+      .fu2{animation:fadeUp .5s .18s ease both;}
+      .fu3{animation:fadeUp .5s .3s ease both;}
+      .pop{animation:popIn .28s cubic-bezier(.34,1.56,.64,1) both;}
+      .pulse{animation:pulse 1.1s ease-in-out infinite;}
+      .scaleIn{animation:scaleIn .2s ease both;}
+    `;
+    document.head.appendChild(s);
+    return()=>{ const el=document.getElementById(id); if(el) el.remove(); };
+  },[]);
+  return null;
+}
+
+// ── Science card content ──────────────────────────────────────────────────
+const SCIENCE_CARDS = [
+  { round:1, icon:"🎨", name:"Stroop Challenge", tag:"Executive Function", color:E_BLUE,
+    headline:"Your brain reads automatically — and that's the challenge.",
+    science:"The Stroop Effect, documented by John Ridley Stroop in 1935, is one of the most replicated findings in cognitive psychology. When you see the word RED written in blue ink, your brain's reading process (fast and automatic) conflicts with colour-naming (slower and deliberate). Resolving this conflict directly exercises the anterior cingulate cortex — the brain's conflict-detection and executive control centre.",
+    task:"You will see a colour word written in a different ink colour. Tap the colour of the INK — not what the word says. You are scored on speed and accuracy. The faster the correct answer, the higher your score.",
+    metric:"Brain region trained: Prefrontal cortex · Anterior cingulate cortex · Executive function" },
+  { round:2, icon:"🧠", name:"2-Back Test", tag:"Working Memory", color:VIOLET,
+    headline:"The gold standard of working memory training in modern neuroscience.",
+    science:"The N-Back task, developed by Kirchner (1958) and studied extensively by Jaeggi et al. (2008), is the most researched cognitive training exercise available. In a 2-Back, you must decide whether each new stimulus matches what appeared two steps earlier — forcing the brain to simultaneously hold, update, and compare information. Regular training is associated with measurable improvements in fluid intelligence.",
+    task:"SIMPLE RULE: A coloured square appears in the grid. If its POSITION matches where a square appeared TWO items ago, press MATCH. Ignore the colour — only position matters. Example: Square appears top-left, then bottom-right, then top-left again → MATCH (same position as 2 steps back). The first two items are just for memorising — matching starts from item 3 onwards.",
+    metric:"Brain region trained: Dorsolateral prefrontal cortex · Working memory · Fluid intelligence" },
+  { round:3, icon:"🔷", name:"Pattern Matrix", tag:"Spatial Reasoning", color:GREEN,
+    headline:"Abstract visual reasoning — the purest measure of fluid intelligence.",
+    science:"Visual matrix reasoning, similar to Raven's Progressive Matrices (1936), is one of the most reliable measures of fluid intelligence — the capacity to reason through novel problems without relying on stored knowledge. It activates the parietal cortex and is strongly associated with creative problem-solving, academic performance, and strategic thinking. It is considered culturally and linguistically neutral.",
+    task:"A 3×3 grid of coloured shapes is shown with one piece missing. Study the pattern — the rule governs both shape and colour. Select the correct missing piece. A hint is available if needed.",
+    metric:"Brain region trained: Parietal cortex · Fluid intelligence · Abstract pattern recognition" },
+  { round:4, icon:"⚡", name:"Reaction Velocity", tag:"Processing Speed", color:AMBER,
+    headline:"How fast your brain detects, decides, and acts — a core cognitive marker.",
+    science:"Reaction time has been measured since Francis Galton's work in the 1880s and consistently correlates with overall cognitive performance, executive function, and long-term cognitive health. Processing speed — how fast the brain encodes and responds to stimuli — is one of the first metrics to improve with regular cognitive training. Elite performers across high-stakes professions show measurably faster reaction times.",
+    task:"A coloured shape will appear after a random delay. Tap it as fast as possible. Do not tap during the waiting period — false starts are penalised. Your millisecond reaction time is measured and scored.",
+    metric:"Brain region trained: Motor cortex · Visual cortex · Perceptual processing speed" },
+  { round:5, icon:"🔄", name:"Cognitive Switch", tag:"Mental Flexibility", color:RED,
+    headline:"Switching mental gears without losing accuracy — a rare and trainable skill.",
+    science:"Task-switching ability, researched extensively by Monsell (2003), is a core component of executive function. Switching between active rules creates a measurable 'switch cost' — a brief delay and increased error rate as the brain reconfigures. People with high cognitive flexibility show significantly smaller switch costs. This skill directly predicts performance in dynamic, ambiguous, high-stakes environments.",
+    task:"A shape in a colour will be shown. The active rule changes mid-task. When the rule is SHAPE — tap the button matching the shape. When the rule is COLOUR — tap the button matching the colour. The rule switches without warning.",
+    metric:"Brain region trained: Anterior cingulate cortex · Prefrontal cortex · Cognitive flexibility" },
+  { round:6, icon:"🛡️", name:"Neural Defense", tag:"Sustained Attention", color:"#8B5CF6",
+    headline:"Real-time visual tracking and reaction under sustained pressure.",
+    science:"Action video game research by Bavelier et al. (2003, 2012) demonstrates significant improvements in visual attention, multiple object tracking, and reaction time. Unlike isolated reaction tests, sustained gameplay requires continuous vigilance, spatial prediction, and rapid target acquisition — training the brain's attentional networks under dynamic conditions. This transfers to real-world performance in high-stakes, fast-moving environments.",
+    task:"Shapes fall from above. Move your shield left and right, then tap to block them before they reach the bottom. Three waves with increasing speed. Your reaction time, accuracy, and sustained attention are measured throughout.",
+    metric:"Brain region trained: Visual cortex · Parietal cortex · Sustained attention networks" },
+];
+
+// ── Difficulty Selection Component ───────────────────────────────────────
+function DifficultySelection({onSelect}){
+  return(
+    <div style={{animation:"fadeUp .6s ease both",maxWidth:520,margin:"0 auto"}}>
+      <div style={{textAlign:"center",marginBottom:40}}>
+        <p style={{fontSize:14,fontWeight:700,color:E_BLUE,letterSpacing:".12em",textTransform:"uppercase",marginBottom:12}}>⚡ Choose Your Challenge Level</p>
+        <h1 style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"clamp(32px,7vw,48px)",letterSpacing:2,color:WHITE,marginBottom:12}}>Brain Training</h1>
+        <p style={{fontFamily:"'Crimson Pro',serif",fontStyle:"italic",fontSize:18,color:MUTED,lineHeight:1.75}}>Select the difficulty that feels right for you. You can always change this later.</p>
+      </div>
+
+      <div style={{display:"flex",flexDirection:"column",gap:14}}>
+        {Object.entries(DIFFICULTY).map(([key,diff])=>(
+          <button key={key} onClick={()=>onSelect(key)} 
+            style={{background:`linear-gradient(135deg,${diff.color}08,${diff.color}03)`,
+              border:`2px solid ${diff.color}44`,borderRadius:16,padding:"24px 26px",textAlign:"left",cursor:"pointer",
+              transition:"all .25s ease",display:"flex",flexDirection:"column",gap:10}}
+            onMouseEnter={e=>{e.currentTarget.style.borderColor=diff.color;e.currentTarget.style.transform="translateY(-3px)";e.currentTarget.style.boxShadow=`0 8px 24px ${diff.color}33`;}}
+            onMouseLeave={e=>{e.currentTarget.style.borderColor=`${diff.color}44`;e.currentTarget.style.transform="translateY(0)";e.currentTarget.style.boxShadow="none";}}>
+            <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+              <span style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:26,letterSpacing:2,color:diff.color}}>{diff.name}</span>
+              <span style={{fontSize:24}}>→</span>
+            </div>
+            <p style={{fontSize:16,color:MUTED,lineHeight:1.65,margin:0}}>{diff.desc}</p>
+          </button>
         ))}
       </div>
 
+      <div style={{marginTop:32,padding:"18px 20px",background:"rgba(255,255,255,0.03)",border:`1px solid ${BORDER2}`,borderRadius:12}}>
+        <p style={{fontSize:14,color:DIMMED,lineHeight:1.7,margin:0,textAlign:"center"}}>
+          <strong style={{color:MUTED}}>Not sure?</strong> Start with <span style={{color:E_BLUE,fontWeight:600}}>Standard</span>. You'll know within a few rounds if you want more challenge or a gentler pace.
+        </p>
+      </div>
+    </div>
+  );
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// MAIN COMPONENT
+// ════════════════════════════════════════════════════════════════════════════
+
+// ── FlameIcon — white-core blue flame, pulsating glow ──
+function FlameIcon({size=16}) {
+  const w = Math.round(size * 0.75);
+  return (
+    <svg width={w} height={size} viewBox="0 0 15 20"
+      style={{display:"inline-block",verticalAlign:"middle",flexShrink:0,
+        transformOrigin:"center bottom",
+        animation:"flamePulse 1.9s ease-in-out infinite"}}>
+      <path d="M7.5 1C7.5 1 4.5 4.5 4.5 8C4.5 8 3 6 3.5 3.5C1 5.5 1 9.5 3 11.5C2 13 2 15 3 16.5C4.2 18.5 5.8 19.5 7.5 19.5C9.2 19.5 10.8 18.5 12 16.5C13 15 13 13 12 11.5C14 9.5 14 5.5 11.5 3.5C12 6 10.5 8 10.5 8C10.5 4.5 7.5 1 7.5 1Z"
+        fill="#7DD3FC" opacity="0.92"/>
+      <path d="M7.5 8C7.5 8 6 10 6 12C6 12 5 11 5.5 9.5C4 11 4.5 13.5 6 15C6.5 16 7 17 7.5 17C8 17 8.5 16 9 15C10.5 13.5 11 11 9.5 9.5C10 11 9 12 9 12C9 10 7.5 8 7.5 8Z"
+        fill="#FFFFFF" opacity="0.96"/>
+    </svg>
+  );
+}
+
+// ── AtomIcon — glowing nucleus with three orbits, representing thought & life ──
+function AtomIcon({size=16}) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24"
+      style={{display:"inline-block",verticalAlign:"middle",flexShrink:0,
+        animation:"atomGlow 2.4s ease-in-out infinite"}}>
+      <ellipse cx="12" cy="12" rx="10.5" ry="3.8" fill="none" stroke="#00C8FF" strokeWidth="1.1" opacity="0.85"/>
+      <ellipse cx="12" cy="12" rx="10.5" ry="3.8" fill="none" stroke="#7DD3FC" strokeWidth="0.9" opacity="0.65" transform="rotate(60 12 12)"/>
+      <ellipse cx="12" cy="12" rx="10.5" ry="3.8" fill="none" stroke="#BAE6FD" strokeWidth="0.8" opacity="0.50" transform="rotate(120 12 12)"/>
+      <circle cx="22.5" cy="12" r="1.6" fill="#00C8FF" opacity="0.9"/>
+      <circle cx="7.25" cy="5.05" r="1.4" fill="#7DD3FC" opacity="0.78"/>
+      <circle cx="7.25" cy="18.95" r="1.3" fill="#BAE6FD" opacity="0.65"/>
+      <circle cx="12" cy="12" r="2.6" fill="#FFFFFF" opacity="0.98"/>
+      <circle cx="12" cy="12" r="1.4" fill="#00C8FF" opacity="0.5"/>
+    </svg>
+  );
+}
+
+// ── BTIcon — renders custom SVG for 🧠 and 🔥, emoji for all others ──
+function BTIcon({icon, size=18}) {
+  if (icon === "🧠") return <AtomIcon size={size}/>;
+  if (icon === "🔥") return <FlameIcon size={size}/>;
+  return <span style={{fontSize:size}}>{iconStr}</span>;
+}
+export default function BrainTraining({ onBack, archetype }){
+  const [screen,  setScreen]  = useState("difficulty");
+  const [difficulty, setDifficulty] = useState(null);
+  const [round,   setRound]   = useState(0);
+  const [scores,  setScores]  = useState([]);
+  const [isQuickPlay, setIsQuickPlay] = useState(false);
+  const [fromRecall, setFromRecall] = useState(false); // true when viewing last session results — back goes to intro not hub
+  const [userData,setUserData]= useState(loadBrain);
+  const [dailyAction]         = useState(()=>DAILY_ACTIONS[new Date().getDay()]);
+  const [challengeData, setChallengeData] = useState(null);
+  // const [showMilestone, setShowMilestone] = useState(null); // Disabled for now
+  const arch = archetype && ARCHETYPE_DATA[archetype] ? ARCHETYPE_DATA[archetype] : null;
+
+  // Initialize 21-day challenge on mount
+  useEffect(() => {
+    let data = getChallengeData("brain");
+    if (!data) {
+      data = enrollInChallenge("brain", archetype || "unknown");
+    }
+    setChallengeData(data);
+  }, [archetype]);
+
+  const totalXP = userData.totalXP||0;
+  const streak  = userData.streak||0;
+  const level   = getLevel(totalXP);
+
+  function handleRoundComplete(score,label,reactionMs,accuracy){
+    const newScores=[...scores,{label,score,reactionMs,accuracy}];
+    setScores(newScores);
+    
+    // Track individual challenge completion
+    trackChallengeResult(label, score, reactionMs, accuracy, difficulty);
+    
+    // Play success sound for completing a challenge
+    playSuccessSound();
+    
+    if(round<5){ 
+      setRound(round+1); 
+      setScreen("science"); 
+    }
+    else {
+      const total=newScores.reduce((a,s)=>a+s.score,0);
+
+      // Quick Play: score goes to Results display only — no XP, no streak, no persistence
+      if(!isQuickPlay){
+        const today=new Date().toISOString().split("T")[0];
+        const yesterday=new Date(Date.now()-86400000).toISOString().split("T")[0];
+        const newStreak=userData.lastDay===yesterday?streak+1:userData.lastDay===today?streak:1;
+        const bonus=Math.floor(total*(newStreak*0.05));
+        const final=total+bonus;
+        const updated={totalXP:totalXP+final,streak:newStreak,lastDay:today,bestScore:Math.max(final,userData.bestScore||0),lastSession:{scores:newScores,total,date:today}};
+        
+        // Check for level up
+        const oldLevel = getLevel(totalXP);
+        const newLevel = getLevel(updated.totalXP);
+        if(newLevel.name !== oldLevel.name){
+          trackLevelUp(newLevel.name, updated.totalXP);
+          playLevelUpSound();
+        }
+        
+        setUserData(updated); 
+        saveBrain(updated);
+        
+        const avgScore = Math.round(total / newScores.length);
+        trackSessionComplete(total, avgScore, difficulty);
+        
+        playCelebrationSound();
+        
+        // 21-day challenge progress — full sessions only
+        const updatedChallenge = updateChallengeProgress("brain");
+        if(updatedChallenge){
+          setChallengeData(updatedChallenge);
+          
+          // Store baseline scores if this is first session — label-matched for order safety
+          if(updatedChallenge.sessionsCompleted === 1){
+            const findScore = (label, field="score") => newScores.find(s=>s.label===label)?.[field] || 0;
+            const baselineScores = {
+              stroop:   findScore("Stroop Challenge"),
+              nback:    findScore("2-Back Test"),
+              matrix:   findScore("Pattern Matrix"),
+              reaction: findScore("Reaction Velocity", "reactionMs"),
+              switch:   findScore("Cognitive Switch"),
+              defense:  findScore("Neural Defense"),
+            };
+            storeBaselineScores("brain", baselineScores);
+          }
+          
+          // Milestone tracking
+          if(updatedChallenge.currentDay >= 7 && !updatedChallenge.milestones.day_7.unlocked){
+            playMilestoneSound();
+          } else if(updatedChallenge.currentDay >= 14 && !updatedChallenge.milestones.day_14.unlocked){
+            playMilestoneSound();
+          } else if(updatedChallenge.currentDay >= 21 && !updatedChallenge.milestones.day_21.unlocked){
+            playMilestoneSound();
+          }
+        }
+      }
+      
+      setScreen("results");
+    }
+  }
+
+  function startProtocol(){ setIsQuickPlay(false); setRound(0); setScores([]); setScreen("science"); }
+
+  return(
+    <div style={{minHeight:"100vh",background:`radial-gradient(ellipse 70% 35% at 50% 0%,rgba(0,200,255,0.07) 0%,transparent 55%),${BG}`,fontFamily:"'Space Grotesk',sans-serif",color:WHITE,display:"flex",flexDirection:"column",alignItems:"center",padding:"0 0 60px"}}>
+      <GlobalStyles/>
       {/* Header */}
-      <div style={{width:"100%",borderBottom:`1px solid ${BORDER}`,padding:"12px 20px",display:"flex",alignItems:"center",justifyContent:"space-between",background:"rgba(7,15,30,0.9)",backdropFilter:"blur(14px)",position:"sticky",top:0,zIndex:100}}>
-        <button onClick={onBack} style={{background:"rgba(52,211,153,0.08)",border:"1px solid rgba(52,211,153,0.35)",borderRadius:100,padding:"8px 18px",color:GREEN,fontSize:13,fontWeight:700,cursor:"pointer",fontFamily:"'Space Grotesk',sans-serif",letterSpacing:".04em",transition:"all .18s"}} onMouseEnter={e=>{e.currentTarget.style.background="rgba(52,211,153,0.18)";e.currentTarget.style.borderColor="rgba(52,211,153,0.7)";}} onMouseLeave={e=>{e.currentTarget.style.background="rgba(52,211,153,0.08)";e.currentTarget.style.borderColor="rgba(52,211,153,0.35)";}}>← Back</button>
-        <div style={{display:"flex",alignItems:"center",gap:8}}>
-          <span style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:18,letterSpacing:2,color:WHITE}}>LQM</span>
-          <span style={{fontSize:14,color:GREEN,fontWeight:700,letterSpacing:".1em"}}>QUANTUM LIVING</span>
+      <div style={{width:"100%",borderBottom:`1px solid ${BORDER}`,padding:"11px 20px",display:"flex",alignItems:"center",justifyContent:"space-between",background:"rgba(7,15,30,0.92)",backdropFilter:"blur(16px)",position:"sticky",top:0,zIndex:100}}>
+        <button onClick={onBack} style={{background:"rgba(0,200,255,0.07)",border:"1px solid rgba(0,200,255,0.32)",borderRadius:100,padding:"7px 18px",color:E_BLUE,fontSize:13,fontWeight:700,cursor:"pointer",fontFamily:"'Space Grotesk',sans-serif",letterSpacing:".04em",transition:"all .18s"}} onMouseEnter={e=>{e.currentTarget.style.background="rgba(0,200,255,0.16)";e.currentTarget.style.borderColor="rgba(0,200,255,0.65)";}} onMouseLeave={e=>{e.currentTarget.style.background="rgba(0,200,255,0.07)";e.currentTarget.style.borderColor="rgba(0,200,255,0.32)";}}>← Back</button>
+        <div style={{display:"flex",alignItems:"center",gap:7}}>
+          <span style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:19,letterSpacing:2,color:WHITE}}>LQM</span>
+          <span style={{fontSize:14,color:E_BLUE,fontWeight:700,letterSpacing:".12em"}}>BRAIN TRAINING</span>
         </div>
-        <div style={{display:"flex",gap:8,alignItems:"center"}}>
-          <span style={{fontSize:13,fontWeight:700,color:checklist[todayLawIdx]?GREEN:MUTED}}>
-            {checklist[todayLawIdx]?"1":"0"}{" of 1 🔥"}
-          </span>
-          <span style={{fontSize:12,color:DIMMED}}>+</span>
-          <span style={{fontSize:13,fontWeight:700,color:AMBER}}>
-            {checklist.filter((v,i)=>v && i!==todayLawIdx).length}{" of 4 ⭐"}
-          </span>
+        <div style={{display:"flex",alignItems:"center",gap:12}}>
+          {streak>0&&<span style={{fontSize:15,color:AMBER,fontWeight:700}}><FlameIcon size={15}/>{streak}</span>}
+          <span style={{fontSize:14,color:level.color,fontWeight:700}}>{totalXP} XP</span>
         </div>
       </div>
 
-      <div style={{width:"100%",maxWidth:620,paddingTop:28,zIndex:1}}>
+      <div style={{width:"100%",maxWidth:560,padding:"32px 20px 0"}}>
+        {screen==="difficulty" && <DifficultySelection onSelect={(d)=>{setDifficulty(d);setScreen("intro");}}/>}
+        {screen==="intro"     && <Intro onStart={startProtocol} onQuickPlay={()=>{setIsQuickPlay(true);setRound(5);setScores([]);setScreen("challenge");}} xp={totalXP} streak={streak} level={level} userData={userData} difficulty={difficulty} challengeData={challengeData} onViewLastSession={()=>{setScores(userData.lastSession.scores);setIsQuickPlay(false);setFromRecall(true);setScreen("results");}}/>}
+        {screen==="science"   && <ScienceCard card={SCIENCE_CARDS[round]} round={round} onBegin={()=>setScreen("challenge")}/>}
+        {screen==="challenge" && round===0 && <StroopChallenge   key="s" difficulty={DIFFICULTY[difficulty]} onComplete={handleRoundComplete}/>}
+        {screen==="challenge" && round===1 && <NBackChallenge    key="n" difficulty={DIFFICULTY[difficulty]} onComplete={handleRoundComplete}/>}
+        {screen==="challenge" && round===2 && <MatrixChallenge   key="m" difficulty={DIFFICULTY[difficulty]} onComplete={handleRoundComplete}/>}
+        {screen==="challenge" && round===3 && <ReactionChallenge key="r" difficulty={DIFFICULTY[difficulty]} onComplete={handleRoundComplete}/>}
+        {screen==="challenge" && round===4 && <SwitchChallenge   key="sw" difficulty={DIFFICULTY[difficulty]} onComplete={handleRoundComplete}/>}
+        {screen==="challenge" && round===5 && <NeuralDefense     key="nd" difficulty={DIFFICULTY[difficulty]} onComplete={handleRoundComplete}/>}
+        {screen==="results"   && <Results scores={scores} level={level} newLevel={getLevel(totalXP)} streak={streak} dailyAction={dailyAction} arch={arch} challengeData={challengeData} isQuickPlay={isQuickPlay} bestScore={userData.bestScore||0} fromRecall={fromRecall} onBack={fromRecall ? ()=>{setFromRecall(false);setScreen("intro");} : onBack} onRetry={()=>{setIsQuickPlay(false);setFromRecall(false);setRound(0);setScores([]);setScreen("science");}}/>}
+      </div>
+    </div>
+  );
+}
 
-        {/* ── SECTION 1: TODAY'S INTENTION — Law + streak tick integrated ── */}
-        <div style={{marginBottom:16,animation:"fadeUp .5s ease both"}}>
+// ── Intro ─────────────────────────────────────────────────────────────────
+function Intro({onStart,onQuickPlay,xp,streak,level,userData,challengeData,onViewLastSession}){
+  const [showRounds, setShowRounds] = useState(false);
+  const nextLevel = LEVELS.find(l=>l.min>xp);
+  const pct = nextLevel ? Math.min(100,((xp-level.min)/(nextLevel.min-level.min))*100) : 100;
 
-          {/* Law identity badge */}
-          <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:12}}>
-            <div style={{display:"flex",alignItems:"center",gap:10}}>
-              <span style={{fontSize:28}}>{todayLaw.icon}</span>
-              <div>
-                <p style={{fontSize:11,fontWeight:700,color:todayLaw.color,letterSpacing:".14em",textTransform:"uppercase",marginBottom:2}}>Law {todayLaw.num} · Today's Focus</p>
-                <h2 style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:28,letterSpacing:2,color:WHITE,lineHeight:1}}>{todayLaw.title}</h2>
-              </div>
-            </div>
-            {streak > 0 && <div style={{background:AMBER+"15",border:`1px solid ${AMBER}44`,borderRadius:100,padding:"5px 12px",flexShrink:0}}>
-              <span style={{fontSize:13,color:AMBER,fontWeight:700}}>🔥 {streak} days</span>
-            </div>}
+  // 21-day challenge progress — same logic, untouched
+  const currentDay    = challengeData?.currentDay || 0;
+  const daysCompleted = challengeData?.daysCompleted?.length || 0;
+  const completionPct = currentDay > 0 ? Math.round((daysCompleted/currentDay)*100) : 0;
+  const isEnrolled    = challengeData && challengeData.enrolled;
+
+  // Colour per round matches SCIENCE_CARDS palette
+  const rounds = [
+    {icon:"🎨", name:"Stroop Challenge",  tag:"Executive Function",  brain:"Prefrontal cortex",          color:E_BLUE},
+    {icon:"🧠", name:"2-Back Test",       tag:"Working Memory",       brain:"Dorsolateral prefrontal",     color:VIOLET},
+    {icon:"🔷", name:"Pattern Matrix",    tag:"Spatial Reasoning",    brain:"Parietal cortex",             color:GREEN},
+    {icon:"⚡", name:"Reaction Velocity", tag:"Processing Speed",     brain:"Motor cortex",                color:AMBER},
+    {icon:"🔄", name:"Cognitive Switch",  tag:"Mental Flexibility",   brain:"Anterior cingulate",          color:RED},
+    {icon:"🛡️", name:"Neural Defense",    tag:"Sustained Attention",  brain:"Visual & parietal cortex",    color:PURPLE},
+  ];
+
+  return(
+    <div>
+
+      {/* ── 1. HERO ─────────────────────────────────────────────────────── */}
+      <div className="fu" style={{textAlign:"center",marginBottom:28}}>
+        <p style={{fontSize:12,fontWeight:700,letterSpacing:".2em",textTransform:"uppercase",color:E_BLUE,marginBottom:14}}>⚡ Daily Neural Protocol</p>
+        <h1 style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"clamp(38px,8vw,60px)",letterSpacing:2,color:WHITE,lineHeight:1.0,marginBottom:16}}>
+          Train Your<br/><span style={{color:E_BLUE}}>Quantum Mind</span>
+        </h1>
+        <p style={{fontFamily:"'Crimson Pro',serif",fontStyle:"italic",fontSize:18,color:"rgba(255,255,255,0.92)",lineHeight:1.75,maxWidth:340,margin:"0 auto",textShadow:"0 0 20px rgba(0,200,255,0.15)",animation:"pulse 3.5s ease-in-out infinite"}}>
+          "The exercised brain builds new neural pathways throughout life. Consistency compounds."
+        </p>
+      </div>
+
+      {/* ── 2. PRIMARY CTA — dominant, top position ──────────────────────── */}
+      <button className="fu1" onClick={onStart}
+        style={{width:"100%",border:"none",borderRadius:100,padding:"18px",fontSize:17,fontWeight:700,
+          fontFamily:"'Space Grotesk',sans-serif",cursor:"pointer",letterSpacing:".06em",
+          background:`linear-gradient(135deg,${E_BLUE2},${E_BLUE})`,color:BG,
+          boxShadow:`0 8px 32px rgba(0,200,255,0.28)`,transition:"all .2s",marginBottom:12}}
+        onMouseEnter={e=>{e.currentTarget.style.transform="translateY(-2px)";e.currentTarget.style.boxShadow=`0 16px 44px rgba(0,200,255,0.4)`;}}
+        onMouseLeave={e=>{e.currentTarget.style.transform="translateY(0)";e.currentTarget.style.boxShadow=`0 8px 32px rgba(0,200,255,0.28)`;}}>
+        ⚡ Begin Full Protocol →
+      </button>
+
+      {/* ── 2b. BENCHMARK CONTEXT — sets expectation before they start ──── */}
+      <p style={{textAlign:"center",fontSize:15,color:MUTED,letterSpacing:".04em",marginBottom:12,marginTop:-2}}>
+        Avg score: ~420 pts · Top 20%: 480+ · Elite: 600+
+      </p>
+
+      {/* ── 3. XP STRIP — slim, one row, no visual noise at zero ─────────── */}
+      <div className="fu2" style={{
+        background:`linear-gradient(135deg,${DARK2},${DARK})`,
+        border:`1px solid ${level.color}22`,
+        borderRadius: streak>0 ? "14px 14px 0 0" : "14px",
+        padding:"12px 18px", marginBottom: streak>0 ? 0 : 14
+      }}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:7}}>
+          <div style={{display:"flex",alignItems:"center",gap:9}}>
+            <div style={{width:8,height:8,borderRadius:"50%",background:level.color,boxShadow:`0 0 8px ${level.color}`,flexShrink:0}}/>
+            <span style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:16,letterSpacing:2,color:level.color}}>{level.name}</span>
           </div>
-
-          {/* Principle quote */}
-          <p style={{fontFamily:"'Crimson Pro',serif",fontStyle:"italic",fontSize:16,color:todayLaw.color,lineHeight:1.6,marginBottom:14,paddingLeft:4}}>"{todayLaw.principle}"</p>
-
-          {/* Practice — the actual thing to do today */}
-          <div style={{background:`linear-gradient(135deg,${todayLaw.color}0e,${DARK2})`,border:`1.5px solid ${todayLaw.color}44`,borderRadius:14,padding:"14px 16px",marginBottom:12}}>
-            <p style={{fontSize:11,fontWeight:700,color:todayLaw.color,letterSpacing:".12em",textTransform:"uppercase",marginBottom:8}}>◈ Your Practice Today</p>
-            <p style={{fontSize:15,color:"rgba(255,255,255,0.78)",lineHeight:1.85,fontWeight:400}}>{todayLaw.dailyPractice}</p>
+          <div style={{display:"flex",alignItems:"center",gap:10}}>
+            {nextLevel && <span style={{fontSize:14,color:MUTED}}>{nextLevel.min-xp} XP to <span style={{color:nextLevel.color}}>{nextLevel.name}</span></span>}
+            <span style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:16,letterSpacing:1,color:WHITE}}>{xp} XP</span>
           </div>
+        </div>
+        <div style={{height:3,background:"rgba(255,255,255,0.06)",borderRadius:100,overflow:"hidden"}}>
+          <div style={{height:"100%",width:`${pct}%`,background:`linear-gradient(90deg,${level.color}55,${level.color})`,borderRadius:100}}/>
+        </div>
+      </div>
 
-          {/* Archetype note */}
-          {todayArchNote && (
-            <div style={{background:`${archColor}0a`,borderLeft:`3px solid ${archColor}`,borderRadius:"0 10px 10px 0",padding:"12px 14px",marginBottom:12}}>
-              <p style={{fontSize:11,fontWeight:700,color:archColor,letterSpacing:".1em",textTransform:"uppercase",marginBottom:5}}>⚛ For {archName}</p>
-              <p style={{fontSize:14,color:"rgba(255,255,255,0.72)",lineHeight:1.75,fontWeight:400}}>{todayArchNote}</p>
+      {/* Streak attaches below XP strip when active — shares the card boundary */}
+      {streak>0 && (
+        <div style={{
+          marginBottom:14,padding:"8px 18px",
+          background:"rgba(251,191,36,0.05)",border:"1px solid rgba(251,191,36,0.16)",
+          borderTop:"none",borderRadius:"0 0 14px 14px",
+          display:"flex",alignItems:"center",gap:8
+        }}>
+          <FlameIcon size={17}/>
+          <span style={{fontSize:14,color:AMBER,fontWeight:600}}>{streak}-day streak</span>
+          <span style={{fontSize:14,color:MUTED,marginLeft:"auto"}}>+{streak*5}% XP bonus active</span>
+        </div>
+      )}
+
+      {/* ── 4. 21-DAY PANEL — enrolled users only, logic identical ──────── */}
+      {isEnrolled && (
+        <div style={{background:`linear-gradient(135deg,rgba(0,200,255,0.08),rgba(0,200,255,0.03))`,
+          border:`1px solid ${E_BLUE}33`,borderRadius:14,padding:"14px 18px",marginBottom:14,
+          animation:"fadeUp .5s ease both"}}>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
+            <div>
+              <p style={{fontSize:12,fontWeight:700,color:E_BLUE,letterSpacing:".12em",textTransform:"uppercase",marginBottom:2}}>📅 21-Day Transformation</p>
+              <p style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:20,letterSpacing:2,color:WHITE}}>Day {currentDay} of 21</p>
             </div>
-          )}
+            <div style={{textAlign:"right"}}>
+              <p style={{fontSize:14,color:MUTED,marginBottom:2}}>Complete</p>
+              <p style={{fontSize:22,fontWeight:700,color:GREEN}}>{completionPct}%</p>
+            </div>
+          </div>
+          <div style={{height:5,background:"rgba(255,255,255,0.06)",borderRadius:100,overflow:"hidden"}}>
+            <div style={{height:"100%",width:`${(currentDay/21)*100}%`,background:`linear-gradient(90deg,${E_BLUE},${GREEN})`,borderRadius:100}}/>
+          </div>
+          {currentDay>=7  && <p style={{fontSize:15,color:GREEN,marginTop:6,fontWeight:600}}>✓ Week 1 milestone reached!</p>}
+          {currentDay>=14 && <p style={{fontSize:15,color:GREEN,marginTop:2,fontWeight:600}}>✓ Week 2 milestone reached!</p>}
+          {currentDay>=21 && <p style={{fontSize:15,color:AMBER,marginTop:2,fontWeight:700}}>🏆 21-Day Transformation Complete!</p>}
+        </div>
+      )}
 
-          {/* TICK — integrated into the law card, not a separate section */}
-          <div onClick={()=>toggleCheck(todayLawIdx)} style={{
-            display:"flex",alignItems:"center",gap:14,
-            padding:"14px 16px",borderRadius:14,cursor:"pointer",
-            background:checklist[todayLawIdx]?`${todayLaw.color}18`:"rgba(255,255,255,0.03)",
-            border:`2px solid ${checklist[todayLawIdx]?todayLaw.color:todayLaw.color+"55"}`,
-            boxShadow:checklist[todayLawIdx]?`0 0 20px ${todayLaw.color}22`:"none",
-            transition:"all .3s",marginBottom:8
+      {/* ── 5. PROGRESSIVE DISCLOSURE — What's inside ───────────────────── */}
+      <div className="fu3" style={{marginBottom:14}}>
+
+        {/* Toggle button */}
+        <button onClick={()=>setShowRounds(v=>!v)} style={{
+          width:"100%",display:"flex",justifyContent:"space-between",alignItems:"center",
+          background:PANEL,border:`1px solid ${BORDER2}`,
+          borderRadius: showRounds ? "14px 14px 0 0" : "14px",
+          padding:"14px 18px",cursor:"pointer",
+          fontFamily:"'Space Grotesk',sans-serif",
+          transition:"border-radius .25s, background .2s",
+        }}
+          onMouseEnter={e=>e.currentTarget.style.background="rgba(255,255,255,0.06)"}
+          onMouseLeave={e=>e.currentTarget.style.background=PANEL}>
+          <div style={{display:"flex",alignItems:"center",gap:12}}>
+            <AtomIcon size={20}/>
+            <div style={{textAlign:"left"}}>
+              <p style={{fontSize:15,fontWeight:700,color:WHITE,marginBottom:1}}>6 Science-Backed Challenges</p>
+              <p style={{fontSize:15,color:MUTED}}>~6–7 min · Executive function to sustained attention</p>
+            </div>
+          </div>
+          {/* Animated chevron */}
+          <div style={{
+            width:28,height:28,borderRadius:"50%",flexShrink:0,
+            background:`rgba(0,200,255,0.07)`,border:`1px solid ${BORDER}`,
+            display:"flex",alignItems:"center",justifyContent:"center",
+            transition:"transform .35s cubic-bezier(.4,0,.2,1)",
+            transform: showRounds ? "rotate(180deg)" : "rotate(0deg)"
           }}>
-            <div style={{
-              width:36,height:36,borderRadius:10,flexShrink:0,
-              background:checklist[todayLawIdx]?todayLaw.color:`${todayLaw.color}22`,
-              border:`2px solid ${todayLaw.color}`,
-              display:"flex",alignItems:"center",justifyContent:"center",
-              transition:"all .25s",fontSize:18
-            }}>
-              {checklist[todayLawIdx]
-                ? <span style={{color:BG,fontWeight:900,fontSize:18}}>✓</span>
-                : <span style={{display:"inline-block"}}>{todayLaw.icon}</span>}
-            </div>
-            <div style={{flex:1}}>
-              <p style={{fontSize:16,fontWeight:700,color:checklist[todayLawIdx]?todayLaw.color:WHITE,transition:"color .2s",marginBottom:2}}>
-                {checklist[todayLawIdx] ? "Done for today ✓" : todayLaw.title}
-              </p>
-              <p style={{fontSize:13,color:MUTED,lineHeight:1.4}}>{checklist[todayLawIdx] ? "Streak logged — come back tomorrow" : todayLaw.todaySummary}</p>
-            </div>
-            {!checklist[todayLawIdx] && (
-              <div style={{
-                background:todayLaw.color,color:BG,fontWeight:800,fontSize:13,
-                borderRadius:100,padding:"8px 16px",flexShrink:0,
-                boxShadow:`0 0 14px ${todayLaw.color}66`,
-                animation:"focusGlow 2s ease-in-out infinite",
-                whiteSpace:"nowrap"
-              }}>Mark Done</div>
-            )}
+            <svg width="11" height="11" viewBox="0 0 12 12" fill="none">
+              <path d="M2 4.5l4 3.5 4-3.5" stroke={E_BLUE} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
           </div>
+        </button>
 
-          {/* Dive deeper */}
-          <button onClick={()=>setActiveLaw(todayLawIdx)} style={{
-            width:"100%",border:`1px solid ${todayLaw.color}33`,borderRadius:100,
-            padding:"10px",fontSize:13,fontWeight:700,background:"transparent",
-            color:todayLaw.color,cursor:"pointer",fontFamily:"'Space Grotesk',sans-serif",
-            letterSpacing:".06em",opacity:.8
-          }}
-            onMouseEnter={e=>{e.currentTarget.style.opacity="1";e.currentTarget.style.background=`${todayLaw.color}12`;}}
-            onMouseLeave={e=>{e.currentTarget.style.opacity=".8";e.currentTarget.style.background="transparent";}}>
-            Explore full law — practices, science & more →
+        {/* Expanded rounds — staggered fade-in per row */}
+        {showRounds && (
+          <div style={{background:PANEL,border:`1px solid ${BORDER2}`,borderTop:"none",borderRadius:"0 0 14px 14px",overflow:"hidden"}}>
+            {rounds.map((r,i)=>(
+              <div key={i} style={{
+                display:"flex",gap:13,alignItems:"center",
+                padding:"12px 18px",
+                borderBottom: i<rounds.length-1 ? `1px solid ${BORDER2}` : "none",
+                animation:"fadeUp .3s ease both",
+                animationDelay:`${i*45}ms`,
+              }}>
+                <div style={{
+                  width:36,height:36,borderRadius:10,flexShrink:0,
+                  background:`${r.color}10`,border:`1px solid ${r.color}30`,
+                  display:"flex",alignItems:"center",justifyContent:"center",fontSize:16
+                }}><BTIcon icon={r.icon} size={16}/></div>
+                <div style={{flex:1,minWidth:0}}>
+                  <div style={{display:"flex",alignItems:"center",gap:7,flexWrap:"wrap",marginBottom:2}}>
+                    <p style={{fontSize:14,fontWeight:600,color:WHITE}}>{r.name}</p>
+                    <span style={{
+                      fontSize:10,fontWeight:700,color:r.color,letterSpacing:".09em",
+                      textTransform:"uppercase",background:`${r.color}10`,
+                      border:`1px solid ${r.color}30`,borderRadius:100,
+                      padding:"1px 7px",whiteSpace:"nowrap"
+                    }}>{r.tag}</span>
+                  </div>
+                  <p style={{fontSize:15,color:MUTED,lineHeight:1.7,fontStyle:"italic"}}>{r.brain}</p>
+                </div>
+                <span style={{fontSize:14,color:MUTED,fontWeight:600,flexShrink:0,opacity:.7}}>{i+1}</span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* ── 6. QUICK PLAY — secondary entry point ────────────────────────── */}
+      <button onClick={onQuickPlay}
+        style={{width:"100%",border:`1.5px solid ${PURPLE}55`,borderRadius:100,padding:"14px",
+          fontSize:15,fontWeight:600,fontFamily:"'Space Grotesk',sans-serif",cursor:"pointer",
+          letterSpacing:".05em",background:"transparent",color:PURPLE,transition:"all .2s"}}
+        onMouseEnter={e=>{e.currentTarget.style.background=`${PURPLE}11`;e.currentTarget.style.borderColor=PURPLE;}}
+        onMouseLeave={e=>{e.currentTarget.style.background="transparent";e.currentTarget.style.borderColor=`${PURPLE}55`;}}>
+        🛡️ Quick Play: Neural Defense Only
+      </button>
+
+      {/* ── 7. LAST SESSION RECALL — clearly visible card, only shown if a session exists ── */}
+      {userData.lastSession && (() => {
+        const ls = userData.lastSession;
+        const todayStr = new Date().toISOString().split("T")[0];
+        const yestStr  = new Date(Date.now()-86400000).toISOString().split("T")[0];
+        const dateLabel = ls.date===todayStr ? "today" : ls.date===yestStr ? "yesterday"
+          : new Date(ls.date).toLocaleDateString("en-GB",{day:"numeric",month:"short"});
+        return (
+          <button onClick={onViewLastSession}
+            style={{width:"100%",border:`1px solid rgba(0,200,255,0.28)`,borderRadius:12,
+              padding:"13px 18px",marginTop:12,
+              fontSize:14,fontWeight:600,fontFamily:"'Space Grotesk',sans-serif",cursor:"pointer",
+              background:"rgba(0,200,255,0.05)",color:MUTED,
+              display:"flex",alignItems:"center",justifyContent:"space-between",
+              transition:"all .18s",letterSpacing:".02em"}}
+            onMouseEnter={e=>{e.currentTarget.style.background="rgba(0,200,255,0.1)";e.currentTarget.style.borderColor="rgba(0,200,255,0.55)";e.currentTarget.style.color=WHITE;}}
+            onMouseLeave={e=>{e.currentTarget.style.background="rgba(0,200,255,0.05)";e.currentTarget.style.borderColor="rgba(0,200,255,0.28)";e.currentTarget.style.color=MUTED;}}>
+            <span style={{display:"flex",alignItems:"center",gap:8}}>
+              <span style={{fontSize:16}}>📋</span>
+              <span>View last session results</span>
+            </span>
+            <span style={{fontSize:13,color:E_BLUE,fontWeight:700}}>{ls.total} pts · {dateLabel} →</span>
+          </button>
+        );
+      })()}
+
+    </div>
+  );
+}
+
+// ── Science Card ──────────────────────────────────────────────────────────
+function ScienceCard({card:c,round,onBegin}){
+  return(
+    <div style={{animation:"fadeUp .5s ease both"}}>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:18}}>
+        <span style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:14,letterSpacing:2,color:DIMMED}}>ROUND {round+1} OF {TOTAL_ROUNDS}</span>
+        <span style={{fontSize:16,fontWeight:700,color:c.color,letterSpacing:".1em",textTransform:"uppercase",background:`${c.color}18`,border:`1px solid ${c.color}44`,borderRadius:100,padding:"4px 12px"}}>{c.tag}</span>
+      </div>
+      <div style={{background:`linear-gradient(145deg,${DARK2},${DARK})`,border:`1px solid ${c.color}33`,borderTop:`2px solid ${c.color}`,borderRadius:18,overflow:"hidden",marginBottom:14}}>
+        <div style={{padding:"28px 24px 20px",textAlign:"center",borderBottom:`1px solid ${BORDER2}`}}>
+          <div style={{marginBottom:12,display:"flex",justifyContent:"center"}}><BTIcon icon={c.icon} size={44}/></div>
+          <p style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:26,letterSpacing:2,color:WHITE,marginBottom:6}}>{c.name}</p>
+          <p style={{fontFamily:"'Crimson Pro',serif",fontStyle:"italic",fontSize:16,color:c.color,lineHeight:1.65}}>{c.headline}</p>
+        </div>
+        <div style={{padding:"18px 22px",borderBottom:`1px solid ${BORDER2}`}}>
+          <p style={{fontSize:15,fontWeight:700,color:DIMMED,letterSpacing:".12em",textTransform:"uppercase",marginBottom:10}}>The Neuroscience</p>
+          <p style={{fontSize:16,lineHeight:1.85,color:MUTED,fontWeight:300}}>{c.science}</p>
+        </div>
+        <div style={{padding:"16px 22px",background:`${c.color}08`,borderBottom:`1px solid ${BORDER2}`}}>
+          <p style={{fontSize:15,fontWeight:700,color:c.color,letterSpacing:".12em",textTransform:"uppercase",marginBottom:8}}>Your Task</p>
+          <p style={{fontSize:14,lineHeight:1.8,color:WHITE,fontWeight:400}}>{c.task}</p>
+        </div>
+        <div style={{padding:"12px 22px",display:"flex",gap:8,alignItems:"flex-start"}}>
+          <span style={{fontSize:15,color:DIMMED,flexShrink:0}}>📊</span>
+          <p style={{fontSize:14,color:DIMMED,lineHeight:1.5,fontStyle:"italic"}}>{c.metric}</p>
+        </div>
+      </div>
+      <button onClick={onBegin} style={{width:"100%",border:"none",borderRadius:100,padding:"16px",fontSize:16,fontWeight:700,fontFamily:"'Space Grotesk',sans-serif",cursor:"pointer",letterSpacing:".05em",background:`linear-gradient(135deg,${c.color}bb,${c.color})`,color:BG,boxShadow:`0 6px 24px ${c.color}33`,transition:"all .2s"}}
+        onMouseEnter={e=>{e.currentTarget.style.transform="translateY(-2px)";}}
+        onMouseLeave={e=>{e.currentTarget.style.transform="translateY(0)";}}>
+        Begin Round {round+1} →
+      </button>
+    </div>
+  );
+}
+
+// ── Round progress bar ────────────────────────────────────────────────────
+function RoundProgress({round}){
+  return(
+    <div style={{display:"flex",gap:6,marginBottom:20}}>
+      {Array.from({length:TOTAL_ROUNDS},(_,i)=>(
+        <div key={i} style={{flex:1,height:3,borderRadius:100,background:i<round?E_BLUE:i===round?"rgba(0,200,255,0.35)":"rgba(255,255,255,0.06)",transition:"background .3s"}}/>
+      ))}
+    </div>
+  );
+}
+
+// ── Timer ring ────────────────────────────────────────────────────────────
+function TimerRing({timeLeft,total,color=E_BLUE}){
+  const r=26,circ=2*Math.PI*r,offset=circ*(1-timeLeft/total),urgent=timeLeft<=7;
+  return(
+    <svg width={64} height={64}>
+      <circle cx={32} cy={32} r={r} fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth={4}/>
+      <circle cx={32} cy={32} r={r} fill="none" stroke={urgent?RED:color} strokeWidth={4} strokeLinecap="round"
+        strokeDasharray={circ} strokeDashoffset={offset} transform="rotate(-90 32 32)" style={{transition:"stroke-dashoffset .9s linear,stroke .3s"}}/>
+      <text x={32} y={37} textAnchor="middle" fill={urgent?RED:WHITE} fontSize={13} fontWeight="700" fontFamily="Space Grotesk">{timeLeft}</text>
+    </svg>
+  );
+}
+
+// ── Feedback popup ────────────────────────────────────────────────────────
+function FeedbackPop({show,correct,pts}){
+  if(!show) return null;
+  return(
+    <div className="pop" style={{position:"fixed",top:"50%",left:"50%",transform:"translate(-50%,-50%)",background:correct?"rgba(52,211,153,0.15)":"rgba(248,113,113,0.12)",border:`2px solid ${correct?GREEN:RED}`,borderRadius:18,padding:"14px 28px",textAlign:"center",zIndex:999,pointerEvents:"none",backdropFilter:"blur(8px)"}}>
+      <p style={{fontSize:24,fontWeight:800,color:correct?GREEN:RED}}>{correct?"✓":"✗"}</p>
+      {pts!==undefined&&<p style={{fontSize:15,fontWeight:700,color:correct?GREEN:RED}}>{correct?`+${pts} pts`:"No points"}</p>}
+    </div>
+  );
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+// ROUND 1 — STROOP
+// ══════════════════════════════════════════════════════════════════════════
+function StroopChallenge({onComplete, difficulty}){
+  const TIME = difficulty?.stroop?.time || 45;
+  const NUM_ROUNDS = difficulty?.stroop?.rounds || 18;
+  const [items]   = useState(()=>Array.from({length:NUM_ROUNDS},genStroopRound));
+  const [idx,     setIdx]    = useState(0);
+  const [score,   setScore]  = useState(0);
+  const [correct, setCor]    = useState(0);
+  const [total,   setTotal]  = useState(0);
+  const [tLeft,   setTLeft]  = useState(TIME);
+  const [fb,      setFb]     = useState(null);
+  const [started, setSt]     = useState(false);
+  const startRef  = useRef(null);
+  const rtimes    = useRef([]);
+  const scoreRef  = useRef(0); // ref to avoid stale closure in finish()
+  const finishedRef = useRef(false); // guard against double-fire from timer + answer race
+
+  useEffect(()=>{
+    if(!started) return;
+    if(tLeft<=0){ finish(); return; }
+    const t=setInterval(()=>setTLeft(s=>s-1),1000);
+    return()=>clearInterval(t);
+  },[tLeft,started]);
+
+  function finish(){ 
+    if(finishedRef.current) return; // Guard — timer and answer path can both trigger simultaneously
+    finishedRef.current = true;
+    const avg=rtimes.current.length?Math.round(rtimes.current.reduce((a,b)=>a+b,0)/rtimes.current.length):0; 
+    onComplete(scoreRef.current,"Stroop Challenge",avg); 
+  }
+
+  function handleAnswer(colorName){
+    if(fb||!started) return;
+    const rt=Date.now()-startRef.current; rtimes.current.push(rt);
+    const ok=colorName===items[idx].inkName;
+    const pts=ok?Math.max(5,Math.floor(28-(rt/110))):0;
+    scoreRef.current += pts; setScore(scoreRef.current); setTotal(t=>t+1); if(ok)setCor(c=>c+1);
+    setFb({ok,pts});
+    setTimeout(()=>{ setFb(null); const next=idx+1; if(next>=items.length||tLeft<=1){finish();}else{setIdx(next);startRef.current=Date.now();} },400);
+  }
+
+  const item=items[idx];
+  return(
+    <div>
+      <RoundProgress round={1}/>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}>
+        <div><p style={{fontSize:15,fontWeight:700,color:DIMMED,letterSpacing:".1em",textTransform:"uppercase",marginBottom:3}}>Stroop Challenge</p><p style={{fontSize:15,color:MUTED}}>{correct}/{total} · {score} pts</p></div>
+        {started&&<TimerRing timeLeft={tLeft} total={TIME}/>}
+      </div>
+      {!started?(
+        <div style={{background:PANEL,border:`1px solid ${BORDER2}`,borderRadius:18,padding:"36px 24px",textAlign:"center"}}>
+          <div style={{fontSize:44,marginBottom:14}}>🎨</div>
+          <h2 style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:28,letterSpacing:2,color:WHITE,marginBottom:10}}>Tap the Ink Colour</h2>
+          <p style={{fontSize:14,color:MUTED,lineHeight:1.7,marginBottom:20}}>The word says one thing. The ink shows another.<br/>Tap the colour of the <strong style={{color:WHITE}}>INK</strong> — ignore the word.</p>
+          <div style={{display:"flex",justifyContent:"center",alignItems:"center",gap:16,marginBottom:24}}>
+            <div style={{padding:"12px 20px",background:"rgba(59,130,246,0.1)",border:"2px solid #3B82F6",borderRadius:12,fontFamily:"'Bebas Neue',sans-serif",fontSize:30,letterSpacing:2,color:"#EF4444"}}>BLUE</div>
+            <span style={{color:MUTED,fontSize:14}}>→ tap Red</span>
+          </div>
+          <button onClick={()=>{finishedRef.current=false; setSt(true);startRef.current=Date.now();}} style={{border:"none",borderRadius:100,padding:"14px 40px",fontSize:16,fontWeight:700,fontFamily:"'Space Grotesk',sans-serif",cursor:"pointer",background:`linear-gradient(135deg,${E_BLUE2},${E_BLUE})`,color:BG,letterSpacing:".05em"}}>Start →</button>
+        </div>
+      ):(
+        <div>
+          <div className="scaleIn" key={idx} style={{background:PANEL,border:`1px solid ${BORDER2}`,borderRadius:18,padding:"36px 24px",textAlign:"center",marginBottom:14,minHeight:140,display:"flex",alignItems:"center",justifyContent:"center"}}>
+            <p style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"clamp(54px,13vw,84px)",letterSpacing:4,color:item.inkColor,lineHeight:1,userSelect:"none"}}>{item.word}</p>
+          </div>
+          <p style={{textAlign:"center",fontSize:16,color:DIMMED,fontWeight:700,letterSpacing:".12em",textTransform:"uppercase",marginBottom:12}}>Tap the ink colour</p>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
+            {STROOP_COLORS.map(c=>(
+              <button key={c.name} onClick={()=>handleAnswer(c.name)} style={{border:`2px solid ${c.hex}44`,borderRadius:14,padding:"16px 0",background:`${c.hex}0c`,cursor:"pointer",display:"flex",flexDirection:"column",alignItems:"center",gap:8,transition:"all .12s",fontFamily:"'Space Grotesk',sans-serif"}}
+                onMouseEnter={e=>e.currentTarget.style.background=`${c.hex}22`}
+                onMouseLeave={e=>e.currentTarget.style.background=`${c.hex}0c`}>
+                <div style={{width:28,height:28,borderRadius:"50%",background:c.hex,boxShadow:`0 0 14px ${c.hex}88`}}/>
+                <span style={{fontSize:15,fontWeight:700,color:WHITE,letterSpacing:".06em"}}>{c.name}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+      <FeedbackPop show={!!fb} correct={fb?.ok} pts={fb?.pts}/>
+    </div>
+  );
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+// ROUND 2 — N-BACK
+// ══════════════════════════════════════════════════════════════════════════
+function NBackChallenge({onComplete, difficulty}){
+  const N = difficulty?.nback?.n || 2;
+  const DISP = difficulty?.nback?.display || 1700;
+  const ISI = difficulty?.nback?.isi || 500;
+  const LEN = difficulty?.nback?.length || 14;
+  const [seq]     = useState(()=>genNBackSequence(LEN,N));
+  const [cur,     setCur]    = useState(-1);
+  const [score,   setScore]  = useState(0);
+  const [hits,    setHits]   = useState(0);
+  const [fb,      setFb]     = useState(null);
+  const [phase,   setPhase]  = useState("ready");
+  const [responded,setResp]  = useState(false);
+  const scoreRef = useRef(0);
+  const idxRef = useRef(0); const respRef = useRef(false);
+
+  function runSequence(){
+    setPhase("running"); idxRef.current=0; setCur(0); respRef.current=false; setResp(false);
+    function step(){
+      const i=idxRef.current;
+      if(i>=seq.length){ setTimeout(()=>onComplete(scoreRef.current,"2-Back Test",null),500); return; }
+      setCur(i); setPhase("show"); respRef.current=false; setResp(false);
+      setTimeout(()=>{
+        setPhase("isi"); idxRef.current=i+1;
+        setTimeout(()=>step(), ISI);
+      }, DISP);
+    }
+    step();
+  }
+
+  function handleMatch(){
+    if(phase!=="show"||cur<N||respRef.current) return;
+    respRef.current=true; setResp(true);
+    const isMatch=seq[cur].isMatch;
+    const pts=isMatch?30:-5;
+    scoreRef.current = Math.max(0, scoreRef.current + pts); setScore(scoreRef.current); if(isMatch)setHits(h=>h+1);
+    setFb({ok:isMatch,pts:Math.abs(pts)});
+    setTimeout(()=>setFb(null),500);
+  }
+
+  const item=cur>=0&&cur<seq.length?seq[cur]:null;
+  const canMatch=phase==="show"&&cur>=N;
+
+  return(
+    <div>
+      <RoundProgress round={2}/>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}>
+        <div><p style={{fontSize:15,fontWeight:700,color:DIMMED,letterSpacing:".1em",textTransform:"uppercase",marginBottom:3}}>2-Back Test</p><p style={{fontSize:15,color:MUTED}}>{hits} matches · {score} pts</p></div>
+        {cur>=0&&cur<seq.length&&<div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:16,letterSpacing:2,color:DIMMED}}>{cur+1}/{seq.length}</div>}
+      </div>
+      {phase==="ready"?(
+        <div style={{background:PANEL,border:`1px solid ${BORDER2}`,borderRadius:18,padding:"32px 24px",textAlign:"center"}}>
+          <div style={{marginBottom:14,display:"flex",justifyContent:"center"}}><AtomIcon size={52}/></div>
+          <h2 style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:26,letterSpacing:2,color:WHITE,marginBottom:10}}>2-Back Memory Test</h2>
+          <p style={{fontSize:16,color:MUTED,lineHeight:1.85,marginBottom:16}}>
+            <strong style={{color:WHITE}}>THE RULE:</strong><br/>
+            A coloured square flashes in the grid.<br/>
+            Press <strong style={{color:VIOLET}}>MATCH</strong> if its position is the same<br/>
+            as the square from <strong style={{color:WHITE}}>2 items ago.</strong><br/>
+            <span style={{fontSize:14,color:DIMMED}}>(Ignore colour — only position matters)</span>
+          </p>
+          <div style={{background:"rgba(167,139,250,0.08)",border:"1px solid rgba(167,139,250,0.25)",borderRadius:12,padding:"16px 18px",marginBottom:22}}>
+            <p style={{fontSize:16,fontWeight:700,color:VIOLET,marginBottom:8,letterSpacing:".06em"}}>EXAMPLE WALKTHROUGH:</p>
+            <p style={{fontSize:15,color:MUTED,lineHeight:1.75,textAlign:"left"}}>
+              <strong style={{color:WHITE}}>Item 1:</strong> Top-left → <span style={{color:DIMMED}}>(just remember it)</span><br/>
+              <strong style={{color:WHITE}}>Item 2:</strong> Centre → <span style={{color:DIMMED}}>(just remember it)</span><br/>
+              <strong style={{color:WHITE}}>Item 3:</strong> Top-left → <span style={{color:VIOLET}}>MATCH!</span> <span style={{color:DIMMED}}>(same as item 1)</span><br/>
+              <strong style={{color:WHITE}}>Item 4:</strong> Bottom-right → <span style={{color:DIMMED}}>No match</span><br/>
+              <strong style={{color:WHITE}}>Item 5:</strong> Bottom-right → <span style={{color:VIOLET}}>MATCH!</span> <span style={{color:DIMMED}}>(same as item 4)</span>
+            </p>
+          </div>
+          <button onClick={runSequence} style={{border:"none",borderRadius:100,padding:"14px 40px",fontSize:16,fontWeight:700,fontFamily:"'Space Grotesk',sans-serif",cursor:"pointer",background:`linear-gradient(135deg,${VIOLET}cc,${VIOLET})`,color:BG,letterSpacing:".05em"}}>Start →</button>
+        </div>
+      ):(
+        <div>
+          <div style={{background:PANEL,border:`1px solid ${BORDER2}`,borderRadius:18,padding:"20px",marginBottom:14}}>
+            {cur<N&&<p style={{textAlign:"center",fontSize:15,color:DIMMED,marginBottom:10}}>Memorising first {N} items — matching starts soon...</p>}
+            <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:10,maxWidth:240,margin:"0 auto"}}>
+              {Array.from({length:9}).map((_,i)=>{
+                const active=phase==="show"&&item&&item.pos===i;
+                return(
+                  <div key={i} style={{aspectRatio:"1",borderRadius:12,background:active?item.color:"rgba(255,255,255,0.04)",border:`1.5px solid ${active?item.color+"88":BORDER2}`,boxShadow:active?`0 0 20px ${item.color}55`:"none",transition:"all .15s"}}/>
+                );
+              })}
+            </div>
+          </div>
+          <button onClick={handleMatch} disabled={!canMatch} style={{width:"100%",border:`2px solid ${canMatch?VIOLET:"rgba(255,255,255,0.08)"}`,borderRadius:100,padding:"18px",fontSize:15,fontWeight:700,background:canMatch?"rgba(167,139,250,0.1)":"rgba(255,255,255,0.02)",color:canMatch?VIOLET:DIMMED,cursor:canMatch?"pointer":"default",fontFamily:"'Space Grotesk',sans-serif",letterSpacing:".04em",transition:"all .2s"}}>
+            {responded?"✓ Matched":canMatch?"⚡ MATCH — Same position as 2 ago":"Watching..."}
           </button>
         </div>
+      )}
+      <FeedbackPop show={!!fb} correct={fb?.ok} pts={fb?.pts}/>
+    </div>
+  );
+}
 
-        {/* ── SECTION 2: YOUR TIP — archetype insight (discoverable on scroll) ── */}
-        {dailyArchTip && (
-          <div style={{background:`${archColor}08`,border:`1px solid ${archColor}25`,borderRadius:14,padding:"16px 18px",marginBottom:16,animation:"fadeUp .5s .08s ease both"}}>
-            <p style={{fontSize:11,fontWeight:700,color:archColor,letterSpacing:".12em",textTransform:"uppercase",marginBottom:8}}>💡 Your Edge Today — {archName}</p>
-            <p style={{fontSize:15,color:"rgba(255,255,255,0.78)",lineHeight:1.8,fontWeight:400}}>{dailyArchTip}</p>
+// ══════════════════════════════════════════════════════════════════════════
+// ROUND 3 — PATTERN MATRIX
+// ══════════════════════════════════════════════════════════════════════════
+function MatrixChallenge({onComplete, difficulty}){
+  const MAX_HINTS = difficulty?.matrix?.hints !== undefined ? difficulty.matrix.hints : 1;
+  const NUM_PUZZLES = difficulty?.matrix?.puzzles || 4;
+  // Pre-select puzzles at round start — shuffle pool then slice to NUM_PUZZLES
+  // This ensures difficulty setting is honoured and random start can't cause truncation
+  const [puzzles] = useState(()=>[...PATTERN_PUZZLES].sort(()=>Math.random()-.5).slice(0,NUM_PUZZLES));
+  const [pidx, setPidx]= useState(0);
+  const [score,setScore]= useState(0);
+  const [done, setDone] = useState(0);
+  const [fb,   setFb]  = useState(null);
+  const [hint, setHint]= useState(false);
+  const [usedHint,setUH]=useState(false);
+  const p=puzzles[pidx];
+
+  function handleAnswer(opt){
+    if(fb) return;
+    const ok=opt.sh===p.answer.sh&&opt.co===p.answer.co;
+    const pts=ok?(usedHint?20:35):0;
+    setScore(s=>s+pts); setDone(d=>d+1);
+    setFb({ok,pts});
+    setTimeout(()=>{
+      setFb(null); setHint(false); setUH(false);
+      const next=pidx+1;
+      if(next>=puzzles.length){onComplete(score+pts,"Pattern Matrix",null);}
+      else{setPidx(next);}
+    },700);
+  }
+
+  return(
+    <div>
+      <RoundProgress round={3}/>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}>
+        <div><p style={{fontSize:15,fontWeight:700,color:DIMMED,letterSpacing:".1em",textTransform:"uppercase",marginBottom:3}}>Pattern Matrix</p><p style={{fontSize:15,color:MUTED}}>Puzzle {done+1} of {puzzles.length} · {score} pts</p></div>
+        <span style={{fontSize:16,color:GREEN,fontWeight:700,background:"rgba(52,211,153,0.08)",border:"1px solid rgba(52,211,153,0.2)",borderRadius:100,padding:"4px 12px"}}>Spatial Reasoning</span>
+      </div>
+      <div style={{background:PANEL,border:`1px solid ${BORDER2}`,borderRadius:18,padding:"24px",marginBottom:12}}>
+        <p style={{fontSize:16,color:DIMMED,textAlign:"center",marginBottom:16,letterSpacing:".08em",textTransform:"uppercase"}}>Find the missing piece</p>
+        <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:10,maxWidth:240,margin:"0 auto"}}>
+          {p.grid.map((cell,i)=>(
+            <div key={i} style={{aspectRatio:"1",borderRadius:12,background:"rgba(255,255,255,0.04)",border:`1.5px solid ${cell?BORDER2:"rgba(0,200,255,0.45)"}`,display:"flex",alignItems:"center",justifyContent:"center",boxShadow:!cell?`0 0 18px rgba(0,200,255,0.12)`:"none"}}>
+              {cell?<ShapeEl shape={cell.sh} color={cell.co} size={44}/>:<span style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:24,color:E_BLUE,opacity:.65}}>?</span>}
+            </div>
+          ))}
+        </div>
+      </div>
+      {hint&&<div style={{background:"rgba(52,211,153,0.05)",border:"1px solid rgba(52,211,153,0.2)",borderRadius:12,padding:"10px 16px",marginBottom:12,fontSize:16,color:"rgba(52,211,153,0.85)",fontStyle:"italic"}}>💡 {p.rule}</div>}
+      {!hint&&!fb&&<button onClick={()=>{setHint(true);setUH(true);}} style={{background:"none",border:"none",color:DIMMED,fontSize:15,cursor:"pointer",textDecoration:"underline",fontFamily:"'Space Grotesk',sans-serif",marginBottom:12,display:"block",margin:"0 auto 12px"}}>Hint? (−15 pts)</button>}
+      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
+        {p.options.map((opt,i)=>{
+          const correct=fb&&opt.sh===p.answer.sh&&opt.co===p.answer.co;
+          return(
+            <button key={i} onClick={()=>!fb&&handleAnswer(opt)} style={{border:`1.5px solid ${correct?GREEN:BORDER2}`,borderRadius:14,padding:"18px",background:correct?"rgba(52,211,153,0.1)":"rgba(255,255,255,0.03)",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",transition:"all .15s",minHeight:74}}
+              onMouseEnter={e=>!fb&&(e.currentTarget.style.borderColor=GREEN)}
+              onMouseLeave={e=>!fb&&(e.currentTarget.style.borderColor=BORDER2)}>
+              <ShapeEl shape={opt.sh} color={opt.co} size={46}/>
+            </button>
+          );
+        })}
+      </div>
+      <FeedbackPop show={!!fb} correct={fb?.ok} pts={fb?.pts}/>
+    </div>
+  );
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+// ROUND 4 — REACTION VELOCITY
+// ══════════════════════════════════════════════════════════════════════════
+function ReactionChallenge({onComplete, difficulty}){
+  const REPS = difficulty?.reaction?.reps || 8;
+  const MIN_DELAY = difficulty?.reaction?.minDelay || 1000;
+  const MAX_DELAY = difficulty?.reaction?.maxDelay || 2500;
+  const [phase,  setPhase]= useState("ready");
+  const [rep,    setRep]  = useState(0);
+  const [times,  setTimes]= useState([]);
+  const [score,  setScore]= useState(0);
+  const [target, setTarget]=useState(null);
+  const [msg,    setMsg]  = useState("");
+  const goRef = useRef(null); const tStart = useRef(null);
+
+  function nextRep(currentRep=rep){
+    setPhase("waiting"); setMsg("");
+    goRef.current=setTimeout(()=>{
+      setTarget({shape:REACTION_SHAPES[Math.floor(Math.random()*REACTION_SHAPES.length)],color:REACTION_COLORS[Math.floor(Math.random()*REACTION_COLORS.length)]});
+      tStart.current=Date.now(); setPhase("go");
+    },MIN_DELAY+Math.random()*(MAX_DELAY-MIN_DELAY));
+  }
+
+  function handleTap(){
+    if(phase==="waiting"){
+      clearTimeout(goRef.current);
+      setPhase("miss"); setMsg("Too early! Wait for the shape.");
+      setTimeout(()=>{ const next=rep+1; if(next<REPS){setRep(next);nextRep(next);}else finish(times,score); },1100);
+    } else if(phase==="go"){
+      const rt=Date.now()-tStart.current;
+      const newTimes=[...times,rt];
+      setTimes(newTimes);
+      const pts=Math.max(0,Math.floor(120-(rt/7)));
+      const newScore=score+pts; setScore(newScore);
+      setMsg(`${rt}ms${rt<240?"  ⚡ Elite":rt<340?"  ✓ Sharp":rt<480?"  Good":""}`);
+      setPhase("hit");
+      setTimeout(()=>{ const next=rep+1; if(next<REPS){setRep(next);nextRep(next);}else finish(newTimes,newScore); },800);
+    }
+  }
+
+  function finish(t=times,s=score){
+    const avg=t.length?Math.round(t.reduce((a,b)=>a+b,0)/t.length):0;
+    onComplete(s,"Reaction Velocity",avg);
+  }
+
+  const avgMs=times.length?Math.round(times.reduce((a,b)=>a+b,0)/times.length):null;
+
+  return(
+    <div>
+      <RoundProgress round={4}/>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}>
+        <div><p style={{fontSize:15,fontWeight:700,color:DIMMED,letterSpacing:".1em",textTransform:"uppercase",marginBottom:3}}>Reaction Velocity</p><p style={{fontSize:15,color:MUTED}}>{rep}/{REPS}{avgMs?` · avg ${avgMs}ms`:""} · {score} pts</p></div>
+        <span style={{fontSize:16,color:AMBER,fontWeight:700,background:"rgba(251,191,36,0.08)",border:"1px solid rgba(251,191,36,0.2)",borderRadius:100,padding:"4px 12px"}}>Processing Speed</span>
+      </div>
+      <div onClick={["waiting","go"].includes(phase)?handleTap:undefined} style={{background:phase==="go"?`${target?.color}12`:"rgba(255,255,255,0.03)",border:`2px solid ${phase==="go"?target?.color:phase==="hit"?GREEN:phase==="miss"?RED:BORDER2}`,borderRadius:22,minHeight:260,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",cursor:["waiting","go"].includes(phase)?"pointer":"default",transition:"all .2s",marginBottom:14,gap:14}}>
+        {phase==="ready"&&<><div style={{fontSize:42}}>⚡</div><h2 style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:24,letterSpacing:2,color:WHITE,textAlign:"center"}}>Tap when the shape appears</h2><p style={{fontSize:16,color:MUTED,textAlign:"center",maxWidth:260,lineHeight:1.6}}>Random delay before each target. Do not tap early.</p></>}
+        {phase==="waiting"&&<><div className="pulse" style={{width:16,height:16,borderRadius:"50%",background:E_BLUE,boxShadow:`0 0 18px ${E_BLUE}`}}/><p style={{fontSize:16,color:DIMMED,letterSpacing:".08em"}}>Waiting... don't tap yet</p></>}
+        {phase==="go"&&target&&<><div className="pop"><ShapeEl shape={target.shape} color={target.color} size={110}/></div><p style={{fontSize:14,fontWeight:700,color:target.color,letterSpacing:".12em"}}>TAP NOW!</p></>}
+        {phase==="hit"&&<><p style={{fontSize:38}}>✓</p><p style={{fontSize:15,fontWeight:700,color:GREEN}}>{msg}</p></>}
+        {phase==="miss"&&<><p style={{fontSize:38}}>✗</p><p style={{fontSize:16,color:RED,textAlign:"center"}}>{msg}</p></>}
+      </div>
+      {phase==="ready"&&<button onClick={()=>nextRep(0)} style={{width:"100%",border:"none",borderRadius:100,padding:"16px",fontSize:16,fontWeight:700,fontFamily:"'Space Grotesk',sans-serif",cursor:"pointer",background:`linear-gradient(135deg,${AMBER}cc,${AMBER})`,color:BG,letterSpacing:".05em"}}>Start →</button>}
+    </div>
+  );
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+// ROUND 5 — COGNITIVE SWITCH
+// ══════════════════════════════════════════════════════════════════════════
+function SwitchChallenge({onComplete, difficulty}){
+  const NUM_ITEMS = difficulty?.switch?.items || 12;
+  const SHAPE_BTNS=["circle","square","triangle","diamond"];
+  const COLOR_BTNS=[{n:"Red",c:"#EF4444"},{n:"Blue",c:"#3B82F6"},{n:"Green",c:"#22C55E"},{n:"Amber",c:"#F59E0B"}];
+  const [items]   = useState(()=>[...SWITCH_ITEMS].sort(()=>Math.random()-.5).slice(0,NUM_ITEMS).map((it,i)=>({...it,rule:i<NUM_ITEMS/3?"shape":i<NUM_ITEMS*2/3?"color":"shape"})));
+  const [idx,     setIdx]  = useState(0);
+  const [rule,    setRule] = useState("shape");
+  const [score,   setScore]= useState(0);
+  const [correct, setCor]  = useState(0);
+  const [fb,      setFb]   = useState(null);
+  const [started, setSt]   = useState(false);
+  const [switched,setSw]   = useState(false);
+
+  function handleAnswer(answer){
+    if(fb||!started) return;
+    const item=items[idx];
+    const ok=rule==="shape"?answer===item.shape:answer===item.colorName;
+    const pts=ok?25:0;
+    setScore(s=>s+pts); if(ok)setCor(c=>c+1);
+    setFb({ok,pts});
+    setTimeout(()=>{
+      setFb(null);
+      const next=idx+1;
+      if(next>=items.length){onComplete(score+pts,"Cognitive Switch",null);return;}
+      const nr=items[next].rule;
+      if(nr!==rule){setRule(nr);setSw(true);setTimeout(()=>setSw(false),1100);}
+      setIdx(next);
+    },480);
+  }
+
+  const item=items[idx];
+
+  return(
+    <div>
+      <RoundProgress round={5}/>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}>
+        <div><p style={{fontSize:15,fontWeight:700,color:DIMMED,letterSpacing:".1em",textTransform:"uppercase",marginBottom:3}}>Cognitive Switch</p><p style={{fontSize:15,color:MUTED}}>{correct}/{idx} · {score} pts</p></div>
+        <span style={{fontSize:16,color:RED,fontWeight:700,background:"rgba(248,113,113,0.08)",border:"1px solid rgba(248,113,113,0.2)",borderRadius:100,padding:"4px 12px"}}>Flexibility</span>
+      </div>
+      {!started?(
+        <div style={{background:PANEL,border:`1px solid ${BORDER2}`,borderRadius:18,padding:"32px 24px",textAlign:"center"}}>
+          <div style={{fontSize:44,marginBottom:14}}>🔄</div>
+          <h2 style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:26,letterSpacing:2,color:WHITE,marginBottom:14}}>Cognitive Switch</h2>
+          <div style={{display:"flex",gap:12,marginBottom:18}}>
+            <div style={{flex:1,background:"rgba(255,255,255,0.04)",border:`1px solid ${BORDER2}`,borderRadius:12,padding:"14px"}}>
+              <p style={{fontSize:16,fontWeight:700,color:E_BLUE,marginBottom:6,letterSpacing:".1em"}}>SHAPE RULE</p>
+              <p style={{fontSize:16,color:MUTED}}>Tap the button matching the <strong style={{color:WHITE}}>shape</strong></p>
+            </div>
+            <div style={{flex:1,background:"rgba(255,255,255,0.04)",border:`1px solid ${BORDER2}`,borderRadius:12,padding:"14px"}}>
+              <p style={{fontSize:16,fontWeight:700,color:RED,marginBottom:6,letterSpacing:".1em"}}>COLOUR RULE</p>
+              <p style={{fontSize:16,color:MUTED}}>Tap the button matching the <strong style={{color:WHITE}}>colour</strong></p>
+            </div>
+          </div>
+          <p style={{fontSize:16,color:AMBER,marginBottom:22}}>⚠ The rule switches mid-task without warning.</p>
+          <button onClick={()=>setSt(true)} style={{border:"none",borderRadius:100,padding:"14px 40px",fontSize:16,fontWeight:700,fontFamily:"'Space Grotesk',sans-serif",cursor:"pointer",background:`linear-gradient(135deg,${RED}cc,${RED})`,color:WHITE,letterSpacing:".05em"}}>Start →</button>
+        </div>
+      ):(
+        <div>
+          <div style={{background:switched?"rgba(251,191,36,0.09)":"rgba(0,200,255,0.04)",border:`1.5px solid ${switched?AMBER:BORDER}`,borderRadius:12,padding:"10px 16px",marginBottom:12,textAlign:"center",transition:"all .3s"}}>
+            {switched&&<p className="pulse" style={{fontSize:15,fontWeight:700,color:AMBER,letterSpacing:".12em",textTransform:"uppercase",marginBottom:2}}>⚠ RULE SWITCH!</p>}
+            <p style={{fontSize:16,fontWeight:700,color:switched?AMBER:E_BLUE}}>Active rule: <strong>{rule==="shape"?"SORT BY SHAPE":"SORT BY COLOUR"}</strong></p>
+          </div>
+          <div style={{background:PANEL,border:`1px solid ${BORDER2}`,borderRadius:18,padding:"24px",textAlign:"center",marginBottom:12,minHeight:120,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:6}}>
+            <ShapeEl shape={item.shape} color={item.color} size={82}/>
+            <p style={{fontSize:16,color:DIMMED,letterSpacing:".1em",textTransform:"uppercase",marginTop:4}}>Item {idx+1} of {items.length}</p>
+          </div>
+          {rule==="shape"?(
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
+              {SHAPE_BTNS.map(sh=>(
+                <button key={sh} onClick={()=>handleAnswer(sh)} style={{border:`1.5px solid ${BORDER2}`,borderRadius:14,padding:"14px",background:"rgba(255,255,255,0.03)",cursor:"pointer",display:"flex",flexDirection:"column",alignItems:"center",gap:8,transition:"all .12s"}}
+                  onMouseEnter={e=>e.currentTarget.style.borderColor=E_BLUE}
+                  onMouseLeave={e=>e.currentTarget.style.borderColor=BORDER2}>
+                  <ShapeEl shape={sh} color={WHITE} size={32}/>
+                  <span style={{fontSize:14,fontWeight:700,color:MUTED,textTransform:"capitalize",letterSpacing:".06em",fontFamily:"'Space Grotesk',sans-serif"}}>{sh}</span>
+                </button>
+              ))}
+            </div>
+          ):(
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
+              {COLOR_BTNS.map(cb=>(
+                <button key={cb.n} onClick={()=>handleAnswer(cb.n)} style={{border:`1.5px solid ${cb.c}44`,borderRadius:14,padding:"15px 14px",background:`${cb.c}0e`,cursor:"pointer",display:"flex",alignItems:"center",gap:10,transition:"all .12s"}}
+                  onMouseEnter={e=>e.currentTarget.style.background=`${cb.c}22`}
+                  onMouseLeave={e=>e.currentTarget.style.background=`${cb.c}0e`}>
+                  <div style={{width:24,height:24,borderRadius:"50%",background:cb.c,boxShadow:`0 0 10px ${cb.c}77`,flexShrink:0}}/>
+                  <span style={{fontSize:16,fontWeight:700,color:WHITE,fontFamily:"'Space Grotesk',sans-serif"}}>{cb.n}</span>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+      <FeedbackPop show={!!fb} correct={fb?.ok} pts={fb?.pts}/>
+    </div>
+  );
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+// ROUND 6 — NEURAL DEFENSE
+// ══════════════════════════════════════════════════════════════════════════
+function NeuralDefense({onComplete, difficulty}){
+  const GAME_WIDTH = 400;
+  const GAME_HEIGHT = 500;
+  const SHIELD_WIDTH = 60;
+  const SHAPE_SIZE = 36;
+  
+  // Difficulty settings
+  const WAVE_DURATION = difficulty?.defense?.waveDuration || 30; // seconds per wave
+  const SPAWN_RATE_WAVE1 = difficulty?.defense?.spawnWave1 || 1200; // ms
+  const SPAWN_RATE_WAVE2 = difficulty?.defense?.spawnWave2 || 900;
+  const SPAWN_RATE_WAVE3 = difficulty?.defense?.spawnWave3 || 650;
+  const FALL_SPEED_WAVE1 = difficulty?.defense?.fallWave1 || 2.5; // px per frame
+  const FALL_SPEED_WAVE2 = difficulty?.defense?.fallWave2 || 3.5;
+  const FALL_SPEED_WAVE3 = difficulty?.defense?.fallWave3 || 4.8;
+  
+  const [phase, setPhase] = useState("ready"); // ready, playing, complete
+  const [wave, setWave] = useState(1);
+  const [score, setScore] = useState(0);
+  const [hits, setHits] = useState(0);
+  const [misses, setMisses] = useState(0);
+  const [shieldX, setShieldX] = useState(GAME_WIDTH/2 - SHIELD_WIDTH/2);
+  const [shapes, setShapes] = useState([]);
+  const [particles, setParticles] = useState([]);
+  const [waveTime, setWaveTime] = useState(WAVE_DURATION);
+  const [lightningBolts, setLightningBolts] = useState([]); // Visual effect when shooting
+  const [scorePopups, setScorePopups] = useState([]); // Floating score numbers
+  const [screenFlash, setScreenFlash] = useState(null); // Red flash on miss
+  const [shieldActive, setShieldActive] = useState(false); // Shield glow effect
+  
+  const [hintDismissed, setHintDismissed] = useState(false);
+  const [combo, setCombo] = useState(0);               // consecutive hits without a miss
+  const [waveTransition, setWaveTransition] = useState(null); // {wave:n} during 2s gap between waves
+
+  const gameLoopRef = useRef(null);
+  const spawnTimerRef = useRef(null);
+  const waveTimerRef = useRef(null);
+  const reactionTimes = useRef([]);
+  const nextId = useRef(0);
+  const nextPopupId = useRef(0);
+  const scoreRef = useRef(0);
+  const hitsRef = useRef(0);
+  const missesRef = useRef(0); // Mirrors misses state — avoids stale closure in finishGame
+  const shapesRef = useRef([]); // Mirror of shapes state — read synchronously in handleShoot
+  const lastShotRef = useRef(0);  // timestamp of last accepted shot — enforces 200ms cooldown
+  const comboRef = useRef(0);     // mirrors combo state for sync read inside handleShoot
+  const bonusStarTimerRef = useRef(null); // one-shot timeout per wave for the ⭐ bonus star
+  
+  const SHAPES_POOL = [
+    {type:"circle", color:E_BLUE, pts:10},
+    {type:"square", color:GREEN, pts:10},
+    {type:"triangle", color:AMBER, pts:10},
+    {type:"diamond", color:VIOLET, pts:15},
+  ];
+
+  function startGame(){
+    setPhase("playing");
+    setWave(1);
+    setScore(0); scoreRef.current = 0;
+    setHits(0); hitsRef.current = 0;
+    setMisses(0); missesRef.current = 0;
+    setWaveTime(WAVE_DURATION);
+    setShapes([]); shapesRef.current = [];
+    setParticles([]);
+    setHintDismissed(false);
+    setCombo(0); comboRef.current = 0;
+    setWaveTransition(null);
+    lastShotRef.current = 0;
+    reactionTimes.current = [];
+    startWave(1);
+  }
+
+  function startWave(w){
+    setWaveTransition(null); // clear any between-wave overlay
+    setWave(w);
+    setWaveTime(WAVE_DURATION);
+    
+    const spawnRate = w===1 ? SPAWN_RATE_WAVE1 : w===2 ? SPAWN_RATE_WAVE2 : SPAWN_RATE_WAVE3;
+    const fallSpeed = w===1 ? FALL_SPEED_WAVE1 : w===2 ? FALL_SPEED_WAVE2 : FALL_SPEED_WAVE3;
+    
+    // Spawn shapes periodically — ±15% speed jitter per shape prevents timing memorisation
+    spawnTimerRef.current = setInterval(()=>{
+      const shape = SHAPES_POOL[Math.floor(Math.random()*SHAPES_POOL.length)];
+      const id = nextId.current++;
+      setShapes(prev => [...prev, {
+        id,
+        ...shape,
+        x: Math.random() * (GAME_WIDTH - SHAPE_SIZE),
+        y: -SHAPE_SIZE,
+        speed: fallSpeed * (0.85 + Math.random() * 0.3), // ±15% jitter
+        spawnTime: Date.now(),
+      }]);
+    }, spawnRate);
+
+    // ⭐ BONUS STAR — one per wave at a random time (5–25s in)
+    // Worth 30 pts, falls fast (~1.5s across screen), missing it has NO penalty
+    const starDelay = (5 + Math.random() * 20) * 1000;
+    bonusStarTimerRef.current = setTimeout(()=>{
+      const id = nextId.current++;
+      setShapes(prev => [...prev, {
+        id,
+        type: "star",
+        color: "#FFD700",
+        pts: 30,
+        x: Math.random() * (GAME_WIDTH - SHAPE_SIZE),
+        y: -SHAPE_SIZE,
+        speed: 5.5, // crosses 500px canvas in ~1.5s at 60fps
+        spawnTime: Date.now(),
+        isBonusStar: true,
+      }]);
+    }, starDelay);
+    
+    // Wave countdown timer
+    let timeLeft = WAVE_DURATION;
+    waveTimerRef.current = setInterval(()=>{
+      timeLeft--;
+      setWaveTime(timeLeft);
+      if(timeLeft <= 0){
+        clearInterval(spawnTimerRef.current);
+        clearInterval(waveTimerRef.current);
+        clearTimeout(bonusStarTimerRef.current); // cancel star if it hasn't fired yet
+        if(w < 3){
+          setWaveTransition({wave: w + 1}); // show transition overlay during 2s gap
+          setTimeout(()=> startWave(w+1), 2000);
+        } else {
+          finishGame();
+        }
+      }
+    }, 1000);
+  }
+
+  function finishGame(){
+    clearInterval(spawnTimerRef.current);
+    clearInterval(waveTimerRef.current);
+    clearTimeout(bonusStarTimerRef.current);
+    if(gameLoopRef.current) cancelAnimationFrame(gameLoopRef.current);
+    
+    const accuracy = hitsRef.current + missesRef.current > 0
+      ? Math.round((hitsRef.current / (hitsRef.current + missesRef.current)) * 100)
+      : 0;
+    const avgReaction = reactionTimes.current.length > 0 
+      ? Math.round(reactionTimes.current.reduce((a,b)=>a+b,0) / reactionTimes.current.length) 
+      : 0;
+    
+    onComplete(scoreRef.current, "Neural Defense", avgReaction, accuracy);
+  }
+
+  // Game loop - move shapes and check collisions
+  useEffect(()=>{
+    if(phase !== "playing") return;
+    
+    function gameLoop(){
+      setShapes(prev => {
+        const updated = prev.map(s => ({...s, y: s.y + s.speed}));
+        // Remove shapes that reached bottom (missed)
+        const allMissed = updated.filter(s => s.y > GAME_HEIGHT);
+        const regularMissed = allMissed.filter(s => !s.isBonusStar); // bonus star misses = no penalty
+        if(regularMissed.length > 0){
+          setMisses(m => m + regularMissed.length);
+          missesRef.current += regularMissed.length; // Keep ref in sync for finishGame accuracy calculation
+          // 💥 COMBO BREAK — reset streak on any regular miss
+          comboRef.current = 0;
+          setCombo(0);
+          // 🔊 MISS SOUND
+          playMissSound();
+          // ❌ SCREEN FLASH on miss
+          setScreenFlash('red');
+          setTimeout(() => setScreenFlash(null), 200);
+        }
+        // Bonus star exits bottom silently — no combo break, no flash, no miss count
+        const remaining = updated.filter(s => s.y <= GAME_HEIGHT);
+        shapesRef.current = remaining; // Keep ref in sync for synchronous reads in handleShoot
+        return remaining;
+      });
+      
+      // Decay particles
+      setParticles(prev => prev.map(p => ({...p, life: p.life - 1})).filter(p => p.life > 0));
+      
+      // Decay lightning bolts
+      setLightningBolts(prev => prev.map(l => ({...l, life: l.life - 1, targetY: l.targetY - 20})).filter(l => l.life > 0));
+      
+      // Decay score popups
+      setScorePopups(prev => prev.map(p => ({...p, life: p.life - 1, y: p.y - 2})).filter(p => p.life > 0));
+      
+      gameLoopRef.current = requestAnimationFrame(gameLoop);
+    }
+    
+    gameLoopRef.current = requestAnimationFrame(gameLoop);
+    return () => {
+      if(gameLoopRef.current) cancelAnimationFrame(gameLoopRef.current);
+    };
+  }, [phase]);
+
+  // Cleanup on unmount
+  useEffect(()=>{
+    return ()=>{
+      clearInterval(spawnTimerRef.current);
+      clearInterval(waveTimerRef.current);
+      clearTimeout(bonusStarTimerRef.current);
+      if(gameLoopRef.current) cancelAnimationFrame(gameLoopRef.current);
+    };
+  }, []);
+
+  function handleShoot(){
+    if(phase !== "playing") return;
+
+    // ── CHANGE 2: 200ms cooldown — prevents spam-tap scoring exploit ──────
+    const now = Date.now();
+    if(now - lastShotRef.current < 200) return;
+    lastShotRef.current = now;
+    
+    // Dismiss the tap hint on first shot
+    setHintDismissed(true);
+    
+    // 🔊 SHOOT SOUND
+    playShootSound();
+    
+    // 🎆 LIGHTNING BOLT EFFECT
+    const shieldCenter = shieldX + SHIELD_WIDTH/2;
+    setLightningBolts(prev => [...prev, {
+      id: Math.random(),
+      x: shieldCenter,
+      y: GAME_HEIGHT - 50,
+      targetY: -50,
+      life: 15,
+    }]);
+    
+    // Activate shield glow
+    setShieldActive(true);
+    setTimeout(() => setShieldActive(false), 200);
+    
+    // ── Read current shapes from ref (synchronous, no render) ──────────────
+    const currentShapes = shapesRef.current;
+    
+    // Find best target: closest horizontally within 100px, lowest on screen
+    let bestTarget = null;
+    let bestPriority = -1;
+    currentShapes.forEach(s => {
+      const horizDist = Math.abs((s.x + SHAPE_SIZE/2) - shieldCenter);
+      if(horizDist < 100) {
+        const priority = s.y - horizDist * 0.5;
+        if(priority > bestPriority) { bestPriority = priority; bestTarget = s; }
+      }
+    });
+    
+    if(bestTarget){
+      // ── CHANGE 3: Combo multiplier ────────────────────────────────────
+      const newCombo = comboRef.current + 1;
+      comboRef.current = newCombo;
+      setCombo(newCombo);
+      const multiplier = newCombo >= 10 ? 2.0 : newCombo >= 5 ? 1.5 : 1.0;
+      const earnedPts = Math.round(bestTarget.pts * multiplier);
+
+      // ── Update game state ─────────────────────────────────────────────
+      scoreRef.current += earnedPts;
+      hitsRef.current += 1;
+      reactionTimes.current.push(now - bestTarget.spawnTime);
+      
+      // Remove hit shape from state
+      setShapes(prev => prev.filter(s => s.id !== bestTarget.id));
+      shapesRef.current = currentShapes.filter(s => s.id !== bestTarget.id);
+      setScore(scoreRef.current);
+      setHits(hitsRef.current);
+      
+      // 🔊 HIT SOUND
+      playHitSound();
+      
+      // ── Build all particles in one array — single setParticles call ──
+      const cx = bestTarget.x + SHAPE_SIZE/2;
+      const cy = bestTarget.y + SHAPE_SIZE/2;
+      const STAR_COLORS = [E_BLUE, GREEN, AMBER, VIOLET, RED, "#F472B6"];
+      const newParticles = [];
+      
+      // 💥 Explosion dot particles
+      for(let i=0; i<10; i++){
+        newParticles.push({
+          id: Math.random(), x: cx, y: cy,
+          vx: (Math.random()-0.5)*8, vy: (Math.random()-0.5)*8,
+          color: bestTarget.color, life: 25,
+        });
+      }
+      
+      // ⭐ Star burst — 6 coloured stars radiating outward
+      for(let i=0; i<6; i++){
+        const angle = (i/6)*Math.PI*2;
+        newParticles.push({
+          id: Math.random(), x: cx, y: cy,
+          vx: Math.cos(angle)*6, vy: Math.sin(angle)*6,
+          color: STAR_COLORS[i], life: 32,
+          isStar: true,
+        });
+      }
+      
+      // 🧠 Neural pulse rings
+      for(let i=0; i<3; i++){
+        newParticles.push({
+          id: Math.random(), x: cx, y: cy,
+          vx: 0, vy: 0,
+          color: bestTarget.color, life: 20 - i*3,
+          isPulse: true, pulseSize: i * 12,
+        });
+      }
+      
+      // Single batched update — no per-particle renders, no freeze
+      setParticles(prev => [...prev, ...newParticles]);
+      
+      // 🎯 Score popup — shows multiplied value
+      setScorePopups(prev => {
+        const next = [...prev, {
+          id: nextPopupId.current++,
+          x: cx, y: bestTarget.y,
+          value: `+${earnedPts}`,
+          color: multiplier >= 2.0 ? VIOLET : multiplier >= 1.5 ? AMBER : bestTarget.color,
+          life: 30,
+        }];
+        // 🔥 Combo milestone popup — appears when threshold is first crossed
+        if(newCombo === 5 || newCombo === 10){
+          next.push({
+            id: nextPopupId.current++,
+            x: GAME_WIDTH / 2,
+            y: GAME_HEIGHT / 2 - 40,
+            value: newCombo >= 10 ? "COMBO ×2!" : "COMBO ×1.5!",
+            color: newCombo >= 10 ? VIOLET : AMBER,
+            life: 45,
+            isCombo: true,
+          });
+        }
+        return next;
+      });
+    }
+  }
+
+  function handleMouseMove(e){
+    if(phase !== "playing") return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = e.clientX - rect.left - SHIELD_WIDTH/2;
+    setShieldX(Math.max(0, Math.min(GAME_WIDTH - SHIELD_WIDTH, x)));
+  }
+
+  function handleTouchMove(e){
+    if(phase !== "playing") return;
+    e.preventDefault();
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = e.touches[0].clientX - rect.left - SHIELD_WIDTH/2;
+    setShieldX(Math.max(0, Math.min(GAME_WIDTH - SHIELD_WIDTH, x)));
+  }
+
+  function handleTouchEnd(e){
+    if(phase !== "playing") return;
+    e.preventDefault(); // CHANGE 1: stops browser synthesising a ghost onClick ~300ms after touchend
+    handleShoot();
+  }
+
+  // Render shape SVG
+  function renderShape(type, color, size){
+    if(type==="circle") return <div style={{width:size,height:size,borderRadius:"50%",background:color,boxShadow:`0 0 12px ${color}88`}}/>;
+    if(type==="square") return <div style={{width:size,height:size,background:color,borderRadius:4,boxShadow:`0 0 12px ${color}88`}}/>;
+    if(type==="triangle") return <div style={{width:0,height:0,borderLeft:`${size/2}px solid transparent`,borderRight:`${size/2}px solid transparent`,borderBottom:`${size}px solid ${color}`,filter:`drop-shadow(0 0 8px ${color}88)`}}/>;
+    if(type==="diamond") return <div style={{width:size,height:size,background:color,transform:"rotate(45deg)",borderRadius:4,boxShadow:`0 0 12px ${color}88`}}/>;
+    if(type==="star") return <div style={{width:size,height:size,fontSize:size*0.88,lineHeight:"1",textAlign:"center",filter:`drop-shadow(0 0 10px #FFD700) drop-shadow(0 0 22px #FFD70066)`,animation:"pulse 0.5s ease-in-out infinite",userSelect:"none"}}>⭐</div>;
+  }
+
+  if(phase === "ready"){
+    return(
+      <div>
+        <RoundProgress round={6}/>
+        <div style={{background:PANEL,border:`1px solid ${BORDER2}`,borderRadius:18,padding:"32px 24px",textAlign:"center"}}>
+          <div style={{fontSize:48,marginBottom:14}}>🛡️</div>
+          <h2 style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:26,letterSpacing:2,color:WHITE,marginBottom:10}}>Neural Defense</h2>
+          <p style={{fontSize:16,color:MUTED,lineHeight:1.85,marginBottom:20}}>
+            <strong style={{color:WHITE}}>THE OBJECTIVE:</strong><br/>
+            Shapes fall from above.<br/>
+            <strong style={{color:PURPLE}}>Move your shield</strong> left and right,<br/>
+            then <strong style={{color:PURPLE}}>tap to block</strong> before they hit bottom.<br/>
+            <span style={{fontSize:14,color:DIMMED}}>3 waves · Increasing speed · Every hit counts</span><br/>
+            <span style={{fontSize:14,color:"#FFD700"}}>⭐ Watch for gold stars — catch them for 30 bonus points!</span>
+          </p>
+          <div style={{background:"rgba(251,191,36,0.08)",border:"1px solid rgba(251,191,36,0.25)",borderRadius:12,padding:"12px 16px",marginBottom:12}}>
+            <p style={{fontSize:14,color:AMBER,fontWeight:700,marginBottom:4}}>🛡️ Shield Tip:</p>
+            <p style={{fontSize:14,color:MUTED,lineHeight:1.6}}>
+              Click/tap anywhere to shoot. Position your shield under falling shapes - when they're close, they'll be destroyed!
+            </p>
+          </div>
+          <div style={{background:"rgba(139,92,246,0.08)",border:"1px solid rgba(139,92,246,0.25)",borderRadius:12,padding:"16px 18px",marginBottom:22}}>
+            <p style={{fontSize:14,color:MUTED,lineHeight:1.75}}>
+              This trains sustained visual attention and reaction time under continuous pressure — the same skills measured in action game research.
+            </p>
+          </div>
+          <button onClick={startGame} style={{border:"none",borderRadius:100,padding:"14px 40px",fontSize:16,fontWeight:700,fontFamily:"'Space Grotesk',sans-serif",cursor:"pointer",background:`linear-gradient(135deg,${PURPLE}cc,${PURPLE})`,color:WHITE,letterSpacing:".05em",boxShadow:`0 6px 28px ${PURPLE}44`,animation:"pulse 2s infinite"}}>
+            ⚡ Launch Defense →
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return(
+    <div>
+      <RoundProgress round={6}/>
+      
+      {/* 🎮 DRAMATIC GAME HUD */}
+      <div style={{background:"rgba(7,15,30,0.95)",border:`2px solid ${waveTime<=5?"rgba(239,68,68,0.6)":waveTime<=10?"rgba(251,191,36,0.4)":"rgba(139,92,246,0.3)"}`,borderRadius:14,padding:"12px 16px",marginBottom:10,boxShadow:waveTime<=5?`0 0 20px rgba(239,68,68,0.3)`:waveTime<=10?`0 0 15px rgba(251,191,36,0.2)`:"none",transition:"all .3s"}}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+          {/* Left: Wave + Hits */}
+          <div>
+            <div style={{display:"flex",gap:6,alignItems:"center",marginBottom:4}}>
+              {[1,2,3].map(w=>(
+                <div key={w} style={{width:28,height:6,borderRadius:3,background:w<=wave?`linear-gradient(90deg,${PURPLE},${E_BLUE})`:BORDER2,transition:"all .3s"}}/>
+              ))}
+              <span style={{fontSize:12,color:DIMMED,fontWeight:700,marginLeft:4}}>WAVE {wave}/3</span>
+            </div>
+            <div style={{display:"flex",gap:12,alignItems:"center"}}>
+              <span style={{fontSize:13,color:MUTED}}>🎯 <strong style={{color:GREEN}}>{hits}</strong> hits</span>
+              <span style={{fontSize:13,color:MUTED}}>❌ <strong style={{color:RED}}>{misses}</strong> missed</span>
+              {combo >= 3 && (
+                <span style={{
+                  fontSize:11, fontWeight:700, letterSpacing:".08em",
+                  padding:"2px 8px", borderRadius:100,
+                  background: combo >= 10 ? `rgba(167,139,250,0.18)` : `rgba(251,191,36,0.15)`,
+                  color: combo >= 10 ? VIOLET : AMBER,
+                  border: `1px solid ${combo >= 10 ? "rgba(167,139,250,0.4)" : "rgba(251,191,36,0.35)"}`,
+                  animation:"pulse 0.8s infinite"
+                }}>
+                  <FlameIcon size={13}/> ×{combo >= 10 ? "2" : "1.5"}
+                </span>
+              )}
+            </div>
+          </div>
+          {/* Centre: Score */}
+          <div style={{textAlign:"center"}}>
+            <p style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:32,letterSpacing:2,color:WHITE,lineHeight:1}}>{score}</p>
+            <p style={{fontSize:11,color:DIMMED,letterSpacing:".1em"}}>POINTS</p>
+          </div>
+          {/* Right: Countdown clock */}
+          <div style={{textAlign:"right"}}>
+            <div style={{background:waveTime<=5?"rgba(239,68,68,0.15)":waveTime<=10?"rgba(251,191,36,0.1)":"rgba(139,92,246,0.1)",border:`2px solid ${waveTime<=5?"rgba(239,68,68,0.7)":waveTime<=10?AMBER:PURPLE}`,borderRadius:10,padding:"6px 12px",minWidth:58,textAlign:"center"}}>
+              <p style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:28,letterSpacing:1,color:waveTime<=5?RED:waveTime<=10?AMBER:PURPLE,lineHeight:1,animation:waveTime<=5?"screen-shake .2s infinite":"none"}}>{waveTime}</p>
+              <p style={{fontSize:10,color:DIMMED,letterSpacing:".1em"}}>SECS</p>
+            </div>
+          </div>
+        </div>
+        {/* Wave progress bar */}
+        <div style={{marginTop:8,height:4,background:"rgba(255,255,255,0.05)",borderRadius:100,overflow:"hidden"}}>
+          <div style={{height:"100%",background:waveTime<=5?`linear-gradient(90deg,${RED},#FF6B6B)`:waveTime<=10?`linear-gradient(90deg,${AMBER},#FDE68A)`:`linear-gradient(90deg,${PURPLE},${E_BLUE})`,width:`${(waveTime/WAVE_DURATION)*100}%`,transition:"width 1s linear",borderRadius:100}}/>
+        </div>
+      </div>
+
+      {/* Game area */}
+      <div 
+        onMouseMove={handleMouseMove}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+        onClick={handleShoot}
+        style={{
+          position:"relative",
+          width:GAME_WIDTH,
+          maxWidth:"100%",
+          height:GAME_HEIGHT,
+          margin:"0 auto",
+          background:"linear-gradient(180deg, rgba(13,24,48,0.4), rgba(7,15,30,0.95))",
+          border:`2px solid ${BORDER}`,
+          borderRadius:16,
+          overflow:"hidden",
+          cursor:"crosshair",
+          touchAction:"none"
+        }}
+      >
+        {/* Falling shapes */}
+        {shapes.map(s => (
+          <div key={s.id} style={{position:"absolute",left:s.x,top:s.y,pointerEvents:"none"}}>
+            {renderShape(s.type, s.color, SHAPE_SIZE)}
+          </div>
+        ))}
+        
+        {/* ⚡ LIGHTNING BOLTS - Dramatic shooting effect */}
+        {lightningBolts.map(bolt => (
+          <div key={bolt.id} style={{
+            position:"absolute",
+            left:bolt.x - 2,
+            top:bolt.targetY,
+            bottom:GAME_HEIGHT - bolt.y,
+            width:4,
+            background:`linear-gradient(180deg, ${PURPLE}00, ${PURPLE}FF, ${PURPLE}88)`,
+            boxShadow:`0 0 20px ${PURPLE}, 0 0 40px ${PURPLE}88`,
+            opacity:bolt.life / 15,
+            pointerEvents:"none",
+            animation:"lightning-flicker 0.1s infinite"
+          }}/>
+        ))}
+        
+        {/* 🎯 SCORE POPUPS - Floating numbers + combo milestones */}
+        {scorePopups.map(popup => (
+          <div key={popup.id} style={{
+            position:"absolute",
+            left: popup.isCombo ? popup.x - 60 : popup.x - 20,
+            top:popup.y,
+            fontSize: popup.isCombo ? 26 : 20,
+            fontWeight:800,
+            fontFamily: popup.isCombo ? "'Bebas Neue',sans-serif" : "inherit",
+            letterSpacing: popup.isCombo ? 2 : 0,
+            color:popup.color,
+            opacity: popup.isCombo ? popup.life / 45 : popup.life / 30,
+            pointerEvents:"none",
+            textShadow:`0 0 10px ${popup.color}, 0 0 20px ${popup.color}`,
+            transform: popup.isCombo
+              ? `scale(${1.2 + (45 - popup.life) / 45 * 0.3}) translateY(${-(45 - popup.life) * 0.8}px)`
+              : `scale(${1 + (30 - popup.life) / 30 * 0.5})`
+          }}>{popup.value}</div>
+        ))}
+        
+        {/* Particles */}
+        {particles.map(p => {
+          if(p.isPulse) {
+            // 🧠 NEURAL PULSE RINGS
+            const size = 40 + (20 - p.life) * 3 + p.pulseSize;
+            return (
+              <div key={p.id} style={{
+                position:"absolute",
+                left:p.x - size/2,
+                top:p.y - size/2,
+                width:size,
+                height:size,
+                borderRadius:"50%",
+                border:`2px solid ${p.color}`,
+                opacity:p.life / 20,
+                pointerEvents:"none"
+              }}/>
+            );
+          }
+          if(p.isStar) {
+            // ⭐ STAR BURST — spinning coloured star radiating outward
+            const age = 32 - p.life;
+            const sz = 14 + age * 0.4;
+            return (
+              <div key={p.id} style={{
+                position:"absolute",
+                left: p.x + p.vx * age - sz/2,
+                top:  p.y + p.vy * age - sz/2,
+                width: sz,
+                height: sz,
+                fontSize: sz,
+                lineHeight: "1",
+                textAlign: "center",
+                color: p.color,
+                opacity: p.life / 32,
+                pointerEvents: "none",
+                textShadow: `0 0 10px ${p.color}, 0 0 20px ${p.color}88`,
+                transform: `rotate(${age * 15}deg)`,
+                userSelect: "none",
+              }}>★</div>
+            );
+          }
+          return (
+            <div key={p.id} style={{
+              position:"absolute",
+              left:p.x + (p.vx * (25-p.life)),
+              top:p.y + (p.vy * (25-p.life)),
+              width:5,
+              height:5,
+              borderRadius:"50%",
+              background:p.color,
+              boxShadow:`0 0 8px ${p.color}`,
+              opacity:p.life/25,
+              pointerEvents:"none"
+            }}/>
+          );
+        })}
+        
+        {/* ❌ SCREEN FLASH on miss */}
+        {screenFlash && (
+          <div style={{
+            position:"absolute",
+            top:0,
+            left:0,
+            right:0,
+            bottom:0,
+            background:"rgba(239,68,68,0.3)",
+            pointerEvents:"none",
+            animation:"screen-shake 0.2s"
+          }}/>
+        )}
+        
+        {/* Shield with glow effect */}
+        <div style={{
+          position:"absolute",
+          left:shieldX,
+          bottom:20,
+          width:SHIELD_WIDTH,
+          height:12,
+          background:`linear-gradient(90deg,${PURPLE}44,${PURPLE},${PURPLE}44)`,
+          borderRadius:6,
+          boxShadow:shieldActive ? `0 0 30px ${PURPLE}, 0 0 60px ${PURPLE}88` : `0 0 16px ${PURPLE}88`,
+          pointerEvents:"none",
+          transition:"all 0.08s",
+          transform:shieldActive ? "scale(1.1)" : "scale(1)"
+        }}/>
+        
+        {/* Tap instruction — only shown until first shot */}
+        {!hintDismissed && (
+          <div style={{position:"absolute",bottom:50,left:"50%",transform:"translateX(-50%)",fontSize:14,color:MUTED,pointerEvents:"none",textAlign:"center",transition:"opacity .3s"}}>
+            <div style={{marginBottom:4}}>Tap anywhere to shoot</div>
+            <div style={{fontSize:14,color:PURPLE,background:"rgba(139,92,246,0.12)",padding:"5px 10px",borderRadius:6}}>
+              🛡️ Shield blocks incoming shapes
+            </div>
           </div>
         )}
 
-        {/* ── SECTION 3: NATURAL INTELLIGENCE — collapsed single card ── */}
-        <div
-          onClick={()=>setNatureExpanded(v=>!v)}
-          style={{
-            background: natureExpanded
-              ? `linear-gradient(135deg,${todayLaw.color}08,rgba(52,211,153,0.04))`
-              : "rgba(255,255,255,0.03)",
-            border: natureExpanded
-              ? `1px solid ${todayLaw.color}40`
-              : "1px solid rgba(255,255,255,0.09)",
-            borderLeft: `3px solid ${natureExpanded ? todayLaw.color : "rgba(52,211,153,0.4)"}`,
-            borderRadius:"0 14px 14px 0",
-            padding:"13px 16px",
-            marginBottom:16,
-            cursor:"pointer",
-            transition:"all .3s ease",
-            animation:"fadeUp .5s .12s ease both",
+        {/* 🌊 WAVE TRANSITION OVERLAY — fills the 2s gap between waves */}
+        {waveTransition && (
+          <div style={{
+            position:"absolute", inset:0,
+            background:"rgba(7,15,30,0.88)",
+            display:"flex", flexDirection:"column",
+            alignItems:"center", justifyContent:"center",
+            pointerEvents:"none",
+            animation:"fadeUp 0.35s ease both",
           }}>
+            <div style={{
+              fontSize:11, fontWeight:700, letterSpacing:".22em",
+              textTransform:"uppercase", color:PURPLE,
+              marginBottom:10, opacity:0.8,
+            }}>Get ready</div>
+            <div style={{
+              fontFamily:"'Bebas Neue',sans-serif",
+              fontSize:52, letterSpacing:4,
+              color:WHITE, lineHeight:1,
+              textShadow:`0 0 30px ${PURPLE}, 0 0 60px ${PURPLE}44`,
+              marginBottom:6,
+            }}>WAVE {waveTransition.wave}</div>
+            <div style={{
+              fontFamily:"'Bebas Neue',sans-serif",
+              fontSize:18, letterSpacing:3,
+              color:waveTransition.wave === 3 ? RED : AMBER,
+              marginBottom:20,
+            }}>{waveTransition.wave === 3 ? "⚡ MAXIMUM SPEED" : "↑ SPEED INCREASE"}</div>
+            <div style={{
+              display:"flex", gap:6,
+            }}>
+              {[1,2,3].map(w=>(
+                <div key={w} style={{
+                  width:32, height:6, borderRadius:3,
+                  background: w < waveTransition.wave
+                    ? GREEN
+                    : w === waveTransition.wave
+                    ? `linear-gradient(90deg,${PURPLE},${E_BLUE})`
+                    : BORDER2,
+                  transition:"all .3s",
+                  boxShadow: w === waveTransition.wave ? `0 0 10px ${PURPLE}` : "none",
+                }}/>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+      
+      {/* Add CSS keyframes for lightning flicker and screen shake */}
+      <style>{`
+        @keyframes lightning-flicker {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.7; }
+        }
+        @keyframes screen-shake {
+          0%, 100% { transform: translate(0, 0); }
+          25% { transform: translate(-5px, 2px); }
+          50% { transform: translate(5px, -2px); }
+          75% { transform: translate(-3px, -2px); }
+        }
+      `}</style>
+    </div>
+  );
+}
 
-          {/* Header row — always visible */}
-          <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
-            <div style={{display:"flex",alignItems:"center",gap:8}}>
-              <span style={{fontSize:14}}>🌿</span>
-              <div>
-                <p style={{fontSize:10,fontWeight:700,color:"rgba(52,211,153,0.55)",letterSpacing:".14em",textTransform:"uppercase",marginBottom:2}}>Today's Natural Intelligence</p>
-                <p style={{fontSize:15,fontWeight:700,color:GREEN,letterSpacing:".03em"}}>{todayFact.ingredient}</p>
+// ══════════════════════════════════════════════════════════════════════════
+// RESULTS
+// ══════════════════════════════════════════════════════════════════════════
+
+// ══════════════════════════════════════════════════════════════════════════
+function Results({scores,level,newLevel,streak,dailyAction,arch,challengeData,isQuickPlay,bestScore,onBack,onRetry,fromRecall}){
+  const [expandedInsights, setExpandedInsights] = useState(new Set());
+  const [showDetails, setShowDetails] = useState(false); // progressive disclosure — hides focus/21-day/blueprint by default
+
+  function toggleInsight(i){
+    setExpandedInsights(prev => {
+      const next = new Set(prev);
+      next.has(i) ? next.delete(i) : next.add(i);
+      return next;
+    });
+  }
+
+  // Question shown on each card before the user taps to reveal
+  const insightQuestions = {
+    "Stroop Challenge":  "What does your executive control say about you?",
+    "2-Back Test":       "What does your working memory score reveal?",
+    "Pattern Matrix":    "What does your spatial score tell you?",
+    "Reaction Velocity": "What does your reaction time mean for you?",
+    "Cognitive Switch":  "What does your flexibility score say about you?",
+    "Neural Defense":    "What does your sustained attention reveal?",
+  };
+
+  const total=scores.reduce((a,s)=>a+s.score,0);
+  const levelUp=newLevel.name!==level.name;
+  const grade=total>=540?"Quantum Elite":total>=420?"Elite":total>=300?"Sharp":total>=180?"Developing":"Initiate";
+  const gradeColor=total>=540?VIOLET:total>=420?E_BLUE:total>=300?GREEN:total>=180?AMBER:DIMMED;
+  const rtimes=scores.filter(s=>s.reactionMs).map(s=>s.reactionMs);
+  const avgMs=rtimes.length?Math.round(rtimes.reduce((a,b)=>a+b,0)/rtimes.length):null;
+
+  // ── Benchmark data ──────────────────────────────────────────────────────
+  // Estimated percentiles based on observed score distribution across the
+  // 820-point max (140+140+140+130+120+150). Thresholds are conservative.
+  const getBenchmark = (score) => {
+    if(score >= 600) return { pct:97, label:"Top 3%",   color:VIOLET, bar:97 };
+    if(score >= 540) return { pct:93, label:"Top 7%",   color:VIOLET, bar:93 };
+    if(score >= 480) return { pct:88, label:"Top 12%",  color:E_BLUE, bar:88 };
+    if(score >= 420) return { pct:82, label:"Top 18%",  color:E_BLUE, bar:82 };
+    if(score >= 360) return { pct:72, label:"Top 28%",  color:GREEN,  bar:72 };
+    if(score >= 300) return { pct:62, label:"Top 38%",  color:GREEN,  bar:62 };
+    if(score >= 240) return { pct:50, label:"Top 50%",  color:AMBER,  bar:50 };
+    if(score >= 180) return { pct:38, label:"Top 62%",  color:AMBER,  bar:38 };
+    if(score >= 120) return { pct:24, label:"Top 76%",  color:RED,    bar:24 };
+    return               { pct:10, label:"Top 90%",  color:RED,    bar:10 };
+  };
+  const benchmark = !isQuickPlay ? getBenchmark(total) : null;
+  const isPB = total > 0 && total >= bestScore && bestScore > 0;
+  const pbDiff = bestScore > 0 ? total - bestScore : null;
+  // Map by label so Quick Play (single Defense score) renders with correct metadata
+  const roundMetaByLabel={
+    "Stroop Challenge":   {icon:"🎨",label:"Stroop",tag:"Exec. Function",max:140},
+    "2-Back Test":        {icon:"🧠",label:"2-Back",tag:"Working Memory",max:140},
+    "Pattern Matrix":     {icon:"🔷",label:"Matrix",tag:"Spatial",max:140},
+    "Reaction Velocity":  {icon:"⚡",label:"Reaction",tag:"Proc. Speed",max:130},
+    "Cognitive Switch":   {icon:"🔄",label:"Switch",tag:"Flexibility",max:120},
+    "Neural Defense":     {icon:"🛡️",label:"Defense",tag:"Sustained Attn",max:150},
+  };
+  return(
+    <div style={{animation:"fadeUp .55s ease both"}}>
+
+      {/* ── 1. LEVEL UP BANNER ── */}
+      {levelUp&&<div style={{background:`linear-gradient(135deg,${newLevel.color}22,transparent)`,border:`2px solid ${newLevel.color}`,borderRadius:16,padding:"18px 22px",textAlign:"center",marginBottom:14}}>
+        <p style={{fontSize:16,fontWeight:700,color:newLevel.color,letterSpacing:".16em",textTransform:"uppercase",marginBottom:6}}>⚡ Level Up!</p>
+        <p style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:26,letterSpacing:2,color:WHITE}}>You are now a <span style={{color:newLevel.color}}>{newLevel.name}</span></p>
+      </div>}
+
+      {/* ── 2. SCORE HERO ── */}
+      <div style={{background:`linear-gradient(145deg,${DARK2},${DARK})`,border:`1px solid ${gradeColor}22`,borderRadius:20,padding:"30px 24px",textAlign:"center",marginBottom:14}}>
+        <p style={{fontSize:15,fontWeight:700,color:DIMMED,letterSpacing:".14em",textTransform:"uppercase",marginBottom:10}}>Brain Training Complete</p>
+        <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:72,letterSpacing:2,color:gradeColor,lineHeight:1,marginBottom:4}}>{total}</div>
+        <p style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:18,letterSpacing:4,color:gradeColor,marginBottom:8}}>{grade}</p>
+        {avgMs&&<p style={{fontSize:16,color:MUTED,marginBottom:10}}>Avg reaction time: <strong style={{color:WHITE}}>{avgMs}ms</strong>{avgMs<270?"  ⚡":avgMs<370?"  ✓":""}</p>}
+        {streak>0&&<div style={{display:"inline-flex",alignItems:"center",gap:8,background:"rgba(251,191,36,0.06)",border:"1px solid rgba(251,191,36,0.16)",borderRadius:100,padding:"6px 14px",fontSize:14,color:AMBER,fontWeight:600}}><FlameIcon size={14}/> {streak}-day streak · +{streak*5}% bonus</div>}
+      </div>
+
+      {/* ── 3. TODAY'S FOCUS — hidden until user expands full analysis ── */}
+      {showDetails && (<div style={{
+        background:`linear-gradient(135deg,rgba(0,200,255,0.07),rgba(0,200,255,0.02))`,
+        border:`1px solid ${E_BLUE}44`,
+        borderLeft:`4px solid ${E_BLUE}`,
+        borderRadius:"0 16px 16px 0",
+        padding:"22px 22px 18px",
+        marginBottom:14,
+        animation:"fadeUp .3s ease both",
+      }}>
+        {/* Label */}
+        <p style={{fontSize:11,fontWeight:700,color:E_BLUE,letterSpacing:".2em",textTransform:"uppercase",marginBottom:10}}>⚡ Today's Focus</p>
+        {/* Action title — this is the headline */}
+        <p style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:26,letterSpacing:1.5,color:WHITE,lineHeight:1.1,marginBottom:12}}>{dailyAction.title}</p>
+        {/* The action itself — readable and prominent */}
+        <p style={{fontSize:16,color:MUTED,lineHeight:1.8,marginBottom:16,fontWeight:400}}>{dailyAction.action}</p>
+        {/* Neuroscience — de-emphasised supporting note */}
+        <div style={{
+          display:"flex",gap:10,alignItems:"flex-start",
+          padding:"10px 12px",
+          background:"rgba(255,255,255,0.025)",
+          border:`1px solid rgba(255,255,255,0.05)`,
+          borderRadius:10,
+        }}>
+          <span style={{fontSize:13,flexShrink:0,marginTop:1,opacity:.6}}>🔬</span>
+          <p style={{fontSize:15,color:MUTED,lineHeight:1.75,fontStyle:"italic"}}>{dailyAction.science}</p>
+        </div>
+      </div>)}
+
+      {/* ── 4. 21-DAY COMEBACK — hidden until user expands full analysis ── */}
+      {showDetails && challengeData && (
+        <div style={{
+          background:`linear-gradient(135deg,rgba(251,191,36,0.06),rgba(251,191,36,0.02))`,
+          border:`1px solid rgba(251,191,36,0.22)`,
+          borderRadius:16,
+          padding:"20px",
+          marginBottom:14,
+          animation:"fadeUp .35s ease both",
+        }}>
+          {/* Comeback message — this is the emotional lead */}
+          <div style={{display:"flex",gap:14,alignItems:"center",marginBottom:16,paddingBottom:16,borderBottom:`1px solid rgba(255,255,255,0.06)`}}>
+            <div style={{
+              width:44,height:44,borderRadius:12,flexShrink:0,
+              background:"rgba(251,191,36,0.1)",border:"1px solid rgba(251,191,36,0.25)",
+              display:"flex",alignItems:"center",justifyContent:"center",fontSize:22
+            }}><FlameIcon size={18}/></div>
+            <div>
+              <p style={{fontSize:16,fontWeight:700,color:WHITE,marginBottom:3}}>
+                {streak>1 ? `${streak}-day streak — you're building momentum.` : "Day 1 complete. The streak starts now."}
+              </p>
+              <p style={{fontSize:14,color:AMBER,lineHeight:1.5}}>
+                Return tomorrow to keep it alive — consistency is where the real transformation happens.
+              </p>
+            </div>
+          </div>
+          {/* Progress — supporting data below the message */}
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
+            <p style={{fontSize:12,fontWeight:700,color:DIMMED,letterSpacing:".1em",textTransform:"uppercase"}}></p>
+            <span style={{fontSize:13,color:E_BLUE,fontWeight:700}}>Day {challengeData.currentDay||1} of 21</span>
+          </div>
+          <div style={{height:6,background:"rgba(255,255,255,0.06)",borderRadius:100,overflow:"hidden",marginBottom:10}}>
+            <div style={{height:"100%",width:`${((challengeData.currentDay||1)/21)*100}%`,background:`linear-gradient(90deg,${AMBER}88,${AMBER})`,borderRadius:100,transition:"width .6s ease"}}/>
+          </div>
+          {/* Milestone markers */}
+          <div style={{display:"flex",justifyContent:"space-between"}}>
+            {[{day:7,label:"Week 1",icon:"⭐"},{day:14,label:"Week 2",icon:"🌟"},{day:21,label:"Complete",icon:"🏆"}].map(m=>(
+              <div key={m.day} style={{textAlign:"center",flex:1}}>
+                <div style={{fontSize:18,marginBottom:2,opacity:(challengeData.currentDay||0)>=m.day?1:0.25}}>{m.icon}</div>
+                <p style={{fontSize:12,color:(challengeData.currentDay||0)>=m.day?AMBER:DIMMED,fontWeight:700}}>{m.label}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ── 5. ROUND BREAKDOWN ── */}
+      <div style={{background:PANEL,border:`1px solid ${BORDER2}`,borderRadius:16,padding:"20px",marginBottom:14}}>
+        <p style={{fontSize:15,fontWeight:700,color:DIMMED,letterSpacing:".12em",textTransform:"uppercase",marginBottom:14}}>{isQuickPlay?"Quick Play Result":"Round Breakdown"}</p>
+        {scores.map((s,i)=>{
+          const m=roundMetaByLabel[s.label]||{icon:"🧠",label:s.label,tag:"",max:150}; const pct=Math.min(100,(s.score/m.max)*100);
+          const col=pct>65?GREEN:pct>35?AMBER:RED;
+          return(
+            <div key={i} style={{marginBottom:i<scores.length-1?14:0}}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:5}}>
+                <div style={{display:"flex",alignItems:"center",gap:8}}>
+                  <BTIcon icon={m.icon} size={18}/>
+                  <div><p style={{fontSize:15,fontWeight:600,color:WHITE}}>{m.label}</p><p style={{fontSize:16,color:DIMMED}}>{m.tag}</p></div>
+                </div>
+                <div style={{display:"flex",alignItems:"center",gap:8}}>
+                  {s.reactionMs&&<p style={{fontSize:16,color:DIMMED}}>{s.reactionMs}ms</p>}
+                  <p style={{fontSize:14,fontWeight:700,color:col}}>{s.score}</p>
+                </div>
+              </div>
+              <div style={{height:4,background:"rgba(255,255,255,0.05)",borderRadius:100,overflow:"hidden"}}>
+                <div style={{height:"100%",width:`${pct}%`,background:`linear-gradient(90deg,${col}88,${col})`,borderRadius:100,transition:"width 1.2s ease"}}/>
               </div>
             </div>
-            <span style={{
-              fontSize:11,fontWeight:700,
-              color: natureExpanded ? todayLaw.color : "rgba(255,255,255,0.3)",
-              letterSpacing:".06em",transition:"color .3s",flexShrink:0,marginLeft:8,
-            }}>{natureExpanded ? "↑ Less" : "Read →"}</span>
-          </div>
+          );
+        })}
+      </div>
 
-          {/* Expanded content */}
-          {natureExpanded && (
-            <div style={{marginTop:14,animation:"fadeUp .25s ease both"}}>
-              <p style={{fontSize:14,color:"rgba(255,255,255,0.78)",lineHeight:1.85,marginBottom:16}}>
-                {todayFact.fact}
-              </p>
-              <div style={{borderTop:`1px solid ${todayLaw.color}22`,paddingTop:14}}>
-                <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:8}}>
-                  <span style={{fontSize:12}}>📖</span>
-                  <p style={{fontSize:10,fontWeight:700,color:todayLaw.color,letterSpacing:".14em",textTransform:"uppercase"}}>Nature's Wisdom · {todayLaw.subtitle}</p>
-                </div>
-                <p style={{fontSize:13,color:"rgba(255,255,255,0.65)",lineHeight:1.85,fontWeight:300,fontStyle:"italic"}}>
-                  {todayLaw.natureWisdom}
-                </p>
-                <p style={{fontSize:10,color:DIMMED,marginTop:10,letterSpacing:".06em"}}>Traditional healing wisdom · Referenced in Back to Eden</p>
+      {/* ── 6. BENCHMARK — full sessions only ── */}
+      {benchmark && (
+        <div style={{background:PANEL,border:`1px solid ${benchmark.color}33`,borderRadius:16,padding:"20px",marginBottom:14}}>
+          <p style={{fontSize:15,fontWeight:700,color:DIMMED,letterSpacing:".12em",textTransform:"uppercase",marginBottom:14}}>📊 How You Rank</p>
+          <div style={{marginBottom:16}}>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"baseline",marginBottom:8}}>
+              <span style={{fontSize:14,color:MUTED}}>Population percentile (estimated)</span>
+              <span style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:22,letterSpacing:1,color:benchmark.color}}>{benchmark.label}</span>
+            </div>
+            <div style={{height:10,background:"rgba(255,255,255,0.05)",borderRadius:100,overflow:"hidden"}}>
+              <div style={{height:"100%",width:`${benchmark.bar}%`,background:`linear-gradient(90deg,${benchmark.color}66,${benchmark.color})`,borderRadius:100,transition:"width 1.4s ease"}}/>
+            </div>
+            <div style={{display:"flex",justifyContent:"space-between",marginTop:5}}>
+              <span style={{fontSize:13,color:MUTED}}>0</span>
+              <span style={{fontSize:13,color:MUTED}}>Average</span>
+              <span style={{fontSize:13,color:MUTED}}>Elite</span>
+            </div>
+          </div>
+          <div style={{display:"flex",gap:10}}>
+            <div style={{flex:1,background:"rgba(255,255,255,0.025)",border:`1px solid ${BORDER2}`,borderRadius:10,padding:"12px 14px",textAlign:"center"}}>
+              <p style={{fontSize:12,color:DIMMED,letterSpacing:".1em",textTransform:"uppercase",marginBottom:6}}>This Session</p>
+              <p style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:28,letterSpacing:1,color:gradeColor}}>{total}</p>
+            </div>
+            <div style={{flex:1,background:"rgba(255,255,255,0.025)",border:`1px solid ${bestScore>0?AMBER+"33":BORDER2}`,borderRadius:10,padding:"12px 14px",textAlign:"center"}}>
+              <p style={{fontSize:12,color:DIMMED,letterSpacing:".1em",textTransform:"uppercase",marginBottom:6}}>Personal Best</p>
+              <p style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:28,letterSpacing:1,color:bestScore>0?AMBER:DIMMED}}>{bestScore>0?Math.max(bestScore,total):"—"}</p>
+            </div>
+            {pbDiff !== null && (
+              <div style={{flex:1,background:pbDiff>=0?"rgba(52,211,153,0.05)":"rgba(248,113,113,0.05)",border:`1px solid ${pbDiff>=0?GREEN+"33":RED+"33"}`,borderRadius:10,padding:"12px 14px",textAlign:"center"}}>
+                <p style={{fontSize:12,color:DIMMED,letterSpacing:".1em",textTransform:"uppercase",marginBottom:6}}>vs Best</p>
+                <p style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:28,letterSpacing:1,color:pbDiff>=0?GREEN:RED}}>{pbDiff>=0?`+${pbDiff}`:pbDiff}</p>
               </div>
+            )}
+          </div>
+          {isPB && (
+            <div style={{marginTop:12,textAlign:"center",padding:"8px",background:`${GREEN}0a`,border:`1px solid ${GREEN}33`,borderRadius:10}}>
+              <span style={{fontSize:14,fontWeight:700,color:GREEN}}>🏆 New Personal Best!</span>
             </div>
           )}
         </div>
+      )}
 
-        {/* ── THE 5 QUANTUM LAWS — circular thumbnails with integrated checklist ── */}
-        <div style={{marginBottom:16,animation:"fadeUp .5s .16s ease both"}}>
+      {/* ── 7. COGNITIVE BLUEPRINT — hidden until user expands full analysis ── */}
+      {showDetails && arch && (
+        <div style={{
+          background:`linear-gradient(135deg,${arch.color}0a,transparent)`,
+          border:`1px solid ${arch.color}33`,
+          borderLeft:`3px solid ${arch.color}`,
+          borderRadius:"0 16px 16px 0",
+          padding:"20px",
+          marginBottom:14,
+          animation:"fadeUp .4s ease both",
+        }}>
+          {/* Section header */}
+          <p style={{fontSize:11,fontWeight:700,color:arch.color,letterSpacing:".2em",textTransform:"uppercase",marginBottom:6}}>⚛ {arch.name}</p>
+          <p style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:22,letterSpacing:1.5,color:WHITE,marginBottom:10}}>Your Cognitive Blueprint</p>
 
-          {/* Header row — title + pulsating today's focus badge on the right */}
-          <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:14}}>
-            <p style={{fontSize:11,fontWeight:700,color:DIMMED,letterSpacing:".14em",textTransform:"uppercase"}}>⭐ The 5 Quantum Laws</p>
-            <div style={{
-              display:"flex",alignItems:"center",gap:5,
-              background:`${todayLaw.color}15`,
-              border:`1px solid ${todayLaw.color}55`,
-              borderRadius:100,padding:"5px 12px",
-              animation:"todayBadge 2.2s ease-in-out infinite",
-            }}>
-              <span style={{fontSize:11}}>{todayLaw.icon}</span>
-              <span style={{fontSize:10,fontWeight:700,color:todayLaw.color,letterSpacing:".1em",textTransform:"uppercase"}}>Today's Focus</span>
-            </div>
-          </div>
+          {/* Orienting summary — always visible, earns the section */}
+          <p style={{fontFamily:"'Crimson Pro',serif",fontStyle:"italic",fontSize:15,color:MUTED,lineHeight:1.75,marginBottom:16,paddingBottom:16,borderBottom:`1px solid rgba(255,255,255,0.06)`}}>{arch.neuralProfile}</p>
 
-          {/* Circular row */}
-          <div style={{display:"flex",justifyContent:"space-between",gap:4,marginBottom:12}}>
-            {LAWS.map((law,i)=>{
-              const isToday  = i === todayLawIdx;
-              const isTicked = checklist[i];
-              // Visual states: today=big+glow+pulse, ticked-not-today=small+dim+quiet, untouched=small+dim
-              const circleSize = isToday ? 56 : 50;
-              return (
-                <button key={i}
-                  onClick={()=>{ if(isToday){ toggleCheck(i); } setActiveLaw(i); }}
-                  style={{
-                    flex:1,display:"flex",flexDirection:"column",alignItems:"center",gap:5,
-                    background:"transparent",border:"none",cursor:"pointer",padding:"4px 0",
-                    fontFamily:"'Space Grotesk',sans-serif",
-                    opacity: (!isToday && !isTicked) ? 0.72 : 1,
-                    transition:"opacity .3s",
-                  }}>
+          {/* Discoverable insight cards */}
+          <div style={{display:"flex",flexDirection:"column",gap:8,marginBottom:12}}>
+            {scores.map((s,i)=>{
+              const insight = arch.strengths[s.label];
+              if(!insight) return null;
+              const roundIconsByLabel={"Stroop Challenge":"🎨","2-Back Test":"🧠","Pattern Matrix":"🔷","Reaction Velocity":"⚡","Cognitive Switch":"🔄","Neural Defense":"🛡️"};
+              const iconStr = roundIconsByLabel[s.label] || "🧠";
+              const question = insightQuestions[s.label] || "What does this score reveal?";
+              const isOpen = expandedInsights.has(i);
 
-                  <div style={{position:"relative",width:circleSize,height:circleSize,flexShrink:0}}>
-
-                    {/* Single pulse ring — only today, only unticked */}
-                    {isToday && !isTicked && (
-                      <div style={{position:"absolute",inset:-5,borderRadius:"50%",
-                        border:`1.5px solid ${law.color}66`,
-                        animation:"todayRing 2.4s ease-in-out infinite",
-                        pointerEvents:"none"}}/>
-                    )}
-
-                    {/* Today done — gentle pulse ring */}
-                    {isToday && isTicked && (
-                      <div style={{position:"absolute",inset:-4,borderRadius:"50%",
-                        border:`1.5px solid ${law.color}bb`,
-                        animation:"todayDone 2.8s ease-in-out infinite",
-                        pointerEvents:"none"}}/>
-                    )}
-
-                    {/* Circle */}
+              return(
+                <div key={i} style={{
+                  background:"rgba(255,255,255,0.025)",
+                  border:`1px solid ${isOpen ? arch.color+"44" : "rgba(255,255,255,0.06)"}`,
+                  borderRadius:12,
+                  overflow:"hidden",
+                  transition:"border-color .2s",
+                }}>
+                  {/* Tap target — always visible */}
+                  <button
+                    onClick={()=>toggleInsight(i)}
+                    style={{
+                      width:"100%",display:"flex",alignItems:"center",gap:11,
+                      padding:"13px 14px",background:"transparent",border:"none",
+                      cursor:"pointer",textAlign:"left",fontFamily:"'Space Grotesk',sans-serif",
+                    }}
+                  >
+                    {/* Icon chip */}
                     <div style={{
-                      width:"100%",height:"100%",borderRadius:"50%",
-                      background: isToday && isTicked
-                        ? `radial-gradient(circle at 38% 32%, ${law.color}55, ${law.color}28)`
-                        : isToday
-                          ? `radial-gradient(circle at 38% 32%, ${law.color}38, ${law.color}14)`
-                          : isTicked
-                            ? `rgba(52,211,153,0.08)`  // quiet green tint for non-today ticked
-                            : `radial-gradient(circle at 38% 32%, ${law.color}1a, ${law.color}08)`,
-                      border: isToday
-                        ? `2px solid ${law.color}${isTicked?"":"99"}`
-                        : isTicked
-                          ? `1px solid rgba(52,211,153,0.4)` // quiet green border
-                          : `1.5px solid ${law.color}33`,
-                      boxShadow: isToday && !isTicked ? `0 0 22px ${law.color}33, 0 0 6px ${law.color}22` : isToday && isTicked ? `0 0 16px ${law.color}33` : "none",
-                      display:"flex",alignItems:"center",justifyContent:"center",
-                      fontSize: isToday ? 26 : isTicked ? 14 : 18,
-                      transition:"all .35s cubic-bezier(.4,0,.2,1)",
-                    }}>
-                      {isTicked
-                        ? <span style={{
-                            color: isToday ? law.color : "rgba(52,211,153,0.55)",
-                            fontWeight:900,
-                            fontSize: isToday ? 22 : 13,
-                            filter: isToday ? `drop-shadow(0 0 4px ${law.color}88)` : "none",
-                          }}>✓</span>
-                        : <span className={`law-icon-${i}`}>{law.icon}</span>}
+                      width:32,height:32,borderRadius:8,flexShrink:0,
+                      background:`${arch.color}14`,border:`1px solid ${arch.color}30`,
+                      display:"flex",alignItems:"center",justifyContent:"center",fontSize:15,
+                    }}>{iconStr}</div>
+
+                    {/* Label + question */}
+                    <div style={{flex:1,minWidth:0}}>
+                      <p style={{fontSize:13,fontWeight:700,color:arch.color,letterSpacing:".07em",marginBottom:2}}>{s.label}</p>
+                      <p style={{fontSize:13,color:isOpen?MUTED:MUTED,lineHeight:1.45,transition:"color .2s"}}>{question}</p>
                     </div>
-                  </div>
 
-                  {/* Label */}
-                  <p style={{
-                    fontSize: isToday ? 10 : 8,
-                    fontWeight:700,
-                    color: isToday && isTicked ? law.color
-                         : isToday ? law.color
-                         : isTicked ? "rgba(52,211,153,0.5)"
-                         : DIMMED,
-                    letterSpacing:".06em",textTransform:"uppercase",
-                    lineHeight:1.2,textAlign:"center",
-                    transition:"color .2s",maxWidth:60,
-                  }}>
-                    {law.title.replace("Quantum ","")}
-                  </p>
+                    {/* Animated chevron */}
+                    <div style={{
+                      width:24,height:24,borderRadius:"50%",flexShrink:0,
+                      background:`${arch.color}10`,border:`1px solid ${arch.color}25`,
+                      display:"flex",alignItems:"center",justifyContent:"center",
+                      transition:"transform .3s cubic-bezier(.4,0,.2,1)",
+                      transform: isOpen ? "rotate(180deg)" : "rotate(0deg)",
+                    }}>
+                      <svg width="10" height="10" viewBox="0 0 12 12" fill="none">
+                        <path d="M2 4.5l4 3.5 4-3.5" stroke={arch.color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                    </div>
+                  </button>
 
-                  {/* Indicator below label */}
-                  {isToday && !isTicked && (
-                    <span style={{
-                      fontSize:8,fontWeight:700,color:law.color,
-                      background:`${law.color}15`,border:`1px solid ${law.color}55`,
-                      borderRadius:100,padding:"2px 8px",letterSpacing:".1em",
-                      textTransform:"uppercase",animation:"focusGlow 1.8s ease-in-out infinite",
-                    }}>Today</span>
+                  {/* Revealed insight — only rendered when open */}
+                  {isOpen && (
+                    <div style={{
+                      padding:"0 14px 14px 57px",
+                      animation:"fadeUp .22s ease both",
+                    }}>
+                      <p style={{fontSize:14,color:MUTED,lineHeight:1.7,fontWeight:300}}>{insight}</p>
+                    </div>
                   )}
-                  {isToday && isTicked && (
-                    <span style={{fontSize:8,fontWeight:700,color:law.color,letterSpacing:".08em"}}>Done ✓</span>
-                  )}
-                  {!isToday && isTicked && (
-                    <div style={{width:5,height:5,borderRadius:"50%",background:"rgba(52,211,153,0.45)"}}/>
-                  )}
-                </button>
+                </div>
               );
             })}
           </div>
 
-          {/* Deliberate guidance hint */}
-          <div style={{
-            padding:"10px 14px",marginBottom:10,
-            background:`linear-gradient(90deg,${todayLaw.color}08,transparent)`,
-            border:`1px solid ${todayLaw.color}22`,
-            borderLeft:`2px solid ${todayLaw.color}55`,
-            borderRadius:"0 10px 10px 0",
-            display:"flex",alignItems:"center",gap:10,
-          }}>
-            <span style={{fontSize:14,animation:"guidePulse 2s ease-in-out infinite",flexShrink:0}}>→</span>
-            <div>
-              <p style={{fontSize:12,fontWeight:700,color:todayLaw.color,marginBottom:2}}>
-                Tap <strong>{todayLaw.title}</strong> to log today's practice
-              </p>
-              <p style={{fontSize:11,color:DIMMED,lineHeight:1.4}}>Tap any other law to explore its full science and practices</p>
-            </div>
-          </div>
-
-          {/* All 5 done celebration + milestone displays */}
-          {allDone && (
-            <div style={{padding:"14px 18px",background:"rgba(52,211,153,0.08)",border:"1px solid rgba(52,211,153,0.3)",borderRadius:12,textAlign:"center"}}>
-              <p style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:20,letterSpacing:2,color:GREEN,marginBottom:4}}>🌿 All 5 Laws Honoured Today</p>
-              <p style={{fontFamily:"'Crimson Pro',serif",fontStyle:"italic",fontSize:14,color:"rgba(255,255,255,0.72)",lineHeight:1.75,marginBottom:6}}>
-                "Small shifts, consistently honoured, produce quantum results. The habit is not the destination — it is the vehicle."
-              </p>
-              <p style={{fontSize:10,fontWeight:700,color:"rgba(52,211,153,0.55)",letterSpacing:".14em",textTransform:"uppercase"}}>— The Learning Quantum Method</p>
-              {showMilestone==="day7"  && <div style={{marginTop:10,padding:"10px",background:"rgba(52,211,153,0.12)",borderRadius:8}}><p style={{color:GREEN,fontWeight:700}}>🌱 Week 1 Complete! You built the foundation.</p></div>}
-              {showMilestone==="day14" && <div style={{marginTop:10,padding:"10px",background:"rgba(52,211,153,0.12)",borderRadius:8}}><p style={{color:GREEN,fontWeight:700}}>🌿 Week 2 Complete! The habit is forming.</p></div>}
-              {showMilestone==="day21" && <div style={{marginTop:10,padding:"10px",background:"rgba(52,211,153,0.15)",borderRadius:8}}><p style={{color:GREEN,fontWeight:700}}>🌳 21 Days Complete! You transformed your daily living.</p></div>}
-            </div>
-          )}
-        </div>
-
-
-        {/* ── 21-DAY PROGRESS ── */}
-        {challengeData && (
-          <div style={{background:"rgba(52,211,153,0.04)",border:"1px solid rgba(52,211,153,0.2)",borderRadius:16,padding:"18px 20px",marginBottom:16,animation:"fadeUp .5s .2s ease both"}}>
-            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
-              <p style={{fontSize:14,fontWeight:700,color:GREEN,letterSpacing:".1em",textTransform:"uppercase"}}>🌿 21-Day Challenge</p>
-              <span style={{fontSize:13,color:AMBER,fontWeight:700}}>Day {challengeData.currentDay||1} of 21</span>
-            </div>
-            <div style={{height:7,background:"rgba(255,255,255,0.06)",borderRadius:100,overflow:"hidden",marginBottom:12}}>
-              <div style={{height:"100%",width:`${Math.round((challengeData.currentDay||1)*4.762)}%`,background:"linear-gradient(90deg,rgba(52,211,153,0.6),#34D399)",borderRadius:100,transition:"width .8s ease"}}></div>
-            </div>
-            <div style={{display:"flex",justifyContent:"space-around",marginBottom:12}}>
-              {[{d:7,icon:"🌱",label:"Week 1"},{d:14,icon:"🌿",label:"Week 2"},{d:21,icon:"🌳",label:"Complete"}].map(m=>(
-                <div key={m.d} style={{textAlign:"center"}}>
-                  <div style={{fontSize:20,marginBottom:2,opacity:(challengeData.currentDay||0)>=m.d?1:0.25}}>{m.icon}</div>
-                  <p style={{fontSize:10,fontWeight:700,color:(challengeData.currentDay||0)>=m.d?GREEN:DIMMED}}>{m.label}</p>
-                </div>
-              ))}
-            </div>
-            <div style={{display:"flex",justifyContent:"space-between",padding:"10px 14px",background:"rgba(255,255,255,0.03)",borderRadius:10}}>
-              <span style={{fontSize:13,color:MUTED}}>✅ {challengeData.sessionsCompleted||0} days completed</span>
-              <span style={{fontSize:13,color:AMBER,fontWeight:700}}>🔥 {streak} day streak</span>
-            </div>
-          </div>
-        )}
-
-        {/* ── THE HEALING INTELLIGENCE — cyan orbs ── */}
-        <div style={{
-          marginBottom:16,borderRadius:20,overflow:"hidden",
-          background:"linear-gradient(160deg,rgba(0,200,255,0.04) 0%,rgba(0,200,255,0.02) 100%)",
-          border:"1px solid rgba(0,200,255,0.15)",
-          animation:"fadeUp .5s .22s ease both",
-        }}>
-
-          {/* Header */}
-          <div style={{padding:"16px 20px",borderBottom:"1px solid rgba(0,200,255,0.1)",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
-            <div style={{display:"flex",alignItems:"center",gap:12}}>
-              <svg width="24" height="24" viewBox="0 0 28 28" fill="none">
-                <line x1="14" y1="26" x2="14" y2="4" stroke="rgba(0,200,255,0.5)" strokeWidth="1.2" strokeLinecap="round"/>
-                <ellipse cx="14" cy="10" rx="4.5" ry="2.8" transform="rotate(-30 14 10)" fill="none" stroke="rgba(0,200,255,0.45)" strokeWidth="1"/>
-                <ellipse cx="14" cy="16" rx="4.5" ry="2.8" transform="rotate(30 14 16)" fill="none" stroke="rgba(0,200,255,0.45)" strokeWidth="1"/>
-                <circle cx="14" cy="4" r="1.2" fill="rgba(0,200,255,0.6)"/>
-              </svg>
-              <div>
-                <p style={{fontSize:10,fontWeight:700,color:"rgba(0,200,255,0.5)",letterSpacing:".18em",textTransform:"uppercase",marginBottom:2}}>Foundation</p>
-                <p style={{fontSize:15,fontWeight:700,color:"rgba(255,255,255,0.92)",letterSpacing:".03em"}}>The Healing Intelligence</p>
-              </div>
-            </div>
-            <p style={{fontFamily:"'Crimson Pro',serif",fontStyle:"italic",fontSize:13,color:"rgba(0,200,255,0.58)",textAlign:"right",lineHeight:1.6}}>Three principles<br/>of the body</p>
-          </div>
-
-          {/* Quote */}
-          <div style={{padding:"16px 20px 20px"}}>
-            <p style={{fontFamily:"'Crimson Pro',serif",fontStyle:"italic",fontSize:15,color:"rgba(255,255,255,0.75)",lineHeight:1.8,borderLeft:"2px solid rgba(0,200,255,0.3)",paddingLeft:14}}>
-              "The most sophisticated healing system ever known is not in any clinic or laboratory. It is in you."
-            </p>
-          </div>
-
-          {/* Three orbs */}
-          {(()=>{
-            const ORBS = [
-              {
-                intensity: 1.0,   // brightest
-                size: 72,
-                num: "01",
-                label: "The Body Knows",
-                text: "The human body has an innate intelligence — a self-correcting, self-repairing capacity refined over hundreds of thousands of years. Inflammation resolves when its cause is removed. The liver regenerates. The gut microbiome rebalances. The immune system adapts. None of this requires intervention. It requires cooperation.",
-              },
-              {
-                intensity: 0.72,  // mid
-                size: 60,
-                num: "02",
-                label: "The Right Conditions",
-                text: "Modern research now confirms what traditional healers understood intuitively: given the right conditions — clean air, whole food, sufficient rest, movement, and temperance — the body consistently moves toward health. This is not optimism. It is biology. The 5 Quantum Laws are simply the creation of those conditions, daily.",
-              },
-              {
-                intensity: 0.50,  // softest
-                size: 50,
-                num: "03",
-                label: "Nature's Original Design",
-                text: "Every plant in nature's pharmacy — every herb, root, and seed — carries compounds shaped by millions of years of co-evolution with the human body. Garlic's allicin. Turmeric's curcumin. The essential fatty acids in cold-pressed seeds. The prebiotics in raw honey. These are not supplements. They are signals the body already knows how to read.",
-              },
-            ];
-            const active = bodyZone !== null ? ORBS[bodyZone] : null;
-
-            return (
-              <div style={{padding:"0 20px 20px"}}>
-
-                {/* Orb row */}
-                <div style={{display:"flex",justifyContent:"space-around",alignItems:"center",marginBottom:20}}>
-                  {ORBS.map((orb,i)=>{
-                    const isActive = bodyZone === i;
-                    const isDimmed = bodyZone !== null && !isActive;
-                    const sz = orb.size;
-                    // Cyan at different intensities
-                    const coreAlpha  = isActive ? "cc" : isDimmed ? "18" : (["55","3a","28"][i]);
-                    const glowAlpha  = isActive ? "55" : isDimmed ? "05" : (["28","18","10"][i]);
-                    const ringAlpha  = isActive ? "88" : isDimmed ? "08" : (["44","2a","18"][i]);
-                    return (
-                      <div key={i}
-                        onClick={()=>setBodyZone(bodyZone===i?null:i)}
-                        style={{
-                          display:"flex",flexDirection:"column",alignItems:"center",gap:10,
-                          cursor:"pointer",userSelect:"none",
-                        }}>
-
-                        {/* Orb container — rings + core */}
-                        <div style={{position:"relative",width:sz,height:sz,flexShrink:0}}>
-
-                          {/* Outer expanding ring — always animating, visible on idle */}
-                          <div style={{
-                            position:"absolute",
-                            inset: isActive ? -18 : -12,
-                            borderRadius:"50%",
-                            border:`1px solid rgba(0,200,255,${ringAlpha})`,
-                            animation: isActive
-                              ? "orbRing 1.6s ease-out infinite"
-                              : `orbIdle ${2.2 + i*0.4}s ease-in-out infinite`,
-                            pointerEvents:"none",
-                          }}/>
-
-                          {/* Mid ring — only on active */}
-                          {isActive && (
-                            <div style={{
-                              position:"absolute",inset:-8,borderRadius:"50%",
-                              border:"1px solid rgba(0,200,255,0.5)",
-                              animation:"orbRing 1.6s 0.4s ease-out infinite",
-                              pointerEvents:"none",
-                            }}/>
-                          )}
-
-                          {/* Core orb */}
-                          <div style={{
-                            width:"100%",height:"100%",borderRadius:"50%",
-                            background: isActive
-                              ? `radial-gradient(circle at 38% 35%, rgba(0,200,255,0.9), rgba(0,200,255,0.35))`
-                              : `radial-gradient(circle at 38% 35%, rgba(0,200,255,${coreAlpha}), rgba(0,140,200,${glowAlpha}))`,
-                            border:`1.5px solid rgba(0,200,255,${isActive?"bb":ringAlpha})`,
-                            boxShadow: isActive
-                              ? `0 0 40px rgba(0,200,255,0.7), 0 0 80px rgba(0,200,255,0.3), inset 0 0 20px rgba(0,200,255,0.2)`
-                              : isDimmed
-                                ? "none"
-                                : `0 0 ${[20,14,9][i]}px rgba(0,200,255,${["0.4","0.25","0.15"][i]})`,
-                            display:"flex",alignItems:"center",justifyContent:"center",
-                            flexDirection:"column",gap:1,
-                            animation: isActive
-                              ? "orbBloom .35s cubic-bezier(.4,0,.2,1) both"
-                              : isDimmed
-                                ? "none"
-                                : `orbIdle ${2.2 + i*0.4}s ease-in-out infinite`,
-                            transition:"box-shadow .3s ease, border-color .3s ease",
-                          }}>
-                            <span style={{
-                              fontSize:15,fontWeight:900,
-                              color: isActive ? "rgba(5,13,26,1)" : "#00C8FF",
-                              letterSpacing:".12em",
-                              textShadow: isActive ? "none" : `0 0 8px rgba(0,200,255,${["0.8","0.55","0.4"][i]})`,
-                            }}>{orb.num}</span>
-                          </div>
-                        </div>
-
-                        {/* Label below orb */}
-                        <p style={{
-                          fontSize:11,fontWeight:700,letterSpacing:".08em",
-                          textTransform:"uppercase",textAlign:"center",
-                          maxWidth: sz + 28,lineHeight:1.4,
-                          color: isActive
-                            ? "#00C8FF"
-                            : isDimmed
-                              ? "rgba(255,255,255,0.22)"
-                              : `rgba(0,200,255,${["0.82","0.62","0.48"][i]})`,
-                          transition:"color .3s",
-                        }}>{orb.label}</p>
-
-                      </div>
-                    );
-                  })}
-                </div>
-
-                {/* Revealed principle text */}
-                {active && (
-                  <div style={{
-                    padding:"16px 18px",borderRadius:14,
-                    background:"rgba(0,200,255,0.05)",
-                    border:"1px solid rgba(0,200,255,0.2)",
-                    borderLeft:"3px solid rgba(0,200,255,0.7)",
-                    animation:"fadeUp .3s ease both",
-                  }}>
-                    <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:10}}>
-                      <span style={{fontSize:11,fontWeight:800,color:"rgba(0,200,255,0.75)",letterSpacing:".2em"}}>{active.num}</span>
-                      <p style={{fontSize:13,fontWeight:700,color:"#00C8FF",letterSpacing:".07em",textTransform:"uppercase"}}>{active.label}</p>
-                    </div>
-                    <p style={{fontSize:14,color:"rgba(255,255,255,0.82)",lineHeight:1.9,fontWeight:400}}>{active.text}</p>
-                  </div>
-                )}
-
-                {/* Idle prompt */}
-                {!active && (
-                  <p style={{textAlign:"center",fontSize:11,color:"rgba(0,200,255,0.42)",letterSpacing:".1em",textTransform:"uppercase",fontStyle:"italic"}}>Tap an orb to reveal</p>
-                )}
-
-              </div>
-            );
-          })()}
-
-          {/* Footer */}
-          <div style={{padding:"0 20px 16px",borderTop:"1px solid rgba(0,200,255,0.08)",marginTop:4}}>
-            <p style={{fontSize:11,color:"rgba(0,200,255,0.45)",lineHeight:1.7,fontStyle:"italic",marginBottom:6}}>
-              A note on the source material
-            </p>
-            <p style={{fontSize:11,color:"rgba(255,255,255,0.38)",lineHeight:1.75}}>
-              Back to Eden identifies eight laws of health: Nutrition, Exercise, Water, Sunlight, Temperance, Air, Rest, and Trust in Divine Power. The 5 Quantum Laws are a distillation of those principles into a daily practice framework — consolidating Water and Sunlight as supporting practices within Breath and Motion, and weaving spiritual grounding throughout Quantum Balance rather than separating it. The source is the same. The application is designed for modern life.
-            </p>
+          {/* Quantum Edge — always visible, the actionable summary */}
+          <div style={{padding:"12px 14px",background:`${arch.color}0c`,border:`1px solid ${arch.color}22`,borderRadius:10}}>
+            <p style={{fontSize:12,fontWeight:700,color:arch.color,letterSpacing:".12em",textTransform:"uppercase",marginBottom:5}}>⚡ Your Quantum Edge Today</p>
+            <p style={{fontSize:14,color:MUTED,lineHeight:1.6}}>{arch.dailyEdge}</p>
           </div>
         </div>
+      )}
 
-        {/* ── QUANTUM HEALTH RANGE — premium entry card ── */}
-        <div
-          onClick={()=>setActiveShop(true)}
-          style={{
-            marginBottom:16,borderRadius:18,overflow:"hidden",cursor:"pointer",
-            background:"linear-gradient(135deg,rgba(52,211,153,0.10) 0%,rgba(52,211,153,0.03) 100%)",
-            border:"1px solid rgba(52,211,153,0.3)",
-            transition:"all .22s",
-          }}
-          onMouseEnter={e=>{e.currentTarget.style.background="linear-gradient(135deg,rgba(52,211,153,0.18) 0%,rgba(52,211,153,0.07) 100%)";e.currentTarget.style.borderColor="rgba(52,211,153,0.55)";}}
-          onMouseLeave={e=>{e.currentTarget.style.background="linear-gradient(135deg,rgba(52,211,153,0.10) 0%,rgba(52,211,153,0.03) 100%)";e.currentTarget.style.borderColor="rgba(52,211,153,0.3)";}}
-        >
-          {/* Member saving bar — primary visual element */}
-          <div style={{
-            background:"linear-gradient(90deg,rgba(52,211,153,0.22),rgba(52,211,153,0.10))",
-            borderBottom:"1px solid rgba(52,211,153,0.2)",
-            padding:"10px 20px",
-            display:"flex",alignItems:"center",justifyContent:"space-between",
-          }}>
-            <div style={{display:"flex",alignItems:"center",gap:8}}>
-              <span style={{fontSize:14}}>🌿</span>
-              <span style={{fontSize:11,fontWeight:700,color:GREEN,letterSpacing:".14em",textTransform:"uppercase"}}>Quantum Living Member Benefit</span>
-            </div>
-            <div style={{
-              background:"rgba(52,211,153,0.2)",border:"1px solid rgba(52,211,153,0.5)",
-              borderRadius:100,padding:"4px 12px",
-            }}>
-              <span style={{fontSize:13,fontWeight:800,color:GREEN,letterSpacing:".04em",animation:"pct20Pulse 2.2s ease-in-out infinite"}}>20% OFF</span>
-            </div>
-          </div>
+      {/* ── 7b. PROGRESSIVE DISCLOSURE TOGGLE ─────────────────────────────── */}
+      <button
+        onClick={()=>setShowDetails(d=>!d)}
+        style={{
+          width:"100%",border:`1px solid ${showDetails?"rgba(255,255,255,0.14)":"rgba(0,200,255,0.28)"}`,
+          borderRadius:100,padding:"13px",marginBottom:10,
+          fontSize:13,fontWeight:700,
+          background:showDetails?"rgba(255,255,255,0.03)":"rgba(0,200,255,0.06)",
+          color:showDetails?DIMMED:E_BLUE,cursor:"pointer",
+          fontFamily:"'Space Grotesk',sans-serif",letterSpacing:".05em",
+          transition:"all .2s",
+        }}
+        onMouseEnter={e=>{e.currentTarget.style.borderColor=E_BLUE;e.currentTarget.style.color=E_BLUE;}}
+        onMouseLeave={e=>{e.currentTarget.style.borderColor=showDetails?"rgba(255,255,255,0.14)":"rgba(0,200,255,0.28)";e.currentTarget.style.color=showDetails?DIMMED:E_BLUE;}}
+      >
+        {showDetails ? "↑ Hide full analysis" : "📋 See full analysis →"}
+      </button>
 
-          {/* Card body */}
-          <div style={{padding:"20px 20px 18px",display:"flex",alignItems:"center",gap:16}}>
-            <div style={{flex:1}}>
-              <p style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:22,letterSpacing:2,color:WHITE,marginBottom:6,lineHeight:1.1}}>Discover Your Quantum Health Range</p>
-              <p style={{fontFamily:"'Crimson Pro',serif",fontStyle:"italic",fontSize:15,color:"rgba(255,255,255,0.6)",lineHeight:1.6,marginBottom:12}}>Five laws. Five product collections. Each formulation built from the same science that drives the law.</p>
-              <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
-                {["🌱 Natural","🔬 Science-backed","🌿 Plant-first","✓ QL Exclusive"].map(t=>(
-                  <span key={t} style={{fontSize:11,fontWeight:600,color:"rgba(52,211,153,0.7)",background:"rgba(52,211,153,0.08)",border:"1px solid rgba(52,211,153,0.2)",borderRadius:100,padding:"3px 10px"}}>{t}</span>
-                ))}
-              </div>
-            </div>
-            <div style={{
-              width:40,height:40,borderRadius:"50%",flexShrink:0,
-              background:"rgba(52,211,153,0.12)",border:"1px solid rgba(52,211,153,0.35)",
-              display:"flex",alignItems:"center",justifyContent:"center",
-            }}>
-              <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-                <path d="M4 2l4 4-4 4" stroke={GREEN} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-            </div>
-          </div>
-        </div>
-
-        {/* Disclaimer */}
-        <div style={{marginTop:8,padding:"14px 18px",background:"rgba(255,255,255,0.02)",border:`1px solid ${BORDER2}`,borderRadius:12}}>
-          <p style={{fontSize:12,color:DIMMED,lineHeight:1.6}}>The 5 Quantum Laws are educational principles for general wellbeing — not medical advice. Please consult a doctor before making changes to exercise or health habits. Natural product descriptions are educational and do not constitute medical claims.</p>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ══════════════════════════════════════════════════════════════════════════
-// QUANTUM SHOP — Full-page wellness range (member benefit)
-// ══════════════════════════════════════════════════════════════════════════
-
-function QuantumShop({ onBack, arch }) {
-  const BG = "#070F1E", WHITE = "#FFFFFF", MUTED = "rgba(255,255,255,0.62)";
-  const DIMMED = "rgba(255,255,255,0.32)", GREEN = "#34D399", AMBER = "#FBBF24";
-  const DARK2 = "#111E38", BORDER2 = "rgba(255,255,255,0.09)";
-
-  return (
-    <div style={{minHeight:"100vh",background:`radial-gradient(ellipse 80% 40% at 50% 0%,rgba(52,211,153,0.05) 0%,transparent 60%),${BG}`,fontFamily:"'Space Grotesk',sans-serif",color:WHITE,display:"flex",flexDirection:"column",alignItems:"center",padding:"0 16px 80px",position:"relative"}}>
-      <div style={{width:"100%",maxWidth:640}}>
-
-        {/* Header nav */}
-        <div style={{padding:"18px 0 10px",display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:8}}>
-          <button onClick={onBack} style={{background:"rgba(52,211,153,0.07)",border:"1px solid rgba(52,211,153,0.32)",borderRadius:100,padding:"8px 16px",color:GREEN,fontSize:13,fontWeight:700,cursor:"pointer",fontFamily:"'Space Grotesk',sans-serif",letterSpacing:".04em",transition:"all .18s",display:"flex",alignItems:"center",gap:7}} onMouseEnter={e=>{e.currentTarget.style.background="rgba(52,211,153,0.16)";e.currentTarget.style.borderColor="rgba(52,211,153,0.6)";}} onMouseLeave={e=>{e.currentTarget.style.background="rgba(52,211,153,0.07)";e.currentTarget.style.borderColor="rgba(52,211,153,0.32)";}}>
-            ← Back
-          </button>
-          <div style={{display:"flex",alignItems:"center",gap:8,background:"rgba(52,211,153,0.08)",border:"1px solid rgba(52,211,153,0.25)",borderRadius:100,padding:"5px 14px"}}>
-            <span style={{fontSize:11}}>🌿</span>
-            <span style={{fontSize:11,fontWeight:700,color:GREEN,letterSpacing:".12em",textTransform:"uppercase",animation:"pct20Pulse 2.2s ease-in-out infinite"}}>Member Benefit · 20% Off</span>
-          </div>
-        </div>
-
-        {/* Hero */}
-        <div style={{textAlign:"center",padding:"24px 0 20px",animation:"fadeUp .5s ease both"}}>
-          <p style={{fontSize:13,fontWeight:700,letterSpacing:".18em",textTransform:"uppercase",color:GREEN,marginBottom:12}}>⚛ Quantum Living Exclusive Range</p>
-          <h1 style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"clamp(30px,7vw,48px)",letterSpacing:2,color:WHITE,lineHeight:1.05,marginBottom:10}}>
-            What Does Your Body<br/>Need to Support Each Law?
-          </h1>
-          <p style={{fontFamily:"'Crimson Pro',serif",fontStyle:"italic",fontSize:17,color:MUTED,lineHeight:1.7,maxWidth:480,margin:"0 auto 20px"}}>Each product in this range was formulated around one principle: the same science that drives the law drives the formula. This is precision wellness — not a supplement shelf.</p>
-        </div>
-
-        {/* Member saving hero — primary conversion element */}
-        <div style={{background:"linear-gradient(135deg,rgba(52,211,153,0.14),rgba(52,211,153,0.05))",border:"1.5px solid rgba(52,211,153,0.4)",borderRadius:18,padding:"22px 24px",marginBottom:24,display:"flex",alignItems:"center",gap:20,animation:"fadeUp .5s .1s ease both"}}>
-          <div style={{flex:1}}>
-            <p style={{fontSize:13,fontWeight:700,color:GREEN,letterSpacing:".12em",textTransform:"uppercase",marginBottom:6}}>Your Member Saving</p>
-            <div style={{display:"flex",alignItems:"baseline",gap:14,marginBottom:6}}>
-              <span style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:48,letterSpacing:1,color:WHITE,lineHeight:1,animation:"pct20Pulse 2.2s ease-in-out infinite"}}>20%</span>
-              <span style={{fontSize:15,color:MUTED}}>off every product, applied automatically</span>
-            </div>
-            <p style={{fontSize:13,color:"rgba(52,211,153,0.7)",fontWeight:600}}>Exclusive to Quantum Living members · No code required</p>
-          </div>
-          <div style={{flexShrink:0,textAlign:"center"}}>
-            <div style={{width:64,height:64,borderRadius:"50%",background:"rgba(52,211,153,0.15)",border:"2px solid rgba(52,211,153,0.4)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:28}}>🌿</div>
-          </div>
-        </div>
-
-        {/* Trust bar */}
-        <div style={{display:"flex",gap:6,justifyContent:"center",flexWrap:"wrap",marginBottom:28}}>
-          {[["🌱","Plant-first"],["🔬","Science-backed"],["✓","Third-party tested"],["🌿","No synthetics"],["⚛","QL Formulated"]].map(([ic,lb])=>(
-            <div key={lb} style={{display:"flex",alignItems:"center",gap:5,fontSize:12,color:DIMMED,fontWeight:600,background:"rgba(255,255,255,0.03)",border:`1px solid ${BORDER2}`,borderRadius:100,padding:"5px 12px"}}>
-              <span style={{color:GREEN,fontSize:11}}>{ic}</span>{lb}
-            </div>
-          ))}
-        </div>
-
-        {/* Coming soon banner */}
-        <div style={{background:"linear-gradient(90deg,rgba(251,191,36,0.08),rgba(251,191,36,0.03))",border:"1px solid rgba(251,191,36,0.25)",borderRadius:14,padding:"14px 20px",marginBottom:28,display:"flex",alignItems:"center",gap:14}}>
-          <span style={{fontSize:20,flexShrink:0}}>🚀</span>
-          <div>
-            <p style={{fontSize:13,fontWeight:700,color:AMBER,marginBottom:3}}>Launching Soon</p>
-            <p style={{fontSize:13,color:MUTED,lineHeight:1.6}}>The QL range is in final development. As a Quantum Living member, your 20% saving is reserved and will apply automatically at launch.</p>
-          </div>
-        </div>
-
-        {/* Products by law */}
-        <div style={{display:"flex",flexDirection:"column",gap:12}}>
-          {SHOP_CATEGORIES.map((cat,i)=>(
-            <div key={i} style={{background:`linear-gradient(135deg,${cat.color}0a,${DARK2})`,border:`1px solid ${cat.color}33`,borderTop:`2px solid ${cat.color}`,borderRadius:16,overflow:"hidden",animation:`fadeUp .5s ${0.1+i*0.07}s ease both`}}>
-
-              {/* Law header */}
-              <div style={{padding:"16px 20px 12px",borderBottom:`1px solid ${cat.color}18`}}>
-                <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:2}}>
-                  <div style={{width:40,height:40,borderRadius:12,background:`${cat.color}18`,border:`1px solid ${cat.color}33`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:20,flexShrink:0}}>{cat.icon}</div>
-                  <div style={{flex:1}}>
-                    <p style={{fontSize:10,fontWeight:700,color:cat.color,letterSpacing:".12em",textTransform:"uppercase",marginBottom:2}}>Law {cat.lawNum} · {cat.tagline}</p>
-                    <p style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:20,letterSpacing:1.5,color:WHITE,lineHeight:1}}>{cat.lawTitle}</p>
-                  </div>
-                  <div style={{background:`${cat.color}15`,border:`1px solid ${cat.color}44`,borderRadius:100,padding:"4px 10px",flexShrink:0}}>
-                    <span style={{fontSize:11,fontWeight:800,color:cat.color}}>20% OFF</span>
-                  </div>
-                </div>
-                <p style={{fontSize:13,color:MUTED,lineHeight:1.65,marginTop:10,fontWeight:300}}>{cat.description}</p>
-              </div>
-
-              {/* Products */}
-              <div style={{padding:"12px 20px 16px",display:"flex",flexDirection:"column",gap:10}}>
-                {cat.products.map((prod,j)=>(
-                  <div key={j} style={{background:"rgba(255,255,255,0.03)",border:`1px solid ${cat.color}22`,borderRadius:12,padding:"14px 16px"}}>
-                    <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:10,marginBottom:6}}>
-                      <p style={{fontSize:14,fontWeight:700,color:WHITE,lineHeight:1.3}}>{prod.name}</p>
-                      <div style={{display:"flex",flexDirection:"column",alignItems:"flex-end",gap:3,flexShrink:0}}>
-                        <span style={{fontSize:10,fontWeight:700,color:cat.color,background:`${cat.color}15`,border:`1px solid ${cat.color}33`,borderRadius:100,padding:"2px 8px",whiteSpace:"nowrap"}}>{prod.tag}</span>
-                        <span style={{fontSize:10,fontWeight:700,color:AMBER,background:"rgba(251,191,36,0.08)",border:"1px solid rgba(251,191,36,0.2)",borderRadius:100,padding:"2px 8px",whiteSpace:"nowrap"}}>20% SAVING</span>
-                      </div>
-                    </div>
-                    <p style={{fontSize:13,color:MUTED,lineHeight:1.55,marginBottom:10,fontWeight:300}}>{prod.benefit}</p>
-                    <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"8px 12px",background:"rgba(255,255,255,0.02)",border:`1px solid ${BORDER2}`,borderRadius:8}}>
-                      <span style={{fontSize:12,color:DIMMED,fontWeight:600}}>⏳ Coming soon</span>
-                      <span style={{fontSize:12,color:"rgba(52,211,153,0.6)",fontWeight:600}}>Your saving is reserved ✓</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Footer note */}
-        <div style={{marginTop:24,padding:"16px 20px",background:"rgba(52,211,153,0.04)",border:"1px solid rgba(52,211,153,0.15)",borderRadius:14,textAlign:"center"}}>
-          <p style={{fontSize:13,color:MUTED,lineHeight:1.7}}>🌿 The QL range is formulated exclusively for Quantum Living members — natural, third-party tested, and aligned to the philosophy of each law. No synthetic fillers. No greenwashing.</p>
-        </div>
-
-        {/* Medical disclaimer */}
-        <div style={{marginTop:12,padding:"12px 16px",background:"rgba(255,255,255,0.02)",border:`1px solid ${BORDER2}`,borderRadius:10}}>
-          <p style={{fontSize:11,color:DIMMED,lineHeight:1.6,textAlign:"center"}}>Natural product descriptions are educational and do not constitute medical claims. Consult a healthcare professional before starting any new supplement.</p>
-        </div>
-
-      </div>
-    </div>
-  );
-}
-
-
-// ══════════════════════════════════════════════════════════════════════════
-// 21-DAY QUANTUM LIVING MILESTONES
-// ══════════════════════════════════════════════════════════════════════════
-
-function QuantumMilestoneDay7({challengeData, onContinue}){
-  const streak = getStreak(challengeData);
-  const daysActive = getDaysActive(challengeData);
-  
-  return(
-    <div style={{minHeight:"100vh",background:BG,padding:"60px 20px",display:"flex",alignItems:"center",justifyContent:"center"}}>
-      <div style={{width:"100%",maxWidth:600,animation:"fadeUp .6s ease both"}}>
-        <div style={{textAlign:"center",marginBottom:32}}>
-          <div style={{fontSize:80,marginBottom:16}}>🌱</div>
-          <div style={{display:"inline-block",background:"rgba(52,211,153,0.1)",border:"1px solid rgba(52,211,153,0.3)",borderRadius:100,padding:"8px 20px",marginBottom:16}}>
-            <span style={{fontSize:14,fontWeight:700,color:GREEN,letterSpacing:".12em"}}>DAY 7 MILESTONE REACHED</span>
-          </div>
-          <h1 style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"clamp(36px,8vw,58px)",letterSpacing:2,color:WHITE,marginBottom:12}}>First Week Complete</h1>
-          <p style={{fontSize:16,color:"rgba(255,255,255,0.75)",lineHeight:1.75,fontWeight:400}}>You've honored the 5 Quantum Laws for 7 days. Wellness habits are taking root.</p>
-        </div>
-
-        <div style={{background:`linear-gradient(145deg,${DARK2},${DARK})`,border:`1px solid ${BORDER2}`,borderRadius:20,padding:"32px 28px",marginBottom:20}}>
-          <div style={{display:"grid",gridTemplateColumns:"repeat(2, 1fr)",gap:16,marginBottom:24}}>
-            <div style={{background:"rgba(52,211,153,0.06)",border:"1px solid rgba(52,211,153,0.2)",borderRadius:12,padding:"18px",textAlign:"center"}}>
-              <p style={{fontSize:13,color:DIMMED,marginBottom:6}}>Days Active</p>
-              <p style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:36,letterSpacing:2,color:GREEN}}>{daysActive}</p>
-            </div>
-            {streak > 0 && (
-              <div style={{background:"rgba(251,191,36,0.06)",border:"1px solid rgba(251,191,36,0.2)",borderRadius:12,padding:"18px",textAlign:"center"}}>
-                <p style={{fontSize:13,color:DIMMED,marginBottom:6}}>Streak</p>
-                <p style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:36,letterSpacing:2,color:AMBER}}>{streak}🔥</p>
-              </div>
-            )}
-          </div>
-
-          <div style={{background:"rgba(52,211,153,0.04)",border:"1px solid rgba(52,211,153,0.2)",borderRadius:12,padding:"20px"}}>
-            <p style={{fontSize:15,color:MUTED,lineHeight:1.8}}>
-              <strong style={{color:WHITE}}>The foundation is set.</strong> Week one builds awareness. Week two builds consistency. Week three makes it permanent. Keep going.
-            </p>
-          </div>
-        </div>
-
-        <button onClick={onContinue} style={{width:"100%",border:"none",borderRadius:100,padding:"16px",fontSize:16,fontWeight:700,fontFamily:"'Space Grotesk',sans-serif",cursor:"pointer",background:"linear-gradient(135deg,#059669,#34D399)",color:WHITE,letterSpacing:".05em"}}>
-          Continue Journey →
-        </button>
-      </div>
-    </div>
-  );
-}
-
-function QuantumMilestoneDay14({challengeData, onContinue}){
-  const streak = getStreak(challengeData);
-  const daysActive = getDaysActive(challengeData);
-  const completion = getCompletionPercentage(challengeData);
-  
-  return(
-    <div style={{minHeight:"100vh",background:BG,padding:"60px 20px",display:"flex",alignItems:"center",justifyContent:"center"}}>
-      <div style={{width:"100%",maxWidth:600,animation:"fadeUp .6s ease both"}}>
-        <div style={{textAlign:"center",marginBottom:32}}>
-          <div style={{fontSize:80,marginBottom:16}}>⚖️</div>
-          <div style={{display:"inline-block",background:"rgba(52,211,153,0.1)",border:"1px solid rgba(52,211,153,0.3)",borderRadius:100,padding:"8px 20px",marginBottom:16}}>
-            <span style={{fontSize:14,fontWeight:700,color:GREEN,letterSpacing:".12em"}}>DAY 14 MILESTONE REACHED</span>
-          </div>
-          <h1 style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"clamp(36px,8vw,58px)",letterSpacing:2,color:WHITE,marginBottom:12}}>Two Weeks Strong</h1>
-          <p style={{fontSize:16,color:"rgba(255,255,255,0.75)",lineHeight:1.75,fontWeight:400}}>Halfway to transformation. The habit is forming.</p>
-        </div>
-
-        <div style={{background:`linear-gradient(145deg,${DARK2},${DARK})`,border:`2px solid ${GREEN}44`,borderRadius:20,padding:"32px 28px",marginBottom:20,boxShadow:"0 0 30px rgba(52,211,153,0.15)"}}>
-          <div style={{textAlign:"center",marginBottom:28}}>
-            <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:72,letterSpacing:2,color:GREEN,lineHeight:1}}>{completion}%</div>
-            <p style={{fontSize:16,color:MUTED,marginTop:8}}>Challenge completion</p>
-          </div>
-
-          <div style={{display:"grid",gridTemplateColumns:"repeat(2, 1fr)",gap:12,marginBottom:24}}>
-            <div style={{background:"rgba(52,211,153,0.06)",border:"1px solid rgba(52,211,153,0.2)",borderRadius:10,padding:"14px",textAlign:"center"}}>
-              <p style={{fontSize:12,color:DIMMED,marginBottom:4}}>Days Active</p>
-              <p style={{fontSize:24,fontWeight:700,color:GREEN}}>{daysActive}</p>
-            </div>
-            {streak > 0 && (
-              <div style={{background:"rgba(251,191,36,0.06)",border:"1px solid rgba(251,191,36,0.2)",borderRadius:10,padding:"14px",textAlign:"center"}}>
-                <p style={{fontSize:12,color:DIMMED,marginBottom:4}}>Streak</p>
-                <p style={{fontSize:24,fontWeight:700,color:AMBER}}>{streak} days</p>
-              </div>
-            )}
-          </div>
-
-          <div style={{background:"rgba(52,211,153,0.04)",border:"1px solid rgba(52,211,153,0.2)",borderRadius:12,padding:"20px"}}>
-            <p style={{fontSize:15,color:MUTED,lineHeight:1.8}}>
-              <strong style={{color:WHITE}}>Consistency compounds.</strong> The next 7 days are where the 5 Quantum Laws shift from conscious practice to automatic behaviour.
-            </p>
-          </div>
-        </div>
-
-        <button onClick={onContinue} style={{width:"100%",border:"none",borderRadius:100,padding:"16px",fontSize:16,fontWeight:700,fontFamily:"'Space Grotesk',sans-serif",cursor:"pointer",background:"linear-gradient(135deg,#059669,#34D399)",color:WHITE,letterSpacing:".05em"}}>
-          Final Week →
-        </button>
-      </div>
-    </div>
-  );
-}
-
-function QuantumMilestoneDay21({challengeData, onContinue}){
-  const streak = getStreak(challengeData);
-  const daysActive = getDaysActive(challengeData);
-  const completion = getCompletionPercentage(challengeData);
-  
-  return(
-    <div style={{minHeight:"100vh",background:BG,padding:"60px 20px",display:"flex",alignItems:"center",justifyContent:"center"}}>
-      <div style={{width:"100%",maxWidth:600,animation:"fadeUp .6s ease both"}}>
-        <div style={{textAlign:"center",marginBottom:32}}>
-          <div style={{fontSize:80,marginBottom:16}}>🏆</div>
-          <div style={{display:"inline-block",background:"linear-gradient(135deg,#059669,#34D399)",borderRadius:100,padding:"8px 20px",marginBottom:16}}>
-            <span style={{fontSize:14,fontWeight:700,color:WHITE,letterSpacing:".12em"}}>21-DAY WELLNESS TRANSFORMATION COMPLETE</span>
-          </div>
-          <h1 style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"clamp(40px,9vw,64px)",letterSpacing:2,color:WHITE,marginBottom:12}}>Transformation Complete</h1>
-          <p style={{fontSize:16,color:"rgba(255,255,255,0.75)",lineHeight:1.75,fontWeight:400}}>21 days of honoring the 5 Quantum Laws. The habit is formed.</p>
-        </div>
-
-        <div style={{background:`linear-gradient(145deg,rgba(52,211,153,0.15),transparent)`,border:`2px solid ${GREEN}`,borderRadius:20,padding:"36px 32px",marginBottom:24,boxShadow:"0 0 40px rgba(52,211,153,0.2)"}}>
-          <div style={{textAlign:"center",marginBottom:32}}>
-            <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:88,letterSpacing:2,color:GREEN,lineHeight:1}}>{completion}%</div>
-            <p style={{fontSize:17,color:MUTED,marginTop:10}}>Challenge completion rate</p>
-          </div>
-
-          <div style={{display:"grid",gridTemplateColumns:"repeat(2, 1fr)",gap:14,marginBottom:28}}>
-            <div style={{background:"rgba(255,255,255,0.04)",border:`1px solid ${BORDER2}`,borderRadius:12,padding:"16px",textAlign:"center"}}>
-              <p style={{fontSize:13,color:DIMMED,marginBottom:6}}>Days Active</p>
-              <p style={{fontSize:28,fontWeight:700,color:GREEN}}>{daysActive}</p>
-            </div>
-            {streak > 0 && (
-              <div style={{background:"rgba(255,255,255,0.04)",border:`1px solid ${BORDER2}`,borderRadius:12,padding:"16px",textAlign:"center"}}>
-                <p style={{fontSize:13,color:DIMMED,marginBottom:6}}>Final Streak</p>
-                <p style={{fontSize:28,fontWeight:700,color:AMBER}}>{streak}🔥</p>
-              </div>
-            )}
-          </div>
-
-          <div style={{background:"rgba(52,211,153,0.06)",border:"1px solid rgba(52,211,153,0.3)",borderRadius:14,padding:"28px 24px",textAlign:"center"}}>
-            <p style={{fontFamily:"'Crimson Pro',serif",fontStyle:"italic",fontSize:18,color:WHITE,lineHeight:1.9,marginBottom:10}}>
-              "Small shifts, consistently honoured, produce quantum results. The habit is not the destination — it is the vehicle."
-            </p>
-            <p style={{fontSize:11,fontWeight:700,color:"rgba(52,211,153,0.6)",letterSpacing:".16em",textTransform:"uppercase",marginTop:8}}>— The Learning Quantum Method</p>
-          </div>
-        </div>
-
-        <button onClick={onContinue} style={{width:"100%",border:"none",borderRadius:100,padding:"18px",fontSize:17,fontWeight:700,fontFamily:"'Space Grotesk',sans-serif",cursor:"pointer",background:"linear-gradient(135deg,#059669,#34D399)",color:WHITE,letterSpacing:".05em"}}>
-          Continue Living Quantum →
-        </button>
-        
-        <p style={{fontSize:13,color:DIMMED,textAlign:"center",marginTop:12}}>The 21 days built the habit. Now maintain it for life.</p>
-      </div>
-    </div>
-  );
-}
-
-function LawDetail({ law, arch, onBack }) {
-  const archNote = arch && ARCH_LAW_NOTES[arch] ? ARCH_LAW_NOTES[arch][LAWS.indexOf(law)] : null;
-  const ARCH_NAMES = {A:"Systems Architect",B:"Deep Learner",C:"Relational Catalyst",D:"Visionary Pioneer"};
-  const ARCH_COLORS = {A:"#00C8FF",B:"#38BDF8",C:"#34D399",D:"#A78BFA"};
-  return (
-    <div style={{minHeight:"100vh",background:`radial-gradient(ellipse 80% 40% at 50% 0%,${law.glow} 0%,transparent 60%),${BG}`,fontFamily:"'Space Grotesk',sans-serif",color:WHITE,display:"flex",flexDirection:"column",alignItems:"center",padding:"0 16px 60px"}}>
-      <div style={{width:"100%",borderBottom:`1px solid ${BORDER}`,padding:"12px 20px",display:"flex",alignItems:"center",justifyContent:"space-between",background:"rgba(7,15,30,0.9)",backdropFilter:"blur(14px)",position:"sticky",top:0,zIndex:100}}>
-        <button onClick={onBack} style={{background:"none",border:"1px solid rgba(255,255,255,0.12)",borderRadius:100,padding:"7px 16px",color:"rgba(255,255,255,0.45)",fontSize:12,fontWeight:600,cursor:"pointer",fontFamily:"'Space Grotesk',sans-serif",letterSpacing:".03em",transition:"all .15s"}} onMouseEnter={e=>{e.currentTarget.style.color="rgba(255,255,255,0.8)";e.currentTarget.style.borderColor="rgba(255,255,255,0.28)";}} onMouseLeave={e=>{e.currentTarget.style.color="rgba(255,255,255,0.45)";e.currentTarget.style.borderColor="rgba(255,255,255,0.12)";}}>← All Laws</button>
-        <p style={{fontSize:14,fontWeight:700,color:law.color,letterSpacing:".1em",textTransform:"uppercase"}}>Law {law.num}</p>
-        <span style={{fontSize:20,color:law.color}}>{law.sym}</span>
-      </div>
-
-      <div style={{width:"100%",maxWidth:620,paddingTop:36,zIndex:1}}>
-        {/* Hero */}
-        <div style={{background:`linear-gradient(145deg,${DARK2},${DARK})`,border:`1px solid ${law.color}44`,borderRadius:20,padding:"36px 28px",textAlign:"center",marginBottom:16,boxShadow:`0 0 50px ${law.glow}`,animation:"fadeUp .6s ease both"}}>
-          <div style={{fontSize:52,marginBottom:12}}>{law.icon}</div>
-          <p style={{fontSize:16,fontWeight:700,color:law.color,letterSpacing:".14em",textTransform:"uppercase",marginBottom:10}}>Quantum Law {law.num} · {law.subtitle}</p>
-          <h1 style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"clamp(28px,6vw,44px)",letterSpacing:2,color:WHITE,marginBottom:4}}>{law.title}</h1>
-          <div style={{width:50,height:2,background:`linear-gradient(90deg,transparent,${law.color},transparent)`,margin:"16px auto"}}></div>
-          <p style={{fontFamily:"'Crimson Pro',serif",fontStyle:"italic",fontSize:19,color:law.color,lineHeight:1.65}}>"{law.principle}"</p>
-        </div>
-
-        {/* The Truth */}
-        <div style={{background:PANEL,border:`1px solid ${BORDER2}`,borderRadius:16,padding:"24px",marginBottom:14,animation:"fadeUp .6s .1s ease both"}}>
-          <p style={{fontSize:16,fontWeight:700,color:DIMMED,letterSpacing:".12em",textTransform:"uppercase",marginBottom:12}}>The Truth</p>
-          <p style={{fontSize:15,color:"rgba(255,255,255,0.78)",lineHeight:1.9,fontWeight:400}}>{law.truth}</p>
-        </div>
-
-        {/* Nature's Wisdom — Back to Eden tradition */}
-        {law.natureWisdom && (
-          <div style={{background:`linear-gradient(135deg,${law.color}08,rgba(255,255,255,0.02))`,border:`1px solid ${law.color}22`,borderLeft:`3px solid ${law.color}55`,borderRadius:"0 14px 14px 0",padding:"20px 22px",marginBottom:14,animation:"fadeUp .6s .13s ease both"}}>
-            <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:10}}>
-              <span style={{fontSize:16}}>📖</span>
-              <p style={{fontSize:14,fontWeight:700,color:law.color,letterSpacing:".1em",textTransform:"uppercase"}}>Nature's Wisdom</p>
-            </div>
-            <p style={{fontSize:14,color:"rgba(255,255,255,0.72)",lineHeight:1.9,fontWeight:300,fontStyle:"italic"}}>{law.natureWisdom}</p>
-            <p style={{fontSize:10,color:DIMMED,marginTop:10,letterSpacing:".07em"}}>Traditional healing wisdom · Referenced in Back to Eden</p>
-          </div>
-        )}
-
-        {/* Quantum Edge */}
-        <div style={{background:law.glow,border:`1px solid ${law.color}33`,borderLeft:`3px solid ${law.color}`,borderRadius:"0 14px 14px 0",padding:"18px 20px",marginBottom:14,animation:"fadeUp .6s .15s ease both"}}>
-          <p style={{fontSize:16,fontWeight:700,color:law.color,letterSpacing:".12em",textTransform:"uppercase",marginBottom:8}}>⚡ Quantum Edge</p>
-          <p style={{fontSize:15,color:"rgba(255,255,255,0.72)",lineHeight:1.85,fontWeight:400}}>{law.quantumEdge}</p>
-        </div>
-
-        {/* Daily Practice */}
-        <div style={{background:"rgba(0,200,255,0.04)",border:`1px solid ${BORDER}`,borderRadius:16,padding:"22px",marginBottom:14,animation:"fadeUp .6s .2s ease both"}}>
-          <p style={{fontSize:16,fontWeight:700,color:E_BLUE,letterSpacing:".12em",textTransform:"uppercase",marginBottom:10}}>◈ Daily Practice</p>
-          <p style={{fontSize:15,lineHeight:1.8,color:"rgba(255,255,255,0.82)",fontWeight:400}}>{law.dailyPractice}</p>
-        </div>
-
-        {/* 4 Practices */}
-        <p style={{fontSize:16,fontWeight:700,color:DIMMED,letterSpacing:".12em",textTransform:"uppercase",marginBottom:12,animation:"fadeUp .6s .25s ease both"}}>4 Quantum Practices</p>
-        {law.practices.map((p,i)=>(
-          <div key={i} style={{background:PANEL,border:`1px solid ${BORDER2}`,borderTop:`2px solid ${law.color}88`,borderRadius:14,padding:"18px 20px",marginBottom:10,animation:`fadeUp 0.6s ${0.28+i*0.06}s ease both`}}>
-            <div style={{display:"flex",gap:10,alignItems:"center",marginBottom:8}}>
-              <div style={{width:24,height:24,borderRadius:"50%",background:law.color,display:"flex",alignItems:"center",justifyContent:"center",fontSize:14,color:BG,fontWeight:800,flexShrink:0}}>{i+1}</div>
-              <p style={{fontSize:16,fontWeight:700,color:law.color,letterSpacing:".06em"}}>{p.title}</p>
-            </div>
-            <p style={{fontSize:14,lineHeight:1.8,color:MUTED,fontWeight:300}}>{p.desc}</p>
-          </div>
-        ))}
-
-        {/* Things to avoid */}
-        <div style={{background:"rgba(255,160,40,0.04)",border:"1px solid rgba(255,160,40,0.15)",borderRadius:16,padding:"20px 22px",marginBottom:14,animation:"fadeUp .6s .5s ease both"}}>
-          <p style={{fontSize:16,fontWeight:700,color:"rgba(255,180,50,0.8)",letterSpacing:".12em",textTransform:"uppercase",marginBottom:12}}>△ Patterns to Avoid</p>
-          {law.avoid.map((a,i)=>(
-            <div key={i} style={{display:"flex",gap:10,alignItems:"flex-start",marginBottom:i<law.avoid.length-1?10:0}}>
-              <span style={{color:"rgba(255,180,50,0.6)",flexShrink:0,marginTop:2,fontSize:13}}>◦</span>
-              <span style={{fontSize:14,color:"rgba(255,200,80,0.85)",fontWeight:400,lineHeight:1.6}}>{a}</span>
-            </div>
-          ))}
-        </div>
-
-        {/* Personalised archetype note */}
-        {archNote ? (
-          <div style={{background:`linear-gradient(135deg,${ARCH_COLORS[arch]}0a,transparent)`,border:`1px solid ${ARCH_COLORS[arch]}33`,borderLeft:`3px solid ${ARCH_COLORS[arch]}`,borderRadius:"0 14px 14px 0",padding:"20px 22px",animation:"fadeUp .6s .55s ease both"}}>
-            <p style={{fontSize:16,fontWeight:700,color:ARCH_COLORS[arch],letterSpacing:".12em",textTransform:"uppercase",marginBottom:10}}>⚛ {ARCH_NAMES[arch]} — This Law Applied to You</p>
-            <p style={{fontSize:15,color:"rgba(255,255,255,0.75)",lineHeight:1.85,fontWeight:400}}>{archNote}</p>
-          </div>
-        ) : (
-          <div style={{background:`linear-gradient(135deg,rgba(0,200,255,0.06),rgba(0,200,255,0.02))`,border:`1px solid ${E_BLUE}33`,borderRadius:16,padding:"20px 22px",animation:"fadeUp .6s .55s ease both"}}>
-            <p style={{fontSize:16,fontWeight:700,color:E_BLUE,letterSpacing:".12em",textTransform:"uppercase",marginBottom:10}}>⚛ Your Archetype Note</p>
-            <p style={{fontSize:15,color:"rgba(255,255,255,0.75)",lineHeight:1.85,fontWeight:400}}>{law.lqmNote}</p>
-          </div>
-        )}
+      {/* ── 8. BUTTONS ── */}
+      <div style={{display:"flex",gap:10}}>
+        <button onClick={onRetry} style={{flex:1,border:`1px solid ${BORDER}`,borderRadius:100,padding:"14px",fontSize:14,fontWeight:700,background:"rgba(255,255,255,0.03)",color:MUTED,cursor:"pointer",fontFamily:"'Space Grotesk',sans-serif",transition:"all .15s"}}
+          onMouseEnter={e=>{e.currentTarget.style.color=WHITE;e.currentTarget.style.borderColor=E_BLUE;}}
+          onMouseLeave={e=>{e.currentTarget.style.color=MUTED;e.currentTarget.style.borderColor=BORDER;}}>↺ Retry</button>
+        <button onClick={onBack} style={{flex:2,border:"none",borderRadius:100,padding:"14px",fontSize:14,fontWeight:700,background:`linear-gradient(135deg,${E_BLUE2},${E_BLUE})`,color:BG,cursor:"pointer",fontFamily:"'Space Grotesk',sans-serif",letterSpacing:".05em",transition:"all .2s"}}
+          onMouseEnter={e=>e.currentTarget.style.transform="translateY(-2px)"}
+          onMouseLeave={e=>e.currentTarget.style.transform="translateY(0)"}>{fromRecall ? "← Back to Home" : "← Back to LQM"}</button>
       </div>
     </div>
   );
