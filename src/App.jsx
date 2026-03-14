@@ -53,7 +53,7 @@ const FONTS=`@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk
 const E_BLUE="#00C8FF",E_BLUE2="#0EA5E9",E_GLOW="rgba(0,200,255,0.15)";
 const BG="#070F1E",DARK="#0D1830",DARK2="#111E38",PANEL="rgba(255,255,255,0.055)";
 const BORDER="rgba(0,200,255,0.18)",BORDER2="rgba(255,255,255,0.09)";
-const WHITE="#FFFFFF",MUTED="rgba(255,255,255,0.62)",DIMMED="rgba(255,255,255,0.32)";
+const WHITE="#FFFFFF",MUTED="rgba(255,255,255,0.78)",DIMMED="rgba(255,255,255,0.50)";
 const AMBER="#FBBF24",GREEN="#22C55E",PURPLE="#A855F7";
 const SYMS=["⚛","◈","⬡","△","◎","⊕","⟁","⬢"];
 const RED="#EF4444";
@@ -110,14 +110,48 @@ function ArchetypeIllustration({ type: t }) {
   );
 }
 
+
+// ── FlameIcon — white-core blue flame, pulsating glow ──
+function FlameIcon({size=16}) {
+  const w = Math.round(size * 0.75);
+  return (
+    <svg width={w} height={size} viewBox="0 0 15 20"
+      style={{display:"inline-block",verticalAlign:"middle",flexShrink:0,
+        transformOrigin:"center bottom",
+        animation:"flamePulse 1.9s ease-in-out infinite"}}>
+      <path d="M7.5 1C7.5 1 4.5 4.5 4.5 8C4.5 8 3 6 3.5 3.5C1 5.5 1 9.5 3 11.5C2 13 2 15 3 16.5C4.2 18.5 5.8 19.5 7.5 19.5C9.2 19.5 10.8 18.5 12 16.5C13 15 13 13 12 11.5C14 9.5 14 5.5 11.5 3.5C12 6 10.5 8 10.5 8C10.5 4.5 7.5 1 7.5 1Z"
+        fill="#7DD3FC" opacity="0.92"/>
+      <path d="M7.5 8C7.5 8 6 10 6 12C6 12 5 11 5.5 9.5C4 11 4.5 13.5 6 15C6.5 16 7 17 7.5 17C8 17 8.5 16 9 15C10.5 13.5 11 11 9.5 9.5C10 11 9 12 9 12C9 10 7.5 8 7.5 8Z"
+        fill="#FFFFFF" opacity="0.96"/>
+    </svg>
+  );
+}
+
+// ── AtomIcon — glowing nucleus with three orbits, representing thought & life ──
+function AtomIcon({size=16}) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24"
+      style={{display:"inline-block",verticalAlign:"middle",flexShrink:0,
+        animation:"atomGlow 2.4s ease-in-out infinite"}}>
+      <ellipse cx="12" cy="12" rx="10.5" ry="3.8" fill="none" stroke="#00C8FF" strokeWidth="1.1" opacity="0.85"/>
+      <ellipse cx="12" cy="12" rx="10.5" ry="3.8" fill="none" stroke="#7DD3FC" strokeWidth="0.9" opacity="0.65" transform="rotate(60 12 12)"/>
+      <ellipse cx="12" cy="12" rx="10.5" ry="3.8" fill="none" stroke="#BAE6FD" strokeWidth="0.8" opacity="0.50" transform="rotate(120 12 12)"/>
+      <circle cx="22.5" cy="12" r="1.6" fill="#00C8FF" opacity="0.9"/>
+      <circle cx="7.25" cy="5.05" r="1.4" fill="#7DD3FC" opacity="0.78"/>
+      <circle cx="7.25" cy="18.95" r="1.3" fill="#BAE6FD" opacity="0.65"/>
+      <circle cx="12" cy="12" r="2.6" fill="#FFFFFF" opacity="0.98"/>
+      <circle cx="12" cy="12" r="1.4" fill="#00C8FF" opacity="0.5"/>
+    </svg>
+  );
+}
 function StrengthBars({strengths,color}){
   const widths=[95,88,82,76];
-  return <div style={{marginTop:8}}>{strengths.map((s,i)=>(<div key={i} style={{marginBottom:14}}><div style={{display:"flex",justifyContent:"space-between",marginBottom:6}}><span style={{fontSize:13,fontWeight:600,color:WHITE}}>{s}</span><span style={{fontSize:11,color,fontWeight:700}}>{widths[i]}%</span></div><div style={{height:6,background:"rgba(255,255,255,0.06)",borderRadius:100,overflow:"hidden"}}><div style={{height:"100%",width:`${widths[i]}%`,background:`linear-gradient(90deg,${color}88,${color})`,borderRadius:100,boxShadow:`0 0 8px ${color}66`}}/></div></div>))}</div>;
+  return <div style={{marginTop:8}}>{strengths.map((s,i)=>(<div key={i} style={{marginBottom:14}}><div style={{display:"flex",justifyContent:"space-between",marginBottom:6}}><span style={{fontSize:13,fontWeight:600,color:WHITE}}>{s}</span><span style={{fontSize:12,color,fontWeight:700}}>{widths[i]}%</span></div><div style={{height:6,background:"rgba(255,255,255,0.06)",borderRadius:100,overflow:"hidden"}}><div style={{height:"100%",width:`${widths[i]}%`,background:`linear-gradient(90deg,${color}88,${color})`,borderRadius:100,boxShadow:`0 0 8px ${color}66`}}/></div></div>))}</div>;
 }
 
 function BlindSpotCard({text,index,color}){
   const icons=["⚠","◎","△"];
-  return <div style={{display:"flex",gap:16,alignItems:"flex-start",padding:"16px 18px",background:"rgba(255,160,40,0.06)",border:"1px solid rgba(255,160,40,0.2)",borderRadius:12,marginBottom:10,borderLeft:"3px solid rgba(255,160,40,0.5)"}}><div style={{width:32,height:32,borderRadius:"50%",background:"rgba(255,160,40,0.12)",border:"1px solid rgba(255,160,40,0.3)",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,fontSize:14}}>{icons[index]}</div><div><p style={{fontSize:15,fontWeight:700,color:"rgba(255,200,80,0.95)",lineHeight:1.5,marginBottom:2}}>{text}</p><p style={{fontSize:12,color:"rgba(255,200,80,0.5)",fontWeight:400}}>Awareness is the first step to navigation</p></div></div>;
+  return <div style={{display:"flex",gap:16,alignItems:"flex-start",padding:"16px 18px",background:"rgba(255,160,40,0.06)",border:"1px solid rgba(255,160,40,0.2)",borderRadius:12,marginBottom:10,borderLeft:"3px solid rgba(255,160,40,0.5)"}}><div style={{width:32,height:32,borderRadius:"50%",background:"rgba(255,160,40,0.12)",border:"1px solid rgba(255,160,40,0.3)",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,fontSize:14}}>{icons[index]}</div><div><p style={{fontSize:16,fontWeight:700,color:"rgba(255,200,80,0.97)",lineHeight:1.5,marginBottom:2}}>{text}</p><p style={{fontSize:13,color:"rgba(255,200,80,0.78)",fontWeight:400}}>Awareness is the first step to navigation</p></div></div>;
 }
 
 const questions = [
@@ -363,7 +397,7 @@ export default function App() {
       @keyframes blurIn{from{filter:blur(8px);opacity:0;}to{filter:blur(0);opacity:1;}}
       @keyframes barGrow{from{width:0;}to{width:var(--w);}}
       @keyframes eureka{0%,100%{filter:drop-shadow(0 0 3px rgba(0,200,255,0.4));opacity:0.78;}45%{filter:drop-shadow(0 0 22px rgba(0,200,255,1)) drop-shadow(0 0 50px rgba(0,200,255,0.55)) drop-shadow(0 0 90px rgba(0,200,255,0.2));opacity:1;}}
-      @keyframes ctaGlow{0%,100%{filter:brightness(1);}50%{filter:brightness(1.55);}}
+      @keyframes ctaGlow{0%,100%{filter:brightness(1);}50%{filter:brightness(1.55);}}@keyframes flamePulse{0%,100%{filter:drop-shadow(0 0 2px #00C8FF) drop-shadow(0 0 5px rgba(0,200,255,0.35));transform:scaleY(1);}40%{filter:drop-shadow(0 0 5px #00C8FF) drop-shadow(0 0 14px rgba(0,200,255,0.65)) drop-shadow(0 0 26px rgba(0,200,255,0.25));transform:scaleY(1.06);}70%{filter:drop-shadow(0 0 3px #00C8FF) drop-shadow(0 0 8px rgba(0,200,255,0.45));transform:scaleY(0.97);}}@keyframes atomGlow{0%,100%{filter:drop-shadow(0 0 3px rgba(0,200,255,0.6)) drop-shadow(0 0 1px #fff);}50%{filter:drop-shadow(0 0 8px rgba(0,200,255,1)) drop-shadow(0 0 18px rgba(0,200,255,0.45)) drop-shadow(0 0 2px #fff);}}@keyframes rocketFloat{0%,100%{filter:drop-shadow(0 0 3px rgba(0,200,255,0.55));transform:translateY(0);}50%{filter:drop-shadow(0 0 7px rgba(0,200,255,0.9)) drop-shadow(0 0 18px rgba(0,200,255,0.3));transform:translateY(-2px);}}
       .fu{animation:fadeUp .6s ease both;}
       .fu1{animation:fadeUp .6s .1s ease both;}
       .fu2{animation:fadeUp .6s .22s ease both;}
@@ -630,7 +664,7 @@ function RestoreAccess({ onBack, onSuccess }) {
           <div style={{background:PANEL,border:`1px solid ${BORDER2}`,borderRadius:16,padding:"28px 24px"}}>
 
             {/* Code input */}
-            <p style={{fontSize:11,fontWeight:700,color:DIMMED,letterSpacing:".14em",textTransform:"uppercase",marginBottom:10}}>Your Restore Code</p>
+            <p style={{fontSize:12,fontWeight:700,color:DIMMED,letterSpacing:".14em",textTransform:"uppercase",marginBottom:10}}>Your Restore Code</p>
             <input
               value={code}
               onChange={handleChange}
@@ -652,8 +686,8 @@ function RestoreAccess({ onBack, onSuccess }) {
 
             {/* Character counter */}
             <div style={{display:"flex",justifyContent:"space-between",marginTop:6,marginBottom:16}}>
-              <p style={{fontSize:11,color: error ? "#EF4444" : DIMMED}}>{error || "Format: LQM-XXXX-XXXXX"}</p>
-              <p style={{fontSize:11,color: code.replace(/-/g,"").length===12 ? "rgba(52,211,153,0.7)" : DIMMED,fontWeight:700}}>
+              <p style={{fontSize:14,color: error ? "#EF4444" : MUTED}}>{error || "Format: LQM-XXXX-XXXXX"}</p>
+              <p style={{fontSize:13,color: code.replace(/-/g,"").length===12 ? "rgba(52,211,153,0.7)" : DIMMED,fontWeight:700}}>
                 {code.replace(/-/g,"").length}/12
               </p>
             </div>
@@ -672,7 +706,7 @@ function RestoreAccess({ onBack, onSuccess }) {
               Unlock My Content
             </button>
 
-            <p style={{fontSize:11,color:DIMMED,textAlign:"center",marginTop:16,lineHeight:1.6}}>
+            <p style={{fontSize:14,color:MUTED,textAlign:"center",marginTop:16,lineHeight:1.7}}>
               Codes are single-use and expire after 30 days.<br/>
               They are linked to your purchase record and cannot be shared.
             </p>
@@ -681,7 +715,7 @@ function RestoreAccess({ onBack, onSuccess }) {
 
         {/* Help */}
         <div style={{marginTop:24,background:"rgba(255,255,255,0.02)",border:`1px solid ${BORDER2}`,borderRadius:12,padding:"16px 18px"}}>
-          <p style={{fontSize:12,fontWeight:700,color:DIMMED,letterSpacing:".1em",textTransform:"uppercase",marginBottom:6}}>Don't have a code?</p>
+          <p style={{fontSize:13,fontWeight:700,color:MUTED,letterSpacing:".1em",textTransform:"uppercase",marginBottom:6}}>Don't have a code?</p>
           <p style={{fontSize:13,color:MUTED,lineHeight:1.7}}>
             Email <a href="mailto:lqm@lqmmethod.com" style={{color:E_BLUE,textDecoration:"none",fontWeight:700}}>lqm@lqmmethod.com</a> and include your Stripe payment reference number. We'll generate a restore code and send it back within 48 hours.
           </p>
@@ -769,7 +803,7 @@ function RotatingTestimonial({quotes, accentColor}) {
   return (
     <div style={{transition:"opacity .5s", opacity:visible?1:0, padding:"10px 14px", background:"rgba(255,255,255,0.03)", border:`1px solid ${accentColor}22`, borderLeft:`3px solid ${accentColor}`, borderRadius:"0 10px 10px 0", marginBottom:14}}>
       <p style={{fontFamily:"'Crimson Pro',serif", fontStyle:"italic", fontSize:14, color:"rgba(255,255,255,0.72)", lineHeight:1.55, marginBottom:4}}>"{quotes[idx].text}"</p>
-      <p style={{fontSize:12, color:"rgba(255,255,255,0.38)", fontWeight:700, letterSpacing:".06em"}}>— {quotes[idx].author}</p>
+      <p style={{fontSize:13, color:"rgba(255,255,255,0.55)", fontWeight:700, letterSpacing:".06em"}}>— {quotes[idx].author}</p>
     </div>
   );
 }
@@ -822,7 +856,7 @@ function Hub({type, unlocks, onOpenNeural, onOpenVital, onViewReport, onUnlockNe
             <div>
               <p style={{fontSize:13, fontWeight:700, color:type.blue, letterSpacing:".12em", textTransform:"uppercase", marginBottom:3}}>My Profile Report</p>
               <p style={{fontSize:18, fontWeight:700, color:WHITE}}>Full Archetype Analysis</p>
-              <p style={{fontSize:13, color:DIMMED, marginTop:2}}>Strengths · Blind spots · 3 strategy cards · Visual insight</p>
+              <p style={{fontSize:15, color:MUTED, marginTop:2}}>Strengths · Blind spots · 3 strategy cards · Visual insight</p>
             </div>
           </div>
           <div style={{background:"rgba(255,255,255,0.08)", border:"1px solid rgba(255,255,255,0.22)", borderRadius:100, padding:"6px 14px", fontSize:13, color:WHITE, fontWeight:700, flexShrink:0, animation:"ctaGlow 2s ease-in-out infinite"}}>View →</div>
@@ -841,12 +875,12 @@ function Hub({type, unlocks, onOpenNeural, onOpenVital, onViewReport, onUnlockNe
               <p style={{fontSize:13, fontWeight:700, color:E_BLUE, letterSpacing:".12em", textTransform:"uppercase", marginBottom:3}}>Brain Training</p>
               <p style={{fontSize:18, fontWeight:700, color:WHITE, marginBottom:4}}>Neural Protocol</p>
               {unlocks.neural ? (<>
-                <p style={{fontSize:13, color:DIMMED, marginBottom:10}}>6 cognitive challenges · XP system · 21-day journey</p>
+                <p style={{fontSize:15, color:MUTED, marginBottom:10}}>6 cognitive challenges · XP system · 21-day journey</p>
                 {/* Progress bar */}
                 <div style={{marginBottom:6}}>
                   <div style={{display:"flex", justifyContent:"space-between", marginBottom:4}}>
-                    <span style={{fontSize:12, color:DIMMED}}>21-Day Challenge</span>
-                    <span style={{fontSize:12, color:E_BLUE, fontWeight:700}}>Day {brainDay} of 21</span>
+                    <span style={{fontSize:13, color:MUTED}}>21-Day Challenge</span>
+                    <span style={{fontSize:13, color:E_BLUE, fontWeight:700}}>Day {brainDay} of 21</span>
                   </div>
                   <div style={{height:6, background:"rgba(255,255,255,0.06)", borderRadius:100, overflow:"hidden"}}>
                     <div style={{height:"100%", width:`${(brainDay/21)*100}%`, background:`linear-gradient(90deg,${E_BLUE2},${E_BLUE})`, borderRadius:100}}/>
@@ -856,11 +890,11 @@ function Hub({type, unlocks, onOpenNeural, onOpenVital, onViewReport, onUnlockNe
                   {[{d:7,icon:"⭐"},{d:14,icon:"🌟"},{d:21,icon:"🏆"}].map(m=>(
                     <span key={m.d} style={{fontSize:16, opacity:brainDay>=m.d?1:0.2}}>{m.icon}</span>
                   ))}
-                  {brainStreak>0 && <span style={{fontSize:12, color:AMBER, fontWeight:700, marginLeft:"auto"}}>🔥 {brainStreak} day streak</span>}
+                  {brainStreak>0 && <span style={{fontSize:13, color:AMBER, fontWeight:700, marginLeft:"auto"}}><FlameIcon size={13}/> {brainStreak} day streak</span>}
                 </div>
               </>) : (<>
                 <p style={{fontSize:14, color:"rgba(255,255,255,0.82)", fontWeight:500, lineHeight:1.5, marginBottom:4}}>Most people never train the muscle between their ears.</p>
-                <p style={{fontSize:13, color:DIMMED, marginBottom:12}}>6 challenges · 6 minutes a day · 21 days to a measurably sharper mind.</p>
+                <p style={{fontSize:15, color:MUTED, marginBottom:12}}>6 challenges · 6 minutes a day · 21 days to a measurably sharper mind.</p>
                 <RotatingTestimonial accentColor={E_BLUE} quotes={[
                   {text:"By week two I was noticeably faster at decisions. I didn't expect a daily challenge to actually work.",author:"Jamie, 34"},
                   {text:"The streak system kept me honest. 21 days straight — my focus is unrecognisable.",author:"Marcus, 29"},
@@ -890,12 +924,12 @@ function Hub({type, unlocks, onOpenNeural, onOpenVital, onViewReport, onUnlockNe
               <p style={{fontSize:13, fontWeight:700, color:"#34D399", letterSpacing:".12em", textTransform:"uppercase", marginBottom:3}}>Quantum Living</p>
               <p style={{fontSize:18, fontWeight:700, color:WHITE, marginBottom:4}}>5 Laws of Living</p>
               {unlocks.vital ? (<>
-                <p style={{fontSize:13, color:DIMMED, marginBottom:10}}>Daily checklist · 5 quantum laws · 21-day journey</p>
+                <p style={{fontSize:15, color:MUTED, marginBottom:10}}>Daily checklist · 5 quantum laws · 21-day journey</p>
                 {/* Progress bar */}
                 <div style={{marginBottom:6}}>
                   <div style={{display:"flex", justifyContent:"space-between", marginBottom:4}}>
-                    <span style={{fontSize:12, color:DIMMED}}>21-Day Challenge</span>
-                    <span style={{fontSize:12, color:"#34D399", fontWeight:700}}>Day {quantumDay} of 21</span>
+                    <span style={{fontSize:13, color:MUTED}}>21-Day Challenge</span>
+                    <span style={{fontSize:13, color:"#34D399", fontWeight:700}}>Day {quantumDay} of 21</span>
                   </div>
                   <div style={{height:6, background:"rgba(255,255,255,0.06)", borderRadius:100, overflow:"hidden"}}>
                     <div style={{height:"100%", width:`${(quantumDay/21)*100}%`, background:"linear-gradient(90deg,#059669,#34D399)", borderRadius:100}}/>
@@ -905,11 +939,11 @@ function Hub({type, unlocks, onOpenNeural, onOpenVital, onViewReport, onUnlockNe
                   {[{d:7,icon:"🌱"},{d:14,icon:"🌿"},{d:21,icon:"🌳"}].map(m=>(
                     <span key={m.d} style={{fontSize:16, opacity:quantumDay>=m.d?1:0.2}}>{m.icon}</span>
                   ))}
-                  {quantumStreak>0 && <span style={{fontSize:12, color:AMBER, fontWeight:700, marginLeft:"auto"}}>🔥 {quantumStreak} day streak</span>}
+                  {quantumStreak>0 && <span style={{fontSize:13, color:AMBER, fontWeight:700, marginLeft:"auto"}}><FlameIcon size={13}/> {quantumStreak} day streak</span>}
                 </div>
               </>) : (<>
                 <p style={{fontSize:14, color:"rgba(255,255,255,0.82)", fontWeight:500, lineHeight:1.5, marginBottom:4}}>Your biology is either working for you or against you.</p>
-                <p style={{fontSize:13, color:DIMMED, marginBottom:12}}>5 quantum laws · sleep, breath, movement, temperance, nourishment · built around your archetype.</p>
+                <p style={{fontSize:15, color:MUTED, marginBottom:12}}>5 quantum laws · sleep, breath, movement, temperance, nourishment · built around your archetype.</p>
                 <RotatingTestimonial accentColor="#34D399" quotes={[
                   {text:"I've read every wellness book going. This is the first thing that actually stuck because it's tied to who I am.",author:"Rachel, 41"},
                   {text:"Simple enough to do daily, powerful enough to actually change things.",author:"Priya, 37"},
@@ -934,13 +968,13 @@ function Hub({type, unlocks, onOpenNeural, onOpenVital, onViewReport, onUnlockNe
           {(!unlocks.neural && !unlocks.vital) ? (<>
             <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:12,marginBottom:12}}>
               <div style={{flex:1}}>
-                <p style={{fontSize:11,fontWeight:700,color:AMBER,letterSpacing:".14em",textTransform:"uppercase",marginBottom:5}}>⭐ Complete Your LQM System</p>
+                <p style={{fontSize:12,fontWeight:700,color:AMBER,letterSpacing:".14em",textTransform:"uppercase",marginBottom:5}}>⭐ Complete Your LQM System</p>
                 <p style={{fontSize:16,fontWeight:700,color:WHITE,marginBottom:4}}>Both Add-Ons · <span style={{color:AMBER}}>£8 today</span></p>
-                <p style={{fontSize:13,color:DIMMED,lineHeight:1.5}}>Brain Training <span style={{color:"rgba(255,255,255,0.3)"}}>+</span> Quantum Living. 21 days of cognitive training and daily wellness practice — built around your archetype. Purchased separately: £10.</p>
+                <p style={{fontSize:15,color:MUTED,lineHeight:1.6}}>Brain Training <span style={{color:"rgba(255,255,255,0.3)"}}>+</span> Quantum Living. 21 days of cognitive training and daily wellness practice — built around your archetype. Purchased separately: £10.</p>
               </div>
               <div style={{textAlign:"right",flexShrink:0}}>
                 <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:32,letterSpacing:1,color:AMBER}}>£8</div>
-                <div style={{fontSize:11,color:DIMMED,textDecoration:"line-through"}}>£10</div>
+                <div style={{fontSize:13,color:MUTED,textDecoration:"line-through"}}>£10</div>
               </div>
             </div>
             <button onClick={e=>{e.stopPropagation();onUnlockBundle();}} style={{width:"100%",border:"none",borderRadius:100,padding:"11px",fontSize:14,fontWeight:700,background:"linear-gradient(135deg,rgba(251,191,36,0.85),rgba(251,191,36,0.65))",color:"#070F1E",cursor:"pointer",fontFamily:"'Space Grotesk',sans-serif",letterSpacing:".04em",transition:"all .18s"}}
@@ -950,9 +984,9 @@ function Hub({type, unlocks, onOpenNeural, onOpenVital, onViewReport, onUnlockNe
           </>) : (
             // One unlocked — smart upsell
             <div>
-              <p style={{fontSize:11,fontWeight:700,color:AMBER,letterSpacing:".14em",textTransform:"uppercase",marginBottom:5}}>⭐ You're Halfway There</p>
+              <p style={{fontSize:12,fontWeight:700,color:AMBER,letterSpacing:".14em",textTransform:"uppercase",marginBottom:5}}>⭐ You're Halfway There</p>
               <p style={{fontSize:15,fontWeight:700,color:WHITE,marginBottom:4}}>Add {unlocks.neural ? "Quantum Living" : "Brain Training"} for just <span style={{color:AMBER}}>£5</span></p>
-              <p style={{fontSize:13,color:DIMMED,lineHeight:1.5,marginBottom:12}}>{unlocks.neural ? "Your biology is either working for you or against you. Complete your LQM system." : "Most people never train the muscle between their ears. Now's the time."}</p>
+              <p style={{fontSize:15,color:MUTED,lineHeight:1.6,marginBottom:12}}>{unlocks.neural ? "Your biology is either working for you or against you. Complete your LQM system." : "Most people never train the muscle between their ears. Now's the time."}</p>
               <button onClick={e=>{e.stopPropagation(); unlocks.neural ? onUnlockVital() : onUnlockNeural();}} style={{width:"100%",border:"none",borderRadius:100,padding:"11px",fontSize:14,fontWeight:700,background:"linear-gradient(135deg,rgba(251,191,36,0.8),rgba(251,191,36,0.55))",color:"#070F1E",cursor:"pointer",fontFamily:"'Space Grotesk',sans-serif",letterSpacing:".04em"}}>
                 {unlocks.neural ? "Unlock Quantum Living → £5" : "Unlock Brain Training → £5"}
               </button>
@@ -977,9 +1011,9 @@ function Hub({type, unlocks, onOpenNeural, onOpenVital, onViewReport, onUnlockNe
           <span style={{fontSize:18}}>📧</span>
           <div style={{flex:1,textAlign:"left"}}>
             <p style={{fontSize:13,fontWeight:700,color:E_BLUE,margin:0,letterSpacing:".04em"}}>Email My Full Report</p>
-            <p style={{fontSize:11,color:DIMMED,margin:0,marginTop:2}}>{customerEmail ? `Last sent to ${customerEmail}` : "Send your complete report to your inbox"}</p>
+            <p style={{fontSize:13,color:MUTED,margin:0,marginTop:2}}>{customerEmail ? `Last sent to ${customerEmail}` : "Send your complete report to your inbox"}</p>
           </div>
-          <span style={{fontSize:12,color:DIMMED,fontWeight:700,letterSpacing:".06em"}}>{emailOpen?"↑ Close":"Open →"}</span>
+          <span style={{fontSize:13,color:DIMMED,fontWeight:700,letterSpacing:".06em"}}>{emailOpen?"↑ Close":"Open →"}</span>
         </button>
 
         {/* Expandable body */}
@@ -995,7 +1029,7 @@ function Hub({type, unlocks, onOpenNeural, onOpenVital, onViewReport, onUnlockNe
               </div>
             ) : (
               <>
-                <p style={{fontSize:12,color:DIMMED,margin:"14px 0 10px",lineHeight:1.6}}>Your full report — archetype, identity statement, strengths, blind spots and all 3 strategy cards — sent as a premium email to your inbox.</p>
+                <p style={{fontSize:15,color:MUTED,margin:"14px 0 10px",lineHeight:1.7}}>Your full report — archetype, identity statement, strengths, blind spots and all 3 strategy cards — sent as a premium email to your inbox.</p>
                 <input
                   value={emailInput}
                   onChange={e=>{setEmailInput(e.target.value);setEmailStatus("idle");}}
@@ -1004,7 +1038,7 @@ function Hub({type, unlocks, onOpenNeural, onOpenVital, onViewReport, onUnlockNe
                   type="email"
                   style={{width:"100%",background:"rgba(0,0,0,0.3)",border:`1px solid ${emailStatus==="error"?"rgba(239,68,68,0.5)":E_BLUE+"33"}`,borderRadius:9,padding:"11px 14px",color:"#fff",fontSize:14,fontFamily:"'Space Grotesk',sans-serif",outline:"none",boxSizing:"border-box",marginBottom:10}}
                 />
-                {emailStatus==="error" && <p style={{fontSize:12,color:"#EF4444",margin:"-4px 0 8px"}}>Something went wrong — please try again or email lqm@lqmmethod.com</p>}
+                {emailStatus==="error" && <p style={{fontSize:13,color:"#EF4444",margin:"-4px 0 8px"}}>Something went wrong — please try again or email lqm@lqmmethod.com</p>}
                 <button
                   onClick={handleEmailSend}
                   disabled={emailStatus==="sending"}
@@ -1047,11 +1081,11 @@ function AddOnShop({unlocks, onUnlockNeural, onUnlockVital, onUnlockBundle, onOp
               <p style={{fontSize:13,fontWeight:700,color:E_BLUE,letterSpacing:".14em",textTransform:"uppercase",marginBottom:6}}>⚡ Brain Training</p>
               <h3 style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:28,letterSpacing:2,color:WHITE,marginBottom:6}}>Neural Protocol</h3>
               <p style={{fontFamily:"'Crimson Pro',serif",fontStyle:"italic",fontSize:15,color:MUTED,lineHeight:1.55,marginBottom:4}}>Most people never train the muscle between their ears. You're not most people.</p>
-              <p style={{fontSize:13,color:DIMMED,marginBottom:14}}>6 challenges · 6 minutes a day · 21 days to a measurably sharper mind</p>
+              <p style={{fontSize:15,color:MUTED,marginBottom:14}}>6 challenges · 6 minutes a day · 21 days to a measurably sharper mind</p>
             </div>
             <div style={{textAlign:"right",flexShrink:0}}>
               <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:36,letterSpacing:1,color:WHITE}}>£5</div>
-              <div style={{fontSize:12,color:DIMMED}}>one-time</div>
+              <div style={{fontSize:13,color:MUTED}}>one-time</div>
             </div>
           </div>
           {!unlocks.neural && <RotatingTestimonial accentColor={E_BLUE} quotes={[
@@ -1068,7 +1102,7 @@ function AddOnShop({unlocks, onUnlockNeural, onUnlockVital, onUnlockBundle, onOp
             ))}
           </div>
           <div style={{display:"flex",gap:8,alignItems:"center",padding:"10px 14px",background:"rgba(0,200,255,0.04)",border:`1px solid ${BORDER2}`,borderRadius:10,marginBottom:16}}>
-            <span style={{fontSize:14}}>🔥</span>
+            <FlameIcon size={16}/>
             <span style={{fontSize:15,color:DIMMED}}>Streak tracking · XP system · 5 Neural Levels · Daily action cards</span>
           </div>
           {unlocks.neural
@@ -1089,13 +1123,13 @@ function AddOnShop({unlocks, onUnlockNeural, onUnlockVital, onUnlockBundle, onOp
           <div style={{position:"absolute",top:0,left:0,right:0,height:2,background:"linear-gradient(90deg,rgba(251,191,36,0.7),rgba(0,200,255,0.5),rgba(52,211,153,0.5))"}}/>
           <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:12,marginBottom:12}}>
             <div style={{flex:1}}>
-              <p style={{fontSize:11,fontWeight:700,color:AMBER,letterSpacing:".14em",textTransform:"uppercase",marginBottom:4}}>⭐ Best Value</p>
+              <p style={{fontSize:12,fontWeight:700,color:AMBER,letterSpacing:".14em",textTransform:"uppercase",marginBottom:4}}>⭐ Best Value</p>
               <p style={{fontSize:16,fontWeight:700,color:WHITE,marginBottom:3}}>Complete LQM System — <span style={{color:AMBER}}>£8 today</span></p>
-              <p style={{fontSize:13,color:DIMMED,lineHeight:1.5}}>Both add-ons. Brain Training + Quantum Living. That's 21 days of cognitive training and daily wellness practice built around your archetype. Purchased separately: £10.</p>
+              <p style={{fontSize:15,color:MUTED,lineHeight:1.6}}>Both add-ons. Brain Training + Quantum Living. That's 21 days of cognitive training and daily wellness practice built around your archetype. Purchased separately: £10.</p>
             </div>
             <div style={{textAlign:"right",flexShrink:0}}>
               <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:34,color:AMBER}}>£8</div>
-              <div style={{fontSize:11,color:DIMMED,textDecoration:"line-through"}}>£10</div>
+              <div style={{fontSize:13,color:MUTED,textDecoration:"line-through"}}>£10</div>
             </div>
           </div>
           <button onClick={onUnlockBundle||undefined} style={{width:"100%",border:"none",borderRadius:100,padding:"13px",fontSize:14,fontWeight:700,background:"linear-gradient(135deg,rgba(251,191,36,0.85),rgba(251,191,36,0.65))",color:"#070F1E",cursor:"pointer",fontFamily:"'Space Grotesk',sans-serif",letterSpacing:".05em",transition:"all .2s"}}
@@ -1113,11 +1147,11 @@ function AddOnShop({unlocks, onUnlockNeural, onUnlockVital, onUnlockBundle, onOp
               <p style={{fontSize:13,fontWeight:700,color:"#34D399",letterSpacing:".14em",textTransform:"uppercase",marginBottom:6}}>🌿 Quantum Living</p>
               <h3 style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:28,letterSpacing:2,color:WHITE,marginBottom:6}}>5 Laws of Living</h3>
               <p style={{fontFamily:"'Crimson Pro',serif",fontStyle:"italic",fontSize:15,color:MUTED,lineHeight:1.55,marginBottom:4}}>Your biology is either working for you or against you. These five laws determine which.</p>
-              <p style={{fontSize:13,color:DIMMED,marginBottom:14}}>Sleep · breath · temperance · movement · nourishment — the protocol for human performance</p>
+              <p style={{fontSize:15,color:MUTED,marginBottom:14}}>Sleep · breath · temperance · movement · nourishment — the protocol for human performance</p>
             </div>
             <div style={{textAlign:"right",flexShrink:0}}>
               <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:36,letterSpacing:1,color:WHITE}}>£5</div>
-              <div style={{fontSize:12,color:DIMMED}}>one-time</div>
+              <div style={{fontSize:13,color:MUTED}}>one-time</div>
             </div>
           </div>
           {!unlocks.vital && <RotatingTestimonial accentColor="#34D399" quotes={[
@@ -1432,7 +1466,7 @@ function DeliveryGate({ref_, ts, type, onConfirm}){
 
         {/* Email field — optional */}
         <div style={{background:"rgba(0,200,255,0.04)",border:`1px solid ${emailError?"rgba(239,68,68,0.5)":"rgba(0,200,255,0.18)"}`,borderRadius:14,padding:"18px 20px",marginBottom:20,textAlign:"left"}}>
-          <p style={{fontSize:12,fontWeight:700,color:"rgba(0,200,255,0.6)",letterSpacing:".14em",textTransform:"uppercase",marginBottom:8}}>📧 Email a copy to yourself <span style={{fontWeight:400,opacity:0.6}}>(optional)</span></p>
+          <p style={{fontSize:13,fontWeight:700,color:"rgba(0,200,255,0.7)",letterSpacing:".14em",textTransform:"uppercase",marginBottom:8}}>📧 Email a copy to yourself <span style={{fontWeight:400,opacity:0.7}}>(optional)</span></p>
           <input
             value={email}
             onChange={e=>{setEmailError(null);setEmail(e.target.value);}}
@@ -1441,8 +1475,8 @@ function DeliveryGate({ref_, ts, type, onConfirm}){
             type="email"
             style={{width:"100%",background:"rgba(0,0,0,0.3)",border:`1px solid ${emailError?"rgba(239,68,68,0.4)":"rgba(0,200,255,0.2)"}`,borderRadius:9,padding:"11px 14px",color:"#fff",fontSize:15,fontFamily:"'Space Grotesk',sans-serif",outline:"none",boxSizing:"border-box"}}
           />
-          {emailError && <p style={{fontSize:12,color:"#EF4444",marginTop:6,marginBottom:0}}>{emailError}</p>}
-          {!emailError && <p style={{fontSize:11,color:"rgba(255,255,255,0.28)",marginTop:6,marginBottom:0}}>Your full report sent to your inbox. Optional — you can skip this.</p>}
+          {emailError && <p style={{fontSize:13,color:"#EF4444",marginTop:6,marginBottom:0}}>{emailError}</p>}
+          {!emailError && <p style={{fontSize:14,color:"rgba(255,255,255,0.65)",marginTop:6,marginBottom:0}}>Your full report sent to your inbox. Optional — you can skip this.</p>}
         </div>
 
         <p style={{fontSize:14,color:"rgba(255,255,255,0.4)",lineHeight:1.65,marginBottom:22,textAlign:"left"}}>By clicking below you confirm that your full LQM report has been successfully delivered to you on screen. This serves as your delivery receipt.</p>
@@ -1450,7 +1484,7 @@ function DeliveryGate({ref_, ts, type, onConfirm}){
         <button onClick={handleConfirm} disabled={countdown>0} style={{width:"100%",border:"none",borderRadius:100,padding:"16px",fontSize:16,fontWeight:700,fontFamily:"'Space Grotesk',sans-serif",cursor:countdown>0?"not-allowed":"pointer",background:countdown>0?"rgba(255,255,255,0.06)":"linear-gradient(135deg,#059669,#34D399)",color:countdown>0?"rgba(255,255,255,0.3)":"#070F1E",letterSpacing:".05em",transition:"all .3s"}}>
           {countdown>0?`Please read — confirming in ${countdown}s…`:`✓ I Confirm Receipt — View My Report →`}
         </button>
-        <p style={{fontSize:13,color:"rgba(255,255,255,0.2)",marginTop:12}}>Ref: {ref_} · LQM Terms apply · {ts}</p>
+        <p style={{fontSize:14,color:"rgba(255,255,255,0.55)",marginTop:12}}>Ref: {ref_} · LQM Terms apply · {ts}</p>
       </div>
     </div>
   );
@@ -1541,29 +1575,29 @@ function Dashboard({type, unlocks, onViewReport, onOpenBrain, onOpenQuantum, onU
               </div>
               
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-                <div style={{display:"flex",gap:12,fontSize:12}}>
+                <div style={{display:"flex",gap:12,fontSize:13}}>
                   <span style={{color:brainDay >= 7 ? GREEN : DIMMED}}>✓ Day 7</span>
                   <span style={{color:brainDay >= 14 ? GREEN : DIMMED}}>✓ Day 14</span>
                   <span style={{color:brainDay >= 21 ? GREEN : DIMMED}}>✓ Day 21</span>
                 </div>
                 {brainDay < 21 && (
-                  <span style={{fontSize:12,color:DIMMED}}>{brainDaysToMilestone} days to next milestone</span>
+                  <span style={{fontSize:13,color:MUTED}}>{brainDaysToMilestone} days to next milestone</span>
                 )}
               </div>
               
               <div style={{display:"flex",gap:8,marginTop:12}}>
                 <div style={{flex:1,background:"rgba(0,200,255,0.06)",border:`1px solid ${BORDER2}`,borderRadius:8,padding:"10px",textAlign:"center"}}>
-                  <p style={{fontSize:11,color:DIMMED,marginBottom:2}}>Sessions</p>
+                  <p style={{fontSize:13,color:DIMMED,marginBottom:2}}>Sessions</p>
                   <p style={{fontSize:16,fontWeight:700,color:E_BLUE}}>{brainChallenge.sessionsCompleted || 0}</p>
                 </div>
                 <div style={{flex:1,background:"rgba(52,211,153,0.06)",border:"1px solid rgba(52,211,153,0.2)",borderRadius:8,padding:"10px",textAlign:"center"}}>
-                  <p style={{fontSize:11,color:DIMMED,marginBottom:2}}>Days Active</p>
+                  <p style={{fontSize:13,color:MUTED,marginBottom:2}}>Days Active</p>
                   <p style={{fontSize:16,fontWeight:700,color:GREEN}}>{brainDaysCompleted}</p>
                 </div>
                 {brainStreak > 0 && (
                   <div style={{flex:1,background:"rgba(251,191,36,0.06)",border:"1px solid rgba(251,191,36,0.2)",borderRadius:8,padding:"10px",textAlign:"center"}}>
-                    <p style={{fontSize:11,color:DIMMED,marginBottom:2}}>Streak</p>
-                    <p style={{fontSize:16,fontWeight:700,color:AMBER}}>{brainStreak}🔥</p>
+                    <p style={{fontSize:13,color:MUTED,marginBottom:2}}>Streak</p>
+                    <p style={{fontSize:16,fontWeight:700,color:AMBER,display:"flex",alignItems:"center",gap:4}}>{brainStreak}<FlameIcon size={18}/></p>
                   </div>
                 )}
               </div>
@@ -1587,7 +1621,7 @@ function Dashboard({type, unlocks, onViewReport, onOpenBrain, onOpenQuantum, onU
               </div>
               
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-                <div style={{display:"flex",gap:12,fontSize:12}}>
+                <div style={{display:"flex",gap:12,fontSize:13}}>
                   <span style={{color:quantumDay >= 7 ? GREEN : DIMMED}}>✓ Day 7</span>
                   <span style={{color:quantumDay >= 14 ? GREEN : DIMMED}}>✓ Day 14</span>
                   <span style={{color:quantumDay >= 21 ? GREEN : DIMMED}}>✓ Day 21</span>
@@ -1596,13 +1630,13 @@ function Dashboard({type, unlocks, onViewReport, onOpenBrain, onOpenQuantum, onU
               
               <div style={{display:"flex",gap:8,marginTop:12}}>
                 <div style={{flex:1,background:"rgba(52,211,153,0.06)",border:"1px solid rgba(52,211,153,0.2)",borderRadius:8,padding:"10px",textAlign:"center"}}>
-                  <p style={{fontSize:11,color:DIMMED,marginBottom:2}}>Days Active</p>
+                  <p style={{fontSize:13,color:MUTED,marginBottom:2}}>Days Active</p>
                   <p style={{fontSize:16,fontWeight:700,color:GREEN}}>{quantumDaysCompleted}</p>
                 </div>
                 {livingStreak > 0 && (
                   <div style={{flex:1,background:"rgba(251,191,36,0.06)",border:"1px solid rgba(251,191,36,0.2)",borderRadius:8,padding:"10px",textAlign:"center"}}>
-                    <p style={{fontSize:11,color:DIMMED,marginBottom:2}}>Streak</p>
-                    <p style={{fontSize:16,fontWeight:700,color:AMBER}}>{livingStreak}🔥</p>
+                    <p style={{fontSize:13,color:MUTED,marginBottom:2}}>Streak</p>
+                    <p style={{fontSize:16,fontWeight:700,color:AMBER,display:"flex",alignItems:"center",gap:4}}>{livingStreak}<FlameIcon size={18}/></p>
                   </div>
                 )}
               </div>
@@ -1647,7 +1681,7 @@ function Dashboard({type, unlocks, onViewReport, onOpenBrain, onOpenQuantum, onU
               </div>
               {brainStreak > 0 && (
                 <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"8px 12px",background:"rgba(251,191,36,0.08)",borderRadius:8}}>
-                  <span style={{fontSize:13,color:AMBER}}>🔥 Streak</span>
+                  <span style={{fontSize:13,color:AMBER,display:"flex",alignItems:"center",gap:4}}><FlameIcon size={13}/> Streak</span>
                   <span style={{fontSize:14,color:AMBER,fontWeight:700}}>{brainStreak} days</span>
                 </div>
               )}
@@ -1676,7 +1710,7 @@ function Dashboard({type, unlocks, onViewReport, onOpenBrain, onOpenQuantum, onU
           {unlocks.vital && livingStreak > 0 && (
             <div style={{marginBottom:16}}>
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"8px 12px",background:"rgba(251,191,36,0.08)",borderRadius:8}}>
-                <span style={{fontSize:13,color:AMBER}}>🔥 Streak</span>
+                <span style={{fontSize:13,color:AMBER,display:"flex",alignItems:"center",gap:4}}><FlameIcon size={13}/> Streak</span>
                 <span style={{fontSize:14,color:AMBER,fontWeight:700}}>{livingStreak} days</span>
               </div>
             </div>
@@ -1758,26 +1792,26 @@ function Report({type, deliveryRef, deliveryTs, visualAnswer}){
 
       {/* ── Tagline ── */}
       <Panel style={{borderLeft:`3px solid ${type.blue}`,borderRadius:"0 14px 14px 0",marginBottom:14,background:type.glow}}>
-        <p style={{fontFamily:"'Crimson Pro',serif",fontSize:20,fontStyle:"italic",color:WHITE,lineHeight:1.65}}>"{type.tag}"</p>
+        <p style={{fontFamily:"'Crimson Pro',serif",fontSize:21,fontStyle:"italic",color:WHITE,lineHeight:1.65}}>"{type.tag}"</p>
       </Panel>
 
       {/* ── Identity statement ── */}
       <Panel glow style={{marginBottom:14,textAlign:"center",background:`linear-gradient(135deg,${type.glow},rgba(0,0,0,0.2))`}}>
         <p style={{fontSize:16,fontWeight:700,letterSpacing:".16em",textTransform:"uppercase",color:type.blue,marginBottom:14}}>◈ Your Identity Statement</p>
-        <p style={{fontFamily:"'Crimson Pro',serif",fontSize:21,fontStyle:"italic",color:WHITE,lineHeight:1.65,marginBottom:12}}>"{type.identity}"</p>
-        <p style={{fontSize:15,color:DIMMED,fontWeight:300}}>Repeat this daily. Identity precedes behaviour. Behaviour compounds into results.</p>
+        <p style={{fontFamily:"'Crimson Pro',serif",fontSize:23,fontStyle:"italic",color:WHITE,lineHeight:1.65,marginBottom:12}}>"{type.identity}"</p>
+        <p style={{fontSize:16,color:MUTED,fontWeight:300}}>Repeat this daily. Identity precedes behaviour. Behaviour compounds into results.</p>
       </Panel>
 
       {/* ── Overview ── */}
       <Panel style={{marginBottom:14}}>
         <SLabel color={type.blue}>Profile Overview</SLabel>
-        <p style={{fontFamily:"'Crimson Pro',serif",fontSize:17,lineHeight:1.85,color:"rgba(255,255,255,0.78)",fontWeight:300}}>{type.desc}</p>
+        <p style={{fontFamily:"'Crimson Pro',serif",fontSize:18,lineHeight:1.9,color:"rgba(255,255,255,0.85)",fontWeight:300}}>{type.desc}</p>
       </Panel>
 
       {/* ── LQM Quantum Insight ── */}
       <Panel style={{marginBottom:14,borderLeft:`3px solid ${E_BLUE}`,background:"rgba(0,200,255,0.04)"}}>
         <p style={{fontSize:16,fontWeight:700,letterSpacing:".14em",textTransform:"uppercase",color:E_BLUE,marginBottom:10}}>⚛ LQM Quantum Insight</p>
-        <p style={{fontSize:15,lineHeight:1.8,color:"rgba(255,255,255,0.82)",fontWeight:400}}>{type.atomic}</p>
+        <p style={{fontSize:16,lineHeight:1.85,color:"rgba(255,255,255,0.88)",fontWeight:400}}>{type.atomic}</p>
       </Panel>
 
       {/* ── Visual Processing Style (if answered bonus question) ── */}
@@ -1788,7 +1822,7 @@ function Report({type, deliveryRef, deliveryTs, visualAnswer}){
             <p style={{fontSize:16,fontWeight:700,letterSpacing:".14em",textTransform:"uppercase",color:AMBER}}>Visual Processing Style</p>
           </div>
           <p style={{fontSize:17,fontWeight:600,color:WHITE,marginBottom:8}}>{visualInsight.title}</p>
-          <p style={{fontSize:15,lineHeight:1.8,color:"rgba(255,255,255,0.82)",fontWeight:400}}>{visualInsight.text}</p>
+          <p style={{fontSize:16,lineHeight:1.85,color:"rgba(255,255,255,0.88)",fontWeight:400}}>{visualInsight.text}</p>
         </Panel>
       )}
 
@@ -1843,7 +1877,7 @@ function Report({type, deliveryRef, deliveryTs, visualAnswer}){
       <Panel style={{textAlign:"center",background:`linear-gradient(145deg,${DARK2},${DARK})`}}>
         <Logo size="sm"/>
         <div style={{width:50,height:1,background:`linear-gradient(90deg,transparent,${E_BLUE}44,transparent)`,margin:"18px auto"}}/>
-        <p style={{fontFamily:"'Crimson Pro',serif",fontSize:19,fontStyle:"italic",color:MUTED,lineHeight:1.7,maxWidth:420,margin:"0 auto 12px"}}>"Small shifts, consistently honoured, produce quantum results. The habit is not the destination — it is the vehicle."</p>
+        <p style={{fontFamily:"'Crimson Pro',serif",fontSize:20,fontStyle:"italic",color:MUTED,lineHeight:1.75,maxWidth:420,margin:"0 auto 12px"}}>"Small shifts, consistently honoured, produce quantum results. The habit is not the destination — it is the vehicle."</p>
         <p style={{fontSize:14,color:DIMMED,letterSpacing:".06em"}}>— The Learning Quantum Method</p>
         <div style={{height:1,background:BORDER2,margin:"18px 0"}}/>
         <p style={{fontSize:14,color:DIMMED,letterSpacing:".1em"}}>LQM Behavioural Intelligence Report · {type.name}</p>
