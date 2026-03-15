@@ -985,12 +985,12 @@ function AilmentGroup({ ailment }) {
 // ── Main component ────────────────────────────────────────────────────────
 export default function NaturalRemedySearch({ onBack }) {
   const [search, setSearch] = useState("");
-  const [activeCategory, setActiveCategory] = useState("all");
+  const [activeCategory, setActiveCategory] = useState(null);
 
   // Filter ailments by search and category
   const filtered = REMEDY_DATA
     .filter(ailment => {
-      const matchesCategory = activeCategory === "all" || ailment.categories.includes(activeCategory);
+      const matchesCategory = !activeCategory || activeCategory === "all" || ailment.categories.includes(activeCategory);
       const matchesSearch = !search.trim() || (
         ailment.ailment.toLowerCase().includes(search.toLowerCase()) ||
         ailment.remedies.some(r =>
