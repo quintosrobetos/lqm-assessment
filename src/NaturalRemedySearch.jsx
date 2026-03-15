@@ -350,6 +350,352 @@ const REMEDY_DATA = [
   },
 
   {
+    id: "headaches",
+    ailment: "Headaches & Migraines",
+    icon: "🧠",
+    color: "#818CF8",
+    categories: ["pain", "inflammation"],
+    remedies: [
+      {
+        name: "Peppermint & Lavender Temple Protocol",
+        tagline: "Topical vasodilation — as effective as low-dose paracetamol in studies",
+        sources: ["BTE", "MJ"],
+        lawLink: "03",
+        ingredients: [
+          "3 drops peppermint essential oil",
+          "2 drops lavender essential oil",
+          "1 tsp coconut or almond oil — carrier",
+          "Cold damp cloth for the forehead",
+          "Silence and darkness — non-negotiable",
+        ],
+        method: "Dilute the essential oils in the carrier oil and apply gently to the temples, forehead, and back of the neck. Do not apply neat to skin. Peppermint contains menthol, which produces a cooling vasodilatory effect on the superficial blood vessels of the scalp — a 2016 study in Cephalalgia found 10% peppermint oil applied topically was equivalent in pain reduction to 1000mg of paracetamol. Lavender acts on GABA receptors to reduce the anxiety component that commonly accompanies migraine. Jethro Kloss documents peppermint as one of the most powerful herbal analgesics in Back to Eden. Mary Jones identifies this combination as a primary herbal headache protocol.",
+        frequency: "At onset — reapply every 20–30 minutes as needed",
+        caution: "Do not apply near eyes or on broken skin. Peppermint not suitable for children under 6.",
+        sources_detail: {
+          BTE: "Jethro Kloss documents peppermint as one of the most powerful herbal analgesics and nervous system herbs throughout Back to Eden.",
+          MJ: "Mary Jones identifies peppermint and lavender as the primary herbal topical combination for tension and vascular headaches in Herbal Antibiotics.",
+        },
+      },
+      {
+        name: "Magnesium & Hydration Protocol",
+        tagline: "The two most common and most overlooked headache triggers",
+        sources: ["BON"],
+        lawLink: "05",
+        ingredients: [
+          "500ml water — drink immediately at headache onset",
+          "Epsom salt bath or foot soak — 2 cups in warm water, 20 minutes",
+          "Magnesium-rich foods: pumpkin seeds, dark chocolate, leafy greens",
+          "Eliminate at onset: caffeine, alcohol, processed sugar",
+        ],
+        method: "Dehydration of just 1–2% produces measurable headache in most people — this is often the sole cause of tension headaches and the trigger for migraines in susceptible individuals. Drink 500ml of water immediately and continue at one glass per 20 minutes. Magnesium deficiency is the most researched nutritional factor in migraine — estimated 50% of migraine sufferers are deficient. The Epsom salt soak raises magnesium transdermally, providing faster effect than oral supplements. Barbara O'Neill consistently identifies these two factors — dehydration and magnesium deficiency — as the first intervention before any other remedy is considered.",
+        frequency: "Immediately at onset. Daily magnesium protocol for prevention.",
+        caution: "Sudden severe headache unlike previous headaches warrants immediate medical assessment.",
+        sources_detail: {
+          BON: "Barbara O'Neill identifies dehydration and magnesium deficiency as the two most overlooked and most correctable causes of chronic headache and migraine.",
+        },
+      },
+    ],
+  },
+
+  {
+    id: "anxiety-stress",
+    ailment: "Anxiety & Stress",
+    icon: "🌊",
+    color: "#34D399",
+    categories: ["stress", "sleep"],
+    remedies: [
+      {
+        name: "Adaptogen & Nervous System Tonic",
+        tagline: "Regulate cortisol — rebuild the stress response from the foundation",
+        sources: ["BON", "MJ"],
+        lawLink: "03",
+        ingredients: [
+          "Ashwagandha — 300mg standardised extract or 1 tsp root powder",
+          "Holy basil (tulsi) tea — 2 cups daily",
+          "Lemon balm tea — 1 cup before bed (GABA modulation)",
+          "Eliminate: caffeine, refined sugar — primary cortisol triggers",
+        ],
+        method: "Ashwagandha (withania somnifera) is the most clinically researched adaptogen for anxiety — withaferin A reduces cortisol by an average of 27% over 60 days in randomised controlled trials. Holy basil (tulsi) reduces psychological and physiological stress markers and is used in Ayurvedic medicine as a primary nervine tonic. Lemon balm contains rosmarinic acid, which inhibits the enzyme that breaks down GABA — the brain's primary calming neurotransmitter. Barbara O'Neill identifies adrenal cortisol dysregulation as the physiological root of most anxiety. Mary Jones documents this herbal combination as foundational nervous system support in her work.",
+        frequency: "Daily as a sustained protocol — minimum 6 weeks for measurable cortisol reduction",
+        caution: "Ashwagandha not for use during pregnancy. Lemon balm may enhance sedatives.",
+        sources_detail: {
+          BON: "Barbara O'Neill identifies the adrenal-cortisol axis as the physiological root of chronic anxiety and teaches a structured herbal and lifestyle recovery protocol.",
+          MJ: "Mary Jones documents adaptogens and nervine herbs as the primary natural intervention for anxiety and stress in her herbal work.",
+        },
+      },
+      {
+        name: "Breath & Movement Reset",
+        tagline: "The nervous system cannot distinguish between a real and imagined threat — change the physiology",
+        sources: ["BON", "AE"],
+        lawLink: "02",
+        ingredients: [
+          "Box breathing: 4 counts in, hold 4, out 4, hold 4 — repeat 4 cycles",
+          "20-minute outdoor walk — in nature where possible",
+          "Cold water face immersion — 30 seconds in cold water triggers the dive reflex",
+          "Eliminate screens for 1 hour before the practice",
+        ],
+        method: "The physiological stress response is automatic — but it can be interrupted deliberately through the body. Box breathing activates the parasympathetic nervous system within 60–90 seconds by increasing carbon dioxide tolerance and stimulating the vagus nerve. Cold water face immersion triggers the mammalian dive reflex — an ancient parasympathetic response that drops heart rate by 10–25% within seconds. This is not relaxation advice — it is direct neurological intervention. Arnold Ehret identified stagnant indoor air and physical inactivity as primary physiological contributors to nervous system dysregulation. Outdoor movement in fresh air has measurable effects on cortisol within 20 minutes.",
+        frequency: "Daily practice. Box breathing: immediately at onset of anxiety.",
+        caution: "Cold water face immersion is not suitable for those with heart conditions without medical clearance.",
+        sources_detail: {
+          BON: "Barbara O'Neill teaches breathwork and cold water therapy as direct nervous system interventions, not merely relaxation techniques.",
+          AE: "Arnold Ehret identifies fresh air, movement, and dietary simplicity as the triad of nervous system restoration in his clinical observations.",
+        },
+      },
+    ],
+  },
+
+  {
+    id: "joint-pain",
+    ailment: "Joint Pain & Arthritis",
+    icon: "🦴",
+    color: "#00C8FF",
+    categories: ["pain", "inflammation"],
+    remedies: [
+      {
+        name: "Turmeric, Boswellia & Omega Protocol",
+        tagline: "The three most clinically validated natural anti-inflammatory compounds for joints",
+        sources: ["BON", "MJ", "BTE"],
+        lawLink: "05",
+        ingredients: [
+          "1 tsp turmeric with ¼ tsp black pepper — daily in food or warm drink",
+          "Boswellia (frankincense) capsule — 400mg, twice daily with food",
+          "Omega-3 rich foods daily: ground flaxseed, walnuts, chia seeds",
+          "Tart cherry juice — 240ml daily (highest natural source of anti-inflammatory anthocyanins)",
+        ],
+        method: "Boswellic acids in Boswellia serrata have been shown in clinical trials to reduce joint inflammation by inhibiting leukotriene synthesis — the specific inflammatory pathway driving joint degradation. Unlike NSAIDs, Boswellia does not inhibit prostaglandins, avoiding the gastrointestinal side effects. Tart cherry juice contains the highest known concentration of anti-inflammatory anthocyanins of any food — multiple studies show it reduces markers of exercise-induced inflammation and reduces gout attack frequency by 35%. Turmeric addresses the broader inflammatory environment. Mary Jones documents this combination as the most comprehensive natural joint protocol in her herbal work.",
+        frequency: "Daily — minimum 8 weeks for measurable joint improvement",
+        caution: "Boswellia may interact with anti-inflammatory medications. Discuss with your doctor if on NSAIDs.",
+        sources_detail: {
+          BON: "Barbara O'Neill recommends the turmeric and omega-3 combination as her primary dietary anti-inflammatory protocol for joint conditions.",
+          MJ: "Mary Jones documents Boswellia and tart cherry as the most clinically validated herbal interventions specifically for joint inflammation.",
+          BTE: "Jethro Kloss documents anti-inflammatory herbs and whole food nutrition as the foundation of joint health throughout Back to Eden.",
+        },
+      },
+      {
+        name: "Castor Oil Pack & Hydrotherapy",
+        tagline: "Direct anti-inflammatory application to the affected joint",
+        sources: ["BTE", "BON"],
+        lawLink: "04",
+        ingredients: [
+          "Cold-pressed castor oil — generous amount",
+          "Flannel cloth — cut to cover the joint",
+          "Plastic wrap to secure",
+          "Warm compress or hot water bottle",
+          "Contrast shower or cold compress after — 30 seconds cold",
+        ],
+        method: "Apply castor oil generously to the affected joint, cover with flannel and plastic wrap, place warm compress on top and rest for 45–60 minutes. The ricinoleic acid penetrates deeply into joint tissue and has demonstrated significant anti-inflammatory and analgesic properties in peer-reviewed research. Follow with contrast hydrotherapy — warm water for 3 minutes, cold for 30 seconds, repeated 3 times. This drives fresh oxygenated blood into the joint space while removing inflammatory waste. Jethro Kloss documents oil-based joint treatments and hydrotherapy as the traditional standard of care for arthritis throughout Back to Eden.",
+        frequency: "3–5 times per week for acute flare; weekly for maintenance",
+        caution: "Do not apply to broken or infected skin. Seek medical assessment for sudden severe joint swelling.",
+        sources_detail: {
+          BTE: "Back to Eden documents oil-based poultices and hydrotherapy as the traditional standard approach to joint inflammation and arthritis.",
+          BON: "Barbara O'Neill demonstrates castor oil packs for joint conditions as one of her primary topical anti-inflammatory protocols.",
+        },
+      },
+    ],
+  },
+
+  {
+    id: "skin",
+    ailment: "Skin Issues",
+    icon: "✨",
+    color: "#F472B6",
+    categories: ["skin", "inflammation"],
+    remedies: [
+      {
+        name: "Internal Cleansing Protocol",
+        tagline: "Skin is the body's third kidney — what appears outside reflects what is inside",
+        sources: ["AE", "BON"],
+        lawLink: "03",
+        ingredients: [
+          "Eliminate: dairy, refined sugar, refined vegetable oils, alcohol",
+          "Dandelion root tea — 2 cups daily (liver support and blood purification)",
+          "Nettle tea — 2 cups daily (mineral-rich, natural antihistamine)",
+          "Burdock root tea — 1 cup daily (traditional blood purifier)",
+          "Increase water to minimum 2.5 litres daily",
+        ],
+        method: "Arnold Ehret's consistent clinical observation — and one confirmed by modern dermatology — is that chronic skin conditions (eczema, psoriasis, acne, chronic rashes) originate in the internal environment, not the skin itself. The skin eliminates what the liver and kidneys cannot process. The protocol works from the inside: remove the inputs that generate inflammatory metabolic waste, support the liver and kidneys to process existing accumulation, and provide the skin with the nutrition it requires for barrier repair. Barbara O'Neill identifies the liver as the primary organ of skin health and dandelion root as her primary liver support herb.",
+        frequency: "4 weeks minimum to begin seeing skin changes. Full effect at 12 weeks.",
+        caution: "Burdock root not for use during pregnancy. Herbal teas in high quantities may interact with blood-thinning medication.",
+        sources_detail: {
+          AE: "Arnold Ehret consistently documented resolution of chronic skin conditions through internal dietary cleansing, identifying skin symptoms as elimination through the body's largest organ.",
+          BON: "Barbara O'Neill identifies the liver-skin connection as foundational to treating chronic skin conditions, recommending liver support herbs alongside dietary change.",
+        },
+      },
+      {
+        name: "Topical Natural Remedies",
+        tagline: "Nature's pharmacy for external skin support",
+        sources: ["BTE", "MJ"],
+        lawLink: "05",
+        ingredients: [
+          "Raw honey — apply directly to affected area for 20 minutes (antibacterial, wound-healing)",
+          "Aloe vera gel — fresh from the plant where possible (anti-inflammatory, skin repair)",
+          "Calendula infused oil — for dry, cracked, or inflamed skin (cellular repair)",
+          "Colloidal oatmeal paste — 1 tbsp oats ground fine, mixed with water (eczema relief)",
+          "Tea tree oil — 2 drops in 1 tsp carrier oil for fungal or bacterial skin issues",
+        ],
+        method: "Raw honey's antimicrobial action comes from hydrogen peroxide production, a unique peptide (defensin-1), and its low pH — making it hostile to most bacteria and fungi. Clinically validated for wound healing and used in medical-grade Manuka formulations. Aloe vera contains acemannan, a polysaccharide that accelerates tissue repair and has demonstrated anti-inflammatory effects comparable to hydrocortisone cream in some studies. Calendula oil supports cellular regeneration — Jethro Kloss documents it throughout Back to Eden as one of the most healing herbs for skin. Tea tree oil is Mary Jones' primary recommendation for bacterial and fungal skin conditions in Herbal Antibiotics.",
+        frequency: "Twice daily for acute conditions. Once daily for maintenance.",
+        caution: "Tea tree oil must be diluted — never apply neat. Patch test all topical remedies before wider use.",
+        sources_detail: {
+          BTE: "Jethro Kloss documents honey, aloe, and calendula as primary skin healing herbs throughout Back to Eden.",
+          MJ: "Mary Jones identifies tea tree oil and raw honey as the most broadly active natural antimicrobials for skin infections in Herbal Antibiotics.",
+        },
+      },
+    ],
+  },
+
+  {
+    id: "digestion",
+    ailment: "Digestive Issues",
+    icon: "🌱",
+    color: "#A78BFA",
+    categories: ["digestive", "inflammation"],
+    remedies: [
+      {
+        name: "Digestive Bitters & Enzyme Protocol",
+        tagline: "Most digestive problems are low acid, not high acid — the opposite of what most people assume",
+        sources: ["BON", "BTE"],
+        lawLink: "05",
+        ingredients: [
+          "Raw apple cider vinegar — 1 tbsp in water, 10 minutes before meals",
+          "Fresh ginger tea — 1 cup before or after main meals",
+          "Digestive bitters: dandelion, gentian, or Swedish bitters — 15 drops before meals",
+          "Eliminate: eating under stress, eating quickly, cold drinks with meals",
+        ],
+        method: "Barbara O'Neill teaches that the majority of digestive complaints — bloating, reflux, indigestion, poor nutrient absorption — are caused by insufficient stomach acid, not excess. Stomach acid (hydrochloric acid) is required to activate digestive enzymes, kill pathogens in food, and signal the pyloric valve to open. ACV's acetic acid mimics this stimulus. Ginger stimulates gastric motility and has significant anti-nausea and anti-inflammatory effects on the gut lining. Digestive bitters stimulate the entire digestive cascade reflexively through bitter receptors on the tongue. Jethro Kloss documents ginger as one of the most important digestive herbs throughout Back to Eden.",
+        frequency: "Before each main meal as a consistent practice",
+        caution: "If on proton pump inhibitors (PPIs), discuss any change to digestive acid with your prescribing doctor first.",
+        sources_detail: {
+          BON: "Barbara O'Neill consistently teaches low stomach acid as the overlooked root cause of most digestive complaints, with ACV as the primary first intervention.",
+          BTE: "Back to Eden documents ginger and bitter herbs as foundational digestive aids throughout Jethro Kloss's work.",
+        },
+      },
+      {
+        name: "Gut Microbiome Restoration",
+        tagline: "90% of serotonin is produced in the gut — heal the gut, heal the whole person",
+        sources: ["BON", "AE"],
+        lawLink: "05",
+        ingredients: [
+          "Fermented foods daily: raw sauerkraut, kimchi, kefir, live yoghurt (one serving)",
+          "Prebiotic fibre: Jerusalem artichoke, leek, onion, garlic, green banana",
+          "Slippery elm powder — 1 tsp in water before bed (gut lining repair)",
+          "Aloe vera juice — 30ml daily (anti-inflammatory gut lining support)",
+          "Eliminate: antibiotics unless medically essential, artificial sweeteners, alcohol",
+        ],
+        method: "The gut microbiome — the 38 trillion bacteria inhabiting the digestive tract — is now understood as a functional organ in its own right. It produces neurotransmitters, regulates immune function, influences mood and cognition, and determines the efficiency of nutrient absorption. Slippery elm creates a protective mucilaginous coating on the gut lining, allowing irritated or damaged tissue to heal — documented in Back to Eden and confirmed in modern gastroenterology research. Arnold Ehret identified the accumulation of undigested food matter in the intestinal wall as the root cause of most systemic disease — his mucusless protocol is essentially a gut environment reset.",
+        frequency: "Daily as a sustained dietary foundation — 3 months for significant microbiome shift",
+        caution: "Slippery elm may slow absorption of medications — take at least 2 hours apart from any medication.",
+        sources_detail: {
+          BON: "Barbara O'Neill teaches gut microbiome restoration as foundational to whole-body health, identifying the gut-brain connection as central to both physical and mental wellbeing.",
+          AE: "Arnold Ehret identified intestinal health as the foundation of all health and disease in his clinical work, with dietary cleansing as the primary intervention.",
+        },
+      },
+    ],
+  },
+
+  {
+    id: "detox",
+    ailment: "Detox & Liver Support",
+    icon: "🌿",
+    color: "#34D399",
+    categories: ["detox", "metabolic"],
+    remedies: [
+      {
+        name: "Liver Cleanse Protocol",
+        tagline: "The liver performs over 500 functions — when it is burdened, everything suffers",
+        sources: ["BTE", "BON", "AE"],
+        lawLink: "03",
+        ingredients: [
+          "Milk thistle — 175mg silymarin standardised extract, twice daily",
+          "Dandelion root tea — 2 strong cups daily",
+          "Lemon water — warm, first thing each morning",
+          "Beetroot — raw grated or juiced daily (contains betaine for liver cell repair)",
+          "Eliminate entirely during protocol: alcohol, processed food, refined sugar, pharmaceutical drugs unless essential",
+        ],
+        method: "Silymarin in milk thistle is the most extensively researched natural hepatoprotective compound — it stimulates liver cell regeneration, inhibits toxin entry into liver cells, and acts as a powerful antioxidant within liver tissue. Dandelion root increases bile production and flow, improving fat digestion and the liver's ability to eliminate processed toxins. Lemon water alkalises the body and provides vitamin C required for liver glutathione production — the liver's primary detoxification molecule. Arnold Ehret documented systematic fasting and herbal liver support as the cornerstone of his clinical detoxification protocols. Barbara O'Neill teaches the liver as the master organ of health and identifies milk thistle as her primary liver support recommendation.",
+        frequency: "4-week protocol, 2–3 times per year",
+        caution: "Milk thistle may interact with certain medications metabolised by the liver. Discuss with a doctor if on regular medication.",
+        sources_detail: {
+          BTE: "Jethro Kloss documents liver-supporting herbs and the lemon water protocol throughout Back to Eden as foundational to systemic health.",
+          BON: "Barbara O'Neill identifies the liver as the master organ of health and milk thistle as her primary liver support recommendation.",
+          AE: "Arnold Ehret placed liver and intestinal cleansing at the centre of his detoxification protocols, identifying these as the prerequisite to all other healing.",
+        },
+      },
+      {
+        name: "Lymphatic Activation Protocol",
+        tagline: "The lymphatic system has no pump — it requires movement and manual stimulus",
+        sources: ["BON", "BTE"],
+        lawLink: "04",
+        ingredients: [
+          "Dry skin brushing — firm natural bristle brush, 5 minutes before showering",
+          "Contrast shower — 3 minutes warm, 30 seconds cold, 5 cycles",
+          "Rebounding — 10 minutes gentle bouncing on a trampoline or rebounder",
+          "Cleavers tea — 2 cups daily (traditional lymphatic herb)",
+          "Deep breathing — 10 deliberate deep belly breaths per hour",
+        ],
+        method: "The lymphatic system is the body's waste disposal network — collecting cellular debris, immune cells, and metabolic waste products from every tissue and transporting them for processing and elimination. Unlike the circulatory system, it has no pump and relies entirely on muscular movement, breathing, and external stimulus. Dry skin brushing stimulates superficial lymphatic vessels directly. Rebounding (gentle bouncing) is considered one of the most effective lymphatic exercises as it uses gravitational changes to move lymph through vessels. Cleavers (Galium aparine) is documented throughout Back to Eden and in traditional herbal medicine across cultures as the primary lymphatic herb. Barbara O'Neill teaches lymphatic activation as essential to any detoxification protocol.",
+        frequency: "Daily during a detox protocol; 3× per week for maintenance",
+        caution: "Dry brushing not suitable on inflamed, broken, or infected skin.",
+        sources_detail: {
+          BON: "Barbara O'Neill teaches lymphatic activation — particularly dry brushing and rebounding — as essential components of any detoxification programme.",
+          BTE: "Jethro Kloss documents hydrotherapy and herbal lymphatic support throughout Back to Eden as foundational to the body's self-cleaning capacity.",
+        },
+      },
+    ],
+  },
+
+  {
+    id: "womens-health",
+    ailment: "Women's Health",
+    icon: "🌸",
+    color: "#F472B6",
+    categories: ["womens", "hormonal"],
+    remedies: [
+      {
+        name: "Hormonal Balance Protocol",
+        tagline: "Most hormonal symptoms are liver and gut function problems — not purely hormone problems",
+        sources: ["BON", "BTE"],
+        lawLink: "03",
+        ingredients: [
+          "Ground flaxseed — 1–2 tbsp daily (lignans support oestrogen metabolism)",
+          "Vitex (chaste tree berry) — 400mg daily, taken first thing in the morning",
+          "Milk thistle — 175mg twice daily (liver processes excess oestrogen)",
+          "Reduce: alcohol, refined sugar, plastics exposure, synthetic fragrances (all xenoestrogens)",
+          "Maca root — 1 tsp powder daily (adaptogenic hormone support)",
+        ],
+        method: "Oestrogen dominance — excess oestrogen relative to progesterone — underlies most common hormonal complaints including PMS, irregular cycles, fibroids, and perimenopausal symptoms. The liver is responsible for processing and eliminating excess oestrogen. When the liver is burdened, oestrogen recirculates. Flaxseed lignans bind to oestrogen receptors and support the liver's oestrogen metabolism pathway. Vitex works through the hypothalamic-pituitary axis to increase progesterone production relative to oestrogen — it is the most clinically studied herb for PMS and cycle irregularity. Barbara O'Neill teaches hormonal health as inseparable from liver health and identifies these interventions as foundational.",
+        frequency: "Minimum 3 full menstrual cycles to assess Vitex effect — it works slowly and consistently",
+        caution: "Vitex not suitable during pregnancy, while breastfeeding, or if on hormonal contraception or HRT without medical guidance.",
+        sources_detail: {
+          BON: "Barbara O'Neill teaches hormonal imbalance as fundamentally a liver and gut health issue and identifies Vitex and flaxseed as her primary hormonal support recommendations.",
+          BTE: "Jethro Kloss documents herbs for female reproductive health extensively throughout Back to Eden.",
+        },
+      },
+      {
+        name: "Raspberry Leaf & Iron Protocol",
+        tagline: "The most documented uterine tonic in herbal medicine",
+        sources: ["BTE", "MJ"],
+        lawLink: "05",
+        ingredients: [
+          "Red raspberry leaf tea — 2–3 cups daily (uterine tonic, rich in fragarine)",
+          "Blackstrap molasses — 1 tbsp daily in warm water (iron replenishment)",
+          "Nettle tea — 2 cups daily (iron, calcium, vitamin K)",
+          "Vitamin C with every iron-containing food — up to 4× absorption increase",
+          "Yellow dock root tincture — 20 drops, 3× daily (iron-rich blood tonic)",
+        ],
+        method: "Red raspberry leaf is documented in herbal traditions across cultures as the primary uterine tonic — fragarine, a unique alkaloid, tones uterine muscle tissue. It is most relevant for heavy periods, menstrual cramping, and as a pregnancy preparation herb (traditionally in the third trimester only). Iron deficiency is the most common consequence of heavy menstrual bleeding and a primary cause of fatigue, brain fog, and low mood in women. The combination of blackstrap molasses, nettle, and yellow dock provides iron in whole-food forms that the body regulates through absorption mechanisms — avoiding the constipation and oxidative stress associated with pharmaceutical iron supplements. Mary Jones documents this protocol in her herbal work for women's health.",
+        frequency: "Daily throughout the cycle. Raspberry leaf most beneficial in the second half of the cycle.",
+        caution: "Red raspberry leaf in the first trimester of pregnancy: discuss with a midwife before use. Yellow dock not for use in pregnancy.",
+        sources_detail: {
+          BTE: "Jethro Kloss documents red raspberry leaf as the primary female tonic herb and blackstrap molasses as a blood-building tonic throughout Back to Eden.",
+          MJ: "Mary Jones documents the raspberry leaf and iron protocol for menstrual health and uterine support in her herbal work.",
+        },
+      },
+    ],
+  },
+
+  {
     id: "energy",
     ailment: "No Energy",
     icon: "⚡",
@@ -398,6 +744,8 @@ const REMEDY_DATA = [
   },
 ];
 
+];
+
 // ── Category browse pills ─────────────────────────────────────────────────
 const CATEGORIES = [
   { id:"all",           label:"All Remedies",    color:E_BLUE  },
@@ -409,6 +757,12 @@ const CATEGORIES = [
   { id:"sleep",         label:"Sleep",           color:PURPLE },
   { id:"energy",        label:"Energy",          color:"#F59E0B" },
   { id:"stress",        label:"Stress",          color:GREEN  },
+  { id:"pain",          label:"Pain",            color:"#00C8FF" },
+  { id:"skin",          label:"Skin",            color:GREEN  },
+  { id:"digestive",     label:"Digestion",       color:"#A78BFA" },
+  { id:"detox",         label:"Detox",           color:GREEN  },
+  { id:"hormonal",      label:"Hormonal",        color:"#F472B6" },
+  { id:"womens",        label:"Women's Health",  color:"#F472B6" },
 ];
 
 // ── Source badge ──────────────────────────────────────────────────────────
@@ -776,13 +1130,35 @@ export default function NaturalRemedySearch({ onBack }) {
         {/* Results */}
         {filtered.length === 0 ? (
           <div style={{
-            textAlign:"center", padding:"40px 20px",
+            padding:"32px 24px",
             background:"rgba(255,255,255,0.02)", border:`1px solid ${BORDER2}`,
-            borderRadius:16,
+            borderRadius:16, textAlign:"center",
           }}>
-            <p style={{fontSize:22, marginBottom:8}}>🌿</p>
-            <p style={{fontSize:16, fontWeight:700, color:MUTED, marginBottom:4}}>No remedies found</p>
-            <p style={{fontSize:14, color:DIMMED}}>Try a different search term or browse by category</p>
+            <p style={{fontSize:28, marginBottom:12}}>🌿</p>
+            <p style={{fontSize:17, fontWeight:700, color:WHITE, marginBottom:6}}>
+              Not in the library yet
+            </p>
+            <p style={{fontSize:15, color:MUTED, lineHeight:1.75, marginBottom:16, maxWidth:400, margin:"0 auto 16px"}}>
+              This specific ailment isn't included in the current library. The Quantum Living remedy collection is growing — check back as new protocols are added.
+            </p>
+            <div style={{
+              padding:"14px 18px", borderRadius:12,
+              background:"rgba(0,200,255,0.05)", border:`1px solid ${BORDER}`,
+              textAlign:"left", marginBottom:12,
+            }}>
+              <p style={{fontSize:13, fontWeight:700, color:E_BLUE, letterSpacing:".1em", textTransform:"uppercase", marginBottom:6}}>
+                In the meantime
+              </p>
+              <p style={{fontSize:14, color:MUTED, lineHeight:1.75}}>
+                For personalised guidance on natural protocols not yet in this library, email <a href="mailto:lqm@lqmmethod.com" style={{color:E_BLUE, textDecoration:"none", fontWeight:700}}>lqm@lqmmethod.com</a> — include your archetype and the condition you're researching.
+              </p>
+            </div>
+            <button onClick={()=>setSearch("")} style={{
+              background:"none", border:`1px solid ${BORDER2}`,
+              borderRadius:100, padding:"8px 20px",
+              fontSize:13, fontWeight:700, color:DIMMED,
+              cursor:"pointer", fontFamily:"'Space Grotesk',sans-serif",
+            }}>← Clear search and browse all</button>
           </div>
         ) : (
           <div style={{animation:"fadeUp .3s ease both"}}>
