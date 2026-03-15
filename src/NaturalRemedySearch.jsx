@@ -800,12 +800,12 @@ function RemedyCard({ remedy, accentColor }) {
           <div style={{display:"flex", gap:6, flexWrap:"wrap", marginBottom:6}}>
             {remedy.sources.map(s => <SourceBadge key={s} code={s}/>)}
           </div>
-          <p style={{fontSize:16, fontWeight:700, color:WHITE, lineHeight:1.3, marginBottom:3}}>
+          <p style={{fontSize:17, fontWeight:700, color:WHITE, lineHeight:1.3, marginBottom:4}}>
             {remedy.name}
           </p>
           <p style={{
             fontFamily:"'Crimson Pro',serif", fontStyle:"italic",
-            fontSize:14, color:MUTED, lineHeight:1.5,
+            fontSize:15, color:MUTED, lineHeight:1.5,
           }}>{remedy.tagline}</p>
         </div>
         <div style={{
@@ -857,7 +857,7 @@ function RemedyCard({ remedy, accentColor }) {
                 border:`1px solid ${BORDER2}`, borderRadius:8,
               }}>
                 <span style={{color:accentColor, fontSize:13, flexShrink:0, marginTop:1}}>◦</span>
-                <span style={{fontSize:14, color:"rgba(255,255,255,0.82)", lineHeight:1.6}}>{ing}</span>
+                <span style={{fontSize:15, color:"rgba(255,255,255,0.82)", lineHeight:1.6}}>{ing}</span>
               </div>
             ))}
           </div>
@@ -867,7 +867,7 @@ function RemedyCard({ remedy, accentColor }) {
             Method & Protocol
           </p>
           <p style={{
-            fontSize:14, color:"rgba(255,255,255,0.82)",
+            fontSize:15, color:"rgba(255,255,255,0.82)",
             lineHeight:1.9, fontWeight:400, marginBottom:14,
           }}>{remedy.method}</p>
 
@@ -939,7 +939,7 @@ function RemedyCard({ remedy, accentColor }) {
 
 // ── Ailment group ─────────────────────────────────────────────────────────
 function AilmentGroup({ ailment }) {
-  const [open, setOpen] = useState(true);
+  const [open, setOpen] = useState(false);
   return (
     <div style={{marginBottom:20}}>
       <div onClick={()=>setOpen(v=>!v)} style={{
@@ -953,7 +953,7 @@ function AilmentGroup({ ailment }) {
       }}>
         <div style={{display:"flex", alignItems:"center", gap:10}}>
           <span style={{fontSize:22}}>{ailment.icon}</span>
-          <p style={{fontSize:17, fontWeight:700, color:WHITE, letterSpacing:".02em"}}>{ailment.ailment}</p>
+          <p style={{fontSize:18, fontWeight:700, color:WHITE, letterSpacing:".02em"}}>{ailment.ailment}</p>
           <span style={{
             fontSize:11, fontWeight:700, color:ailment.color,
             background:`${ailment.color}18`, border:`1px solid ${ailment.color}44`,
@@ -988,18 +988,20 @@ export default function NaturalRemedySearch({ onBack }) {
   const [activeCategory, setActiveCategory] = useState("all");
 
   // Filter ailments by search and category
-  const filtered = REMEDY_DATA.filter(ailment => {
-    const matchesCategory = activeCategory === "all" || ailment.categories.includes(activeCategory);
-    const matchesSearch = !search.trim() || (
-      ailment.ailment.toLowerCase().includes(search.toLowerCase()) ||
-      ailment.remedies.some(r =>
-        r.name.toLowerCase().includes(search.toLowerCase()) ||
-        r.tagline.toLowerCase().includes(search.toLowerCase()) ||
-        r.method.toLowerCase().includes(search.toLowerCase())
-      )
-    );
-    return matchesCategory && matchesSearch;
-  });
+  const filtered = REMEDY_DATA
+    .filter(ailment => {
+      const matchesCategory = activeCategory === "all" || ailment.categories.includes(activeCategory);
+      const matchesSearch = !search.trim() || (
+        ailment.ailment.toLowerCase().includes(search.toLowerCase()) ||
+        ailment.remedies.some(r =>
+          r.name.toLowerCase().includes(search.toLowerCase()) ||
+          r.tagline.toLowerCase().includes(search.toLowerCase()) ||
+          r.method.toLowerCase().includes(search.toLowerCase())
+        )
+      );
+      return matchesCategory && matchesSearch;
+    })
+    .sort((a, b) => a.ailment.localeCompare(b.ailment));
 
   return (
     <div style={{
@@ -1045,19 +1047,38 @@ export default function NaturalRemedySearch({ onBack }) {
             background:"rgba(52,211,153,0.08)", border:"1px solid rgba(52,211,153,0.25)",
             borderRadius:100, padding:"5px 16px", marginBottom:12,
           }}>
-            <span style={{fontSize:11, fontWeight:700, color:GREEN, letterSpacing:".14em", textTransform:"uppercase"}}>
+            <span style={{fontSize:12, fontWeight:700, color:GREEN, letterSpacing:".14em", textTransform:"uppercase"}}>
               The Healing Intelligence Library
             </span>
           </div>
           <h1 style={{
             fontFamily:"'Bebas Neue',sans-serif",
-            fontSize:"clamp(28px,6vw,40px)", letterSpacing:2,
-            color:WHITE, lineHeight:1.05, marginBottom:8,
+            fontSize:"clamp(32px,7vw,48px)", letterSpacing:2,
+            color:WHITE, lineHeight:1.05, marginBottom:12,
           }}>Nature's Remedy Library</h1>
           <p style={{
             fontFamily:"'Crimson Pro',serif", fontStyle:"italic",
-            fontSize:15, color:MUTED, lineHeight:1.7, maxWidth:420, margin:"0 auto",
+            fontSize:17, color:MUTED, lineHeight:1.7, maxWidth:440, margin:"0 auto 20px",
           }}>Detailed protocols from Back to Eden, Barbara O'Neill, Mary Jones, and Arnold Ehret — cross-referenced and aligned to the 5 Quantum Laws.</p>
+
+          {/* Quantum ethos */}
+          <div style={{
+            background:"linear-gradient(135deg,rgba(52,211,153,0.07),rgba(0,200,255,0.04))",
+            border:"1px solid rgba(52,211,153,0.25)",
+            borderLeft:"3px solid rgba(52,211,153,0.6)",
+            borderRadius:"0 14px 14px 0",
+            padding:"16px 20px", marginBottom:4, textAlign:"left",
+          }}>
+            <p style={{
+              fontFamily:"'Crimson Pro',serif", fontStyle:"italic",
+              fontSize:17, color:"rgba(255,255,255,0.88)", lineHeight:1.75, marginBottom:6,
+            }}>
+              "Small shifts, consistently honoured, produce quantum results. The habit is not the destination — it is the vehicle."
+            </p>
+            <p style={{fontSize:12, fontWeight:700, color:"rgba(52,211,153,0.65)", letterSpacing:".12em", textTransform:"uppercase"}}>
+              — The Learning Quantum Method
+            </p>
+          </div>
         </div>
 
         {/* Source legend */}
