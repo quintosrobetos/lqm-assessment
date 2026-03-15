@@ -1,3 +1,4 @@
+import NaturalRemedySearch from "./NaturalRemedySearch.jsx";
 import { useState, useEffect } from "react";
 import { 
   getChallengeData, 
@@ -367,6 +368,7 @@ function RocketIcon({size=20}) {
 export default function QuantumLiving({ onBack, archetype }) {
   const [activeLaw, setActiveLaw] = useState(null);
   const [activeShop, setActiveShop] = useState(false);
+  const [showRemedySearch, setShowRemedySearch] = useState(false);
   const [bodyZone, setBodyZone] = useState(null);    // which body zone is active (0/1/2 or null)
   const [natureExpanded, setNatureExpanded] = useState(false); // nature's wisdom expand toggle
   const todayKey = new Date().toISOString().split("T")[0]; // "2026-02-25"
@@ -531,6 +533,7 @@ export default function QuantumLiving({ onBack, archetype }) {
 
   if (activeLaw !== null) return <LawDetail law={LAWS[activeLaw]} arch={arch} onBack={()=>setActiveLaw(null)}></LawDetail>;
   if (activeShop) return <QuantumShop onBack={()=>setActiveShop(false)} arch={arch} />;
+  if (showRemedySearch) return <NaturalRemedySearch onBack={()=>setShowRemedySearch(false)}/>;
 
   return (
     <div style={{minHeight:"100vh", background:`radial-gradient(ellipse 80% 40% at 50% 0%,rgba(52,211,153,0.06) 0%,transparent 60%),${BG}`, fontFamily:"'Space Grotesk',sans-serif", color:WHITE, display:"flex", flexDirection:"column", alignItems:"center", padding:"0 16px 60px", position:"relative", overflow:"hidden"}}>
@@ -1061,7 +1064,14 @@ export default function QuantumLiving({ onBack, archetype }) {
                 {/* Idle prompt */}
                 {!active && (
                   <p style={{textAlign:"center",fontSize:12,color:"rgba(0,200,255,0.55)",letterSpacing:".1em",textTransform:"uppercase",fontStyle:"italic"}}>Tap an orb to reveal</p>
-                )}
+                )}<button onClick={()=>setShowRemedySearch(true)} style={{
+  width:"100%", marginTop:12, border:"1px solid rgba(0,200,255,0.35)",
+  borderRadius:100, padding:"11px", fontSize:13, fontWeight:700,
+  background:"rgba(0,200,255,0.06)", color:"#00C8FF",
+  cursor:"pointer", fontFamily:"'Space Grotesk',sans-serif",
+  letterSpacing:".06em",
+}}>🌿 Natural Remedy Library →</button>
+
 
               </div>
             );
