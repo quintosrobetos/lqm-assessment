@@ -746,21 +746,21 @@ const REMEDY_DATA = [
 
 // ── Category browse pills ─────────────────────────────────────────────────
 const CATEGORIES = [
-  { id:"all",           label:"All Remedies",    color:E_BLUE  },
   { id:"cardiovascular",label:"Heart & Blood",   color:"#EF4444" },
-  { id:"metabolic",     label:"Blood Sugar",     color:"#F59E0B" },
-  { id:"inflammation",  label:"Inflammation",    color:"#EF4444" },
-  { id:"immunity",      label:"Immunity",        color:GREEN  },
-  { id:"respiratory",   label:"Respiratory",     color:PURPLE },
-  { id:"sleep",         label:"Sleep",           color:PURPLE },
-  { id:"energy",        label:"Energy",          color:"#F59E0B" },
-  { id:"stress",        label:"Stress",          color:GREEN  },
-  { id:"pain",          label:"Pain",            color:"#00C8FF" },
-  { id:"skin",          label:"Skin",            color:GREEN  },
   { id:"digestive",     label:"Digestion",       color:"#A78BFA" },
   { id:"detox",         label:"Detox",           color:GREEN  },
+  { id:"energy",        label:"Energy",          color:"#F59E0B" },
   { id:"hormonal",      label:"Hormonal",        color:"#F472B6" },
+  { id:"immunity",      label:"Immunity",        color:GREEN  },
+  { id:"inflammation",  label:"Inflammation",    color:"#EF4444" },
+  { id:"pain",          label:"Pain",            color:"#00C8FF" },
+  { id:"respiratory",   label:"Respiratory",     color:PURPLE },
+  { id:"skin",          label:"Skin",            color:GREEN  },
+  { id:"sleep",         label:"Sleep",           color:PURPLE },
+  { id:"stress",        label:"Stress",          color:GREEN  },
+  { id:"metabolic",     label:"Blood Sugar",     color:"#F59E0B" },
   { id:"womens",        label:"Women's Health",  color:"#F472B6" },
+  { id:"all",           label:"All Remedies",    color:E_BLUE  },
 ];
 
 // ── Source badge ──────────────────────────────────────────────────────────
