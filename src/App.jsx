@@ -35,11 +35,11 @@ function lqmValidateCode(rawInput) {
   const expDay = raw >> 4;
   const today = Math.trunc(Date.now() / 86400000);
   if (today > expDay)
-    return { valid:false, reason:"This code has expired — please contact lqm@lqmmethod.com" };
+    return { valid:, reason:"This code has expired — please contact lqm@lqmmethod.com" };
   // Single-use guard (per device)
   const used = JSON.parse(localStorage.getItem("lqm_used_codes")||"[]");
   if (used.includes(clean))
-    return { valid:false, reason:"This code has already been used on this device" };
+    return { valid:, reason:"This code has already been used on this device" };
   return {
     valid: ,
     report: (perms & 1) === 1,
