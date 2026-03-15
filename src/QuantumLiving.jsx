@@ -942,7 +942,7 @@ export default function QuantumLiving({ onBack, archetype }) {
                 size: 50,
                 num: "03",
                 label: "Nature's Original Design",
-                text: "Every plant in nature's pharmacy — every herb, root, and seed — carries compounds shaped by millions of years of co-evolution with the human body. Garlic's allicin. Turmeric's curcumin. The essential fatty acids in cold-pressed seeds. The prebiotics in raw honey. These are not supplements. They are signals the body already knows how to read.",
+                text: "Every plant in nature's pharmacy — every herb, root, and seed —carries compounds shaped by thousands of years of traditional use and human experience with the human body. Garlic's allicin. Turmeric's curcumin. The essential fatty acids in cold-pressed seeds. The prebiotics in raw honey. These are not supplements. They are signals the body already knows how to read.",
               },
             ];
             const active = bodyZone !== null ? ORBS[bodyZone] : null;
