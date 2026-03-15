@@ -1147,7 +1147,25 @@ export default function NaturalRemedySearch({ onBack }) {
         </div>
 
         {/* Results */}
-        {filtered.length === 0 ? (
+        {(!activeCategory && !search.trim()) ? (
+          <div style={{
+            padding:"32px 24px",
+            background:"rgba(255,255,255,0.02)", border:`1px solid ${BORDER2}`,
+            borderRadius:16, textAlign:"center",
+            animation:"fadeUp .3s ease both",
+          }}>
+            <p style={{fontSize:28, marginBottom:12}}>🌿</p>
+            <p style={{fontSize:18, fontWeight:700, color:WHITE, marginBottom:8}}>
+              Search or browse by category
+            </p>
+            <p style={{fontSize:15, color:MUTED, lineHeight:1.75, maxWidth:380, margin:"0 auto 16px"}}>
+              Type an ailment above — cold, headache, inflammation — or tap a category to discover the relevant protocols.
+            </p>
+            <p style={{fontFamily:"'Crimson Pro',serif", fontStyle:"italic", fontSize:15, color:"rgba(52,211,153,0.75)", lineHeight:1.7}}>
+              "The body was designed to self-heal. These protocols simply create the conditions."
+            </p>
+          </div>
+        ) : filtered.length === 0 ? (
           <div style={{
             padding:"32px 24px",
             background:"rgba(255,255,255,0.02)", border:`1px solid ${BORDER2}`,
