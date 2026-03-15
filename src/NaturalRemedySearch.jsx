@@ -744,8 +744,6 @@ const REMEDY_DATA = [
   },
 ];
 
-];
-
 // ── Category browse pills ─────────────────────────────────────────────────
 const CATEGORIES = [
   { id:"all",           label:"All Remedies",    color:E_BLUE  },
