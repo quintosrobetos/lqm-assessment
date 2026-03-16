@@ -866,8 +866,9 @@ function RotatingStrapline() {
 
 
 // CHANGE 12: New Landing with archetype teaser, science strip, micro-preview
+
 function Landing({onStart}){
-  return(
+  return( 
     <div>
       {/* Logo */}
       <div className="fu" style={{textAlign:"center",marginBottom:28,paddingTop:8}}>
