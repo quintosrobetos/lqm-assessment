@@ -864,11 +864,8 @@ function RotatingStrapline() {
   );
 }
 
-// CHANGE 12: New Landing with archetype teaser, science strip, micro-preview
-function Landing({onStart}){
-//        Replace everything from that line to its closing }
-// ───────────────────────────────────────────────────────────────────────────
 
+// CHANGE 12: New Landing with archetype teaser, science strip, micro-preview
 function Landing({onStart}){
   return(
     <div>
@@ -1890,7 +1887,6 @@ function ShareableCard({type, patterns}) {
     </div>
   );
 }
-
 
 // CHANGE 8: Report accepts patterns prop
 function Report({type, patterns, deliveryRef, deliveryTs, visualAnswer}){
