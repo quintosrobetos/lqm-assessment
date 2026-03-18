@@ -127,13 +127,29 @@ export function trackReturnVisit(patterns) {
 }
 
 
-// ── Existing helper: page/screen tracking (keep if used elsewhere) ────────
-// Retained for compatibility with any existing firebase calls in the app.
+// ── Existing helper: page/screen tracking ────────────────────────────────
 export function trackScreen(screenName) {
   fire("screen_view", { screen_name: screenName });
 }
 
-// ── Existing helper: purchase tracking (keep if used elsewhere) ──────────
+// ── Existing helper: purchase tracking ───────────────────────────────────
 export function trackPurchase(product, price) {
   fire("purchase", { product, value: price, currency: "GBP" });
+}
+
+// ── Challenge tracking (required by challenge21.js) ───────────────────────
+export function trackChallengeEnrolled(challengeType) {
+  fire("lqm_challenge_enrolled", { challenge_type: challengeType });
+}
+
+export function trackChallengeDay(challengeType, day) {
+  fire("lqm_challenge_day", { challenge_type: challengeType, day });
+}
+
+export function trackMilestone(challengeType, milestone) {
+  fire("lqm_milestone", { challenge_type: challengeType, milestone });
+}
+
+export function trackChallengeCompleted(challengeType) {
+  fire("lqm_challenge_completed", { challenge_type: challengeType });
 }
