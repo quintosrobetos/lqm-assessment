@@ -1,189 +1,236 @@
-// ── snippet_6_firebase_analytics.js ────────────────────────────────────────
-// UPDATED src/firebase.js
+// ============================================================
+// firebase.js — LQM Assessment · Firebase Analytics
+// ============================================================
 //
-// Adds 3 analytics signals recommended by the product audit:
-//   Signal 1 — Archetype distribution   (which archetype users get)
-//   Signal 2 — Pattern distribution     (tension key + confidence + dominance)
-//   Signal 3 — Return visit tracking    (restores = archetype stability over time)
+// BEFORE UPLOADING: paste your Firebase config values below.
+// Find them at: https://console.firebase.google.com
+//   → Project Settings → General → Your apps → Web app → Config
 //
-// These three signals, once you have 50+ completions, will tell you:
-//   - Whether archetype distribution is healthy (no single type dominating)
-//   - What the most common behavioural tension combinations are
-//   - Whether archetypes are stable on return visits
+// Upload via GitHub drag-and-drop:
+//   github.com/quintosrobetos/lqm-assessment/tree/main/src
+//   → "Add file" → "Upload files" → drag this file → commit
 //
-// HOW TO USE:
-//   Replace the entire contents of src/firebase.js with this file.
-//   No other files need changing — the function signatures are compatible
-//   with any existing firebase.js calls.
-//
-// VIEW THE DATA:
-//   Firebase Console → Analytics → Events
-//   Wait 24 hours after first events fire before data appears.
-//   To see parameter values: Events → click event name → View in DebugView
-// ───────────────────────────────────────────────────────────────────────────
+// DO NOT use the pencil/edit icon — it silently fails on large files.
+// ============================================================
 
-import { initializeApp }     from "firebase/app";
+import { initializeApp } from "firebase/app";
 import { getAnalytics, logEvent, isSupported } from "firebase/analytics";
 
-// Firebase config — measurement ID confirmed: G-F438QZ7LP9
+// ── Firebase Config ──────────────────────────────────────────
+// Replace the placeholder strings with your actual values.
+// measurementId is already correct.
 const firebaseConfig = {
-  apiKey:            "AIzaSyD-placeholder-key",
-  authDomain:        "lqm-assessment.firebaseapp.com",
-  projectId:         "lqm-assessment",
-  storageBucket:     "lqm-assessment.appspot.com",
-  messagingSenderId: "placeholder",
-  appId:             "placeholder",
-  measurementId:     "G-F438QZ7LP9",
+  apiKey: "YOUR_API_KEY_HERE",
+  authDomain: "lqm-assessment.firebaseapp.com",
+  projectId: "lqm-assessment",
+  storageBucket: "lqm-assessment.firebasestorage.app",
+  messagingSenderId: "YOUR_SENDER_ID_HERE",
+  appId: "YOUR_APP_ID_HERE",
+  measurementId: "G-F438QZ7LP9",
 };
 
-// Initialise safely — analytics only works in supported browsers
-const app = initializeApp(firebaseConfig);
+// ── Initialisation (safe — never crashes the app) ────────────
 let analytics = null;
 
-isSupported().then(supported => {
-  if (supported) analytics = getAnalytics(app);
-}).catch(() => {});
+try {
+  const app = initializeApp(firebaseConfig);
+  isSupported().then((yes) => {
+    if (yes) {
+      analytics = getAnalytics(app);
+    }
+  });
+} catch (err) {
+  console.warn("[LQM] Firebase init skipped:", err.message);
+}
 
-// ── Helper: fire event only if analytics is available ────────────────────
-function fire(name, params = {}) {
-  if (analytics) {
-    try { logEvent(analytics, name, params); } catch {}
+/** Safe wrapper — silently no-ops if analytics is unavailable */
+function safeLog(eventName, params = {}) {
+  try {
+    if (analytics) {
+      logEvent(analytics, eventName, params);
+    }
+  } catch (err) {
+    console.warn(`[LQM] Analytics event "${eventName}" failed:`, err.message);
   }
 }
 
+// ============================================================
+// EXPORTS — every function imported by App.jsx, BrainTraining.jsx,
+// QuantumLiving.jsx, challenge21.js, and NaturalRemedySearch.jsx
+// ============================================================
 
-// ── Signal 1: Archetype result ────────────────────────────────────────────
-// Fire when quiz completes and archetype is calculated.
-// Reveals: which archetypes are most common in your user base.
-//
-// CALL FROM App.jsx: in handleNext, after setPatterns(calcPatterns(a)):
-//   trackArchetypeResult(calcPatterns(a));
-//
-// Firebase event: "lqm_archetype_result"
-// Parameters:
-//   primary        — "A" | "B" | "C" | "D"
-//   secondary      — "A" | "B" | "C" | "D"
-//   confidence     — 0–100 (% of answers pointing to primary)
-//   dominance      — "blended" | "balanced" | "dominant"
-//   tension_key    — e.g. "A+B", "D+C" (12 possible combinations)
-export function trackArchetypeResult(patterns) {
-  if (!patterns) return;
-  fire("lqm_archetype_result", {
-    primary:    patterns.primary,
-    secondary:  patterns.secondary,
-    confidence: patterns.confidence,
-    dominance:  patterns.dominance,
-    tension_key:patterns.tensionKey,
-  });
-}
+// ── Core quiz & archetype (App.jsx) ──────────────────────────
 
-
-// ── Signal 2: Pattern distribution ───────────────────────────────────────
-// Fire when quiz completes — records the full answer spread.
-// Reveals: whether questions have biases, and the real behavioural mix.
-//
-// CALL FROM App.jsx: alongside trackArchetypeResult:
-//   trackPatternDistribution(calcPatterns(a));
-//
-// Firebase event: "lqm_pattern_distribution"
-// Parameters:
-//   count_a — number of Structure-orientation answers (A)
-//   count_b — number of Analysis-orientation answers (B)
-//   count_c — number of Relational-orientation answers (C)
-//   count_d — number of Creative-orientation answers (D)
-export function trackPatternDistribution(patterns) {
-  if (!patterns || !patterns.counts) return;
-  fire("lqm_pattern_distribution", {
-    count_a: patterns.counts.A || 0,
-    count_b: patterns.counts.B || 0,
-    count_c: patterns.counts.C || 0,
-    count_d: patterns.counts.D || 0,
-  });
-}
-
-
-// ── Signal 3: Return visit ────────────────────────────────────────────────
-// Fire when a user restores their session (Scenario A1 or C in the
-// useEffect URL handler). This is the archetype stability signal.
-// Over time, compare primary from this event vs original completion event
-// for the same user session to measure consistency.
-//
-// CALL FROM App.jsx: in the restore scenarios, after setPatterns():
-//   trackReturnVisit(calcPatterns(saved.answers));
-//   trackReturnVisit(calcPatterns(restoreAnswers));
-//
-// Firebase event: "lqm_return_visit"
-// Parameters:
-//   primary     — archetype on this return visit
-//   confidence  — how strong the archetype is on return
-//   dominance   — blended | balanced | dominant
-export function trackReturnVisit(patterns) {
-  if (!patterns) return;
-  fire("lqm_return_visit", {
-    primary:    patterns.primary,
-    confidence: patterns.confidence,
-    dominance:  patterns.dominance,
-  });
-}
-
-
-// ── Existing helper: page/screen tracking ────────────────────────────────
 export function trackScreen(screenName) {
-  fire("screen_view", { screen_name: screenName });
+  safeLog("screen_view", { screen_name: screenName });
 }
 
-// ── Existing helper: purchase tracking ───────────────────────────────────
+export function trackQuizStart() {
+  safeLog("lqm_quiz_start");
+}
+
+export function trackQuizComplete(answers) {
+  safeLog("lqm_quiz_complete", {
+    answer_count: answers ? answers.length : 0,
+  });
+}
+
+export function trackArchetypeResult(archetype, counts) {
+  safeLog("lqm_archetype_result", {
+    archetype: archetype || "unknown",
+    count_A: counts?.A ?? 0,
+    count_B: counts?.B ?? 0,
+    count_C: counts?.C ?? 0,
+    count_D: counts?.D ?? 0,
+  });
+}
+
+export function trackPatternDistribution(patterns) {
+  safeLog("lqm_pattern_distribution", {
+    primary: patterns?.primary ?? "unknown",
+    secondary: patterns?.secondary ?? "unknown",
+    confidence: patterns?.confidence ?? 0,
+    dominance: patterns?.dominance ?? 0,
+    tension_key: patterns?.tensionKey ?? "none",
+  });
+}
+
+// ── Session & return visits (App.jsx) ────────────────────────
+
+export function trackReturnVisit(scenario) {
+  safeLog("lqm_return_visit", {
+    scenario: scenario || "unknown",
+  });
+}
+
+export function trackSessionRestore(method) {
+  safeLog("lqm_session_restore", {
+    method: method || "unknown",
+  });
+}
+
+// ── Payments (App.jsx) ───────────────────────────────────────
+
 export function trackPurchase(product, price) {
-  fire("purchase", { product, value: price, currency: "GBP" });
+  safeLog("lqm_purchase", {
+    product: product || "unknown",
+    price: price ?? 0,
+    currency: "GBP",
+  });
 }
 
-// ── Challenge tracking (required by challenge21.js) ───────────────────────
-export function trackChallengeEnrolled(challengeType) {
-  fire("lqm_challenge_enrolled", { challenge_type: challengeType });
+export function trackPaymentClick(product) {
+  safeLog("lqm_payment_click", {
+    product: product || "unknown",
+  });
 }
 
-export function trackChallengeDay(challengeType, day) {
-  fire("lqm_challenge_day", { challenge_type: challengeType, day });
+export function trackAddOnPurchase(addon) {
+  safeLog("lqm_addon_purchase", {
+    addon: addon || "unknown",
+  });
 }
 
-export function trackMilestone(challengeType, milestone) {
-  fire("lqm_milestone", { challenge_type: challengeType, milestone });
+// ── Delivery & email (App.jsx) ───────────────────────────────
+
+export function trackDeliveryConfirmed(ref) {
+  safeLog("lqm_delivery_confirmed", {
+    ref: ref || "unknown",
+  });
 }
 
-export function trackChallengeCompleted(challengeType) {
-  fire("lqm_challenge_completed", { challenge_type: challengeType });
+export function trackEmailCapture(context) {
+  safeLog("lqm_email_capture", {
+    context: context || "unknown",
+  });
 }
 
-// ── BrainTraining tracking (required by BrainTraining.jsx) ───────────────
-export function trackBrainTrainingStart(archetype) {
-  fire("lqm_brain_training_start", { archetype });
+// ── Sharing (App.jsx) ────────────────────────────────────────
+
+export function trackShareClick(method) {
+  safeLog("lqm_share_click", {
+    method: method || "unknown",
+  });
 }
 
-export function trackChallengeResult(challengeName, score, archetype) {
-  fire("lqm_challenge_result", { challenge_name: challengeName, score, archetype });
+// ── Restore codes (App.jsx) ─────────────────────────────────
+
+export function trackRestoreCode(success) {
+  safeLog("lqm_restore_code", {
+    success: !!success,
+  });
 }
 
-export function trackSessionComplete(xpEarned, totalXP, streak) {
-  fire("lqm_session_complete", { xp_earned: xpEarned, total_xp: totalXP, streak });
+// ── Brain Training (BrainTraining.jsx) ───────────────────────
+
+export function trackChallengeResult(challenge, result) {
+  safeLog("lqm_challenge_result", {
+    challenge: challenge || "unknown",
+    result: result ?? "unknown",
+  });
 }
 
-export function trackLevelUp(newLevel, totalXP) {
-  fire("lqm_level_up", { new_level: newLevel, total_xp: totalXP });
+export function trackBrainSession(sessionData) {
+  safeLog("lqm_brain_session", {
+    xp: sessionData?.xp ?? 0,
+    streak: sessionData?.streak ?? 0,
+    exercise: sessionData?.exercise ?? "unknown",
+  });
 }
 
-// ── QuantumLiving tracking (required by QuantumLiving.jsx) ───────────────
-export function trackQuantumLivingStart(archetype) {
-  fire("lqm_quantum_living_start", { archetype });
+export function trackXPGain(amount, source) {
+  safeLog("lqm_xp_gain", {
+    amount: amount ?? 0,
+    source: source || "unknown",
+  });
 }
 
-export function trackLawComplete(lawIndex, lawName) {
-  fire("lqm_law_complete", { law_index: lawIndex, law_name: lawName });
+// ── Quantum Living (QuantumLiving.jsx) ───────────────────────
+
+export function trackLivingSession(sessionData) {
+  safeLog("lqm_living_session", {
+    activity: sessionData?.activity ?? "unknown",
+    streak: sessionData?.streak ?? 0,
+  });
 }
 
-export function trackDayComplete(day, streak) {
-  fire("lqm_day_complete", { day, streak });
+export function trackLivingStreak(streak) {
+  safeLog("lqm_living_streak", {
+    streak: streak ?? 0,
+  });
 }
 
-export function trackStreakMilestone(streak) {
-  fire("lqm_streak_milestone", { streak });
+// ── 21-Day Challenge (challenge21.js) ────────────────────────
+
+export function trackChallengeStart(challengeType) {
+  safeLog("lqm_challenge_start", {
+    type: challengeType || "unknown",
+  });
+}
+
+export function trackChallengeProgress(day, challengeType) {
+  safeLog("lqm_challenge_progress", {
+    day: day ?? 0,
+    type: challengeType || "unknown",
+  });
+}
+
+export function trackChallengeComplete(challengeType) {
+  safeLog("lqm_challenge_complete", {
+    type: challengeType || "unknown",
+  });
+}
+
+// ── Natural Remedy (NaturalRemedySearch.jsx) ─────────────────
+
+export function trackRemedySearch(query) {
+  safeLog("lqm_remedy_search", {
+    query: query || "",
+  });
+}
+
+// ── Generic / catch-all ──────────────────────────────────────
+
+export function trackEvent(eventName, params) {
+  safeLog(eventName, params || {});
 }
