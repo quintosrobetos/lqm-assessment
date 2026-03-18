@@ -262,7 +262,7 @@ function calcPatterns(answers) {
 }
 
 const ORIGINAL = 27, DISCOUNTED = 9, TIMER_SECS = 5 * 60;
-const TEST_MODE = false;
+const TEST_MODE = true;
 
 function Particles() {
   return (
