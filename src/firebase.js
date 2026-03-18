@@ -153,3 +153,37 @@ export function trackMilestone(challengeType, milestone) {
 export function trackChallengeCompleted(challengeType) {
   fire("lqm_challenge_completed", { challenge_type: challengeType });
 }
+
+// ── BrainTraining tracking (required by BrainTraining.jsx) ───────────────
+export function trackBrainTrainingStart(archetype) {
+  fire("lqm_brain_training_start", { archetype });
+}
+
+export function trackChallengeResult(challengeName, score, archetype) {
+  fire("lqm_challenge_result", { challenge_name: challengeName, score, archetype });
+}
+
+export function trackSessionComplete(xpEarned, totalXP, streak) {
+  fire("lqm_session_complete", { xp_earned: xpEarned, total_xp: totalXP, streak });
+}
+
+export function trackLevelUp(newLevel, totalXP) {
+  fire("lqm_level_up", { new_level: newLevel, total_xp: totalXP });
+}
+
+// ── QuantumLiving tracking (required by QuantumLiving.jsx) ───────────────
+export function trackQuantumLivingStart(archetype) {
+  fire("lqm_quantum_living_start", { archetype });
+}
+
+export function trackLawComplete(lawIndex, lawName) {
+  fire("lqm_law_complete", { law_index: lawIndex, law_name: lawName });
+}
+
+export function trackDayComplete(day, streak) {
+  fire("lqm_day_complete", { day, streak });
+}
+
+export function trackStreakMilestone(streak) {
+  fire("lqm_streak_milestone", { streak });
+}
