@@ -1,31 +1,25 @@
 // ============================================================
 // firebase.js — LQM Assessment · Firebase Analytics
 // ============================================================
+// Exports every function imported by:
+//   App.jsx, BrainTraining.jsx, QuantumLiving.jsx,
+//   challenge21.js, NaturalRemedySearch.jsx
 //
-// BEFORE UPLOADING: paste your Firebase config values below.
-// Find them at: https://console.firebase.google.com
-//   → Project Settings → General → Your apps → Web app → Config
-//
-// Upload via GitHub drag-and-drop:
-//   github.com/quintosrobetos/lqm-assessment/tree/main/src
-//   → "Add file" → "Upload files" → drag this file → commit
-//
-// DO NOT use the pencil/edit icon — it silently fails on large files.
+// Upload via: GitHub → src → "Add file" → "Upload files" → drag → commit
+// DO NOT use the pencil editor — it silently fails on large files.
 // ============================================================
 
 import { initializeApp } from "firebase/app";
 import { getAnalytics, logEvent, isSupported } from "firebase/analytics";
 
 // ── Firebase Config ──────────────────────────────────────────
-// Replace the placeholder strings with your actual values.
-// measurementId is already correct.
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY_HERE",
-  authDomain: "lqm-assessment.firebaseapp.com",
-  projectId: "lqm-assessment",
-  storageBucket: "lqm-assessment.firebasestorage.app",
-  messagingSenderId: "YOUR_SENDER_ID_HERE",
-  appId: "YOUR_APP_ID_HERE",
+  apiKey: "AIzaSyATiBirqslu5YU1pXP_VKqqD3wKhRL9EwY",
+  authDomain: "lqm-brain-training.firebaseapp.com",
+  projectId: "lqm-brain-training",
+  storageBucket: "lqm-brain-training.firebasestorage.app",
+  messagingSenderId: "1093025552398",
+  appId: "1:1093025552398:web:ef9c8650758dcb16e7c45f",
   measurementId: "G-F438QZ7LP9",
 };
 
@@ -43,7 +37,6 @@ try {
   console.warn("[LQM] Firebase init skipped:", err.message);
 }
 
-/** Safe wrapper — silently no-ops if analytics is unavailable */
 function safeLog(eventName, params = {}) {
   try {
     if (analytics) {
@@ -54,25 +47,12 @@ function safeLog(eventName, params = {}) {
   }
 }
 
-// ============================================================
-// EXPORTS — every function imported by App.jsx, BrainTraining.jsx,
-// QuantumLiving.jsx, challenge21.js, and NaturalRemedySearch.jsx
-// ============================================================
-
-// ── Core quiz & archetype (App.jsx) ──────────────────────────
+// ════════════════════════════════════════════════════════════════
+// App.jsx imports
+// ════════════════════════════════════════════════════════════════
 
 export function trackScreen(screenName) {
   safeLog("screen_view", { screen_name: screenName });
-}
-
-export function trackQuizStart() {
-  safeLog("lqm_quiz_start");
-}
-
-export function trackQuizComplete(answers) {
-  safeLog("lqm_quiz_complete", {
-    answer_count: answers ? answers.length : 0,
-  });
 }
 
 export function trackArchetypeResult(archetype, counts) {
@@ -95,21 +75,9 @@ export function trackPatternDistribution(patterns) {
   });
 }
 
-// ── Session & return visits (App.jsx) ────────────────────────
-
 export function trackReturnVisit(scenario) {
-  safeLog("lqm_return_visit", {
-    scenario: scenario || "unknown",
-  });
+  safeLog("lqm_return_visit", { scenario: scenario || "unknown" });
 }
-
-export function trackSessionRestore(method) {
-  safeLog("lqm_session_restore", {
-    method: method || "unknown",
-  });
-}
-
-// ── Payments (App.jsx) ───────────────────────────────────────
 
 export function trackPurchase(product, price) {
   safeLog("lqm_purchase", {
@@ -119,117 +87,89 @@ export function trackPurchase(product, price) {
   });
 }
 
-export function trackPaymentClick(product) {
-  safeLog("lqm_payment_click", {
-    product: product || "unknown",
-  });
+// ════════════════════════════════════════════════════════════════
+// BrainTraining.jsx imports
+// ════════════════════════════════════════════════════════════════
+
+export function trackBrainTrainingStart(difficulty) {
+  safeLog("lqm_brain_training_start", { difficulty: difficulty || "standard" });
 }
 
-export function trackAddOnPurchase(addon) {
-  safeLog("lqm_addon_purchase", {
-    addon: addon || "unknown",
-  });
-}
-
-// ── Delivery & email (App.jsx) ───────────────────────────────
-
-export function trackDeliveryConfirmed(ref) {
-  safeLog("lqm_delivery_confirmed", {
-    ref: ref || "unknown",
-  });
-}
-
-export function trackEmailCapture(context) {
-  safeLog("lqm_email_capture", {
-    context: context || "unknown",
-  });
-}
-
-// ── Sharing (App.jsx) ────────────────────────────────────────
-
-export function trackShareClick(method) {
-  safeLog("lqm_share_click", {
-    method: method || "unknown",
-  });
-}
-
-// ── Restore codes (App.jsx) ─────────────────────────────────
-
-export function trackRestoreCode(success) {
-  safeLog("lqm_restore_code", {
-    success: !!success,
-  });
-}
-
-// ── Brain Training (BrainTraining.jsx) ───────────────────────
-
-export function trackChallengeResult(challenge, result) {
+export function trackChallengeResult(challenge, score, reactionMs, accuracy, difficulty) {
   safeLog("lqm_challenge_result", {
     challenge: challenge || "unknown",
-    result: result ?? "unknown",
+    score: score ?? 0,
+    reaction_ms: reactionMs ?? 0,
+    accuracy: accuracy ?? 0,
+    difficulty: difficulty || "standard",
   });
 }
 
-export function trackBrainSession(sessionData) {
-  safeLog("lqm_brain_session", {
-    xp: sessionData?.xp ?? 0,
-    streak: sessionData?.streak ?? 0,
-    exercise: sessionData?.exercise ?? "unknown",
+export function trackSessionComplete(totalScore, avgScore, difficulty) {
+  safeLog("lqm_session_complete", {
+    total_score: totalScore ?? 0,
+    avg_score: avgScore ?? 0,
+    difficulty: difficulty || "standard",
   });
 }
 
-export function trackXPGain(amount, source) {
-  safeLog("lqm_xp_gain", {
-    amount: amount ?? 0,
-    source: source || "unknown",
+export function trackLevelUp(levelName, totalXP) {
+  safeLog("lqm_level_up", {
+    level: levelName || "unknown",
+    total_xp: totalXP ?? 0,
   });
 }
 
-// ── Quantum Living (QuantumLiving.jsx) ───────────────────────
+// ════════════════════════════════════════════════════════════════
+// QuantumLiving.jsx imports
+// ════════════════════════════════════════════════════════════════
 
-export function trackLivingSession(sessionData) {
-  safeLog("lqm_living_session", {
-    activity: sessionData?.activity ?? "unknown",
-    streak: sessionData?.streak ?? 0,
+export function trackQuantumDay(lawsCompleted, totalDays) {
+  safeLog("lqm_quantum_day", {
+    laws_completed: lawsCompleted ?? 0,
+    total_days: totalDays ?? 0,
   });
 }
 
-export function trackLivingStreak(streak) {
-  safeLog("lqm_living_streak", {
+// ════════════════════════════════════════════════════════════════
+// challenge21.js imports
+// ════════════════════════════════════════════════════════════════
+
+export function trackChallengeEnrolled(type, archetype) {
+  safeLog("lqm_challenge_enrolled", {
+    type: type || "unknown",
+    archetype: archetype || "unknown",
+  });
+}
+
+export function trackChallengeDay(type, day, sessionsCompleted) {
+  safeLog("lqm_challenge_day", {
+    type: type || "unknown",
+    day: day ?? 0,
+    sessions: sessionsCompleted ?? 0,
+  });
+}
+
+export function trackMilestone(type, milestone, sessions, streak) {
+  safeLog("lqm_milestone", {
+    type: type || "unknown",
+    milestone: milestone || "unknown",
+    sessions: sessions ?? 0,
     streak: streak ?? 0,
   });
 }
 
-// ── 21-Day Challenge (challenge21.js) ────────────────────────
-
-export function trackChallengeStart(challengeType) {
-  safeLog("lqm_challenge_start", {
-    type: challengeType || "unknown",
+export function trackChallengeCompleted(type, completionRate, avgImprovement) {
+  safeLog("lqm_challenge_completed", {
+    type: type || "unknown",
+    completion_rate: completionRate ?? 0,
+    avg_improvement: avgImprovement ?? 0,
   });
 }
 
-export function trackChallengeProgress(day, challengeType) {
-  safeLog("lqm_challenge_progress", {
-    day: day ?? 0,
-    type: challengeType || "unknown",
-  });
-}
-
-export function trackChallengeComplete(challengeType) {
-  safeLog("lqm_challenge_complete", {
-    type: challengeType || "unknown",
-  });
-}
-
-// ── Natural Remedy (NaturalRemedySearch.jsx) ─────────────────
-
-export function trackRemedySearch(query) {
-  safeLog("lqm_remedy_search", {
-    query: query || "",
-  });
-}
-
-// ── Generic / catch-all ──────────────────────────────────────
+// ════════════════════════════════════════════════════════════════
+// Generic
+// ════════════════════════════════════════════════════════════════
 
 export function trackEvent(eventName, params) {
   safeLog(eventName, params || {});
