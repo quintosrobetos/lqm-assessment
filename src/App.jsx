@@ -6,8 +6,6 @@ import {
   trackArchetypeResult,
   trackPatternDistribution,
   trackReturnVisit,
-  trackScreen,
-  trackPurchase,
 } from "./firebase";
 
 const STRIPE_MAIN  = "https://buy.stripe.com/00w8wR50Xber8VZfkka3u00";
@@ -230,8 +228,9 @@ const TENSION_NARRATIVES = {
 // Returns: primary, secondary, counts, tension, confidence, dominance.
 // All values derived from the 10 answers. No backend. Pure client logic.
 function calcPatterns(answers) {
+  const scored = answers.slice(0, 10); // Only the 10 scored questions — exclude visual bonus Q11
   const counts = {A:0, B:0, C:0, D:0};
-  answers.forEach(a => { if (counts.hasOwnProperty(a)) counts[a]++; });
+  scored.forEach(a => { if (counts.hasOwnProperty(a)) counts[a]++; });
   const sorted = Object.entries(counts).sort((x,y) => y[1]-x[1]);
 
   const primaryKey   = sorted[0][0];
@@ -347,7 +346,7 @@ export default function App() {
         setCharType(saved.charType||calcType(saved.answers));
         // CHANGE 5: patterns on Scenario A1
         setPatterns(calcPatterns(saved.answers));
-        trackReturnVisit(calcPatterns(saved.answers));
+        trackReturnVisit("stripe_main");
         setDeliveryRef(ref);
         setDeliveryTs(ts);
         setPhase("paid");
@@ -362,8 +361,12 @@ export default function App() {
       else { setUnlock(paid); }
       const saved=JSON.parse(localStorage.getItem("lqm_session_state")||"null");
       if(saved&&saved.answers){
+        const deliveryData=JSON.parse(localStorage.getItem("lqm_delivery")||"{}");
         setAnswers(saved.answers);
         setCharType(saved.charType||calcType(saved.answers));
+        setPatterns(calcPatterns(saved.answers));
+        setDeliveryRef(deliveryData.ref || null);
+        setDeliveryTs(deliveryData.ts || null);
         setUnlocks(getUnlocks());
         setPhase("paid");
         setActiveView("hub");
@@ -376,8 +379,12 @@ export default function App() {
     if(cancelled){
       const saved=JSON.parse(localStorage.getItem("lqm_session_state")||"null");
       if(saved&&saved.answers){
+        const deliveryData=JSON.parse(localStorage.getItem("lqm_delivery")||"{}");
         setAnswers(saved.answers);
         setCharType(saved.charType||calcType(saved.answers));
+        setPatterns(calcPatterns(saved.answers));
+        setDeliveryRef(deliveryData.ref || null);
+        setDeliveryTs(deliveryData.ts || null);
         setUnlocks(getUnlocks());
         setPhase("paid");
         setActiveView("hub");
@@ -393,19 +400,22 @@ export default function App() {
       const deliveryData=JSON.parse(delivery);
       if(deliveryData.confirmed){
         const savedAnswers=JSON.parse(localStorage.getItem("lqm_answers")||"null");
-        const restoreAnswers=(savedAnswers&&savedAnswers.length>=10)
-          ? savedAnswers
-          : ["A","B","A","C","D","A","B","C","D","A"];
-        setAnswers(restoreAnswers);
-        setCharType(calcType(restoreAnswers));
-        // CHANGE 6: patterns on Scenario C
-        setPatterns(calcPatterns(restoreAnswers));
-        trackReturnVisit(calcPatterns(restoreAnswers));
-        setUnlocks(getUnlocks());
-        setPhase("paid");
-        setDeliveryRef(deliveryData.ref);
-        setDeliveryTs(deliveryData.ts);
-        setActiveView("report");
+        if(savedAnswers&&savedAnswers.length>=10){
+          setAnswers(savedAnswers);
+          setCharType(calcType(savedAnswers));
+          setPatterns(calcPatterns(savedAnswers));
+          trackReturnVisit("page_refresh");
+          setUnlocks(getUnlocks());
+          setPhase("paid");
+          setDeliveryRef(deliveryData.ref);
+          setDeliveryTs(deliveryData.ts);
+          setActiveView("report");
+        } else {
+          // No valid answers found — do NOT fabricate data.
+          // Show restore code flow so user can recover their real session.
+          setUnlocks(getUnlocks());
+          setShowRestore(true);
+        }
       }
     }
   },[]);
@@ -500,7 +510,9 @@ export default function App() {
     if (result.report) {
       const existing = JSON.parse(localStorage.getItem("lqm_delivery")||"{}");
       if (!existing.confirmed) {
-        localStorage.setItem("lqm_delivery", JSON.stringify({ref:"LQM-RST-"+Date.now().toString(36).toUpperCase(),ts:new Date().toLocaleString("en-GB",{day:"2-digit",month:"short",year:"numeric",hour:"2-digit",minute:"2-digit"}),confirmed:true}));
+        const ref = "LQM-RST-"+Date.now().toString(36).toUpperCase();
+        const ts = new Date().toLocaleString("en-GB",{day:"2-digit",month:"short",year:"numeric",hour:"2-digit",minute:"2-digit"});
+        localStorage.setItem("lqm_delivery", JSON.stringify({ref,ts,confirmed:true}));
       }
     }
     setUnlocks(getUnlocks());
@@ -508,9 +520,15 @@ export default function App() {
     if (result.report) {
       const savedAnswers = JSON.parse(localStorage.getItem("lqm_answers")||"[]");
       if (savedAnswers.length >= 10) {
+        const deliveryData = JSON.parse(localStorage.getItem("lqm_delivery")||"{}");
         setAnswers(savedAnswers);
         setCharType(calcType(savedAnswers));
+        setPatterns(calcPatterns(savedAnswers));
+        setDeliveryRef(deliveryData.ref || null);
+        setDeliveryTs(deliveryData.ts || null);
         setPhase("paid");
+        setActiveView("report");
+        trackReturnVisit("restore_code");
       } else {
         setPhase("quiz"); setQIdx(0); setSel(null);
       }
