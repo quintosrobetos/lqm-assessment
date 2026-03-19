@@ -262,7 +262,7 @@ function calcPatterns(answers) {
 }
 
 const ORIGINAL = 27, DISCOUNTED = 9, TIMER_SECS = 5 * 60;
-const TEST_MODE = true;
+const TEST_MODE = false;
 
 function Particles() {
   return (
@@ -411,10 +411,12 @@ export default function App() {
           setDeliveryTs(deliveryData.ts);
           setActiveView("report");
         } else {
-          // No valid answers found — do NOT fabricate data.
-          // Show restore code flow so user can recover their real session.
+          // Delivery confirmed but answers lost — quiz is free since they already paid.
+          // Quiz completion will detect confirmed delivery and skip payment automatically.
           setUnlocks(getUnlocks());
-          setShowRestore(true);
+          setDeliveryRef(deliveryData.ref);
+          setDeliveryTs(deliveryData.ts);
+          setPhase("quiz"); setQIdx(0); setSel(null);
         }
       }
     }
@@ -482,6 +484,8 @@ export default function App() {
     const a=[...answers,sel];setAnswers(a);setSel(null);
     if(qIdx<questions.length-1){setQIdx(qIdx+1);}
     else{
+      // Save answers to localStorage immediately — prevents data loss on refresh/restore
+      localStorage.setItem("lqm_answers",JSON.stringify(a));
       setCharType(calcType(a));
       setPhase("processing");
       let st=0;
@@ -490,11 +494,22 @@ export default function App() {
         if(st>=5){
           clearInterval(iv);
           setTimeout(()=>{
-            setPatterns(calcPatterns(a));
-            trackArchetypeResult(calcPatterns(a));
-            trackPatternDistribution(calcPatterns(a));
-            setTimerOn(true);
-            setPhase("teaser");
+            const p = calcPatterns(a);
+            setPatterns(p);
+            trackArchetypeResult(p.primary, p.counts);
+            trackPatternDistribution(p);
+            // Check if delivery already confirmed (e.g. restore code or previous purchase)
+            const existingDelivery=JSON.parse(localStorage.getItem("lqm_delivery")||"{}");
+            if(existingDelivery.confirmed){
+              // Already paid — skip teaser/payment, go straight to reveal
+              setDeliveryRef(existingDelivery.ref||null);
+              setDeliveryTs(existingDelivery.ts||null);
+              setPhase("paid");
+              setActiveView("reveal");
+            } else {
+              setTimerOn(true);
+              setPhase("teaser");
+            }
           },600);
         }
       },850);
@@ -530,6 +545,11 @@ export default function App() {
         setActiveView("report");
         trackReturnVisit("restore_code");
       } else {
+        // Answers lost but delivery confirmed via restore code.
+        // Send to quiz — quiz completion will detect confirmed delivery and skip payment.
+        const deliveryData = JSON.parse(localStorage.getItem("lqm_delivery")||"{}");
+        setDeliveryRef(deliveryData.ref || null);
+        setDeliveryTs(deliveryData.ts || null);
         setPhase("quiz"); setQIdx(0); setSel(null);
       }
     }
@@ -913,7 +933,7 @@ function Landing({onStart}){
 
       {/* ── ARCHETYPE TEASER ─────────────────────────────────────── */}
       <div className="fu3" style={{marginBottom:28}}>
-        <p style={{textAlign:"center",fontSize:12,fontWeight:700,color:DIMMED,letterSpacing:".14em",textTransform:"uppercase",marginBottom:14}}>
+        <p style={{textAlign:"center",fontSize:14,fontWeight:700,color:MUTED,letterSpacing:".14em",textTransform:"uppercase",marginBottom:16}}>
           Discover your archetype
         </p>
         <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:10}}>
@@ -924,23 +944,23 @@ function Landing({onStart}){
             {name:"Visionary Pioneer",  sym:"◇", color:"#A78BFA", tag:"Creative · Bold · Future-focused"},
           ].map(a=>(
             <div key={a.name} style={{
-              display:"flex",alignItems:"center",gap:10,
-              padding:"12px 14px",
-              background:"rgba(255,255,255,0.025)",
-              border:`1px solid ${a.color}33`,
-              borderLeft:`3px solid ${a.color}66`,
-              borderRadius:"0 10px 10px 0",
+              display:"flex",alignItems:"center",gap:12,
+              padding:"14px 16px",
+              background:"rgba(255,255,255,0.03)",
+              border:`1px solid ${a.color}44`,
+              borderLeft:`3px solid ${a.color}88`,
+              borderRadius:"0 12px 12px 0",
               transition:"all .2s",
             }}>
-              <span style={{fontSize:20,color:a.color,flexShrink:0}}>{a.sym}</span>
+              <span style={{fontSize:24,color:a.color,flexShrink:0}}>{a.sym}</span>
               <div>
-                <p style={{fontSize:13,fontWeight:700,color:WHITE,marginBottom:2}}>{a.name}</p>
-                <p style={{fontSize:11,color:DIMMED,lineHeight:1.4}}>{a.tag}</p>
+                <p style={{fontSize:15,fontWeight:700,color:WHITE,marginBottom:3}}>{a.name}</p>
+                <p style={{fontSize:13,color:MUTED,lineHeight:1.5}}>{a.tag}</p>
               </div>
             </div>
           ))}
         </div>
-        <p style={{textAlign:"center",fontSize:13,color:DIMMED,fontStyle:"italic"}}>
+        <p style={{textAlign:"center",fontSize:17,color:E_BLUE,fontFamily:"'Crimson Pro',serif",fontStyle:"italic",fontWeight:500,animation:"glow 2.5s ease-in-out infinite",letterSpacing:".04em"}}>
           Which one are you?
         </p>
       </div>
@@ -978,7 +998,7 @@ function Landing({onStart}){
 
       {/* ── MICRO-PREVIEW EXAMPLE CARD ───────────────────────────── */}
       <div className="fu3" style={{marginBottom:28}}>
-        <p style={{textAlign:"center",fontSize:12,fontWeight:700,color:DIMMED,letterSpacing:".14em",textTransform:"uppercase",marginBottom:14}}>
+        <p style={{textAlign:"center",fontSize:14,fontWeight:700,color:MUTED,letterSpacing:".14em",textTransform:"uppercase",marginBottom:14}}>
           Your result will look like this
         </p>
         <div style={{
@@ -999,43 +1019,43 @@ function Landing({onStart}){
 
           {/* Archetype header */}
           <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:14}}>
-            <span style={{fontSize:26,color:"#00C8FF"}}>◈</span>
+            <span style={{fontSize:30,color:"#00C8FF"}}>◈</span>
             <div>
-              <p style={{fontSize:11,fontWeight:700,color:"#00C8FF",letterSpacing:".12em",textTransform:"uppercase",marginBottom:2}}>Your LQM Archetype</p>
-              <p style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:22,letterSpacing:2,color:WHITE,lineHeight:1}}>The Systems Architect</p>
+              <p style={{fontSize:12,fontWeight:700,color:"#00C8FF",letterSpacing:".12em",textTransform:"uppercase",marginBottom:3}}>Your LQM Archetype</p>
+              <p style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:26,letterSpacing:2,color:WHITE,lineHeight:1}}>The Systems Architect</p>
             </div>
           </div>
 
           {/* Tag */}
-          <p style={{fontFamily:"'Crimson Pro',serif",fontStyle:"italic",fontSize:15,color:"rgba(0,200,255,0.9)",marginBottom:14,lineHeight:1.6}}>
+          <p style={{fontFamily:"'Crimson Pro',serif",fontStyle:"italic",fontSize:17,color:"rgba(0,200,255,0.9)",marginBottom:16,lineHeight:1.6}}>
             "You don't chase motivation. You engineer it."
           </p>
 
           {/* Behavioural pattern */}
           <div style={{
-            background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.09)",
-            borderRadius:8,padding:"10px 12px",marginBottom:12,
+            background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.12)",
+            borderRadius:10,padding:"14px 16px",marginBottom:14,
           }}>
-            <p style={{fontSize:10,fontWeight:700,color:"rgba(255,255,255,0.45)",letterSpacing:".1em",textTransform:"uppercase",marginBottom:3}}>
+            <p style={{fontSize:11,fontWeight:700,color:"rgba(255,255,255,0.55)",letterSpacing:".1em",textTransform:"uppercase",marginBottom:5}}>
               Behavioural tendency
             </p>
-            <p style={{fontSize:13,color:WHITE,fontWeight:600,marginBottom:2}}>Structure orientation</p>
-            <p style={{fontSize:12,color:MUTED,lineHeight:1.5}}>You prioritise frameworks and clarity before committing to action — and sometimes that delay costs you.</p>
+            <p style={{fontSize:16,color:WHITE,fontWeight:700,marginBottom:4}}>Structure orientation</p>
+            <p style={{fontSize:14,color:MUTED,lineHeight:1.65}}>You prioritise frameworks and clarity before committing to action — and sometimes that delay costs you.</p>
           </div>
 
           {/* Strength + blind spot */}
-          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:14}}>
-            <div style={{background:"rgba(0,200,255,0.06)",border:"1px solid rgba(0,200,255,0.2)",borderRadius:8,padding:"8px 10px"}}>
-              <p style={{fontSize:10,fontWeight:700,color:"#00C8FF",letterSpacing:".1em",textTransform:"uppercase",marginBottom:3}}>Strength</p>
-              <p style={{fontSize:12,color:WHITE,lineHeight:1.4}}>Systems Design</p>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:16}}>
+            <div style={{background:"rgba(0,200,255,0.06)",border:"1px solid rgba(0,200,255,0.25)",borderRadius:10,padding:"12px 14px"}}>
+              <p style={{fontSize:11,fontWeight:700,color:"#00C8FF",letterSpacing:".1em",textTransform:"uppercase",marginBottom:4}}>Strength</p>
+              <p style={{fontSize:14,color:WHITE,fontWeight:600,lineHeight:1.4}}>Systems Design</p>
             </div>
-            <div style={{background:"rgba(255,160,40,0.06)",border:"1px solid rgba(255,160,40,0.2)",borderRadius:8,padding:"8px 10px"}}>
-              <p style={{fontSize:10,fontWeight:700,color:"rgba(255,180,50,0.8)",letterSpacing:".1em",textTransform:"uppercase",marginBottom:3}}>Blind spot</p>
-              <p style={{fontSize:12,color:WHITE,lineHeight:1.4}}>Perfectionism delays launch</p>
+            <div style={{background:"rgba(255,160,40,0.06)",border:"1px solid rgba(255,160,40,0.25)",borderRadius:10,padding:"12px 14px"}}>
+              <p style={{fontSize:11,fontWeight:700,color:"rgba(255,180,50,0.9)",letterSpacing:".1em",textTransform:"uppercase",marginBottom:4}}>Blind spot</p>
+              <p style={{fontSize:14,color:WHITE,fontWeight:600,lineHeight:1.4}}>Perfectionism delays launch</p>
             </div>
           </div>
 
-          <p style={{fontSize:12,color:DIMMED,textAlign:"center",fontStyle:"italic"}}>
+          <p style={{fontSize:14,color:MUTED,textAlign:"center",fontStyle:"italic",lineHeight:1.6}}>
             Your report includes 3 personalised strategy cards built for your specific profile
           </p>
         </div>
