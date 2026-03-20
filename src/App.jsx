@@ -460,6 +460,7 @@ export default function App() {
       @keyframes barGrow{from{width:0;}to{width:var(--w);}}
       @keyframes eureka{0%,100%{filter:drop-shadow(0 0 3px rgba(0,200,255,0.4));opacity:0.78;}45%{filter:drop-shadow(0 0 22px rgba(0,200,255,1)) drop-shadow(0 0 50px rgba(0,200,255,0.55)) drop-shadow(0 0 90px rgba(0,200,255,0.2));opacity:1;}}
       @keyframes ctaGlow{0%,100%{filter:brightness(1);}50%{filter:brightness(1.55);}}
+      @keyframes ctaPulse{0%,100%{box-shadow:0 6px 28px rgba(0,200,255,0.3),0 0 60px rgba(0,200,255,0.1);}50%{box-shadow:0 10px 44px rgba(0,200,255,0.5),0 0 80px rgba(0,200,255,0.2),0 0 120px rgba(0,200,255,0.08);}}
       @keyframes flamePulse{0%,100%{filter:drop-shadow(0 0 2px #00C8FF) drop-shadow(0 0 5px rgba(0,200,255,0.35));transform:scaleY(1);}40%{filter:drop-shadow(0 0 5px #00C8FF) drop-shadow(0 0 14px rgba(0,200,255,0.65)) drop-shadow(0 0 26px rgba(0,200,255,0.25));transform:scaleY(1.06);}70%{filter:drop-shadow(0 0 3px #00C8FF) drop-shadow(0 0 8px rgba(0,200,255,0.45));transform:scaleY(0.97);}}
       @keyframes atomGlow{0%,100%{filter:drop-shadow(0 0 3px rgba(0,200,255,0.6)) drop-shadow(0 0 1px #fff);}50%{filter:drop-shadow(0 0 8px rgba(0,200,255,1)) drop-shadow(0 0 18px rgba(0,200,255,0.45)) drop-shadow(0 0 2px #fff);}}
       @keyframes rocketFloat{0%,100%{filter:drop-shadow(0 0 3px rgba(0,200,255,0.55));transform:translateY(0);}50%{filter:drop-shadow(0 0 7px rgba(0,200,255,0.9)) drop-shadow(0 0 18px rgba(0,200,255,0.3));transform:translateY(-2px);}}
@@ -634,7 +635,7 @@ function SLabel({children,color=E_BLUE}){
   return(<div style={{display:"flex",alignItems:"center",gap:12,marginBottom:16}}><p style={{fontSize:16,fontWeight:700,letterSpacing:".14em",textTransform:"uppercase",color,whiteSpace:"nowrap"}}>{children}</p><div style={{flex:1,height:1,background:`linear-gradient(90deg,${color}44,transparent)`}}/></div>);
 }
 function PrimaryBtn({onClick,children}){
-  return(<button onClick={onClick} style={{width:"100%",border:"none",borderRadius:100,padding:"17px",fontSize:16,fontWeight:700,fontFamily:"'Space Grotesk',sans-serif",cursor:"pointer",letterSpacing:".05em",transition:"all .2s ease",display:"block",background:`linear-gradient(135deg,${E_BLUE2},${E_BLUE})`,color:BG,boxShadow:`0 6px 24px rgba(0,200,255,0.22)`}} onMouseEnter={e=>{e.currentTarget.style.transform="translateY(-2px)";e.currentTarget.style.boxShadow=`0 12px 36px rgba(0,200,255,0.38)`;}} onMouseLeave={e=>{e.currentTarget.style.transform="translateY(0)";e.currentTarget.style.boxShadow=`0 6px 24px rgba(0,200,255,0.22)`;}}>
+  return(<button onClick={onClick} style={{width:"100%",border:"1px solid rgba(0,200,255,0.5)",borderRadius:100,padding:"17px",fontSize:16,fontWeight:700,fontFamily:"'Space Grotesk',sans-serif",cursor:"pointer",letterSpacing:".05em",transition:"all .2s ease",display:"block",background:`linear-gradient(135deg,${E_BLUE},#7DD3FC)`,color:BG,boxShadow:`0 6px 28px rgba(0,200,255,0.3),0 0 60px rgba(0,200,255,0.1)`,animation:"ctaPulse 3s ease-in-out infinite"}} onMouseEnter={e=>{e.currentTarget.style.transform="translateY(-2px)";e.currentTarget.style.boxShadow=`0 12px 40px rgba(0,200,255,0.45),0 0 80px rgba(0,200,255,0.18)`;}} onMouseLeave={e=>{e.currentTarget.style.transform="translateY(0)";e.currentTarget.style.boxShadow=`0 6px 28px rgba(0,200,255,0.3),0 0 60px rgba(0,200,255,0.1)`;}}>
     {children}
   </button>);
 }
@@ -907,6 +908,12 @@ function RotatingStrapline() {
 
 // CHANGE 12: New Landing with archetype teaser, science strip, micro-preview
 function Landing({onStart}){
+  const [showSticky, setShowSticky] = useState(false);
+  useEffect(() => {
+    function onScroll() { setShowSticky(window.scrollY > 400); }
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
   return(
     <div>
       {/* Logo */}
@@ -916,7 +923,7 @@ function Landing({onStart}){
 
       {/* Hero headline */}
       <div className="fu1" style={{textAlign:"center",marginBottom:20}}>
-        <p style={{fontSize:14,fontWeight:700,letterSpacing:".16em",textTransform:"uppercase",color:E_BLUE,marginBottom:14}}>
+        <p style={{fontSize:14,fontWeight:700,letterSpacing:".16em",textTransform:"uppercase",color:"rgba(0,200,255,0.6)",marginBottom:14}}>
           ⚡ Behavioural Intelligence Assessment
         </p>
         <h1 style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"clamp(36px,8vw,64px)",lineHeight:1.05,letterSpacing:2,color:WHITE,marginBottom:6}}>
@@ -974,7 +981,7 @@ function Landing({onStart}){
         border:`1px solid ${BORDER}`,
         borderRadius:14,
       }}>
-        <p style={{fontSize:12,fontWeight:700,color:E_BLUE,letterSpacing:".16em",textTransform:"uppercase",marginBottom:14,textAlign:"center"}}>
+        <p style={{fontSize:12,fontWeight:700,color:"rgba(0,200,255,0.6)",letterSpacing:".16em",textTransform:"uppercase",marginBottom:14,textAlign:"center"}}>
           Built on behavioural science
         </p>
         <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
@@ -985,7 +992,7 @@ function Landing({onStart}){
             ["⬡","Systems-based design","How small structural changes compound over time"],
           ].map(([sym,title,desc])=>(
             <div key={title} style={{display:"flex",gap:10,alignItems:"flex-start"}}>
-              <span style={{color:E_BLUE,fontSize:14,flexShrink:0,marginTop:2}}>{sym}</span>
+              <span style={{color:"rgba(0,200,255,0.55)",fontSize:14,flexShrink:0,marginTop:2}}>{sym}</span>
               <div>
                 <p style={{fontSize:13,fontWeight:700,color:WHITE,marginBottom:2}}>{title}</p>
                 <p style={{fontSize:12,color:DIMMED,lineHeight:1.5}}>{desc}</p>
@@ -1066,7 +1073,7 @@ function Landing({onStart}){
       {/* ── WHAT'S INSIDE ──────────────────────────────────────────── */}
       <div style={{background:PANEL,border:`1px solid ${BORDER2}`,borderRadius:16,padding:"26px",marginBottom:24,borderTop:`2px solid rgba(0,200,255,0.18)`}}>
         <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:16}}>
-          <p style={{fontSize:16,fontWeight:700,letterSpacing:".14em",textTransform:"uppercase",color:E_BLUE,whiteSpace:"nowrap"}}>
+          <p style={{fontSize:16,fontWeight:700,letterSpacing:".14em",textTransform:"uppercase",color:"rgba(0,200,255,0.6)",whiteSpace:"nowrap"}}>
             What's inside your report
           </p>
           <div style={{flex:1,height:1,background:`linear-gradient(90deg,${E_BLUE}44,transparent)`}}/>
@@ -1079,7 +1086,7 @@ function Landing({onStart}){
           ["◎","Behavioural Pattern Profile","How your answers distributed across structure, analysis, relational and creative tendencies — new in 2026"],
         ].map(([ic,ti,de])=>(
           <div key={ti} style={{display:"flex",gap:14,marginBottom:16,alignItems:"flex-start"}}>
-            <span style={{color:E_BLUE,fontSize:17,flexShrink:0,marginTop:2}}>{ic}</span>
+            <span style={{color:"rgba(0,200,255,0.5)",fontSize:17,flexShrink:0,marginTop:2}}>{ic}</span>
             <div>
               <p style={{fontSize:14,fontWeight:600,color:WHITE,marginBottom:3}}>{ti}</p>
               <p style={{fontSize:16,color:MUTED,fontWeight:300,lineHeight:1.6}}>{de}</p>
@@ -1089,12 +1096,36 @@ function Landing({onStart}){
       </div>
 
       {/* ── CTA ──────────────────────────────────────────────────────── */}
-      <div className="fu4" style={{textAlign:"center"}}>
+      <div className="fu4" style={{textAlign:"center",paddingBottom:80}}>
         <PrimaryBtn onClick={onStart}>⚡ Begin My Free Assessment →</PrimaryBtn>
         <p style={{marginTop:10,fontSize:15,color:DIMMED}}>
           Takes 3 minutes · See your result before paying
         </p>
       </div>
+      {/* ── STICKY MOBILE CTA ─────────────────────────────────────── */}
+      {showSticky && (
+        <div style={{
+          position:"fixed",bottom:0,left:0,right:0,zIndex:200,
+          background:"rgba(7,15,30,0.95)",
+          backdropFilter:"blur(16px)",
+          borderTop:`1px solid rgba(0,200,255,0.15)`,
+          padding:"12px 20px",
+          display:"flex",alignItems:"center",justifyContent:"center",gap:14,
+          animation:"fadeUp .3s ease both",
+        }}>
+          <button onClick={onStart} style={{
+            flex:1,maxWidth:400,
+            border:"1px solid rgba(0,200,255,0.5)",borderRadius:100,padding:"14px",
+            fontSize:15,fontWeight:700,
+            fontFamily:"'Space Grotesk',sans-serif",
+            cursor:"pointer",letterSpacing:".05em",
+            background:`linear-gradient(135deg,${E_BLUE},#7DD3FC)`,
+            color:BG,
+            boxShadow:`0 4px 20px rgba(0,200,255,0.35),0 0 50px rgba(0,200,255,0.12)`,
+          }}>⚡ Begin Free Assessment</button>
+          <p style={{fontSize:12,color:DIMMED,whiteSpace:"nowrap",flexShrink:0}}>3 min · Free</p>
+        </div>
+      )}
     </div>
   );
 }
