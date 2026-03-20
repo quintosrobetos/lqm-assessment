@@ -288,6 +288,7 @@ export default function App() {
   const [activeAddon,setActiveAddon]=useState(null);
   const [showRestore,setShowRestore]=useState(false);
   const [customerEmail,setCustomerEmail]=useState(()=>localStorage.getItem("lqm_customer_email")||"");
+  const [testMode,setTestMode]=useState(()=>new URLSearchParams(window.location.search).get('test')==='true');
   // CHANGE 3: patterns state
   const [patterns, setPatterns] = useState(null);
 
@@ -596,7 +597,7 @@ export default function App() {
             </>}
           </>}
         </div>
-        {!showLegal && <Footer onShowLegal={setShowLegal} onRestore={()=>setShowRestore(true)}/>}
+        {!showLegal && <Footer onShowLegal={setShowLegal} onRestore={()=>setShowRestore(true)} testMode={testMode}/>}
       </>}
     </div>
   );
@@ -703,7 +704,8 @@ function RestoreAccess({ onBack, onSuccess }) {
   );
 }
 
-function Footer({onShowLegal, onRestore}){
+function Footer({onShowLegal, onRestore, testMode}){
+  const showTestTools = TEST_MODE || testMode;
   function activateTestMode(){
     localStorage.setItem('lqm_delivery',JSON.stringify({ref:'LQM-2026-TEST'+Math.random().toString(36).substring(2,8).toUpperCase(),ts:new Date().toLocaleString('en-GB',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}),confirmed:true}));
     localStorage.setItem('lqm_unlocks',JSON.stringify({neural:true,vital:true}));
@@ -715,17 +717,17 @@ function Footer({onShowLegal, onRestore}){
       <div style={{display:"flex",gap:24,flexWrap:"wrap",justifyContent:"center"}}>
         <button onClick={()=>onShowLegal("privacy")} style={{background:"none",border:"none",color:DIMMED,fontSize:15,cursor:"pointer",textDecoration:"underline",fontFamily:"'Space Grotesk',sans-serif"}} onMouseEnter={e=>e.currentTarget.style.color=E_BLUE} onMouseLeave={e=>e.currentTarget.style.color=DIMMED}>Privacy Policy</button>
         <button onClick={()=>onShowLegal("terms")} style={{background:"none",border:"none",color:DIMMED,fontSize:15,cursor:"pointer",textDecoration:"underline",fontFamily:"'Space Grotesk',sans-serif"}} onMouseEnter={e=>e.currentTarget.style.color=E_BLUE} onMouseLeave={e=>e.currentTarget.style.color=DIMMED}>Terms & Conditions</button>
-        <button onClick={onRestore} style={{background:"none",border:"none",color:"rgba(0,200,255,0.35)",fontSize:13,cursor:"pointer",fontFamily:"'Space Grotesk',sans-serif",letterSpacing:".04em"}} onMouseEnter={e=>e.currentTarget.style.color=E_BLUE} onMouseLeave={e=>e.currentTarget.style.color="rgba(0,200,255,0.35)"}>\uD83D\uDD11 Restore Access</button>
+        <button onClick={onRestore} style={{background:"none",border:"none",color:"rgba(0,200,255,0.35)",fontSize:13,cursor:"pointer",fontFamily:"'Space Grotesk',sans-serif",letterSpacing:".04em"}} onMouseEnter={e=>e.currentTarget.style.color=E_BLUE} onMouseLeave={e=>e.currentTarget.style.color="rgba(0,200,255,0.35)"}>{String.fromCodePoint(0x1F511)} Restore Access</button>
       </div>
       <p style={{fontSize:14,color:DIMMED,textAlign:"center"}}>&copy; 2026 Learning Quantum Method. All rights reserved.</p>
       <p style={{fontSize:16,color:DIMMED,textAlign:"center",maxWidth:500,lineHeight:1.5}}>For questions or support: <a href="mailto:lqm@lqmmethod.com" style={{color:E_BLUE,textDecoration:"none"}}>lqm@lqmmethod.com</a></p>
-      {TEST_MODE && (
+      {showTestTools && (
         <div style={{marginTop:16,display:"flex",gap:10,flexWrap:"wrap",justifyContent:"center"}}>
           <button onClick={activateTestMode} style={{background:'rgba(251,191,36,0.12)',border:'1px solid rgba(251,191,36,0.35)',borderRadius:8,padding:'10px 20px',color:'#FBBF24',fontSize:15,fontWeight:700,cursor:'pointer',fontFamily:"'Space Grotesk',sans-serif"}}>{String.fromCharCode(0x1F527)} Unlock All (Test)</button>
           <button onClick={resetAll} style={{background:'rgba(239,68,68,0.1)',border:'1px solid rgba(239,68,68,0.3)',borderRadius:8,padding:'10px 20px',color:'#EF4444',fontSize:15,fontWeight:700,cursor:'pointer',fontFamily:"'Space Grotesk',sans-serif"}}>{String.fromCharCode(0x1F5D1, 0xFE0F)} Reset All Data</button>
         </div>
       )}
-      {TEST_MODE && (<p style={{fontSize:12,color:'rgba(251,191,36,0.5)',fontWeight:700,letterSpacing:'.1em'}}>{String.fromCharCode(0x26A0, 0xFE0F)} TEST MODE IS ON — set TEST_MODE = false before going live</p>)}
+      {showTestTools && (<p style={{fontSize:12,color:'rgba(251,191,36,0.5)',fontWeight:700,letterSpacing:'.1em'}}>{String.fromCharCode(0x26A0, 0xFE0F)} TEST MODE IS ON — set TEST_MODE = false before going live</p>)}
     </div>
   );
 }
