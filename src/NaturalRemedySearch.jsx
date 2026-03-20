@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 
 const E_BLUE  = "#00C8FF";
 const BG      = "#070F1E";
@@ -50,6 +50,15 @@ const REMEDY_DATA = [
           "¼ tsp cayenne pepper",
           "250ml warm water",
         ],
+        steps: [
+          { instruction: "Crush 3 raw garlic cloves using a knife or garlic press. Press firmly to break the cell walls.", tip: "Crushing releases the enzyme alliinase, which converts alliin into allicin — garlic's most powerful medicinal compound." },
+          { instruction: "Set the crushed garlic aside and wait 10 minutes. Do not skip this step.", timer: 600, tip: "Allicin is destroyed by immediate heat. The 10-minute rest allows full activation before it touches warm water." },
+          { instruction: "While waiting, squeeze the juice of 1 whole lemon into a glass.", tip: "Lemon provides vitamin C and citric acid, supporting mineral absorption and alkalising the body." },
+          { instruction: "Add a quarter teaspoon of cayenne pepper to the glass.", tip: "Cayenne improves peripheral circulation and acts as a catalyst for the other ingredients." },
+          { instruction: "Pour 250 millilitres of warm water into the glass. Warm, not hot — heat degrades allicin.", tip: "Water temperature matters. If you can comfortably sip it, the temperature is right." },
+          { instruction: "Add the rested garlic to the glass. Stir gently and drink the entire tonic on an empty stomach.", tip: "Best taken first thing in the morning. Consistent daily use over 4 to 6 weeks produces measurable results." },
+        ],
+        science: "Jethro Kloss identifies garlic as the most powerful cardiovascular herb in nature's pharmacy. Barbara O'Neill recommends this tonic as a foundational cardiovascular protocol, emphasising cayenne's role in improving peripheral circulation.",
         method: "Crush garlic and allow to rest for 10 minutes before using — this activates allicin, the primary medicinal compound destroyed by immediate heat. Combine with lemon juice and cayenne in warm (not hot) water and drink first thing in the morning on an empty stomach. Consistent daily use over 4–6 weeks produces measurable results. Jethro Kloss identifies garlic as the most powerful cardiovascular herb in nature's pharmacy, specifically for arterial health and blood pressure normalisation. Barbara O'Neill recommends this tonic combination as a foundational cardiovascular protocol, emphasising cayenne's role in improving peripheral circulation.",
         frequency: "Daily — first thing in the morning before food",
         caution: "If on blood pressure medication, monitor levels closely and inform your doctor before use.",
@@ -203,6 +212,16 @@ const REMEDY_DATA = [
           "Hot water bottle or heating pad",
           "Old towel to protect clothing and furniture",
         ],
+        steps: [
+          { instruction: "Lay an old towel over the surface where you will rest. This protects against oil staining.", tip: "Castor oil stains are very difficult to remove. Protect clothing, bedding, and furniture before starting." },
+          { instruction: "Pour cold-pressed castor oil onto the flannel cloth. Saturate it thoroughly — it should be wet but not dripping.", tip: "Cold-pressed castor oil retains the highest concentration of ricinoleic acid, the primary anti-inflammatory compound." },
+          { instruction: "Apply the saturated flannel directly to the affected area. For liver support, place on the right side of the abdomen beneath the ribcage.", tip: "The most common application sites are the liver region, inflamed joints, and areas of chronic pain." },
+          { instruction: "Cover the flannel with plastic wrap or cling film. Press gently to seal the edges.", tip: "The plastic wrap serves two purposes — it prevents oil from staining your clothes and it holds the heat in place." },
+          { instruction: "Place a hot water bottle or heating pad on top of the plastic wrap. Settle into a comfortable resting position.", tip: "Heat opens the pores and drives the ricinoleic acid deeper into the tissue. Warmth also supports lymphatic movement." },
+          { instruction: "Rest for 45 to 60 minutes. This is your time — close your eyes, breathe deeply, let the body heal.", timer: 2700, tip: "Research shows ricinoleic acid reduces prostaglandins — the body's primary inflammatory messengers — and stimulates lymphatic circulation." },
+          { instruction: "Remove the pack. Wipe excess oil gently from the skin with a warm damp cloth.", tip: "The flannel can be stored in a sealed container and reused for up to 30 applications. Add more oil as needed." },
+        ],
+        science: "Barbara O'Neill uses this as her primary external anti-inflammatory protocol. Jethro Kloss documents similar oil-based poultice applications throughout Back to Eden.",
         method: "Soak the flannel in castor oil until saturated but not dripping. Apply directly to the affected area — liver region (right side of abdomen), inflamed joint, or area of chronic pain. Cover with plastic wrap to prevent staining, then place hot water bottle on top. Rest for 45–60 minutes. The ricinoleic acid in castor oil penetrates deeply into tissue — demonstrated in research to reduce prostaglandins (the body's primary inflammatory messengers) and stimulate lymphatic circulation in the treatment area. Barbara O'Neill uses this as her primary external anti-inflammatory protocol, demonstrating it at her health seminars. Jethro Kloss documents similar oil-based poultice applications throughout Back to Eden.",
         frequency: "3–5 times per week for acute inflammation; weekly for maintenance",
         caution: "Do not apply to broken skin, infected wounds, or during pregnancy.",
@@ -318,6 +337,15 @@ const REMEDY_DATA = [
           "Warm Epsom salt foot bath — 2 cups in warm water, soak 20 minutes",
           "1 tsp raw honey in herbal tea — provides slow-release liver glycogen",
         ],
+        steps: [
+          { instruction: "Begin this protocol one hour before your intended sleep time. Dim the lights in your home now.", tip: "Bright light suppresses melatonin production. Dimming lights signals to your body that sleep is approaching." },
+          { instruction: "Boil water and prepare your herbal tea. Use chamomile for general relaxation or passionflower for anxiety-driven insomnia. Steep for 5 minutes.", timer: 300, tip: "Chamomile contains apigenin, which binds directly to GABA receptors. Passionflower increases GABA activity more strongly." },
+          { instruction: "Add 1 teaspoon of raw honey to the tea and stir. This is not optional — it provides slow-release glycogen for the liver overnight.", tip: "The liver needs glycogen to sustain repair processes during sleep. Without it, the body releases cortisol at 3am to generate glucose — waking you up." },
+          { instruction: "Fill a basin with warm water. Dissolve 2 cups of Epsom salt. Place your feet in and soak.", tip: "Magnesium is absorbed through the skin. It is required to convert tryptophan into serotonin and then into melatonin." },
+          { instruction: "Sip your tea slowly while soaking your feet. Continue for 20 minutes.", timer: 1200, tip: "This is a deliberate wind-down. No phone, no screen, no conversation. Let the nervous system decelerate." },
+          { instruction: "Dry your feet thoroughly. Go directly to bed within the next 30 minutes. Do not look at any screens.", tip: "Consistency is the mechanism. After 21 nights, this becomes automatic — your body will begin anticipating sleep as soon as the ritual starts." },
+        ],
+        science: "Barbara O'Neill identifies magnesium deficiency as the primary driver of sleep difficulty. Jethro Kloss documents the warm foot bath as one of nature's most reliable sleep remedies, drawing blood away from the head and calming the nervous system.",
         method: "Chamomile contains apigenin — a flavonoid compound that binds directly to GABA receptors in the brain, producing a mild sedative effect backed by clinical research. Passionflower increases GABA activity more strongly and is the better choice for anxiety-driven insomnia. The Epsom salt foot bath raises magnesium levels transdermally — magnesium is required to convert tryptophan into serotonin and then into melatonin. Without adequate magnesium, the melatonin production pathway is impaired regardless of other interventions. Jethro Kloss documents the warm foot bath as one of nature's most reliable sleep remedies throughout Back to Eden, drawing blood away from the head and calming the nervous system. Barbara O'Neill consistently identifies magnesium as the first intervention for sleep difficulty.",
         frequency: "Nightly as a pre-sleep ritual — minimum 21 days to re-establish sleep architecture",
         caution: "Chamomile allergy is rare but possible in those sensitive to ragweed. Passionflower not for use during pregnancy.",
@@ -368,6 +396,15 @@ const REMEDY_DATA = [
           "Cold damp cloth for the forehead",
           "Silence and darkness — non-negotiable",
         ],
+        steps: [
+          { instruction: "Place 1 teaspoon of carrier oil — coconut or almond — into a small dish or the palm of your hand.", tip: "Never apply essential oils directly to skin without a carrier. Neat application can cause irritation or chemical burn." },
+          { instruction: "Add 3 drops of peppermint essential oil to the carrier oil.", tip: "Peppermint contains menthol, which produces a cooling vasodilatory effect on the superficial blood vessels of the scalp." },
+          { instruction: "Add 2 drops of lavender essential oil. Mix gently with your fingertip.", tip: "Lavender acts on GABA receptors to reduce the anxiety and tension component that commonly accompanies headaches and migraine." },
+          { instruction: "Apply the oil blend to both temples using gentle, slow circular motions. Take your time — 30 seconds per side.", tip: "A 2016 study in Cephalalgia found 10% peppermint oil applied topically was equivalent in pain reduction to 1000mg of paracetamol." },
+          { instruction: "Apply the remaining oil to the centre of your forehead and the back of your neck at the base of the skull.", tip: "The occipital region at the back of the skull is where tension headaches originate. Treating this area addresses the source." },
+          { instruction: "Soak a cloth in cold water, wring it out, and lay it across your forehead. Find a quiet, dark room and rest for 15 minutes.", timer: 900, tip: "Silence and darkness are not optional. Sensory input amplifies headache. Reducing it accelerates relief." },
+        ],
+        science: "Jethro Kloss documents peppermint as one of the most powerful herbal analgesics in Back to Eden. Mary Jones identifies this combination as a primary herbal headache protocol in Herbal Antibiotics.",
         method: "Dilute the essential oils in the carrier oil and apply gently to the temples, forehead, and back of the neck. Do not apply neat to skin. Peppermint contains menthol, which produces a cooling vasodilatory effect on the superficial blood vessels of the scalp — a 2016 study in Cephalalgia found 10% peppermint oil applied topically was equivalent in pain reduction to 1000mg of paracetamol. Lavender acts on GABA receptors to reduce the anxiety component that commonly accompanies migraine. Jethro Kloss documents peppermint as one of the most powerful herbal analgesics in Back to Eden. Mary Jones identifies this combination as a primary herbal headache protocol.",
         frequency: "At onset — reapply every 20–30 minutes as needed",
         caution: "Do not apply near eyes or on broken skin. Peppermint not suitable for children under 6.",
@@ -778,10 +815,360 @@ function SourceBadge({ code }) {
 }
 
 // ── Single remedy card ────────────────────────────────────────────────────
+// ── Speech synthesis — American English voice ─────────────────────────────
+function useSpeech() {
+  const synthRef = useRef(null);
+  const voiceRef = useRef(null);
+
+  useEffect(() => {
+    if (!window.speechSynthesis) return;
+    synthRef.current = window.speechSynthesis;
+    function loadVoice() {
+      const voices = synthRef.current.getVoices();
+      // Prefer American English voices
+      voiceRef.current =
+        voices.find(v => v.lang === "en-US" && v.name.includes("Female")) ||
+        voices.find(v => v.lang === "en-US") ||
+        voices.find(v => v.lang.startsWith("en")) ||
+        voices[0] || null;
+    }
+    loadVoice();
+    synthRef.current.addEventListener("voiceschanged", loadVoice);
+    return () => synthRef.current?.removeEventListener("voiceschanged", loadVoice);
+  }, []);
+
+  function speak(text, onEnd) {
+    if (!synthRef.current || !text) return;
+    synthRef.current.cancel();
+    const utt = new SpeechSynthesisUtterance(text);
+    if (voiceRef.current) utt.voice = voiceRef.current;
+    utt.lang = "en-US";
+    utt.rate = 0.92;
+    utt.pitch = 1.0;
+    if (onEnd) utt.onend = onEnd;
+    synthRef.current.speak(utt);
+  }
+
+  function stop() { synthRef.current?.cancel(); }
+
+  return { speak, stop, supported: !!window.speechSynthesis };
+}
+
+// ── Timer display ────────────────────────────────────────────────────────
+function formatTimer(secs) {
+  const m = Math.floor(secs / 60);
+  const s = secs % 60;
+  return `${m}:${s.toString().padStart(2, "0")}`;
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+// GUIDED PROTOCOL — step-by-step walkthrough with optional voice
+// ══════════════════════════════════════════════════════════════════════════
+function GuidedProtocol({ remedy, accentColor, onClose }) {
+  const [step, setStep] = useState(0);
+  const [voiceOn, setVoiceOn] = useState(false);
+  const [timer, setTimer] = useState(null);
+  const [timerActive, setTimerActive] = useState(false);
+  const [showTip, setShowTip] = useState(false);
+  const [complete, setComplete] = useState(false);
+  const timerRef = useRef(null);
+  const { speak, stop, supported } = useSpeech();
+
+  const steps = remedy.steps;
+  const current = steps[step];
+  const total = steps.length;
+  const hasTimer = current && current.timer;
+
+  // Auto-narrate on step change when voice is on
+  useEffect(() => {
+    if (voiceOn && current && !complete) {
+      speak(current.instruction);
+    }
+    return () => stop();
+  }, [step, voiceOn, complete]);
+
+  // Timer countdown
+  useEffect(() => {
+    if (!timerActive || timer <= 0) return;
+    timerRef.current = setInterval(() => {
+      setTimer(t => {
+        if (t <= 1) {
+          clearInterval(timerRef.current);
+          setTimerActive(false);
+          if (voiceOn) speak("Time is up. Move to the next step when you are ready.");
+          return 0;
+        }
+        return t - 1;
+      });
+    }, 1000);
+    return () => clearInterval(timerRef.current);
+  }, [timerActive]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => { clearInterval(timerRef.current); stop(); };
+  }, []);
+
+  function goNext() {
+    stop();
+    setShowTip(false);
+    setTimerActive(false);
+    if (step < total - 1) {
+      setStep(step + 1);
+      const nextStep = steps[step + 1];
+      if (nextStep.timer) { setTimer(nextStep.timer); }
+      else { setTimer(null); }
+    } else {
+      setComplete(true);
+      if (voiceOn) speak("Protocol complete. Well done.");
+    }
+  }
+
+  function goPrev() {
+    stop();
+    setShowTip(false);
+    setTimerActive(false);
+    if (step > 0) {
+      setStep(step - 1);
+      const prevStep = steps[step - 1];
+      if (prevStep.timer) { setTimer(prevStep.timer); }
+      else { setTimer(null); }
+    }
+  }
+
+  function startTimer() {
+    if (hasTimer && !timerActive) {
+      setTimer(current.timer);
+      setTimerActive(true);
+      if (voiceOn) speak("Timer started. " + formatTimer(current.timer) + " begins now.");
+    }
+  }
+
+  function toggleVoice() {
+    if (voiceOn) { stop(); setVoiceOn(false); }
+    else {
+      setVoiceOn(true);
+      if (current && !complete) speak(current.instruction);
+    }
+  }
+
+  // Initialize first step timer if applicable
+  useEffect(() => {
+    if (steps[0]?.timer) setTimer(steps[0].timer);
+  }, []);
+
+  // ── Completion screen ────────────────────────────────────────────────
+  if (complete) {
+    return (
+      <div style={{
+        position: "fixed", inset: 0, zIndex: 600,
+        background: BG,
+        display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+        padding: 24,
+        fontFamily: "'Space Grotesk',sans-serif",
+      }}>
+        <div style={{ fontSize: 64, marginBottom: 20 }}>✓</div>
+        <h2 style={{
+          fontFamily: "'Bebas Neue',sans-serif", fontSize: 36, letterSpacing: 2,
+          color: GREEN, marginBottom: 10, textAlign: "center",
+        }}>Protocol Complete</h2>
+        <p style={{
+          fontFamily: "'Crimson Pro',serif", fontStyle: "italic",
+          fontSize: 18, color: MUTED, textAlign: "center", maxWidth: 400,
+          lineHeight: 1.75, marginBottom: 12,
+        }}>{remedy.name}</p>
+        <p style={{ fontSize: 15, color: DIMMED, textAlign: "center", maxWidth: 400, lineHeight: 1.7, marginBottom: 8 }}>
+          {remedy.frequency}
+        </p>
+        {remedy.science && (
+          <div style={{
+            maxWidth: 440, margin: "12px 0 28px", padding: "14px 18px",
+            background: `${accentColor}0a`, border: `1px solid ${accentColor}22`,
+            borderLeft: `3px solid ${accentColor}55`,
+            borderRadius: "0 10px 10px 0",
+          }}>
+            <p style={{ fontSize: 11, fontWeight: 700, color: accentColor, letterSpacing: ".12em", textTransform: "uppercase", marginBottom: 6 }}>Why this works</p>
+            <p style={{ fontSize: 14, color: MUTED, lineHeight: 1.75, fontStyle: "italic" }}>{remedy.science}</p>
+          </div>
+        )}
+        <button onClick={onClose} style={{
+          border: "none", borderRadius: 100, padding: "15px 40px",
+          fontSize: 16, fontWeight: 700, fontFamily: "'Space Grotesk',sans-serif",
+          cursor: "pointer", background: `linear-gradient(135deg,${accentColor}cc,${accentColor})`,
+          color: BG, letterSpacing: ".05em",
+        }}>Done</button>
+      </div>
+    );
+  }
+
+  // ── Step view ────────────────────────────────────────────────────────
+  return (
+    <div style={{
+      position: "fixed", inset: 0, zIndex: 600,
+      background: BG,
+      display: "flex", flexDirection: "column",
+      fontFamily: "'Space Grotesk',sans-serif",
+      overflow: "hidden",
+    }}>
+
+      {/* Top bar */}
+      <div style={{
+        padding: "14px 20px", borderBottom: `1px solid ${BORDER2}`,
+        display: "flex", alignItems: "center", justifyContent: "space-between",
+        background: "rgba(7,15,30,0.95)", backdropFilter: "blur(14px)",
+        flexShrink: 0,
+      }}>
+        <button onClick={() => { stop(); onClose(); }} style={{
+          background: "none", border: `1px solid ${BORDER2}`, borderRadius: 100,
+          padding: "6px 14px", color: DIMMED, fontSize: 13, fontWeight: 600,
+          cursor: "pointer", fontFamily: "'Space Grotesk',sans-serif",
+        }}>✕ Exit</button>
+        <p style={{ fontSize: 13, fontWeight: 700, color: accentColor, letterSpacing: ".08em" }}>
+          STEP {step + 1} OF {total}
+        </p>
+        {supported && (
+          <button onClick={toggleVoice} title={voiceOn ? "Voice off" : "Voice on"} style={{
+            background: voiceOn ? "rgba(0,200,255,0.1)" : "rgba(255,255,255,0.05)",
+            border: `1px solid ${voiceOn ? "rgba(0,200,255,0.35)" : BORDER2}`,
+            borderRadius: 100, width: 38, height: 38,
+            display: "flex", alignItems: "center", justifyContent: "center",
+            cursor: "pointer", fontSize: 18, transition: "all .2s",
+          }}>{voiceOn ? "🔊" : "🔇"}</button>
+        )}
+      </div>
+
+      {/* Progress dots */}
+      <div style={{
+        display: "flex", gap: 5, padding: "14px 24px 0",
+        justifyContent: "center", flexShrink: 0,
+      }}>
+        {steps.map((_, i) => (
+          <div key={i} style={{
+            height: 4, flex: 1, maxWidth: 48, borderRadius: 100,
+            background: i < step ? accentColor : i === step ? `${accentColor}` : "rgba(255,255,255,0.08)",
+            opacity: i < step ? 0.4 : 1,
+            transition: "all .3s",
+          }} />
+        ))}
+      </div>
+
+      {/* Main content area */}
+      <div style={{
+        flex: 1, display: "flex", flexDirection: "column",
+        alignItems: "center", justifyContent: "center",
+        padding: "24px 28px", overflow: "auto",
+      }}>
+
+        {/* Step number */}
+        <div style={{
+          width: 56, height: 56, borderRadius: "50%", marginBottom: 24,
+          background: `${accentColor}18`, border: `2px solid ${accentColor}55`,
+          display: "flex", alignItems: "center", justifyContent: "center",
+          fontSize: 22, fontWeight: 800, color: accentColor,
+        }}>{step + 1}</div>
+
+        {/* Instruction */}
+        <p style={{
+          fontSize: "clamp(18px,4.5vw,24px)", color: WHITE,
+          textAlign: "center", lineHeight: 1.7, fontWeight: 500,
+          maxWidth: 500, marginBottom: 20,
+        }}>{current.instruction}</p>
+
+        {/* Timer */}
+        {hasTimer && (
+          <div style={{ textAlign: "center", marginBottom: 20 }}>
+            {!timerActive && timer > 0 ? (
+              <button onClick={startTimer} style={{
+                border: `2px solid ${accentColor}`,  borderRadius: 100,
+                padding: "12px 28px", background: `${accentColor}12`,
+                color: accentColor, fontSize: 16, fontWeight: 700,
+                cursor: "pointer", fontFamily: "'Space Grotesk',sans-serif",
+                letterSpacing: ".05em",
+              }}>⏱ Start Timer — {formatTimer(timer)}</button>
+            ) : timerActive ? (
+              <div>
+                <p style={{
+                  fontFamily: "'Bebas Neue',sans-serif", fontSize: 54, letterSpacing: 2,
+                  color: timer <= 30 ? "#F87171" : timer <= 60 ? AMBER : accentColor,
+                  lineHeight: 1,
+                }}>{formatTimer(timer)}</p>
+                <p style={{ fontSize: 13, color: DIMMED, marginTop: 6 }}>Remaining</p>
+              </div>
+            ) : (
+              <div style={{
+                padding: "10px 20px", background: "rgba(52,211,153,0.1)",
+                border: "1px solid rgba(52,211,153,0.3)", borderRadius: 100,
+              }}>
+                <p style={{ fontSize: 15, fontWeight: 700, color: GREEN }}>✓ Timer complete</p>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Tip toggle */}
+        {current.tip && (
+          <div style={{ maxWidth: 500, width: "100%" }}>
+            <button onClick={() => setShowTip(v => !v)} style={{
+              background: "none", border: "none", cursor: "pointer",
+              fontSize: 14, color: showTip ? accentColor : DIMMED,
+              fontFamily: "'Space Grotesk',sans-serif", fontWeight: 600,
+              display: "flex", alignItems: "center", gap: 6,
+              margin: "0 auto", transition: "color .2s",
+            }}>
+              {showTip ? "↑ Hide" : "💡 Why this matters"}
+            </button>
+            {showTip && (
+              <div style={{
+                marginTop: 10, padding: "14px 18px",
+                background: `${accentColor}08`, border: `1px solid ${accentColor}22`,
+                borderRadius: 12,
+                animation: "fadeUp .2s ease both",
+              }}>
+                <p style={{
+                  fontSize: 14, color: MUTED, lineHeight: 1.75,
+                  fontStyle: "italic", textAlign: "center",
+                }}>{current.tip}</p>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Bottom nav */}
+      <div style={{
+        padding: "16px 24px 24px", borderTop: `1px solid ${BORDER2}`,
+        display: "flex", gap: 12, alignItems: "center",
+        background: "rgba(7,15,30,0.95)", backdropFilter: "blur(14px)",
+        flexShrink: 0,
+      }}>
+        <button onClick={goPrev} disabled={step === 0} style={{
+          flex: 1, border: `1px solid ${step === 0 ? BORDER2 : accentColor+"55"}`,
+          borderRadius: 100, padding: "14px", fontSize: 15, fontWeight: 700,
+          background: "transparent", color: step === 0 ? DIMMED : WHITE,
+          cursor: step === 0 ? "default" : "pointer",
+          fontFamily: "'Space Grotesk',sans-serif", transition: "all .2s",
+        }}>← Back</button>
+        <button onClick={goNext} style={{
+          flex: 2, border: "none", borderRadius: 100, padding: "14px",
+          fontSize: 15, fontWeight: 700,
+          background: `linear-gradient(135deg,${accentColor}cc,${accentColor})`,
+          color: BG, cursor: "pointer",
+          fontFamily: "'Space Grotesk',sans-serif", letterSpacing: ".04em",
+        }}>{step < total - 1 ? "Next Step →" : "Complete ✓"}</button>
+      </div>
+    </div>
+  );
+}
+
 function RemedyCard({ remedy, accentColor }) {
   const [open, setOpen] = useState(false);
   const [detailOpen, setDetailOpen] = useState(false);
+  const [guidedMode, setGuidedMode] = useState(false);
   const law = LAW_LABELS[remedy.lawLink];
+
+  if (guidedMode && remedy.steps) {
+    return <GuidedProtocol remedy={remedy} accentColor={accentColor} onClose={() => setGuidedMode(false)} />;
+  }
 
   return (
     <div style={{
@@ -863,6 +1250,28 @@ function RemedyCard({ remedy, accentColor }) {
           </div>
 
           {/* Method */}
+          {remedy.steps && (
+            <button onClick={() => setGuidedMode(true)} style={{
+              width: "100%", marginBottom: 14,
+              border: `2px solid ${accentColor}`,
+              borderRadius: 100, padding: "14px",
+              fontSize: 15, fontWeight: 700,
+              fontFamily: "'Space Grotesk',sans-serif",
+              cursor: "pointer", letterSpacing: ".05em",
+              background: `linear-gradient(135deg,${accentColor}18,${accentColor}08)`,
+              color: accentColor,
+              display: "flex", alignItems: "center", justifyContent: "center", gap: 10,
+              transition: "all .2s",
+              boxShadow: `0 4px 18px ${accentColor}22`,
+            }}
+              onMouseEnter={e => { e.currentTarget.style.background = `${accentColor}25`; e.currentTarget.style.boxShadow = `0 6px 28px ${accentColor}33`; }}
+              onMouseLeave={e => { e.currentTarget.style.background = `linear-gradient(135deg,${accentColor}18,${accentColor}08)`; e.currentTarget.style.boxShadow = `0 4px 18px ${accentColor}22`; }}
+            >
+              <span style={{ fontSize: 18 }}>▶</span>
+              Follow Protocol — Step by Step
+              {remedy.steps.some(s => s.timer) && <span style={{ fontSize: 13, opacity: 0.7 }}>⏱</span>}
+            </button>
+          )}
           <p style={{fontSize:11, fontWeight:700, color:accentColor, letterSpacing:".14em", textTransform:"uppercase", marginBottom:8}}>
             Method & Protocol
           </p>
@@ -1147,25 +1556,7 @@ export default function NaturalRemedySearch({ onBack }) {
         </div>
 
         {/* Results */}
-        {(!activeCategory && !search.trim()) ? (
-          <div style={{
-            padding:"32px 24px",
-            background:"rgba(255,255,255,0.02)", border:`1px solid ${BORDER2}`,
-            borderRadius:16, textAlign:"center",
-            animation:"fadeUp .3s ease both",
-          }}>
-            <p style={{fontSize:28, marginBottom:12}}>🌿</p>
-            <p style={{fontSize:18, fontWeight:700, color:WHITE, marginBottom:8}}>
-              Search or browse by category
-            </p>
-            <p style={{fontSize:15, color:MUTED, lineHeight:1.75, maxWidth:380, margin:"0 auto 16px"}}>
-              Type an ailment above — cold, headache, inflammation — or tap a category to discover the relevant protocols.
-            </p>
-            <p style={{fontFamily:"'Crimson Pro',serif", fontStyle:"italic", fontSize:15, color:"rgba(52,211,153,0.75)", lineHeight:1.7}}>
-              "The body was designed to self-heal. These protocols simply create the conditions."
-            </p>
-          </div>
-        ) : filtered.length === 0 ? (
+        {filtered.length === 0 ? (
           <div style={{
             padding:"32px 24px",
             background:"rgba(255,255,255,0.02)", border:`1px solid ${BORDER2}`,
