@@ -2130,7 +2130,7 @@ function GuidedProtocol({ remedy, accentColor, onClose }) {
       <div style={{
         flex: 1, display: "flex", flexDirection: "column",
         alignItems: "center", justifyContent: "center",
-        padding: "24px 28px", overflow: "auto",
+        padding: "24px 28px 100px", overflow: "auto",
       }}>
 
         {/* Step number */}
@@ -2208,12 +2208,14 @@ function GuidedProtocol({ remedy, accentColor, onClose }) {
         )}
       </div>
 
-      {/* Bottom nav */}
+      {/* Bottom nav — fixed to bottom so Next is always visible */}
       <div style={{
-        padding: "16px 24px 24px", borderTop: `1px solid ${BORDER2}`,
+        padding: "16px 24px", borderTop: `1px solid ${BORDER2}`,
+        paddingBottom: "max(16px, env(safe-area-inset-bottom, 16px))",
         display: "flex", gap: 12, alignItems: "center",
-        background: "rgba(7,15,30,0.95)", backdropFilter: "blur(14px)",
+        background: "rgba(7,15,30,0.97)", backdropFilter: "blur(14px)",
         flexShrink: 0,
+        position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 610,
       }}>
         <button onClick={goPrev} disabled={step === 0} style={{
           flex: 1, border: `1px solid ${step === 0 ? BORDER2 : accentColor+"55"}`,
@@ -2471,6 +2473,8 @@ export default function NaturalRemedySearch({ onBack }) {
   const [activeCategory, setActiveCategory] = useState(null);
 
   // Filter ailments by search and category
+  // Catalogue sections appear first, then health conditions alphabetically
+  const PRIORITY_IDS = ["juices-nourishment","recipes-nourishment","daily-protocols","wellness-essentials"];
   const filtered = REMEDY_DATA
     .filter(ailment => {
       const matchesCategory = !activeCategory || activeCategory === "all" || ailment.categories.includes(activeCategory);
@@ -2484,7 +2488,14 @@ export default function NaturalRemedySearch({ onBack }) {
       );
       return matchesCategory && matchesSearch;
     })
-    .sort((a, b) => a.ailment.localeCompare(b.ailment));
+    .sort((a, b) => {
+      const aPri = PRIORITY_IDS.indexOf(a.id);
+      const bPri = PRIORITY_IDS.indexOf(b.id);
+      if (aPri !== -1 && bPri !== -1) return aPri - bPri;
+      if (aPri !== -1) return -1;
+      if (bPri !== -1) return 1;
+      return a.ailment.localeCompare(b.ailment);
+    });
 
   return (
     <div style={{
@@ -2615,7 +2626,7 @@ export default function NaturalRemedySearch({ onBack }) {
           animation:"fadeUp .4s .14s ease both",
         }}>
           {CATEGORIES.map(cat => (
-            <button key={cat.id} onClick={()=>setActiveCategory(cat.id)} style={{
+            <button key={cat.id} onClick={()=>setActiveCategory(activeCategory===cat.id ? null : cat.id)} style={{
               background: activeCategory===cat.id ? `${cat.color}22` : "rgba(255,255,255,0.03)",
               border:`1px solid ${activeCategory===cat.id ? cat.color+"66" : BORDER2}`,
               borderRadius:100, padding:"6px 14px",
@@ -2629,7 +2640,7 @@ export default function NaturalRemedySearch({ onBack }) {
           ))}
         </div>
 
-        {/* Results */}
+        {/* Results — Quantum Living sections first, then Health Conditions */}
         {filtered.length === 0 ? (
           <div style={{
             padding:"32px 24px",
@@ -2655,7 +2666,7 @@ export default function NaturalRemedySearch({ onBack }) {
                 For personalised guidance on natural protocols not yet in this library, email <a href="mailto:lqm@lqmmethod.com" style={{color:E_BLUE, textDecoration:"none", fontWeight:700}}>lqm@lqmmethod.com</a> — include your archetype and the condition you're researching.
               </p>
             </div>
-            <button onClick={()=>setSearch("")} style={{
+            <button onClick={()=>{setSearch("");setActiveCategory(null);}} style={{
               background:"none", border:`1px solid ${BORDER2}`,
               borderRadius:100, padding:"8px 20px",
               fontSize:13, fontWeight:700, color:DIMMED,
@@ -2664,9 +2675,36 @@ export default function NaturalRemedySearch({ onBack }) {
           </div>
         ) : (
           <div style={{animation:"fadeUp .3s ease both"}}>
-            {filtered.map(ailment => (
-              <AilmentGroup key={ailment.id} ailment={ailment}/>
-            ))}
+            {(()=>{
+              const qlSections = filtered.filter(a => PRIORITY_IDS.includes(a.id));
+              const healthSections = filtered.filter(a => !PRIORITY_IDS.includes(a.id));
+              return (<>
+                {qlSections.length > 0 && (
+                  <div style={{marginBottom:8}}>
+                    {!search.trim() && (<div style={{display:"flex",alignItems:"center",gap:10,marginBottom:14}}>
+                      <span style={{fontSize:16}}>🌿</span>
+                      <p style={{fontSize:13,fontWeight:700,color:GREEN,letterSpacing:".14em",textTransform:"uppercase"}}>Quantum Living</p>
+                      <div style={{flex:1,height:1,background:"rgba(52,211,153,0.2)"}}/>
+                    </div>)}
+                    {qlSections.map(ailment => (
+                      <AilmentGroup key={ailment.id} ailment={ailment}/>
+                    ))}
+                  </div>
+                )}
+                {healthSections.length > 0 && (
+                  <div>
+                    {!search.trim() && qlSections.length > 0 && (<div style={{display:"flex",alignItems:"center",gap:10,marginBottom:14,marginTop:8}}>
+                      <span style={{fontSize:16}}>❤️‍🩹</span>
+                      <p style={{fontSize:13,fontWeight:700,color:"rgba(239,68,68,0.7)",letterSpacing:".14em",textTransform:"uppercase"}}>Health Conditions</p>
+                      <div style={{flex:1,height:1,background:"rgba(239,68,68,0.15)"}}/>
+                    </div>)}
+                    {healthSections.map(ailment => (
+                      <AilmentGroup key={ailment.id} ailment={ailment}/>
+                    ))}
+                  </div>
+                )}
+              </>);
+            })()}
           </div>
         )}
 
