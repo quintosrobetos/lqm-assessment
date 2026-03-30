@@ -142,6 +142,55 @@ const REMEDY_DATA = [
           AE: "Professor Arnold Ehret in 'Kranke Menschen' identifies all chronic cardiovascular conditions as fundamentally conditions of obstruction, best addressed through systematic dietary cleansing rather than suppression.",
         },
       },
+      {
+        name: "Hawthorn Berry Tea",
+        tagline: "Clinically proven cardiovascular herb — used for centuries across cultures",
+        sources: ["BTE"],
+        lawLink: "05",
+        ingredients: [
+          "2.5 oz (70g) dried hawthorn berries",
+          "6 cups filtered water",
+          "Raw honey to taste (optional — hawthorn tea is naturally tart)",
+        ],
+        steps: [
+          { instruction: "Add the dried hawthorn berries and 6 cups of filtered water to a saucepan.", tip: "Hawthorn berries are available from health food stores and online herbal suppliers. Look for whole dried berries, not powdered." },
+          { instruction: "Bring to a boil, then reduce to a gentle simmer. Cover and simmer for 45 minutes.", timer: 2700, tip: "The long simmer extracts the oligomeric procyanidins — the active compounds responsible for hawthorn's cardiovascular benefits." },
+          { instruction: "Remove from heat and strain the liquid through a fine sieve. Discard the berries.", tip: "The tea will be a deep reddish-brown colour. It is naturally tart — add raw honey if you prefer it sweeter." },
+          { instruction: "Drink 1 to 2 cups daily. Allow a minimum of 12 weeks for measurable blood pressure effects.", tip: "A meta-analysis of 428 participants found hawthorn reduced systolic blood pressure by an average of 6.65mmHg — comparable to first-line pharmaceutical treatment. The effect builds over weeks, not days." },
+        ],
+        science: "Hawthorn has been used for cardiovascular support for centuries. A 2025 meta-analysis of randomised placebo-controlled trials found it significantly reduces systolic blood pressure. A UK randomised controlled trial demonstrated it is safe alongside prescribed medication, with no herb-drug interactions found over 16 weeks.",
+        method: "Add dried hawthorn berries to water, bring to a boil, simmer for 45 minutes, strain and drink. The long simmer extracts the active cardiovascular compounds. Minimum 12 weeks of daily use for measurable results.",
+        frequency: "1-2 cups daily — minimum 12 weeks for blood pressure effects",
+        caution: "Hawthorn is generally safe and has been studied alongside prescribed medication with no interactions found. However, if you take heart medication (especially digoxin), consult your doctor before use.",
+        sources_detail: {
+          BTE: "Hawthorn is documented throughout traditional herbal medicine as one of the primary cardiovascular herbs. Modern clinical trials have confirmed its blood pressure lowering and heart-strengthening properties.",
+        },
+      },
+      {
+        name: "Hibiscus Tea",
+        tagline: "Blood pressure reduction comparable to prescription medication in clinical trials",
+        sources: ["BTE"],
+        lawLink: "05",
+        ingredients: [
+          "¼ cup dried hibiscus flowers (Hibiscus sabdariffa)",
+          "4 cups filtered water",
+          "Raw honey or stevia to taste (optional — hibiscus is naturally tart)",
+        ],
+        steps: [
+          { instruction: "Add a quarter cup of dried hibiscus flowers to 4 cups of cold or hot filtered water.", tip: "Hibiscus can be brewed hot or cold. Cold-brewed overnight produces a smoother, less tart flavour. Hot-brewed is ready in 10 minutes." },
+          { instruction: "For hot tea: bring water to a boil, pour over hibiscus, and steep for 10 minutes. For cold brew: stir into cold water and refrigerate overnight.", timer: 600, tip: "The deep red colour comes from anthocyanins — the same antioxidant compounds found in blueberries. These are the primary active compounds for blood pressure reduction." },
+          { instruction: "Strain the tea. Add raw honey or stevia if the tartness is too strong.", tip: "Hibiscus tea is very tart — similar to cranberry juice. Most people prefer it sweetened. Raw honey adds antimicrobial benefits." },
+          { instruction: "Drink 2 to 3 cups daily. A meta-analysis of 26 clinical trials found hibiscus reduces systolic blood pressure by 7.10mmHg on average.", tip: "In clinical trials, hibiscus showed blood pressure reductions comparable to commonly prescribed antihypertensive medications including captopril and hydrochlorothiazide." },
+        ],
+        science: "A meta-analysis of 26 randomised controlled trials involving 1,797 participants found hibiscus dose-dependently reduced systolic and diastolic blood pressure. Effects were comparable to prescription antihypertensive drugs. Hibiscus also lowered LDL cholesterol and fasting blood glucose.",
+        method: "Steep dried hibiscus flowers in hot or cold water. Strain and drink 2-3 cups daily. Cold-brewed overnight produces the smoothest flavour. Consistent daily use produces clinically significant blood pressure reduction.",
+        frequency: "2-3 cups daily for cardiovascular benefit",
+        caution: "Hibiscus may interact with hydrochlorothiazide and other diuretics. If you take blood pressure medication, consult your doctor before starting hibiscus tea. Not recommended during pregnancy as it may affect oestrogen levels.",
+        sources_detail: {
+          BTE: "Hibiscus has been used as a cardiovascular remedy across African, Middle Eastern, and Asian traditional medicine systems for centuries. Modern clinical trials have validated its blood pressure lowering properties.",
+        },
+      },
+
     ],
   },
 
@@ -538,6 +587,58 @@ const REMEDY_DATA = [
           BON: "Barbara O'Neill recommends elderberry and thyme as primary immune support during acute viral illness, with thyme specifically for respiratory infections.",
         },
       },
+      {
+        name: "Mullein Leaf Tea",
+        tagline: "Centuries-old lung support — expectorant, anti-inflammatory, antimicrobial",
+        sources: ["BTE"],
+        lawLink: "02",
+        ingredients: [
+          "1-2 teaspoons dried mullein leaves",
+          "1 cup boiling filtered water",
+          "Fine strainer or cheesecloth (essential — mullein has tiny hairs that irritate the throat)",
+          "Raw honey to taste (optional)",
+        ],
+        steps: [
+          { instruction: "Place 1 to 2 teaspoons of dried mullein leaves in a cup or teapot.", tip: "Mullein contains saponins that act as natural expectorants, and mucilage that coats and soothes irritated respiratory passages. It has been used for lung conditions for over 2,000 years." },
+          { instruction: "Pour boiling water over the leaves. Cover and steep for 10 to 15 minutes.", timer: 600, tip: "The longer steep extracts more of the active compounds. Covering the cup prevents volatile compounds from escaping with the steam." },
+          { instruction: "Strain through a fine strainer or cheesecloth. This step is essential — mullein leaves have tiny hairs that will irritate your throat if not filtered out.", tip: "A coffee filter works well if you don't have cheesecloth. Double-straining is even better for a smooth tea." },
+          { instruction: "Add raw honey if desired. Drink up to 2 cups daily for respiratory support.", tip: "Mullein works as both an expectorant — helping you cough up mucus — and a demulcent — coating and soothing inflamed airways. Cleveland Clinic doctors recognise it as a practical respiratory remedy." },
+        ],
+        science: "Mullein contains saponins (natural expectorants that loosen mucus), mucilage (coats and soothes irritated mucous membranes), and flavonoids (anti-inflammatory). A 2005 study in Phytotherapy Research demonstrated expectorant and bronchodilatory effects. It has documented antibacterial activity against multiple pathogens including Staphylococcus aureus and Klebsiella pneumoniae.",
+        method: "Steep 1-2 teaspoons of dried mullein leaves in boiling water for 10-15 minutes. Strain thoroughly through fine cloth to remove tiny leaf hairs. Drink up to 2 cups daily.",
+        frequency: "Up to 2 cups daily during respiratory illness, or as needed for lung support",
+        caution: "Always strain thoroughly — the fine hairs on mullein leaves can irritate the throat. Generally safe with no reported toxic side effects. If you have asthma or COPD, consult your doctor first as it may irritate some individuals.",
+        sources_detail: {
+          BTE: "Mullein has been documented in herbal medicine for over 2,000 years. Dioscorides, physician to the Roman Army, recommended it for pulmonary diseases. Jethro Kloss includes it among the primary respiratory herbs.",
+        },
+      },
+      {
+        name: "Clove, Ginger & Cinnamon Tea",
+        tagline: "Antimicrobial powerhouse — kills bacteria, expels mucus, supports immunity",
+        sources: ["BTE"],
+        lawLink: "05",
+        ingredients: [
+          "¼ teaspoon whole cloves or ground cloves",
+          "½ inch fresh ginger (sliced)",
+          "1 cinnamon stick or ½ teaspoon ground cinnamon",
+          "3 cups boiling filtered water",
+          "Raw honey (optional — add after cooling slightly)",
+        ],
+        steps: [
+          { instruction: "Add the cloves, sliced ginger, and cinnamon stick to a saucepan with 3 cups of filtered water.", tip: "Cloves contain eugenol — one of the most potent natural antimicrobial compounds known. It kills bacteria in the mouth, expels mucus from the lungs, and supports the immune system." },
+          { instruction: "Bring to a medium boil, then reduce heat and simmer for 5 minutes.", timer: 300, tip: "Ginger adds anti-nausea and anti-inflammatory properties. Cinnamon provides additional antimicrobial action and helps regulate blood sugar." },
+          { instruction: "Remove from heat and allow to cool slightly. Strain into a cup.", tip: "Do not add honey to boiling liquid — heat destroys honey's beneficial enzymes. Let it cool to a drinkable temperature first." },
+          { instruction: "Add raw honey if desired. Drink warm. This tea is particularly effective at the onset of cold or flu symptoms.", tip: "This combination targets respiratory infections from multiple angles: clove kills bacteria, ginger reduces inflammation, cinnamon is antimicrobial, and honey soothes and protects the throat." },
+        ],
+        science: "Eugenol in cloves has documented broad-spectrum antimicrobial activity. Clove oil is used in dentistry as a natural analgesic and antiseptic. Combined with ginger's anti-inflammatory gingerols and cinnamon's cinnamaldehyde, this tea provides comprehensive antimicrobial and respiratory support.",
+        method: "Simmer cloves, ginger, and cinnamon in water for 5 minutes. Strain, cool slightly, add honey. Drink warm at the first sign of cold or flu symptoms.",
+        frequency: "2-3 cups daily during illness, or 1 cup daily as preventive support",
+        caution: "Clove oil is very potent — do not consume undiluted clove essential oil internally. This recipe uses whole or ground cloves in tea form, which is safe. If on blood thinners, consult your doctor as cloves may amplify anticoagulant effects.",
+        sources_detail: {
+          BTE: "Cloves have been used as a medicinal spice across every traditional healing system for thousands of years. Eugenol, the primary active compound, is still used in modern dentistry as a natural analgesic and antiseptic.",
+        },
+      },
+
     ],
   },
 
@@ -1057,6 +1158,31 @@ const REMEDY_DATA = [
           AE: "Arnold Ehret identified intestinal health as the foundation of all health and disease in his clinical work, with dietary cleansing as the primary intervention.",
         },
       },
+      {
+        name: "Activated Charcoal Protocol",
+        tagline: "Emergency adsorption — upset stomach, gas, food poisoning, and wound poultice",
+        sources: ["BTE"],
+        lawLink: "03",
+        ingredients: [
+          "Activated charcoal capsules or powder (food-grade, not barbecue charcoal)",
+          "Large glass of filtered water",
+          "For poultice: activated charcoal powder, ground flaxseed, warm water, cotton cloth, plastic wrap",
+        ],
+        steps: [
+          { instruction: "For upset stomach or suspected food poisoning: take 1 to 2 capsules (500 to 1000mg) of activated charcoal with a large glass of water.", tip: "Activated charcoal works by adsorption — its enormous internal surface area traps toxins and gas-producing compounds, carrying them through the digestive system for elimination. Native Americans used powdered charcoal with water for upset stomach centuries before modern medicine adopted it." },
+          { instruction: "Wait at least 1 hour before eating or taking any medication. Charcoal adsorbs indiscriminately — it will reduce the effectiveness of anything else in your stomach.", tip: "This is critical: activated charcoal reduces absorption of medications including antibiotics and birth control pills. Always separate by at least 1 hour, ideally 2." },
+          { instruction: "Drink extra water throughout the day. Charcoal can cause constipation — hydration prevents this.", tip: "Your stool may turn black. This is completely normal and harmless — it is simply the charcoal passing through." },
+          { instruction: "For a wound poultice: mix activated charcoal powder with ground flaxseed and enough warm water to make a paste. Spread onto a cotton cloth, apply to the wound or infected area, cover with plastic wrap, and leave for several hours or overnight.", tip: "The porous properties of charcoal attract toxins from areas of infection or inflammation. Charcoal poultices have been used traditionally for insect bites, stings, skin infections, and drawing out infection from open wounds. Replace the poultice every 8 to 12 hours." },
+        ],
+        science: "Activated charcoal is the standard medical treatment for acute poisoning in emergency departments worldwide. Its adsorptive properties are well-established — one gram of activated charcoal has a surface area of approximately 3,000 square metres. For digestive upset, it binds to gas-producing compounds, bacterial toxins, and irritants. Charcoal wound dressings are used in clinical wound care to control infection and promote healing.",
+        method: "For digestive upset: 1-2 capsules with a large glass of water, at least 1 hour away from food or medication. For wound poultice: mix charcoal powder with flaxseed and warm water into a paste, apply to affected area with cloth, cover and leave several hours.",
+        frequency: "As needed for acute digestive upset. Not for daily long-term use — it may reduce nutrient absorption over time",
+        caution: "Do not take activated charcoal within 1 hour of any medication — it will reduce its effectiveness. Not suitable for daily long-term use. Do not use if you have a gastrointestinal blockage or active stomach ulcer. Always use food-grade activated charcoal, never barbecue charcoal. Consult a doctor if symptoms persist.",
+        sources_detail: {
+          BTE: "Charcoal has been documented as a healing remedy since 1550 BC by the Egyptians. Back to Eden and naturopathic traditions include charcoal as both an internal remedy for digestive poisoning and an external poultice for drawing infection from wounds.",
+        },
+      },
+
     ],
   },
 
@@ -1686,6 +1812,30 @@ const REMEDY_DATA = [
           BTE: "Back to Eden documents heat therapy as a fundamental healing practice, supporting circulation and the body's natural elimination processes.",
         },
       },
+      {
+        name: "Coconut Oil Pulling",
+        tagline: "Ancient Ayurvedic oral cleanse — reduces bacteria comparable to chlorhexidine",
+        sources: ["BTE"],
+        lawLink: "03",
+        ingredients: [
+          "1 tablespoon virgin coconut oil",
+          "Optional: 1 drop lemon essential oil or pinch of xylitol for taste",
+        ],
+        steps: [
+          { instruction: "First thing in the morning, before eating, drinking, or brushing your teeth, place 1 tablespoon of virgin coconut oil in your mouth.", tip: "The oil will be solid if your room is cool — it melts within seconds in your mouth. Virgin coconut oil is roughly 50% lauric acid, which has documented antimicrobial and anti-inflammatory properties." },
+          { instruction: "Swish the oil around your mouth gently and thoroughly for 15 to 20 minutes. Push and pull it between your teeth.", timer: 900, tip: "This is longer than it sounds — start with 5 minutes and build up. The swishing action mechanically removes bacteria from surfaces the toothbrush cannot reach. The oil traps and pulls toxins and pathogens from the oral cavity." },
+          { instruction: "Spit the oil into a bin — not the sink, as coconut oil solidifies and can block pipes. The oil will be thin and white or yellowish.", tip: "Do not swallow the oil. After 15 minutes of swishing, it is loaded with bacteria and toxins pulled from your mouth." },
+          { instruction: "Rinse your mouth with warm salt water. Then brush your teeth as normal.", tip: "A systematic review of randomised controlled trials found oil pulling with coconut oil significantly reduces bacterial colony counts and plaque scores. One clinical trial found it comparable to chlorhexidine mouthwash for plaque inhibition — with less tooth staining." },
+        ],
+        science: "A systematic review in Heliyon (2020) found oil pulling with coconut oil significantly reduced salivary bacterial counts and plaque index scores in randomised controlled trials. A crossover trial found coconut oil pulling had similar plaque inhibition to 0.2% chlorhexidine with significantly less staining. Coconut oil's lauric acid has confirmed antimicrobial activity against Streptococcus mutans and Candida albicans.",
+        method: "Swish 1 tablespoon of virgin coconut oil in the mouth for 15-20 minutes first thing in the morning, before eating or brushing. Spit into bin, rinse with salt water, then brush normally.",
+        frequency: "Daily — first thing every morning, 3 to 4 times per week minimum",
+        caution: "Do not swallow the oil after swishing. Spit into a bin, not the sink. Oil pulling is a complement to normal brushing and flossing, not a replacement. If you have dental work or gum disease, consult your dentist.",
+        sources_detail: {
+          BTE: "Oil pulling is an ancient Ayurvedic practice documented for over 3,000 years. Modern clinical trials have validated its antimicrobial effects, particularly with coconut oil due to its high lauric acid content.",
+        },
+      },
+
     ],
   },
   {
@@ -1897,6 +2047,13 @@ const AUDIO_PREFIX = {
   "Kidney Detox Tea Blend": "protocol-kidney-tea",
   "Frozen Lemon Technique": "protocol-frozen-lemon",
   "Alkalising Water with Sodium Bicarbonate": "protocol-alkalise-water",
+  // New protocols
+  "Hawthorn Berry Tea": "protocol-hawthorn-tea",
+  "Hibiscus Tea": "protocol-hibiscus-tea",
+  "Mullein Leaf Tea": "protocol-mullein-tea",
+  "Clove, Ginger & Cinnamon Tea": "protocol-clove-tea",
+  "Activated Charcoal Protocol": "protocol-charcoal",
+  "Coconut Oil Pulling": "protocol-oil-pulling",
 };
 
 function useProtocolAudio(remedyName) {
@@ -1947,6 +2104,7 @@ function GuidedProtocol({ remedy, accentColor, onClose }) {
   const [showTip, setShowTip] = useState(false);
   const [complete, setComplete] = useState(false);
   const timerRef = useRef(null);
+  const contentRef = useRef(null);
   const { play, stop, hasAudio } = useProtocolAudio(remedy.name);
 
   const steps = remedy.steps;
@@ -1983,6 +2141,11 @@ function GuidedProtocol({ remedy, accentColor, onClose }) {
   useEffect(() => {
     return () => { clearInterval(timerRef.current); stop(); };
   }, []);
+
+  // Auto-scroll content to top on step change
+  useEffect(() => {
+    if (contentRef.current) contentRef.current.scrollTop = 0;
+  }, [step]);
 
   function goNext() {
     stop();
@@ -2127,18 +2290,22 @@ function GuidedProtocol({ remedy, accentColor, onClose }) {
       </div>
 
       {/* Main content area */}
-      <div style={{
-        flex: 1, display: "flex", flexDirection: "column",
-        alignItems: "center", justifyContent: "center",
-        padding: "24px 28px 100px", overflow: "auto",
+      <div ref={contentRef} style={{
+        flex: 1,
+        padding: "20px 28px 100px", overflow: "auto",
       }}>
+        {/* Centering wrapper: margin auto centers short steps, collapses for long ones */}
+        <div style={{
+          minHeight: "100%", display: "flex", flexDirection: "column",
+          alignItems: "center", justifyContent: "center",
+        }}>
 
         {/* Step number */}
         <div style={{
-          width: 56, height: 56, borderRadius: "50%", marginBottom: 24,
+          width: 44, height: 44, borderRadius: "50%", marginBottom: 20,
           background: `${accentColor}18`, border: `2px solid ${accentColor}55`,
           display: "flex", alignItems: "center", justifyContent: "center",
-          fontSize: 22, fontWeight: 800, color: accentColor,
+          fontSize: 20, fontWeight: 800, color: accentColor,
         }}>{step + 1}</div>
 
         {/* Instruction */}
@@ -2206,6 +2373,7 @@ function GuidedProtocol({ remedy, accentColor, onClose }) {
             )}
           </div>
         )}
+        </div>{/* end centering wrapper */}
       </div>
 
       {/* Bottom nav — fixed to bottom so Next is always visible */}
@@ -2600,7 +2768,7 @@ export default function NaturalRemedySearch({ onBack }) {
         <div style={{position:"relative", marginBottom:14, animation:"fadeUp .4s .1s ease both"}}>
           <input
             value={search}
-            onChange={e=>setSearch(e.target.value)}
+            onChange={e=>{setSearch(e.target.value);if(e.target.value.trim())setActiveCategory(null);}}
             placeholder="Search by ailment or remedy name…"
             style={{
               width:"100%", background:"rgba(0,200,255,0.04)",
