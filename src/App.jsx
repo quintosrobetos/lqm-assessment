@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import BrainTraining from "./BrainTraining.jsx";
 import QuantumLiving from "./QuantumLiving.jsx";
+import html2canvas from "html2canvas";
 
 import {
   trackArchetypeResult,
@@ -55,6 +56,31 @@ const WHITE="#FFFFFF",MUTED="rgba(255,255,255,0.78)",DIMMED="rgba(255,255,255,0.
 const AMBER="#FBBF24",GREEN="#22C55E",PURPLE="#A855F7";
 const SYMS=["⚛","◈","⬡","△","◎","⊕","⟁","⬢"];
 const RED="#EF4444";
+
+// ── html2canvas screenshot helper ─────────────────────────────────────────
+async function captureAndShare(elementRef) {
+  if (!elementRef?.current) return;
+  try {
+    const canvas = await html2canvas(elementRef.current, {
+      backgroundColor: "#070F1E",
+      scale: 2,
+      useCORS: true,
+      logging: false,
+    });
+    const blob = await new Promise(r => canvas.toBlob(r, "image/png"));
+    if (!blob) return;
+    if (navigator.share && navigator.canShare) {
+      const file = new File([blob], "lqm-archetype.png", { type: "image/png" });
+      const shareData = { files: [file], title: "My LQM Archetype", url: "https://lqmmethod.com" };
+      if (navigator.canShare(shareData)) { await navigator.share(shareData); return; }
+    }
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = "lqm-archetype.png";
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  } catch (err) { console.warn("[LQM] Screenshot failed:", err); }
+}
 
 function ArchetypeIllustration({ type: t }) {
   const ARCH_COLORS = {A:"#00C8FF",B:"#38BDF8",C:"#34D399",D:"#A78BFA"};
@@ -460,7 +486,6 @@ export default function App() {
       @keyframes barGrow{from{width:0;}to{width:var(--w);}}
       @keyframes eureka{0%,100%{filter:drop-shadow(0 0 3px rgba(0,200,255,0.4));opacity:0.78;}45%{filter:drop-shadow(0 0 22px rgba(0,200,255,1)) drop-shadow(0 0 50px rgba(0,200,255,0.55)) drop-shadow(0 0 90px rgba(0,200,255,0.2));opacity:1;}}
       @keyframes ctaGlow{0%,100%{filter:brightness(1);}50%{filter:brightness(1.55);}}
-      @keyframes ctaPulse{0%,100%{box-shadow:0 6px 28px rgba(0,200,255,0.3),0 0 60px rgba(0,200,255,0.1);}50%{box-shadow:0 10px 44px rgba(0,200,255,0.5),0 0 80px rgba(0,200,255,0.2),0 0 120px rgba(0,200,255,0.08);}}
       @keyframes flamePulse{0%,100%{filter:drop-shadow(0 0 2px #00C8FF) drop-shadow(0 0 5px rgba(0,200,255,0.35));transform:scaleY(1);}40%{filter:drop-shadow(0 0 5px #00C8FF) drop-shadow(0 0 14px rgba(0,200,255,0.65)) drop-shadow(0 0 26px rgba(0,200,255,0.25));transform:scaleY(1.06);}70%{filter:drop-shadow(0 0 3px #00C8FF) drop-shadow(0 0 8px rgba(0,200,255,0.45));transform:scaleY(0.97);}}
       @keyframes atomGlow{0%,100%{filter:drop-shadow(0 0 3px rgba(0,200,255,0.6)) drop-shadow(0 0 1px #fff);}50%{filter:drop-shadow(0 0 8px rgba(0,200,255,1)) drop-shadow(0 0 18px rgba(0,200,255,0.45)) drop-shadow(0 0 2px #fff);}}
       @keyframes rocketFloat{0%,100%{filter:drop-shadow(0 0 3px rgba(0,200,255,0.55));transform:translateY(0);}50%{filter:drop-shadow(0 0 7px rgba(0,200,255,0.9)) drop-shadow(0 0 18px rgba(0,200,255,0.3));transform:translateY(-2px);}}
@@ -635,7 +660,7 @@ function SLabel({children,color=E_BLUE}){
   return(<div style={{display:"flex",alignItems:"center",gap:12,marginBottom:16}}><p style={{fontSize:16,fontWeight:700,letterSpacing:".14em",textTransform:"uppercase",color,whiteSpace:"nowrap"}}>{children}</p><div style={{flex:1,height:1,background:`linear-gradient(90deg,${color}44,transparent)`}}/></div>);
 }
 function PrimaryBtn({onClick,children}){
-  return(<button onClick={onClick} style={{width:"100%",border:"1px solid rgba(0,200,255,0.5)",borderRadius:100,padding:"17px",fontSize:16,fontWeight:700,fontFamily:"'Space Grotesk',sans-serif",cursor:"pointer",letterSpacing:".05em",transition:"all .2s ease",display:"block",background:`linear-gradient(135deg,${E_BLUE},#7DD3FC)`,color:BG,boxShadow:`0 6px 28px rgba(0,200,255,0.3),0 0 60px rgba(0,200,255,0.1)`,animation:"ctaPulse 3s ease-in-out infinite"}} onMouseEnter={e=>{e.currentTarget.style.transform="translateY(-2px)";e.currentTarget.style.boxShadow=`0 12px 40px rgba(0,200,255,0.45),0 0 80px rgba(0,200,255,0.18)`;}} onMouseLeave={e=>{e.currentTarget.style.transform="translateY(0)";e.currentTarget.style.boxShadow=`0 6px 28px rgba(0,200,255,0.3),0 0 60px rgba(0,200,255,0.1)`;}}>
+  return(<button onClick={onClick} style={{width:"100%",border:"none",borderRadius:100,padding:"17px",fontSize:16,fontWeight:700,fontFamily:"'Space Grotesk',sans-serif",cursor:"pointer",letterSpacing:".05em",transition:"all .2s ease",display:"block",background:`linear-gradient(135deg,${E_BLUE2},${E_BLUE})`,color:BG,boxShadow:`0 6px 24px rgba(0,200,255,0.22)`}} onMouseEnter={e=>{e.currentTarget.style.transform="translateY(-2px)";e.currentTarget.style.boxShadow=`0 12px 36px rgba(0,200,255,0.38)`;}} onMouseLeave={e=>{e.currentTarget.style.transform="translateY(0)";e.currentTarget.style.boxShadow=`0 6px 24px rgba(0,200,255,0.22)`;}}>
     {children}
   </button>);
 }
@@ -788,9 +813,9 @@ function Hub({type, unlocks, onOpenNeural, onOpenVital, onViewReport, onUnlockNe
   const brainData = (() => { try { return JSON.parse(localStorage.getItem("lqm_brain")||"{}"); } catch { return {}; } })();
   const livingData = (() => { try { return JSON.parse(localStorage.getItem("lqm_living")||"{}"); } catch { return {}; } })();
   const challengeBrain = (() => { try { return JSON.parse(localStorage.getItem("lqm_challenge_brain")||"{}"); } catch { return {}; } })();
-  const challengeQuantum = (() => { try { return JSON.parse(localStorage.getItem("lqm_challenge_quantum")||"{}"); } catch { return {}; } })();
+  // challengeQuantum removed
   const brainDay = challengeBrain.currentDay || 0;
-  const quantumDay = challengeQuantum.currentDay || 0;
+  // quantumDay removed
   const brainStreak = brainData.streak || 0;
   const quantumStreak = livingData.streak || 0;
   const brainXP = brainData.totalXP || 0;
@@ -849,7 +874,7 @@ function Hub({type, unlocks, onOpenNeural, onOpenVital, onViewReport, onUnlockNe
             <div style={{flex:1}}>
               <p style={{fontSize:13, fontWeight:700, color:"#34D399", letterSpacing:".12em", textTransform:"uppercase", marginBottom:3}}>Quantum Living</p>
               <p style={{fontSize:18, fontWeight:700, color:WHITE, marginBottom:4}}>5 Laws of Living</p>
-              {unlocks.vital?(<><p style={{fontSize:15, color:MUTED, marginBottom:10}}>Daily checklist · 5 quantum laws · 21-day journey</p><div style={{marginBottom:6}}><div style={{display:"flex", justifyContent:"space-between", marginBottom:4}}><span style={{fontSize:13, color:MUTED}}>21-Day Challenge</span><span style={{fontSize:13, color:"#34D399", fontWeight:700}}>Day {quantumDay} of 21</span></div><div style={{height:6, background:"rgba(255,255,255,0.06)", borderRadius:100, overflow:"hidden"}}><div style={{height:"100%", width:`${(quantumDay/21)*100}%`, background:"linear-gradient(90deg,#059669,#34D399)", borderRadius:100}}/></div></div><div style={{display:"flex", gap:12}}>{[{d:7,icon:"🌱"},{d:14,icon:"🌿"},{d:21,icon:"🌳"}].map(m=>(<span key={m.d} style={{fontSize:16, opacity:quantumDay>=m.d?1:0.2}}>{m.icon}</span>))}{quantumStreak>0&&<span style={{fontSize:13, color:AMBER, fontWeight:700, marginLeft:"auto"}}><FlameIcon size={13}/> {quantumStreak} day streak</span>}</div></>):(<><p style={{fontSize:14, color:"rgba(255,255,255,0.82)", fontWeight:500, lineHeight:1.5, marginBottom:4}}>Your biology is either working for you or against you.</p><p style={{fontSize:15, color:MUTED, marginBottom:12}}>5 quantum laws · sleep, breath, movement, temperance, nourishment · built around your archetype.</p><RotatingTestimonial accentColor="#34D399" quotes={[{text:"I've read every wellness book going. This is the first thing that actually stuck.",author:"Rachel, 41"},{text:"Simple enough to do daily, powerful enough to actually change things.",author:"Priya, 37"},{text:"By week three I hadn't needed my usual 3pm coffee in days.",author:"Tom, 45"}]}/></>)}
+              {unlocks.vital?(<><p style={{fontSize:15, color:MUTED, marginBottom:10}}>Daily checklist · 5 quantum laws</p><div style={{display:"flex", gap:12}}>{quantumStreak>0&&<span style={{fontSize:13, color:AMBER, fontWeight:700}}><FlameIcon size={13}/> {quantumStreak} day streak</span>}</div></>):(<><p style={{fontSize:14, color:"rgba(255,255,255,0.82)", fontWeight:500, lineHeight:1.5, marginBottom:4}}>Your biology is either working for you or against you.</p><p style={{fontSize:15, color:MUTED, marginBottom:12}}>5 quantum laws · sleep, breath, movement, temperance, nourishment · built around your archetype.</p><RotatingTestimonial accentColor="#34D399" quotes={[{text:"I've read every wellness book going. This is the first thing that actually stuck.",author:"Rachel, 41"},{text:"Simple enough to do daily, powerful enough to actually change things.",author:"Priya, 37"},{text:"By week three I hadn't needed my usual 3pm coffee in days.",author:"Tom, 45"}]}/></>)}
             </div>
           </div>
           <div style={{flexShrink:0}}>{unlocks.vital?<div style={{background:"rgba(52,211,153,0.1)", border:"1px solid rgba(52,211,153,0.3)", borderRadius:100, padding:"6px 14px", fontSize:13, color:"#34D399", fontWeight:700, animation:"ctaGlow 2s ease-in-out infinite"}}>Open →</div>:<button onClick={e=>{e.stopPropagation();onUnlockVital();}} style={{border:"none", borderRadius:100, padding:"8px 16px", fontSize:13, fontWeight:700, background:"linear-gradient(135deg,#059669,#34D399)", color:BG, cursor:"pointer", fontFamily:"'Space Grotesk',sans-serif", whiteSpace:"nowrap"}}>🔒 £5</button>}</div>
@@ -908,12 +933,6 @@ function RotatingStrapline() {
 
 // CHANGE 12: New Landing with archetype teaser, science strip, micro-preview
 function Landing({onStart}){
-  const [showSticky, setShowSticky] = useState(false);
-  useEffect(() => {
-    function onScroll() { setShowSticky(window.scrollY > 400); }
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
   return(
     <div>
       {/* Logo */}
@@ -923,7 +942,7 @@ function Landing({onStart}){
 
       {/* Hero headline */}
       <div className="fu1" style={{textAlign:"center",marginBottom:20}}>
-        <p style={{fontSize:14,fontWeight:700,letterSpacing:".16em",textTransform:"uppercase",color:"rgba(0,200,255,0.6)",marginBottom:14}}>
+        <p style={{fontSize:14,fontWeight:700,letterSpacing:".16em",textTransform:"uppercase",color:E_BLUE,marginBottom:14}}>
           ⚡ Behavioural Intelligence Assessment
         </p>
         <h1 style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"clamp(36px,8vw,64px)",lineHeight:1.05,letterSpacing:2,color:WHITE,marginBottom:6}}>
@@ -981,7 +1000,7 @@ function Landing({onStart}){
         border:`1px solid ${BORDER}`,
         borderRadius:14,
       }}>
-        <p style={{fontSize:12,fontWeight:700,color:"rgba(0,200,255,0.6)",letterSpacing:".16em",textTransform:"uppercase",marginBottom:14,textAlign:"center"}}>
+        <p style={{fontSize:12,fontWeight:700,color:E_BLUE,letterSpacing:".16em",textTransform:"uppercase",marginBottom:14,textAlign:"center"}}>
           Built on behavioural science
         </p>
         <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
@@ -992,7 +1011,7 @@ function Landing({onStart}){
             ["⬡","Systems-based design","How small structural changes compound over time"],
           ].map(([sym,title,desc])=>(
             <div key={title} style={{display:"flex",gap:10,alignItems:"flex-start"}}>
-              <span style={{color:"rgba(0,200,255,0.55)",fontSize:14,flexShrink:0,marginTop:2}}>{sym}</span>
+              <span style={{color:E_BLUE,fontSize:14,flexShrink:0,marginTop:2}}>{sym}</span>
               <div>
                 <p style={{fontSize:13,fontWeight:700,color:WHITE,marginBottom:2}}>{title}</p>
                 <p style={{fontSize:12,color:DIMMED,lineHeight:1.5}}>{desc}</p>
@@ -1073,7 +1092,7 @@ function Landing({onStart}){
       {/* ── WHAT'S INSIDE ──────────────────────────────────────────── */}
       <div style={{background:PANEL,border:`1px solid ${BORDER2}`,borderRadius:16,padding:"26px",marginBottom:24,borderTop:`2px solid rgba(0,200,255,0.18)`}}>
         <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:16}}>
-          <p style={{fontSize:16,fontWeight:700,letterSpacing:".14em",textTransform:"uppercase",color:"rgba(0,200,255,0.6)",whiteSpace:"nowrap"}}>
+          <p style={{fontSize:16,fontWeight:700,letterSpacing:".14em",textTransform:"uppercase",color:E_BLUE,whiteSpace:"nowrap"}}>
             What's inside your report
           </p>
           <div style={{flex:1,height:1,background:`linear-gradient(90deg,${E_BLUE}44,transparent)`}}/>
@@ -1086,7 +1105,7 @@ function Landing({onStart}){
           ["◎","Behavioural Pattern Profile","How your answers distributed across structure, analysis, relational and creative tendencies — new in 2026"],
         ].map(([ic,ti,de])=>(
           <div key={ti} style={{display:"flex",gap:14,marginBottom:16,alignItems:"flex-start"}}>
-            <span style={{color:"rgba(0,200,255,0.5)",fontSize:17,flexShrink:0,marginTop:2}}>{ic}</span>
+            <span style={{color:E_BLUE,fontSize:17,flexShrink:0,marginTop:2}}>{ic}</span>
             <div>
               <p style={{fontSize:14,fontWeight:600,color:WHITE,marginBottom:3}}>{ti}</p>
               <p style={{fontSize:16,color:MUTED,fontWeight:300,lineHeight:1.6}}>{de}</p>
@@ -1096,36 +1115,12 @@ function Landing({onStart}){
       </div>
 
       {/* ── CTA ──────────────────────────────────────────────────────── */}
-      <div className="fu4" style={{textAlign:"center",paddingBottom:80}}>
+      <div className="fu4" style={{textAlign:"center"}}>
         <PrimaryBtn onClick={onStart}>⚡ Begin My Free Assessment →</PrimaryBtn>
         <p style={{marginTop:10,fontSize:15,color:DIMMED}}>
           Takes 3 minutes · See your result before paying
         </p>
       </div>
-      {/* ── STICKY MOBILE CTA ─────────────────────────────────────── */}
-      {showSticky && (
-        <div style={{
-          position:"fixed",bottom:0,left:0,right:0,zIndex:200,
-          background:"rgba(7,15,30,0.95)",
-          backdropFilter:"blur(16px)",
-          borderTop:`1px solid rgba(0,200,255,0.15)`,
-          padding:"12px 20px",
-          display:"flex",alignItems:"center",justifyContent:"center",gap:14,
-          animation:"fadeUp .3s ease both",
-        }}>
-          <button onClick={onStart} style={{
-            flex:1,maxWidth:400,
-            border:"1px solid rgba(0,200,255,0.5)",borderRadius:100,padding:"14px",
-            fontSize:15,fontWeight:700,
-            fontFamily:"'Space Grotesk',sans-serif",
-            cursor:"pointer",letterSpacing:".05em",
-            background:`linear-gradient(135deg,${E_BLUE},#7DD3FC)`,
-            color:BG,
-            boxShadow:`0 4px 20px rgba(0,200,255,0.35),0 0 50px rgba(0,200,255,0.12)`,
-          }}>⚡ Begin Free Assessment</button>
-          <p style={{fontSize:12,color:DIMMED,whiteSpace:"nowrap",flexShrink:0}}>3 min · Free</p>
-        </div>
-      )}
     </div>
   );
 }
@@ -1224,7 +1219,7 @@ function DeliveryGate({ref_, ts, type, onConfirm}){
     onConfirm(email);
   }
   return(
-    <div style={{position:"fixed",inset:0,background:"rgba(7,15,30,0.97)",backdropFilter:"blur(12px)",zIndex:500,display:"flex",alignItems:"center",justifyContent:"center",padding:20,overflowY:"auto"}}>
+    <div style={{position:"fixed",inset:0,background:"rgba(7,15,30,0.97)",backdropFilter:"blur(12px)",zIndex:500,display:"flex",alignItems:"center",justifyContent:"flex-start",padding:"40px 20px",overflowY:"auto"}}>
       <div style={{width:"100%",maxWidth:480,background:`linear-gradient(145deg,${DARK2},${DARK})`,border:`2px solid rgba(52,211,153,0.4)`,borderRadius:22,padding:"40px 32px",textAlign:"center",boxShadow:"0 0 60px rgba(52,211,153,0.08)"}}>
         <div style={{fontSize:48,marginBottom:16}}>📋</div>
         <p style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:28,letterSpacing:2,color:"#34D399",marginBottom:6}}>Report Ready</p>
@@ -1257,6 +1252,9 @@ function DeliveryGate({ref_, ts, type, onConfirm}){
 function ResultReveal({type, patterns, onExplore}) {
   const [shareOpen, setShareOpen] = useState(false);
   const [copied,    setCopied]    = useState(false);
+  const [saving,    setSaving]    = useState(false);
+  const revealCardRef = useRef(null);
+  async function handleScreenshot() { setSaving(true); await captureAndShare(revealCardRef); setSaving(false); }
 
   // Colour tokens — aligned with the app's design system
   const E_BLUE  = "#00C8FF";
@@ -1430,7 +1428,7 @@ function ResultReveal({type, patterns, onExplore}) {
           animation:"fadeUp .25s ease both",
         }}>
           {/* Mini screenshot card */}
-          <div style={{
+          <div ref={revealCardRef} style={{
             background:`linear-gradient(145deg,${DARK2},${DARK})`,
             border:`2px solid ${archColor}44`,
             borderTop:`3px solid ${archColor}`,
@@ -1500,13 +1498,19 @@ function ResultReveal({type, patterns, onExplore}) {
                 transition:"all .2s",
               }}
             >{copied ? "✓ Copied!" : "⬡ Copy link"}</button>
-            <div style={{
-              flex:1, textAlign:"center",
-              background:"rgba(255,255,255,0.04)",
-              border:"1px solid rgba(255,255,255,0.12)",
-              borderRadius:100, padding:"11px",
-              fontSize:13, fontWeight:700, color:DIMMED,
-            }}>📱 Screenshot</div>
+            <button
+              onClick={handleScreenshot}
+              style={{
+                flex:1, textAlign:"center",
+                background: saving ? "rgba(0,200,255,0.08)" : "rgba(255,255,255,0.04)",
+                border: `1px solid ${saving ? "rgba(0,200,255,0.35)" : "rgba(255,255,255,0.12)"}`,
+                borderRadius:100, padding:"11px",
+                fontSize:13, fontWeight:700,
+                color: saving ? E_BLUE : DIMMED,
+                cursor:"pointer", fontFamily:"'Space Grotesk',sans-serif",
+                transition:"all .2s",
+              }}
+            >{saving ? "Saving…" : "📱 Screenshot"}</button>
           </div>
         </div>
       )}
@@ -1743,6 +1747,9 @@ function BehaviouralPatternSection({patterns}) {
 function ShareableCard({type, patterns}) {
   const [open,   setOpen]   = useState(false);
   const [copied, setCopied] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const cardRef = useRef(null);
+  async function handleScreenshot() { setSaving(true); await captureAndShare(cardRef); setSaving(false); }
 
   const tension = patterns ? TENSION_NARRATIVES[patterns.tensionKey] : null;
 
@@ -1803,7 +1810,7 @@ function ShareableCard({type, patterns}) {
           }}>Your shareable archetype card</p>
 
           {/* THE SCREENSHOT CARD */}
-          <div style={{
+          <div ref={cardRef} style={{
             background:`linear-gradient(145deg,${PC_DARK2},${PC_DARK})`,
             border:`2px solid ${type.blue}55`,
             borderTop:`3px solid ${type.blue}`,
@@ -1942,13 +1949,19 @@ function ShareableCard({type, patterns}) {
                 transition:"all .2s",
               }}
             >{copied ? "✓ Link copied!" : "⬡ Copy lqmmethod.com"}</button>
-            <div style={{
-              flex:1, textAlign:"center",
-              background:"rgba(255,255,255,0.04)",
-              border:"1px solid rgba(255,255,255,0.12)",
-              borderRadius:100, padding:"11px",
-              fontSize:13, fontWeight:700, color:PC_DIMMED,
-            }}>📱 Screenshot to share</div>
+            <button
+              onClick={handleScreenshot}
+              style={{
+                flex:1, textAlign:"center",
+                background: saving ? "rgba(0,200,255,0.08)" : "rgba(255,255,255,0.04)",
+                border: `1px solid ${saving ? "rgba(0,200,255,0.35)" : "rgba(255,255,255,0.12)"}`,
+                borderRadius:100, padding:"11px",
+                fontSize:13, fontWeight:700,
+                color: saving ? PC_BLUE : PC_DIMMED,
+                cursor:"pointer", fontFamily:"'Space Grotesk',sans-serif",
+                transition:"all .2s",
+              }}
+            >{saving ? "Saving…" : "📱 Screenshot to share"}</button>
           </div>
           <p style={{fontSize:12, color:PC_DIMMED, textAlign:"center", lineHeight:1.65}}>
             Post on Instagram, TikTok, or send to someone who'd find this useful.
