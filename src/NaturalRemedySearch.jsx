@@ -2640,6 +2640,9 @@ export default function NaturalRemedySearch({ onBack }) {
   const [search, setSearch] = useState("");
   const [activeCategory, setActiveCategory] = useState(null);
 
+  // Scroll to top when entering the search page
+  useEffect(() => { window.scrollTo(0, 0); }, []);
+
   // Filter ailments by search and category
   // Catalogue sections appear first, then health conditions alphabetically
   const PRIORITY_IDS = ["juices-nourishment","recipes-nourishment","daily-protocols","wellness-essentials"];
