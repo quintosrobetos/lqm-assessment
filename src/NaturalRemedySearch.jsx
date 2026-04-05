@@ -2098,7 +2098,7 @@ function formatTimer(secs) {
 // ══════════════════════════════════════════════════════════════════════════
 function GuidedProtocol({ remedy, accentColor, onClose }) {
   const [step, setStep] = useState(0);
-  const [voiceOn, setVoiceOn] = useState(false);
+  const [voiceOn, setVoiceOn] = useState(true);
   const [timer, setTimer] = useState(null);
   const [timerActive, setTimerActive] = useState(false);
   const [showTip, setShowTip] = useState(false);
@@ -2291,14 +2291,10 @@ function GuidedProtocol({ remedy, accentColor, onClose }) {
 
       {/* Main content area */}
       <div ref={contentRef} style={{
-        flex: 1,
-        padding: "20px 28px 100px", overflow: "auto",
+        flex: 1, display: "flex", flexDirection: "column",
+        alignItems: "center",
+        padding: "24px 28px 100px", overflow: "auto",
       }}>
-        {/* Centering wrapper: margin auto centers short steps, collapses for long ones */}
-        <div style={{
-          minHeight: "100%", display: "flex", flexDirection: "column",
-          alignItems: "center", justifyContent: "center",
-        }}>
 
         {/* Step number */}
         <div style={{
@@ -2373,7 +2369,6 @@ function GuidedProtocol({ remedy, accentColor, onClose }) {
             )}
           </div>
         )}
-        </div>{/* end centering wrapper */}
       </div>
 
       {/* Bottom nav — fixed to bottom so Next is always visible */}
