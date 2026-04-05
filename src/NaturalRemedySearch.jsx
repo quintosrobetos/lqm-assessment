@@ -1,2893 +1,2156 @@
 import { useState, useEffect, useRef } from "react";
+import BrainTraining from "./BrainTraining.jsx";
+import QuantumLiving from "./QuantumLiving.jsx";
+import html2canvas from "html2canvas";
 
-const E_BLUE  = "#00C8FF";
-const BG      = "#070F1E";
-const DARK    = "#0D1830";
-const DARK2   = "#111E38";
-const PANEL   = "rgba(255,255,255,0.055)";
-const BORDER  = "rgba(0,200,255,0.18)";
-const BORDER2 = "rgba(255,255,255,0.09)";
-const WHITE   = "#FFFFFF";
-const MUTED   = "rgba(255,255,255,0.80)";
-const DIMMED  = "rgba(255,255,255,0.55)";
-const GREEN   = "#34D399";
-const AMBER   = "#FBBF24";
-const PURPLE  = "#818CF8";
+import {
+  trackArchetypeResult,
+  trackPatternDistribution,
+  trackReturnVisit,
+} from "./firebase";
 
-// ── Source badge colours ──────────────────────────────────────────────────
-const SOURCE_META = {
-  BTE: { label:"Back to Eden", short:"BTE", color:"#34D399", bg:"rgba(52,211,153,0.12)", border:"rgba(52,211,153,0.35)" },
-  BON: { label:"Barbara O'Neill", short:"BON", color:"#00C8FF", bg:"rgba(0,200,255,0.12)", border:"rgba(0,200,255,0.35)" },
-  MJ:  { label:"Mary Jones", short:"MJ",  color:"#A78BFA", bg:"rgba(167,139,250,0.12)", border:"rgba(167,139,250,0.35)" },
-  AE:  { label:"Arnold Ehret", short:"AE",  color:"#F59E0B", bg:"rgba(245,158,11,0.12)", border:"rgba(245,158,11,0.35)" },
-};
+const STRIPE_MAIN  = "https://buy.stripe.com/00w8wR50Xber8VZfkka3u00";
+const STRIPE_MAIN_FULL = "https://buy.stripe.com/4gMfZjeBxdmzc8b0pqa3u04";
+const STRIPE_BRAIN = "https://buy.stripe.com/8x2eVfgJF4Q37RVb44a3u02";
+const STRIPE_VITAL = "https://buy.stripe.com/eVq5kF651gyLgorc88a3u03";
+const STRIPE_BUNDLE = "https://buy.stripe.com/dRm8wR3WT4Q30pt5JKa3u05";
 
-const LAW_LABELS = {
-  "01": { title:"Quantum Rest",        icon:"🌙", color:"#818CF8" },
-  "02": { title:"Quantum Breath",      icon:"🌿", color:"#34D399" },
-  "03": { title:"Quantum Balance",     icon:"⚖️", color:"#F59E0B" },
-  "04": { title:"Quantum Motion",      icon:"⚡", color:"#00C8FF" },
-  "05": { title:"Quantum Fuel",        icon:"🌱", color:"#A78BFA" },
-};
+function getUnlocks() { try { return JSON.parse(localStorage.getItem("lqm_unlocks")||"{}"); } catch { return {}; } }
+function setUnlock(key) { const u=getUnlocks(); u[key]=true; localStorage.setItem("lqm_unlocks",JSON.stringify(u)); }
 
-// ── Remedy data ───────────────────────────────────────────────────────────
-const REMEDY_DATA = [
-  {
-    id: "high-blood-pressure",
-    ailment: "High Blood Pressure",
-    icon: "❤️",
-    color: "#EF4444",
-    categories: ["cardiovascular"],
-    remedies: [
-      {
-        name: "Garlic, Lemon & Cayenne Morning Tonic",
-        tagline: "Nature's most studied vasodilator combination",
-        sources: ["BTE", "BON"],
-        lawLink: "05",
-        ingredients: [
-          "3 raw garlic cloves — crush and rest 10 minutes to activate allicin",
-          "Juice of 1 lemon",
-          "¼ tsp cayenne pepper",
-          "250ml warm water",
-        ],
-        steps: [
-          { instruction: "Crush 3 raw garlic cloves using a knife or garlic press. Press firmly to break the cell walls.", tip: "Crushing releases the enzyme alliinase, which converts alliin into allicin — garlic's most powerful medicinal compound." },
-          { instruction: "Set the crushed garlic aside and wait 10 minutes. Do not skip this step.", timer: 600, tip: "Allicin is destroyed by immediate heat. The 10-minute rest allows full activation before it touches warm water." },
-          { instruction: "While waiting, squeeze the juice of 1 whole lemon into a glass.", tip: "Lemon provides vitamin C and citric acid, supporting mineral absorption and alkalising the body." },
-          { instruction: "Add a quarter teaspoon of cayenne pepper to the glass.", tip: "Cayenne improves peripheral circulation and acts as a catalyst for the other ingredients." },
-          { instruction: "Pour 250 millilitres of warm water into the glass. Warm, not hot — heat degrades allicin.", tip: "Water temperature matters. If you can comfortably sip it, the temperature is right." },
-          { instruction: "Add the rested garlic to the glass. Stir gently and drink the entire tonic on an empty stomach.", tip: "Best taken first thing in the morning. Consistent daily use over 4 to 6 weeks produces measurable results." },
-        ],
-        science: "Jethro Kloss identifies garlic as the most powerful cardiovascular herb in nature's pharmacy. Barbara O'Neill recommends this tonic as a foundational cardiovascular protocol, emphasising cayenne's role in improving peripheral circulation.",
-        method: "Crush garlic and allow to rest for 10 minutes before using — this activates allicin, the primary medicinal compound destroyed by immediate heat. Combine with lemon juice and cayenne in warm (not hot) water and drink first thing in the morning on an empty stomach. Consistent daily use over 4–6 weeks produces measurable results. Jethro Kloss identifies garlic as the most powerful cardiovascular herb in nature's pharmacy, specifically for arterial health and blood pressure normalisation. Barbara O'Neill recommends this tonic combination as a foundational cardiovascular protocol, emphasising cayenne's role in improving peripheral circulation.",
-        frequency: "Daily — first thing in the morning before food",
-        caution: "If on blood pressure medication, monitor levels closely and inform your doctor before use.",
-        sources_detail: {
-          BTE: "Jethro Kloss documents garlic as nature's most potent cardiovascular herb, with specific application for arterial health and blood pressure.",
-          BON: "Barbara O'Neill recommends this exact tonic combination as a primary cardiovascular protocol in her health seminars.",
-        },
-      },
-      {
-        name: "Magnesium & Potassium Protocol",
-        tagline: "The mineral deficiency most associated with elevated blood pressure",
-        sources: ["BON"],
-        lawLink: "05",
-        ingredients: [
-          "1 cup leafy greens (spinach, kale, silverbeet) — daily non-negotiable",
-          "1 banana or ½ avocado — daily",
-          "Handful of pumpkin seeds — daily (highest food source of magnesium)",
-          "Epsom salt bath — 2 cups dissolved in warm water, soak 20 minutes, 3× per week",
-        ],
-        steps: [
-          {
-                    instruction: "Begin building these foods into your daily diet as non-negotiables. Bananas, avocados, spinach, sweet potatoes, and dark leafy greens are your foundation.",
-                    tip: "Potassium directly counteracts sodium's effect on blood pressure. Most people get less than half the recommended daily intake."
-          },
-          {
-                    instruction: "Prepare a warm Epsom salt bath. Dissolve 2 cups of Epsom salt in warm water.",
-                    tip: "Epsom salt is magnesium sulphate. The skin absorbs magnesium directly — this bypasses digestive absorption issues that affect oral supplements."
-          },
-          {
-                    instruction: "Soak in the bath for 20 minutes. Relax completely.",
-                    timer: 1200,
-                    tip: "Magnesium is required for blood vessel wall relaxation. Without adequate levels, vessels remain in a state of chronic contraction — one of the most overlooked drivers of hypertension."
-          },
-          {
-                    instruction: "Repeat this bath 3 times per week. On non-bath days, eat at least 2 potassium-rich foods.",
-                    tip: "Barbara O'Neill emphasises that most people with elevated blood pressure are deficient in both magnesium and potassium before any other intervention is considered."
-          }
-],
-        science: "Magnesium is required for over 300 enzymatic processes including blood vessel relaxation. Barbara O'Neill identifies magnesium and potassium deficiency as the first intervention for hypertension.",
-        method: "Build these foods into every day as non-negotiables, not additions. The Epsom salt bath raises magnesium levels transdermally — the skin absorbs magnesium glycinate from the warm water during a 20-minute soak. Barbara O'Neill emphasises that most people with elevated blood pressure are deficient in both magnesium and potassium before any other intervention is considered. Magnesium is required for blood vessel wall relaxation — without adequate levels, vessels remain in a state of chronic contraction. This is one of the most overlooked and most correctable drivers of hypertension.",
-        frequency: "Daily food protocol, Epsom baths 3× per week",
-        caution: "In kidney disease, consult a doctor before high potassium foods or Epsom salts.",
-        sources_detail: {
-          BON: "Barbara O'Neill identifies magnesium deficiency as the single most overlooked factor in cardiovascular disease, citing it as required for over 300 enzymatic processes including blood vessel relaxation.",
-        },
-      },
-      {
-        name: "Mucusless Cleansing Protocol",
-        tagline: "Remove the obstruction — restore natural pressure",
-        sources: ["AE"],
-        lawLink: "03",
-        ingredients: [
-          "Fresh fruit only for 24 hours (grapes, apples, citrus — one type at a time)",
-          "Fresh vegetable juices: celery, cucumber, beetroot",
-          "Water — minimum 2 litres per day throughout",
-          "Eliminate entirely: dairy, refined flour, refined sugar, processed meats",
-        ],
-        steps: [
-          {
-                    instruction: "Begin with a 24-hour fruit fast. Eat only fresh, whole fruits and drink plenty of filtered water throughout the day.",
-                    tip: "This is not starvation — it is a reset. Fresh fruit provides natural sugars, enzymes, and hydration while giving the digestive system rest."
-          },
-          {
-                    instruction: "After the fast, adopt a mucusless foundation for your meals: raw and lightly cooked vegetables, fresh fruits, and leafy greens.",
-                    tip: "Eliminate dairy, refined flour, processed meats, and white sugar — these are the primary mucus-forming foods."
-          },
-          {
-                    instruction: "Gradually extend your fasting periods as your body tolerates. Listen to your body — if you feel weak, eat fruit.",
-                    tip: "Important: if you have existing health conditions, start very gradually. The body needs time to adjust. Always begin with the stomach cleanse and stay well hydrated."
-          },
-          {
-                    instruction: "Continue this foundation diet for a minimum of 4 weeks. Observe changes in energy, clarity, and blood pressure readings.",
-                    tip: "Arnold Ehret observed consistent normalisation of blood pressure within weeks of sustained cleansing in his clinical work."
-          }
-],
-        science: "Arnold Ehret's principle: elevated blood pressure results from circulatory obstruction. Removing mucus-forming foods reduces the resistance the heart works against.",
-        method: "Arnold Ehret's fundamental principle: elevated blood pressure is the result of obstruction in the circulatory system — accumulated mucus and waste material forcing the heart to work harder against resistance. The protocol begins with a 24-hour fruit fast, gradually extending as the body tolerates. Between fasts, adopt a mucusless foundation: raw and lightly cooked vegetables, fruits, and elimination of all mucus-forming foods. Ehret observed consistent normalisation of blood pressure within weeks of sustained cleansing in his clinical work with patients in Europe.",
-        frequency: "24-hour fruit fast once weekly; full dietary protocol as a sustained lifestyle shift",
-        caution: "Extended fasting should not be undertaken while on blood pressure medication without medical supervision. Never stop prescribed medication without a doctor's guidance.",
-        sources_detail: {
-          AE: "Professor Arnold Ehret in 'Kranke Menschen' identifies all chronic cardiovascular conditions as fundamentally conditions of obstruction, best addressed through systematic dietary cleansing rather than suppression.",
-        },
-      },
-      {
-        name: "Hawthorn Berry Tea",
-        tagline: "Clinically proven cardiovascular herb — used for centuries across cultures",
-        sources: ["BTE"],
-        lawLink: "05",
-        ingredients: [
-          "2.5 oz (70g) dried hawthorn berries",
-          "6 cups filtered water",
-          "Raw honey to taste (optional — hawthorn tea is naturally tart)",
-        ],
-        steps: [
-          { instruction: "Add the dried hawthorn berries and 6 cups of filtered water to a saucepan.", tip: "Hawthorn berries are available from health food stores and online herbal suppliers. Look for whole dried berries, not powdered." },
-          { instruction: "Bring to a boil, then reduce to a gentle simmer. Cover and simmer for 45 minutes.", timer: 2700, tip: "The long simmer extracts the oligomeric procyanidins — the active compounds responsible for hawthorn's cardiovascular benefits." },
-          { instruction: "Remove from heat and strain the liquid through a fine sieve. Discard the berries.", tip: "The tea will be a deep reddish-brown colour. It is naturally tart — add raw honey if you prefer it sweeter." },
-          { instruction: "Drink 1 to 2 cups daily. Allow a minimum of 12 weeks for measurable blood pressure effects.", tip: "A meta-analysis of 428 participants found hawthorn reduced systolic blood pressure by an average of 6.65mmHg — comparable to first-line pharmaceutical treatment. The effect builds over weeks, not days." },
-        ],
-        science: "Hawthorn has been used for cardiovascular support for centuries. A 2025 meta-analysis of randomised placebo-controlled trials found it significantly reduces systolic blood pressure. A UK randomised controlled trial demonstrated it is safe alongside prescribed medication, with no herb-drug interactions found over 16 weeks.",
-        method: "Add dried hawthorn berries to water, bring to a boil, simmer for 45 minutes, strain and drink. The long simmer extracts the active cardiovascular compounds. Minimum 12 weeks of daily use for measurable results.",
-        frequency: "1-2 cups daily — minimum 12 weeks for blood pressure effects",
-        caution: "Hawthorn is generally safe and has been studied alongside prescribed medication with no interactions found. However, if you take heart medication (especially digoxin), consult your doctor before use.",
-        sources_detail: {
-          BTE: "Hawthorn is documented throughout traditional herbal medicine as one of the primary cardiovascular herbs. Modern clinical trials have confirmed its blood pressure lowering and heart-strengthening properties.",
-        },
-      },
-      {
-        name: "Hibiscus Tea",
-        tagline: "Blood pressure reduction comparable to prescription medication in clinical trials",
-        sources: ["BTE"],
-        lawLink: "05",
-        ingredients: [
-          "¼ cup dried hibiscus flowers (Hibiscus sabdariffa)",
-          "4 cups filtered water",
-          "Raw honey or stevia to taste (optional — hibiscus is naturally tart)",
-        ],
-        steps: [
-          { instruction: "Add a quarter cup of dried hibiscus flowers to 4 cups of cold or hot filtered water.", tip: "Hibiscus can be brewed hot or cold. Cold-brewed overnight produces a smoother, less tart flavour. Hot-brewed is ready in 10 minutes." },
-          { instruction: "For hot tea: bring water to a boil, pour over hibiscus, and steep for 10 minutes. For cold brew: stir into cold water and refrigerate overnight.", timer: 600, tip: "The deep red colour comes from anthocyanins — the same antioxidant compounds found in blueberries. These are the primary active compounds for blood pressure reduction." },
-          { instruction: "Strain the tea. Add raw honey or stevia if the tartness is too strong.", tip: "Hibiscus tea is very tart — similar to cranberry juice. Most people prefer it sweetened. Raw honey adds antimicrobial benefits." },
-          { instruction: "Drink 2 to 3 cups daily. A meta-analysis of 26 clinical trials found hibiscus reduces systolic blood pressure by 7.10mmHg on average.", tip: "In clinical trials, hibiscus showed blood pressure reductions comparable to commonly prescribed antihypertensive medications including captopril and hydrochlorothiazide." },
-        ],
-        science: "A meta-analysis of 26 randomised controlled trials involving 1,797 participants found hibiscus dose-dependently reduced systolic and diastolic blood pressure. Effects were comparable to prescription antihypertensive drugs. Hibiscus also lowered LDL cholesterol and fasting blood glucose.",
-        method: "Steep dried hibiscus flowers in hot or cold water. Strain and drink 2-3 cups daily. Cold-brewed overnight produces the smoothest flavour. Consistent daily use produces clinically significant blood pressure reduction.",
-        frequency: "2-3 cups daily for cardiovascular benefit",
-        caution: "Hibiscus may interact with hydrochlorothiazide and other diuretics. If you take blood pressure medication, consult your doctor before starting hibiscus tea. Not recommended during pregnancy as it may affect oestrogen levels.",
-        sources_detail: {
-          BTE: "Hibiscus has been used as a cardiovascular remedy across African, Middle Eastern, and Asian traditional medicine systems for centuries. Modern clinical trials have validated its blood pressure lowering properties.",
-        },
-      },
+const LQM_SECRET = 0xA3F72B;
 
-    ],
-  },
+function lqmValidateCode(rawInput) {
+  const clean = rawInput.replace(/[-\s]/g,"").toUpperCase();
+  if (!clean.startsWith("LQM") || clean.length !== 12)
+    return { valid:false, reason:"Format should be LQM-XXXX-XXXXX" };
+  const data   = clean.slice(3);
+  const b36str = data.slice(0, 7);
+  const chkIn  = data.slice(7, 9);
+  const chkExpected = [...b36str].reduce((a,c,i) => (a + c.charCodeAt(0)*(i+1)) % 1296, 0);
+  if (parseInt(chkIn, 36) !== chkExpected)
+    return { valid:false, reason:"Invalid code — please check for typos" };
+  const raw   = parseInt(b36str, 36) ^ LQM_SECRET;
+  const perms = raw & 0xF;
+  const expDay = raw >> 4;
+  const today = Math.trunc(Date.now() / 86400000);
+  if (today > expDay)
+    return { valid: false, reason:"This code has expired — please contact lqm@lqmmethod.com" };
+  const used = JSON.parse(localStorage.getItem("lqm_used_codes")||"[]");
+  if (used.includes(clean))
+    return { valid: false, reason:"This code has already been used on this device" };
+  return {
+      valid: true,
+    report: (perms & 1) === 1,
+    neural: (perms & 2) === 2,
+    vital:  (perms & 4) === 4,
+    codeKey: clean,
+  };
+}
 
-  {
-    id: "diabetes",
-    ailment: "Diabetes & Blood Sugar",
-    icon: "🩸",
-    color: "#F59E0B",
-    categories: ["metabolic", "energy"],
-    remedies: [
-      {
-        name: "Apple Cider Vinegar & Cinnamon Protocol",
-        tagline: "Two of the most clinically validated natural blood sugar regulators",
-        sources: ["BON", "BTE"],
-        lawLink: "05",
-        ingredients: [
-          "1 tbsp raw apple cider vinegar — with the mother (unfiltered)",
-          "½ tsp Ceylon cinnamon — not cassia, which contains coumarin",
-          "250ml warm water",
-          "Optional: 1 tsp raw honey",
-        ],
-        steps: [
-          {
-                    instruction: "Measure 1 tablespoon of raw, unfiltered apple cider vinegar with the 'mother' visible.",
-                    tip: "The 'mother' contains beneficial bacteria and enzymes. Clear, filtered ACV lacks these compounds."
-          },
-          {
-                    instruction: "Add half a teaspoon of Ceylon cinnamon — not cassia. Check the label carefully.",
-                    tip: "This distinction matters. Cassia cinnamon contains coumarin, which is toxic in regular doses. Ceylon is safe for daily use."
-          },
-          {
-                    instruction: "Mix both into a glass of warm water. Stir thoroughly until the cinnamon is dissolved.",
-                    tip: "Warm water helps the cinnamon dissolve and makes the drink more palatable."
-          },
-          {
-                    instruction: "Drink this 15 to 20 minutes before your largest carbohydrate meal of the day.",
-                    tip: "The acetic acid in ACV inhibits starch-digesting enzymes, slowing glucose absorption by up to 34% in clinical studies."
-          },
-          {
-                    instruction: "Make this a permanent before-meal ritual. Consistency is the mechanism — not occasional use.",
-                    tip: "Barbara O'Neill recommends this as a daily practice built permanently into the day, not as an occasional supplement."
-          }
-],
-        science: "Ceylon cinnamon improves insulin sensitivity at the cellular receptor level. Jethro Kloss identifies cinnamon as a primary herb for pancreatic support throughout Back to Eden.",
-        method: "Mix ACV and cinnamon in warm water and drink 15–20 minutes before your largest carbohydrate meal of the day. The acetic acid in ACV inhibits starch-digesting enzymes, slowing glucose absorption by up to 34% in clinical studies. Ceylon cinnamon (not cassia) improves insulin sensitivity at the cellular receptor level — this distinction matters as cassia contains coumarin, toxic in regular doses. Barbara O'Neill recommends this as a before-meal ritual built permanently into the day, not as an occasional supplement. Jethro Kloss identifies cinnamon as a primary herb for pancreatic support throughout Back to Eden.",
-        frequency: "Before main carbohydrate meals — ideally before lunch and dinner",
-        caution: "If on insulin or glucose-lowering medication, monitor blood glucose closely. ACV enhances the effect of these drugs and dosing may need adjustment.",
-        sources_detail: {
-          BON: "Barbara O'Neill recommends ACV before carbohydrate meals as one of her primary blood sugar protocols, citing peer-reviewed evidence on acetic acid and starch absorption.",
-          BTE: "Jethro Kloss identifies cinnamon as a primary herb for pancreatic support and blood sugar regulation throughout Back to Eden.",
-        },
-      },
-      {
-        name: "Bitter Herbs & Chromium Foods",
-        tagline: "Traditional pancreatic support confirmed by modern research",
-        sources: ["BTE", "BON"],
-        lawLink: "05",
-        ingredients: [
-          "Bitter melon (karela) — 50ml juice or cooked daily",
-          "Fenugreek seeds — 1 tsp soaked overnight, consumed in the morning",
-          "Brewer's yeast — 1 tbsp daily (highest food source of chromium)",
-          "Broccoli, green beans, wholegrains — chromium-rich foods daily",
-        ],
-        steps: [
-          {
-                    instruction: "Source bitter melon from your local Asian grocery or health food store. Prepare it as a juice or light stir-fry.",
-                    tip: "Bitter melon contains compounds that behave similarly to insulin, facilitating glucose uptake into cells."
-          },
-          {
-                    instruction: "Soak 2 tablespoons of fenugreek seeds overnight in a glass of filtered water.",
-                    tip: "The soluble fibre in fenugreek slows glucose absorption significantly when consumed with the soaking water."
-          },
-          {
-                    instruction: "In the morning, drink the fenugreek soaking water and eat the softened seeds before breakfast.",
-                    tip: "This is most effective on an empty stomach, 20 minutes before food."
-          },
-          {
-                    instruction: "Eat chromium-rich foods daily: broccoli, green beans, whole grains, and egg yolks.",
-                    tip: "Chromium is the essential mineral cofactor for insulin to function at the cellular receptor level. Deficiency directly impairs glucose metabolism."
-          }
-],
-        science: "Barbara O'Neill emphasises chromium deficiency as a root cause of insulin resistance. Jethro Kloss documents bitter herbs as the traditional treatment for pancreatic weakness.",
-        method: "Bitter melon has demonstrated insulin-mimetic properties — compounds that behave similarly to insulin in the body, facilitating glucose uptake into cells. Fenugreek seeds, soaked overnight and consumed with the soaking water, slow glucose absorption significantly through their high soluble fibre content. Chromium is the essential mineral cofactor for insulin to function at the cellular receptor level — deficiency directly impairs glucose metabolism. Barbara O'Neill emphasises chromium deficiency as a root cause of insulin resistance, and recommends whole food sources over isolated supplements. Jethro Kloss documents bitter herbs as the traditional treatment for pancreatic weakness across cultures throughout Back to Eden.",
-        frequency: "Daily as a dietary foundation — minimum 12 weeks for significant effect",
-        caution: "Bitter melon may enhance the effect of insulin medication. Monitor glucose levels closely when introducing.",
-        sources_detail: {
-          BTE: "Back to Eden identifies bitter herbs — particularly those affecting the liver and pancreas — as foundational to blood sugar regulation.",
-          BON: "Barbara O'Neill emphasises chromium deficiency as a root cause of insulin resistance, recommending whole food sources over supplements.",
-        },
-      },
-      {
-        name: "Mucusless Diet — Addressing the Root",
-        tagline: "Eliminate the foods that obstruct normal insulin function",
-        sources: ["AE"],
-        lawLink: "03",
-        ingredients: [
-          "Eliminate entirely: refined sugar, white flour, dairy, ultra-processed foods",
-          "Foundation: raw and lightly cooked vegetables, fruits, legumes",
-          "Daily eating window: 8 hours, with 16 hours fasting (minimum)",
-          "Weekly 24-hour fruit fast: grapes, apples, or citrus only",
-        ],
-        steps: [
-          {
-                    instruction: "Remove all mucus-forming foods from your kitchen: refined carbohydrates, dairy products, and processed proteins.",
-                    tip: "This addresses the condition at its root rather than managing symptoms. The pancreas and liver need to be cleared of obstruction."
-          },
-          {
-                    instruction: "Replace your meals with cleansing foods: fresh fruits, raw vegetables, leafy greens, and vegetable juices.",
-                    tip: "These foods provide nutrition while allowing the body's detoxification systems to work without additional burden."
-          },
-          {
-                    instruction: "Begin periodic fasting — start with a 16-hour overnight fast and extend gradually as tolerated.",
-                    tip: "Modern research confirms fasting triggers autophagy — a cellular self-cleaning process that improves insulin sensitivity."
-          },
-          {
-                    instruction: "Maintain this protocol for a minimum of 90 days. Monitor your blood glucose levels weekly.",
-                    tip: "Ehret documented consistent improvement and in some cases full reversal in patients who followed this protocol over 90 days."
-          }
-],
-        science: "Arnold Ehret's position: the pancreas and liver are obstructed by accumulated waste, preventing normal insulin production. Removing the cause addresses the condition at its root.",
-        method: "Arnold Ehret's position on diabetes is consistent with his broader theory: the pancreas and liver are obstructed by accumulated mucus and waste, preventing normal insulin production and utilisation. His protocol removes all mucus-forming foods — refined carbohydrates, dairy, and processed proteins — replacing them entirely with cleansing foods. Combined with periodic fasting (which modern research confirms triggers autophagy and improves insulin sensitivity at the cellular level), this addresses the condition at its root rather than managing symptoms. Ehret documented consistent improvement and in some cases full reversal in patients who adopted this protocol over 90 days or more.",
-        frequency: "Lifestyle protocol — 90 days minimum to observe significant, measurable change",
-        caution: "Not a replacement for insulin therapy in Type 1 diabetes. Type 2 dietary protocols must be undertaken with medical monitoring and regular glucose testing.",
-        sources_detail: {
-          AE: "In 'Kranke Menschen', Ehret identifies diabetes as a disease of dietary obstruction, consistently improved through systematic fasting and mucusless eating in his clinical observations.",
-        },
-      },
-    ],
-  },
+const FONTS=`@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Bebas+Neue&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap');`;
+const E_BLUE="#00C8FF",E_BLUE2="#0EA5E9",E_GLOW="rgba(0,200,255,0.15)";
+const BG="#070F1E",DARK="#0D1830",DARK2="#111E38",PANEL="rgba(255,255,255,0.055)";
+const BORDER="rgba(0,200,255,0.18)",BORDER2="rgba(255,255,255,0.09)";
+const WHITE="#FFFFFF",MUTED="rgba(255,255,255,0.78)",DIMMED="rgba(255,255,255,0.50)";
+const AMBER="#FBBF24",GREEN="#22C55E",PURPLE="#A855F7";
+const SYMS=["⚛","◈","⬡","△","◎","⊕","⟁","⬢"];
+const RED="#EF4444";
 
-  {
-    id: "inflammation",
-    ailment: "Inflammation",
-    icon: "🔥",
-    color: "#EF4444",
-    categories: ["inflammation", "immunity"],
-    remedies: [
-      {
-        name: "Turmeric, Ginger & Black Pepper Protocol",
-        tagline: "The most researched natural anti-inflammatory combination",
-        sources: ["BON", "BTE", "MJ"],
-        lawLink: "05",
-        ingredients: [
-          "1 tsp turmeric powder — or 2cm fresh turmeric, grated",
-          "1cm fresh ginger, grated",
-          "¼ tsp black pepper — increases curcumin absorption by up to 2,000%",
-          "1 tsp coconut oil or ghee — curcumin is fat-soluble, requires fat",
-          "250ml warm plant milk or water",
-        ],
-        steps: [
-          {
-                    instruction: "Warm 250 millilitres of your preferred milk — coconut, almond, or oat milk work well. Warm gently, do not boil.",
-                    tip: "Excessive heat degrades curcumin. Keep the temperature comfortable for drinking."
-          },
-          {
-                    instruction: "Add 1 teaspoon of ground turmeric or grate a 1-inch piece of fresh turmeric root into the warm milk.",
-                    tip: "Fresh turmeric has higher bioavailability but ground turmeric is perfectly effective for daily use."
-          },
-          {
-                    instruction: "Add half a teaspoon of freshly grated ginger or a quarter teaspoon of ground ginger.",
-                    tip: "Ginger contains gingerols and shogaols that inhibit inflammatory pathways. It also aids absorption."
-          },
-          {
-                    instruction: "Add a generous pinch of black pepper. This is not optional.",
-                    tip: "Piperine in black pepper inhibits the enzyme that breaks down curcumin in the liver, increasing bioavailability by up to 2000%."
-          },
-          {
-                    instruction: "Add half a teaspoon of coconut oil or ghee. Stir thoroughly and drink while warm.",
-                    tip: "Curcumin is fat-soluble — without fat, your body cannot absorb it effectively. The fat is a requirement, not an addition."
-          },
-          {
-                    instruction: "Drink this daily for a minimum of 8 weeks. Systemic anti-inflammatory effects build over time.",
-                    tip: "This is the golden milk protocol used across Ayurvedic and Back to Eden traditions. Minimum 8 weeks for chronic inflammation."
-          }
-],
-        science: "Mary Jones identifies this combination as the foundation of any herbal anti-inflammatory protocol. Barbara O'Neill recommends it as her primary anti-inflammatory recommendation.",
-        method: "Combine all ingredients and heat gently — do not boil, as excessive heat degrades curcumin. This is the 'golden milk' protocol used across Ayurvedic and Back to Eden traditions. The black pepper and fat are not optional additions — curcumin is fat-soluble and poorly absorbed without them. Piperine in black pepper inhibits the enzyme that breaks down curcumin in the liver, dramatically increasing its bioavailability. Mary Jones identifies this combination as the foundation of any herbal anti-inflammatory protocol in Herbal Antibiotics. Barbara O'Neill recommends it as her primary anti-inflammatory recommendation. Minimum 8 weeks of daily use for systemic effect on chronic inflammation.",
-        frequency: "Daily — morning or evening — minimum 8 weeks for systemic effect",
-        caution: "High-dose turmeric may potentiate blood-thinning medications. Consult a doctor if on anticoagulants.",
-        sources_detail: {
-          BON: "Barbara O'Neill recommends turmeric with black pepper and fat as her primary anti-inflammatory recommendation, citing the absorption research consistently.",
-          BTE: "Jethro Kloss documents turmeric and ginger as foundational anti-inflammatory herbs throughout Back to Eden.",
-          MJ: "Mary Jones identifies this combination as a first-line herbal anti-inflammatory protocol in Herbal Antibiotics.",
-        },
-      },
-      {
-        name: "Castor Oil Pack",
-        tagline: "Deep tissue anti-inflammatory — traditional healing, zero cost",
-        sources: ["BON", "BTE"],
-        lawLink: "03",
-        ingredients: [
-          "Cold-pressed castor oil — sufficient to saturate the cloth",
-          "Flannel or thick cotton cloth — cut to size of the treatment area",
-          "Plastic wrap or cling film — to prevent staining",
-          "Hot water bottle or heating pad",
-          "Old towel to protect clothing and furniture",
-        ],
-        steps: [
-          { instruction: "Lay an old towel over the surface where you will rest. This protects against oil staining.", tip: "Castor oil stains are very difficult to remove. Protect clothing, bedding, and furniture before starting." },
-          { instruction: "Pour cold-pressed castor oil onto the flannel cloth. Saturate it thoroughly — it should be wet but not dripping.", tip: "Cold-pressed castor oil retains the highest concentration of ricinoleic acid, the primary anti-inflammatory compound." },
-          { instruction: "Apply the saturated flannel directly to the affected area. For liver support, place on the right side of the abdomen beneath the ribcage.", tip: "The most common application sites are the liver region, inflamed joints, and areas of chronic pain." },
-          { instruction: "Cover the flannel with plastic wrap or cling film. Press gently to seal the edges.", tip: "The plastic wrap serves two purposes — it prevents oil from staining your clothes and it holds the heat in place." },
-          { instruction: "Place a hot water bottle or heating pad on top of the plastic wrap. Settle into a comfortable resting position.", tip: "Heat opens the pores and drives the ricinoleic acid deeper into the tissue. Warmth also supports lymphatic movement." },
-          { instruction: "Rest for 45 to 60 minutes. This is your time — close your eyes, breathe deeply, let the body heal.", timer: 2700, tip: "Research shows ricinoleic acid reduces prostaglandins — the body's primary inflammatory messengers — and stimulates lymphatic circulation." },
-          { instruction: "Remove the pack. Wipe excess oil gently from the skin with a warm damp cloth.", tip: "The flannel can be stored in a sealed container and reused for up to 30 applications. Add more oil as needed." },
-        ],
-        science: "Barbara O'Neill uses this as her primary external anti-inflammatory protocol. Jethro Kloss documents similar oil-based poultice applications throughout Back to Eden.",
-        method: "Soak the flannel in castor oil until saturated but not dripping. Apply directly to the affected area — liver region (right side of abdomen), inflamed joint, or area of chronic pain. Cover with plastic wrap to prevent staining, then place hot water bottle on top. Rest for 45–60 minutes. The ricinoleic acid in castor oil penetrates deeply into tissue — demonstrated in research to reduce prostaglandins (the body's primary inflammatory messengers) and stimulate lymphatic circulation in the treatment area. Barbara O'Neill uses this as her primary external anti-inflammatory protocol, demonstrating it at her health seminars. Jethro Kloss documents similar oil-based poultice applications throughout Back to Eden.",
-        frequency: "3–5 times per week for acute inflammation; weekly for maintenance",
-        caution: "Do not apply to broken skin, infected wounds, or during pregnancy.",
-        sources_detail: {
-          BON: "Barbara O'Neill regularly demonstrates the castor oil pack as one of the most effective and underused natural anti-inflammatory treatments, presenting it as a core healing tool.",
-          BTE: "Jethro Kloss documents the use of oil-based poultices and compresses for deep tissue inflammation throughout Back to Eden.",
-        },
-      },
-      {
-        name: "Hot & Cold Hydrotherapy",
-        tagline: "The body's original anti-inflammatory — used for centuries",
-        sources: ["BTE", "BON"],
-        lawLink: "04",
-        ingredients: [
-          "Hot shower or bath — as hot as comfortably tolerable",
-          "Cold shower — as cold as possible",
-          "Alternating cycles: 3 minutes hot, 30 seconds cold",
-          "Repeat 3–7 cycles — always ending on cold",
-        ],
-        steps: [
-          {
-                    instruction: "Begin your shower with warm water for 3 minutes. Let the warmth open your blood vessels and relax your muscles.",
-                    timer: 180,
-                    tip: "Hot water dilates blood vessels, driving circulation to the surface and bringing fresh oxygen and nutrients to tissue."
-          },
-          {
-                    instruction: "Switch to cold water for 30 seconds. Breathe through the shock — it passes quickly.",
-                    timer: 30,
-                    tip: "Cold water contracts vessels, pushing blood and lymph back toward the core. This is the pump action."
-          },
-          {
-                    instruction: "Switch back to warm water for 3 minutes.",
-                    timer: 180,
-                    tip: "The alternating expansion and contraction acts as a mechanical pump for the lymphatic system."
-          },
-          {
-                    instruction: "Switch to cold again for 30 seconds.",
-                    timer: 30,
-                    tip: "The lymphatic system has no pump of its own — it relies entirely on movement and external stimulus like this."
-          },
-          {
-                    instruction: "Repeat one more cycle: 3 minutes warm, then 30 seconds cold. Always finish on cold.",
-                    timer: 210,
-                    tip: "Finishing cold closes the pores and leaves the circulation invigorated. Three cycles is the therapeutic minimum."
-          }
-],
-        science: "Jethro Kloss dedicates extensive sections of Back to Eden to hydrotherapy as the body's greatest restorer. Barbara O'Neill teaches this as a fundamental daily practice for inflammation.",
-        method: "Hot water dilates blood vessels, driving circulation to the surface and bringing fresh oxygen and nutrients to the tissue. Cold water contracts vessels, pushing blood and lymph back toward the core. The alternating expansion and contraction acts as a mechanical pump for the lymphatic system — which, unlike the circulatory system, has no pump of its own and relies entirely on movement and external stimulus. This drives inflammatory waste products out of tissues and brings fresh blood in. Jethro Kloss dedicates extensive sections of Back to Eden to hydrotherapy as the body's greatest restorer. Barbara O'Neill teaches this as a fundamental daily practice for inflammation, not an occasional treatment.",
-        frequency: "Daily — ending every shower with 30–60 seconds of cold water is the minimum effective dose",
-        caution: "Avoid in cardiovascular conditions without medical clearance. Avoid extreme temperatures during pregnancy.",
-        sources_detail: {
-          BTE: "Back to Eden dedicates significant sections to hydrotherapy, identifying hot and cold water treatments as foundational to the body's self-healing capacity.",
-          BON: "Barbara O'Neill teaches alternating hydrotherapy as a cornerstone practice in her health seminars, specifically for lymphatic stimulation and inflammation resolution.",
-        },
-      },
-      {
-        name: "Mucusless Anti-Inflammatory Diet",
-        tagline: "All chronic inflammation has a dietary root — address it at source",
-        sources: ["AE"],
-        lawLink: "03",
-        ingredients: [
-          "Eliminate: dairy, refined grains, processed vegetable oils, refined sugar, alcohol",
-          "Foundation: raw fruits, salad vegetables, lightly steamed vegetables",
-          "Weekly 24-hour fruit fasts",
-          "Herbal teas daily: nettle, dandelion root, cleavers (lymphatic support)",
-        ],
-        steps: [
-          {
-                    instruction: "Identify and remove the primary inflammatory foods from your diet: dairy, refined sugar, white flour, and processed meats.",
-                    tip: "Arnold Ehret's core thesis: chronic inflammation is the body's attempt to expel accumulated waste from tissues. The symptoms are not the disease — they are the cleansing response."
-          },
-          {
-                    instruction: "Replace with anti-inflammatory whole foods: leafy greens, berries, fatty fish or walnuts, turmeric, and ginger.",
-                    tip: "These foods actively reduce inflammatory markers rather than simply avoiding triggers."
-          },
-          {
-                    instruction: "Commit to this dietary foundation for a minimum of 30 days. The first 7 to 10 days may produce temporary symptoms as the body adjusts.",
-                    tip: "Your body may experience a period of adjustment as accumulated waste begins to move. This is normal — stay hydrated and start with a gentle stomach cleanse. If symptoms are severe, slow down and consult a practitioner."
-          },
-          {
-                    instruction: "After 30 days, assess your inflammation levels. Joint pain, skin conditions, and digestive complaints often show measurable improvement.",
-                    tip: "Ehret documented resolution of long-standing inflammatory conditions in patients who followed this protocol consistently over months."
-          }
-],
-        science: "The protocol does not suppress inflammation with herbs — it removes the cause. Sustained elimination of mucus-forming foods allows the body to resolve its own inflammatory processes.",
-        method: "Arnold Ehret's core thesis is that chronic inflammation is the body's attempt to expel accumulated mucus and waste matter from tissues. The medical symptoms are not the disease — they are the cleansing response. The protocol does not suppress inflammation with herbs; it removes the cause. This requires sustained elimination of all mucus-forming foods and transition to a diet the body can fully utilise and fully eliminate. Ehret documented resolution of long-standing inflammatory conditions — arthritis, chronic skin conditions, digestive inflammation — in patients who followed the protocol consistently over months. The initial period may produce a temporary healing crisis as accumulated waste begins to move.",
-        frequency: "Lifestyle protocol — measurable results typically observable within 2–4 weeks of strict adherence",
-        caution: "Initial dietary change may produce a temporary healing crisis — a brief worsening of symptoms as the body begins eliminating stored waste. This passes. It is not a reason to stop.",
-        sources_detail: {
-          AE: "Professor Arnold Ehret in 'Kranke Menschen' and 'The Mucusless Diet Healing System' identifies chronic inflammation as fundamentally a condition of dietary obstruction, requiring removal of cause rather than suppression of symptoms.",
-        },
-      },
-    ],
-  },
+// ── html2canvas screenshot helper ─────────────────────────────────────────
+async function captureAndShare(elementRef) {
+  if (!elementRef?.current) return;
+  try {
+    const canvas = await html2canvas(elementRef.current, {
+      backgroundColor: "#070F1E",
+      scale: 2,
+      useCORS: true,
+      logging: false,
+    });
+    const blob = await new Promise(r => canvas.toBlob(r, "image/png"));
+    if (!blob) return;
+    if (navigator.share && navigator.canShare) {
+      const file = new File([blob], "lqm-archetype.png", { type: "image/png" });
+      const shareData = { files: [file], title: "My LQM Archetype", url: "https://lqmmethod.com" };
+      if (navigator.canShare(shareData)) { await navigator.share(shareData); return; }
+    }
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = "lqm-archetype.png";
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  } catch (err) { console.warn("[LQM] Screenshot failed:", err); }
+}
 
-  {
-    id: "cold-flu",
-    ailment: "Cold & Flu",
-    icon: "🤧",
-    color: "#818CF8",
-    categories: ["immunity", "respiratory"],
-    remedies: [
-      {
-        name: "Garlic, Lemon, Ginger & Honey Shot",
-        tagline: "Nature's broadest-spectrum antimicrobial combination",
-        sources: ["BTE", "MJ"],
-        lawLink: "05",
-        ingredients: [
-          "4 raw garlic cloves — crush and rest 10 minutes to activate allicin",
-          "Juice of 2 lemons",
-          "2cm fresh ginger, grated",
-          "1 tbsp raw honey — never heated above 40°C",
-          "Pinch of cayenne pepper",
-        ],
-        steps: [
-          {
-                    instruction: "Crush 2 raw garlic cloves firmly. Set aside for 10 minutes to activate allicin.",
-                    timer: 600,
-                    tip: "Allicin is the primary antimicrobial compound — it is destroyed by immediate heating or cutting without resting."
-          },
-          {
-                    instruction: "While the garlic rests, grate a 1-inch piece of fresh ginger into a small glass.",
-                    tip: "Ginger has significant antimicrobial and anti-inflammatory properties that complement the garlic."
-          },
-          {
-                    instruction: "Squeeze the juice of half a lemon into the glass.",
-                    tip: "Vitamin C supports immune function. The acidity also helps preserve the allicin."
-          },
-          {
-                    instruction: "Add 1 tablespoon of raw honey. Raw, not processed — check the label.",
-                    tip: "Raw honey provides additional antimicrobial action through hydrogen peroxide production and a unique peptide called defensin-1."
-          },
-          {
-                    instruction: "Add the rested garlic. Mix everything together and take it as a concentrated shot.",
-                    tip: "Take at the very first sign of illness — within the first hours. Effectiveness decreases significantly after 24 hours."
-          }
-],
-        science: "Mary Jones confirms allicin demonstrates broad-spectrum activity against bacteria, viruses, and fungi. Jethro Kloss calls garlic 'one of the most wonderful remedies in the herbal kingdom.'",
-        method: "Crush garlic and allow to rest for 10 full minutes before consuming — this activates allicin, the primary antimicrobial compound that is destroyed by immediate heating or cutting without resting. Combine all ingredients and take as a concentrated shot. Take at the very first sign of illness — within the first hours. Mary Jones' research in Herbal Antibiotics confirms allicin demonstrates broad-spectrum activity against bacteria, viruses, and fungi. Jethro Kloss calls garlic 'one of the most wonderful remedies in the herbal kingdom' and documents its use for acute infections throughout Back to Eden. Raw honey provides additional antimicrobial action through hydrogen peroxide production and a unique antimicrobial peptide, defensin-1.",
-        frequency: "Every 3–4 hours at onset; 3× daily during illness",
-        caution: "Raw garlic on an empty stomach may cause nausea — take with a small amount of food if needed.",
-        sources_detail: {
-          BTE: "Jethro Kloss calls garlic 'nature's antibiotic' and documents its use for infections, fevers, and respiratory illness throughout Back to Eden.",
-          MJ: "Mary Jones documents the antimicrobial properties of allicin extensively in Herbal Antibiotics, identifying crushed raw garlic as the most broadly active natural antimicrobial available.",
-        },
-      },
-      {
-        name: "Oil of Oregano & Elderberry Protocol",
-        tagline: "One of the most potent natural antimicrobial combinations known",
-        sources: ["MJ", "BON"],
-        lawLink: "02",
-        ingredients: [
-          "Oil of oregano — 3 drops in water or under tongue, every 4 hours",
-          "Elderberry syrup — 1 tbsp, 3× daily throughout illness",
-          "Thyme tea — 1 tsp dried thyme steeped 10 minutes, 3 cups daily",
-          "Echinacea tincture — 30 drops in water, 4× daily for the first 3 days only",
-        ],
-        steps: [
-          {
-                    instruction: "At the first sign of cold or flu, take 2 to 3 drops of oil of oregano under the tongue or in a small glass of water.",
-                    tip: "Oil of oregano contains carvacrol and thymol — compounds with broad-spectrum antimicrobial activity confirmed in peer-reviewed studies."
-          },
-          {
-                    instruction: "Take elderberry syrup — follow the dosage on your specific product. Take within the first 48 hours of symptoms.",
-                    tip: "Elderberry prevents viral replication at the cell surface by binding to viral proteins. Most effective as an early intervention."
-          },
-          {
-                    instruction: "Brew a strong cup of thyme tea — steep fresh or dried thyme for 10 minutes. Drink while hot.",
-                    timer: 600,
-                    tip: "Thyme is one of the most powerful natural expectorants, excellent for chest infections and productive coughs."
-          },
-          {
-                    instruction: "If using echinacea, take it for the first 3 days only — then stop.",
-                    tip: "Echinacea stimulates the immune response acutely. It is not intended as a long-term supplement — 3 days maximum."
-          },
-          {
-                    instruction: "Repeat the oregano oil and elderberry 3 times daily until symptoms resolve. Rest and stay hydrated.",
-                    tip: "This protocol is most effective as early intervention, not late-stage treatment. Start at the first sign."
-          }
-],
-        science: "Mary Jones highlights this combination specifically for respiratory infections in Herbal Antibiotics. Oregano, elderberry, thyme, and echinacea target different pathways for comprehensive coverage.",
-        method: "Oil of oregano contains carvacrol and thymol — compounds with broad-spectrum antimicrobial activity confirmed in multiple peer-reviewed studies against bacterial, viral, and fungal pathogens. It is most effective as an early intervention, not a late-stage treatment. Elderberry prevents viral replication at the cell surface by binding to viral proteins — most effective when taken within the first 48 hours. Thyme is one of the most powerful natural expectorants, excellent for chest infections and productive coughs. Echinacea is used for the first 3 days only — it stimulates the immune response acutely and is not intended as a long-term supplement. Mary Jones highlights this combination specifically for respiratory infections in Herbal Antibiotics.",
-        frequency: "Every 4 hours at acute onset. Echinacea: first 3 days only, then discontinue.",
-        caution: "Oil of oregano must be well diluted. Not for use during pregnancy. Do not exceed recommended dose.",
-        sources_detail: {
-          MJ: "Mary Jones identifies oil of oregano as one of the most clinically validated herbal antimicrobials, with documented activity against a broad spectrum of pathogens in Herbal Antibiotics.",
-          BON: "Barbara O'Neill recommends elderberry and thyme as primary immune support during acute viral illness, with thyme specifically for respiratory infections.",
-        },
-      },
-      {
-        name: "Mullein Leaf Tea",
-        tagline: "Centuries-old lung support — expectorant, anti-inflammatory, antimicrobial",
-        sources: ["BTE"],
-        lawLink: "02",
-        ingredients: [
-          "1-2 teaspoons dried mullein leaves",
-          "1 cup boiling filtered water",
-          "Fine strainer or cheesecloth (essential — mullein has tiny hairs that irritate the throat)",
-          "Raw honey to taste (optional)",
-        ],
-        steps: [
-          { instruction: "Place 1 to 2 teaspoons of dried mullein leaves in a cup or teapot.", tip: "Mullein contains saponins that act as natural expectorants, and mucilage that coats and soothes irritated respiratory passages. It has been used for lung conditions for over 2,000 years." },
-          { instruction: "Pour boiling water over the leaves. Cover and steep for 10 to 15 minutes.", timer: 600, tip: "The longer steep extracts more of the active compounds. Covering the cup prevents volatile compounds from escaping with the steam." },
-          { instruction: "Strain through a fine strainer or cheesecloth. This step is essential — mullein leaves have tiny hairs that will irritate your throat if not filtered out.", tip: "A coffee filter works well if you don't have cheesecloth. Double-straining is even better for a smooth tea." },
-          { instruction: "Add raw honey if desired. Drink up to 2 cups daily for respiratory support.", tip: "Mullein works as both an expectorant — helping you cough up mucus — and a demulcent — coating and soothing inflamed airways. Cleveland Clinic doctors recognise it as a practical respiratory remedy." },
-        ],
-        science: "Mullein contains saponins (natural expectorants that loosen mucus), mucilage (coats and soothes irritated mucous membranes), and flavonoids (anti-inflammatory). A 2005 study in Phytotherapy Research demonstrated expectorant and bronchodilatory effects. It has documented antibacterial activity against multiple pathogens including Staphylococcus aureus and Klebsiella pneumoniae.",
-        method: "Steep 1-2 teaspoons of dried mullein leaves in boiling water for 10-15 minutes. Strain thoroughly through fine cloth to remove tiny leaf hairs. Drink up to 2 cups daily.",
-        frequency: "Up to 2 cups daily during respiratory illness, or as needed for lung support",
-        caution: "Always strain thoroughly — the fine hairs on mullein leaves can irritate the throat. Generally safe with no reported toxic side effects. If you have asthma or COPD, consult your doctor first as it may irritate some individuals.",
-        sources_detail: {
-          BTE: "Mullein has been documented in herbal medicine for over 2,000 years. Dioscorides, physician to the Roman Army, recommended it for pulmonary diseases. Jethro Kloss includes it among the primary respiratory herbs.",
-        },
-      },
-      {
-        name: "Clove, Ginger & Cinnamon Tea",
-        tagline: "Antimicrobial powerhouse — kills bacteria, expels mucus, supports immunity",
-        sources: ["BTE"],
-        lawLink: "05",
-        ingredients: [
-          "¼ teaspoon whole cloves or ground cloves",
-          "½ inch fresh ginger (sliced)",
-          "1 cinnamon stick or ½ teaspoon ground cinnamon",
-          "3 cups boiling filtered water",
-          "Raw honey (optional — add after cooling slightly)",
-        ],
-        steps: [
-          { instruction: "Add the cloves, sliced ginger, and cinnamon stick to a saucepan with 3 cups of filtered water.", tip: "Cloves contain eugenol — one of the most potent natural antimicrobial compounds known. It kills bacteria in the mouth, expels mucus from the lungs, and supports the immune system." },
-          { instruction: "Bring to a medium boil, then reduce heat and simmer for 5 minutes.", timer: 300, tip: "Ginger adds anti-nausea and anti-inflammatory properties. Cinnamon provides additional antimicrobial action and helps regulate blood sugar." },
-          { instruction: "Remove from heat and allow to cool slightly. Strain into a cup.", tip: "Do not add honey to boiling liquid — heat destroys honey's beneficial enzymes. Let it cool to a drinkable temperature first." },
-          { instruction: "Add raw honey if desired. Drink warm. This tea is particularly effective at the onset of cold or flu symptoms.", tip: "This combination targets respiratory infections from multiple angles: clove kills bacteria, ginger reduces inflammation, cinnamon is antimicrobial, and honey soothes and protects the throat." },
-        ],
-        science: "Eugenol in cloves has documented broad-spectrum antimicrobial activity. Clove oil is used in dentistry as a natural analgesic and antiseptic. Combined with ginger's anti-inflammatory gingerols and cinnamon's cinnamaldehyde, this tea provides comprehensive antimicrobial and respiratory support.",
-        method: "Simmer cloves, ginger, and cinnamon in water for 5 minutes. Strain, cool slightly, add honey. Drink warm at the first sign of cold or flu symptoms.",
-        frequency: "2-3 cups daily during illness, or 1 cup daily as preventive support",
-        caution: "Clove oil is very potent — do not consume undiluted clove essential oil internally. This recipe uses whole or ground cloves in tea form, which is safe. If on blood thinners, consult your doctor as cloves may amplify anticoagulant effects.",
-        sources_detail: {
-          BTE: "Cloves have been used as a medicinal spice across every traditional healing system for thousands of years. Eugenol, the primary active compound, is still used in modern dentistry as a natural analgesic and antiseptic.",
-        },
-      },
-
-    ],
-  },
-
-  {
-    id: "sleep",
-    ailment: "Can't Sleep",
-    icon: "🌙",
-    color: "#818CF8",
-    categories: ["sleep", "stress"],
-    remedies: [
-      {
-        name: "Magnesium & Herbal Evening Protocol",
-        tagline: "Address the deficiency that disrupts sleep for most people",
-        sources: ["BON", "BTE"],
-        lawLink: "01",
-        ingredients: [
-          "Chamomile tea — 2 strong cups, 1 hour before bed",
-          "Or passionflower tea — 1 cup (stronger sedative action than chamomile)",
-          "Warm Epsom salt foot bath — 2 cups in warm water, soak 20 minutes",
-          "1 tsp raw honey in herbal tea — provides slow-release liver glycogen",
-        ],
-        steps: [
-          { instruction: "Begin this protocol one hour before your intended sleep time. Dim the lights in your home now.", tip: "Bright light suppresses melatonin production. Dimming lights signals to your body that sleep is approaching." },
-          { instruction: "Boil water and prepare your herbal tea. Use chamomile for general relaxation or passionflower for anxiety-driven insomnia. Steep for 5 minutes.", timer: 300, tip: "Chamomile contains apigenin, which binds directly to GABA receptors. Passionflower increases GABA activity more strongly." },
-          { instruction: "Add 1 teaspoon of raw honey to the tea and stir. This is not optional — it provides slow-release glycogen for the liver overnight.", tip: "The liver needs glycogen to sustain repair processes during sleep. Without it, the body releases cortisol at 3am to generate glucose — waking you up." },
-          { instruction: "Fill a basin with warm water. Dissolve 2 cups of Epsom salt. Place your feet in and soak.", tip: "Magnesium is absorbed through the skin. It is required to convert tryptophan into serotonin and then into melatonin." },
-          { instruction: "Sip your tea slowly while soaking your feet. Continue for 20 minutes.", timer: 1200, tip: "This is a deliberate wind-down. No phone, no screen, no conversation. Let the nervous system decelerate." },
-          { instruction: "Dry your feet thoroughly. Go directly to bed within the next 30 minutes. Do not look at any screens.", tip: "Consistency is the mechanism. After 21 nights, this becomes automatic — your body will begin anticipating sleep as soon as the ritual starts." },
-        ],
-        science: "Barbara O'Neill identifies magnesium deficiency as the primary driver of sleep difficulty. Jethro Kloss documents the warm foot bath as one of nature's most reliable sleep remedies, drawing blood away from the head and calming the nervous system.",
-        method: "Chamomile contains apigenin — a flavonoid compound that binds directly to GABA receptors in the brain, producing a mild sedative effect backed by clinical research. Passionflower increases GABA activity more strongly and is the better choice for anxiety-driven insomnia. The Epsom salt foot bath raises magnesium levels transdermally — magnesium is required to convert tryptophan into serotonin and then into melatonin. Without adequate magnesium, the melatonin production pathway is impaired regardless of other interventions. Jethro Kloss documents the warm foot bath as one of nature's most reliable sleep remedies throughout Back to Eden, drawing blood away from the head and calming the nervous system. Barbara O'Neill consistently identifies magnesium as the first intervention for sleep difficulty.",
-        frequency: "Nightly as a pre-sleep ritual — minimum 21 days to re-establish sleep architecture",
-        caution: "Chamomile allergy is rare but possible in those sensitive to ragweed. Passionflower not for use during pregnancy.",
-        sources_detail: {
-          BON: "Barbara O'Neill identifies magnesium deficiency as the primary driver of sleep difficulty and recommends transdermal supplementation via Epsom salts as highly effective and immediately accessible.",
-          BTE: "Jethro Kloss documents the warm foot bath and chamomile tea as foundational natural sleep remedies in Back to Eden, as part of a complete pre-sleep wind-down protocol.",
-        },
-      },
-      {
-        name: "Circadian Reset Protocol",
-        tagline: "The five environmental changes that reset broken sleep — no supplements required",
-        sources: ["AE", "BON"],
-        lawLink: "01",
-        ingredients: [
-          "Final meal: minimum 3 hours before sleep",
-          "Screens off: 1 hour before bed — no exceptions for 21 days",
-          "Room temperature: 18°C — cooler than most people use",
-          "Consistent wake time: the same time every day regardless of when you slept",
-          "Morning sunlight: 10 minutes outdoors within 30 minutes of waking",
-        ],
-        steps: [
-          {
-                    instruction: "Set a consistent wake time — the same time every day, including weekends. This is the single most important change.",
-                    tip: "The consistent wake time is more effective than any herb or supplement because it works at the circadian root."
-          },
-          {
-                    instruction: "Within 30 minutes of waking, get outside and expose your eyes to natural morning light for at least 10 minutes.",
-                    tip: "Morning light sets the cortisol peak that determines melatonin production 14 to 16 hours later."
-          },
-          {
-                    instruction: "Stop eating by 7pm. Do not eat anything after this time.",
-                    tip: "Evening eating disrupts insulin sensitivity and keeps the digestive system active, preventing the body from entering deep repair states."
-          },
-          {
-                    instruction: "Dim all lights in your home 2 hours before bed. Switch off overhead lights and use lamps.",
-                    tip: "Bright artificial light suppresses melatonin. Dimming signals to your body that night is approaching."
-          },
-          {
-                    instruction: "Be in bed by 10pm. The body's peak cellular repair occurs during deep sleep — you must be asleep before this window.",
-                    tip: "These five changes, applied together consistently for 21 days, reset sleep architecture more reliably than any single remedy."
-          }
-],
-        science: "Arnold Ehret identified evening overeating as a primary cause of disturbed sleep. Barbara O'Neill adds the circadian science: morning light exposure sets the hormonal cascade for that night's sleep.",
-        method: "Arnold Ehret identified evening overeating as a primary cause of disturbed sleep — the digestive system's continued activity prevents the body from entering the deep repair states that constitute restorative sleep. Barbara O'Neill adds the circadian science: morning light exposure, received through the retina within 30 minutes of waking, sets the cortisol peak that determines melatonin production 14–16 hours later. The consistent wake time is the single most effective intervention for re-establishing a broken sleep cycle — more effective than any herb or supplement because it works at the circadian root. These five changes, applied together consistently for 21 days, reset sleep architecture more reliably than any single remedy.",
-        frequency: "Non-negotiable daily protocol — 21 days to reset the circadian rhythm, then maintenance",
-        caution: "None — purely environmental adjustments that work with the body's natural biology.",
-        sources_detail: {
-          AE: "Ehret identifies evening overeating and toxic accumulation as primary disruptors of natural sleep, resolved through dietary simplification and appropriate eating windows.",
-          BON: "Barbara O'Neill teaches the circadian light protocol extensively, citing morning sunlight as the master regulator of the entire sleep-wake system.",
-        },
-      },
-    ],
-  },
-
-  {
-    id: "headaches",
-    ailment: "Headaches & Migraines",
-    icon: "🧠",
-    color: "#818CF8",
-    categories: ["pain", "inflammation"],
-    remedies: [
-      {
-        name: "Peppermint & Lavender Temple Protocol",
-        tagline: "Topical vasodilation — as effective as low-dose paracetamol in studies",
-        sources: ["BTE", "MJ"],
-        lawLink: "03",
-        ingredients: [
-          "3 drops peppermint essential oil",
-          "2 drops lavender essential oil",
-          "1 tsp coconut or almond oil — carrier",
-          "Cold damp cloth for the forehead",
-          "Silence and darkness — non-negotiable",
-        ],
-        steps: [
-          { instruction: "Place 1 teaspoon of carrier oil — coconut or almond — into a small dish or the palm of your hand.", tip: "Never apply essential oils directly to skin without a carrier. Neat application can cause irritation or chemical burn." },
-          { instruction: "Add 3 drops of peppermint essential oil to the carrier oil.", tip: "Peppermint contains menthol, which produces a cooling vasodilatory effect on the superficial blood vessels of the scalp." },
-          { instruction: "Add 2 drops of lavender essential oil. Mix gently with your fingertip.", tip: "Lavender acts on GABA receptors to reduce the anxiety and tension component that commonly accompanies headaches and migraine." },
-          { instruction: "Apply the oil blend to both temples using gentle, slow circular motions. Take your time — 30 seconds per side.", tip: "A 2016 study in Cephalalgia found 10% peppermint oil applied topically was equivalent in pain reduction to 1000mg of paracetamol." },
-          { instruction: "Apply the remaining oil to the centre of your forehead and the back of your neck at the base of the skull.", tip: "The occipital region at the back of the skull is where tension headaches originate. Treating this area addresses the source." },
-          { instruction: "Soak a cloth in cold water, wring it out, and lay it across your forehead. Find a quiet, dark room and rest for 15 minutes.", timer: 900, tip: "Silence and darkness are not optional. Sensory input amplifies headache. Reducing it accelerates relief." },
-        ],
-        science: "Jethro Kloss documents peppermint as one of the most powerful herbal analgesics in Back to Eden. Mary Jones identifies this combination as a primary herbal headache protocol in Herbal Antibiotics.",
-        method: "Dilute the essential oils in the carrier oil and apply gently to the temples, forehead, and back of the neck. Do not apply neat to skin. Peppermint contains menthol, which produces a cooling vasodilatory effect on the superficial blood vessels of the scalp — a 2016 study in Cephalalgia found 10% peppermint oil applied topically was equivalent in pain reduction to 1000mg of paracetamol. Lavender acts on GABA receptors to reduce the anxiety component that commonly accompanies migraine. Jethro Kloss documents peppermint as one of the most powerful herbal analgesics in Back to Eden. Mary Jones identifies this combination as a primary herbal headache protocol.",
-        frequency: "At onset — reapply every 20–30 minutes as needed",
-        caution: "Do not apply near eyes or on broken skin. Peppermint not suitable for children under 6.",
-        sources_detail: {
-          BTE: "Jethro Kloss documents peppermint as one of the most powerful herbal analgesics and nervous system herbs throughout Back to Eden.",
-          MJ: "Mary Jones identifies peppermint and lavender as the primary herbal topical combination for tension and vascular headaches in Herbal Antibiotics.",
-        },
-      },
-      {
-        name: "Magnesium & Hydration Protocol",
-        tagline: "The two most common and most overlooked headache triggers",
-        sources: ["BON"],
-        lawLink: "05",
-        ingredients: [
-          "500ml water — drink immediately at headache onset",
-          "Epsom salt bath or foot soak — 2 cups in warm water, 20 minutes",
-          "Magnesium-rich foods: pumpkin seeds, dark chocolate, leafy greens",
-          "Eliminate at onset: caffeine, alcohol, processed sugar",
-        ],
-        steps: [
-          {
-                    instruction: "Drink 500 millilitres of filtered water immediately. Do not sip — drink it steadily over 2 to 3 minutes.",
-                    tip: "Dehydration of just 1 to 2 percent produces measurable headache in most people. This is often the sole cause of tension headaches."
-          },
-          {
-                    instruction: "Continue drinking water at one glass every 20 minutes for the next hour.",
-                    tip: "Rehydration takes time. A single glass will not resolve dehydration-related headache — sustained intake is needed."
-          },
-          {
-                    instruction: "Prepare a warm Epsom salt foot bath — dissolve 1 cup in warm water. Soak your feet for 15 minutes.",
-                    timer: 900,
-                    tip: "Magnesium deficiency is the most researched nutritional factor in migraine. The Epsom salt soak raises magnesium faster than oral supplements."
-          },
-          {
-                    instruction: "Rest in a quiet room during the foot soak. Avoid screens and bright lights.",
-                    tip: "Barbara O'Neill consistently identifies dehydration and magnesium deficiency as the first intervention before any other remedy is considered."
-          }
-],
-        science: "Estimated 50% of migraine sufferers are magnesium deficient. Transdermal magnesium via Epsom salts provides faster absorption than oral supplements.",
-        method: "Dehydration of just 1–2% produces measurable headache in most people — this is often the sole cause of tension headaches and the trigger for migraines in susceptible individuals. Drink 500ml of water immediately and continue at one glass per 20 minutes. Magnesium deficiency is the most researched nutritional factor in migraine — estimated 50% of migraine sufferers are deficient. The Epsom salt soak raises magnesium transdermally, providing faster effect than oral supplements. Barbara O'Neill consistently identifies these two factors — dehydration and magnesium deficiency — as the first intervention before any other remedy is considered.",
-        frequency: "Immediately at onset. Daily magnesium protocol for prevention.",
-        caution: "Sudden severe headache unlike previous headaches warrants immediate medical assessment.",
-        sources_detail: {
-          BON: "Barbara O'Neill identifies dehydration and magnesium deficiency as the two most overlooked and most correctable causes of chronic headache and migraine.",
-        },
-      },
-    ],
-  },
-
-  {
-    id: "anxiety-stress",
-    ailment: "Anxiety & Stress",
-    icon: "🌊",
-    color: "#34D399",
-    categories: ["stress", "sleep"],
-    remedies: [
-      {
-        name: "Adaptogen & Nervous System Tonic",
-        tagline: "Regulate cortisol — rebuild the stress response from the foundation",
-        sources: ["BON", "MJ"],
-        lawLink: "03",
-        ingredients: [
-          "Ashwagandha — 300mg standardised extract or 1 tsp root powder",
-          "Holy basil (tulsi) tea — 2 cups daily",
-          "Lemon balm tea — 1 cup before bed (GABA modulation)",
-          "Eliminate: caffeine, refined sugar — primary cortisol triggers",
-        ],
-        steps: [
-          {
-                    instruction: "Take 300 to 600 milligrams of Ashwagandha in the evening. Look for KSM-66 or Sensoril extract on the label.",
-                    tip: "Ashwagandha is the most clinically researched adaptogen for anxiety. Withaferin A reduces cortisol by an average of 27% over 60 days."
-          },
-          {
-                    instruction: "Take holy basil tea or capsules in the morning — 300 to 600 milligrams or 1 strong cup of tulsi tea.",
-                    tip: "Holy basil reduces psychological and physiological stress markers. It has been used in Ayurvedic medicine as a primary nervine tonic for centuries."
-          },
-          {
-                    instruction: "Add lemon balm tea to your evening routine — steep fresh or dried lemon balm for 7 minutes.",
-                    tip: "Lemon balm contains rosmarinic acid, which inhibits the enzyme that breaks down GABA — the brain's primary calming neurotransmitter."
-          },
-          {
-                    instruction: "Continue this combination daily for a minimum of 60 days. Adaptogenic effects build gradually over time.",
-                    tip: "Barbara O'Neill identifies adrenal cortisol dysregulation as the physiological root of most anxiety. These herbs address the root, not the symptom."
-          }
-],
-        science: "Mary Jones documents this herbal combination as foundational nervous system support. Multiple randomised controlled trials confirm ashwagandha's efficacy for stress and anxiety.",
-        method: "Ashwagandha (withania somnifera) is the most clinically researched adaptogen for anxiety — withaferin A reduces cortisol by an average of 27% over 60 days in randomised controlled trials. Holy basil (tulsi) reduces psychological and physiological stress markers and is used in Ayurvedic medicine as a primary nervine tonic. Lemon balm contains rosmarinic acid, which inhibits the enzyme that breaks down GABA — the brain's primary calming neurotransmitter. Barbara O'Neill identifies adrenal cortisol dysregulation as the physiological root of most anxiety. Mary Jones documents this herbal combination as foundational nervous system support in her work.",
-        frequency: "Daily as a sustained protocol — minimum 6 weeks for measurable cortisol reduction",
-        caution: "Ashwagandha not for use during pregnancy. Lemon balm may enhance sedatives.",
-        sources_detail: {
-          BON: "Barbara O'Neill identifies the adrenal-cortisol axis as the physiological root of chronic anxiety and teaches a structured herbal and lifestyle recovery protocol.",
-          MJ: "Mary Jones documents adaptogens and nervine herbs as the primary natural intervention for anxiety and stress in her herbal work.",
-        },
-      },
-      {
-        name: "Breath & Movement Reset",
-        tagline: "The nervous system cannot distinguish between a real and imagined threat — change the physiology",
-        sources: ["BON", "AE"],
-        lawLink: "02",
-        ingredients: [
-          "Box breathing: 4 counts in, hold 4, out 4, hold 4 — repeat 4 cycles",
-          "20-minute outdoor walk — in nature where possible",
-          "Cold water face immersion — 30 seconds in cold water triggers the dive reflex",
-          "Eliminate screens for 1 hour before the practice",
-        ],
-        steps: [
-          {
-                    instruction: "Box breathing: inhale for 4 counts, hold for 4 counts, exhale for 4 counts, hold for 4 counts. Repeat 4 times.",
-                    tip: "This activates the parasympathetic nervous system within 60 to 90 seconds by stimulating the vagus nerve."
-          },
-          {
-                    instruction: "Fill a basin with cold water. Immerse your face in the cold water for 15 to 30 seconds.",
-                    tip: "This triggers the mammalian dive reflex — an ancient parasympathetic response that drops heart rate by 10 to 25% within seconds."
-          },
-          {
-                    instruction: "Go outside immediately. Walk briskly in fresh air for 20 minutes. Do not take your phone.",
-                    tip: "Outdoor movement in fresh air has measurable effects on cortisol within 20 minutes. This is direct neurological intervention."
-          },
-          {
-                    instruction: "During the walk, breathe deliberately through your nose — in for 4 counts, out for 6 counts.",
-                    tip: "Extended exhale breathing maintains the parasympathetic activation throughout the walk. Nasal breathing filters and warms the air."
-          }
-],
-        science: "Arnold Ehret identified stagnant indoor air and physical inactivity as primary physiological contributors to nervous system dysregulation. Cold water face immersion is one of the fastest known anxiety interventions.",
-        method: "The physiological stress response is automatic — but it can be interrupted deliberately through the body. Box breathing activates the parasympathetic nervous system within 60–90 seconds by increasing carbon dioxide tolerance and stimulating the vagus nerve. Cold water face immersion triggers the mammalian dive reflex — an ancient parasympathetic response that drops heart rate by 10–25% within seconds. This is not relaxation advice — it is direct neurological intervention. Arnold Ehret identified stagnant indoor air and physical inactivity as primary physiological contributors to nervous system dysregulation. Outdoor movement in fresh air has measurable effects on cortisol within 20 minutes.",
-        frequency: "Daily practice. Box breathing: immediately at onset of anxiety.",
-        caution: "Cold water face immersion is not suitable for those with heart conditions without medical clearance.",
-        sources_detail: {
-          BON: "Barbara O'Neill teaches breathwork and cold water therapy as direct nervous system interventions, not merely relaxation techniques.",
-          AE: "Arnold Ehret identifies fresh air, movement, and dietary simplicity as the triad of nervous system restoration in his clinical observations.",
-        },
-      },
-    ],
-  },
-
-  {
-    id: "joint-pain",
-    ailment: "Joint Pain & Arthritis",
-    icon: "🦴",
-    color: "#00C8FF",
-    categories: ["pain", "inflammation"],
-    remedies: [
-      {
-        name: "Turmeric, Boswellia & Omega Protocol",
-        tagline: "The three most clinically validated natural anti-inflammatory compounds for joints",
-        sources: ["BON", "MJ", "BTE"],
-        lawLink: "05",
-        ingredients: [
-          "1 tsp turmeric with ¼ tsp black pepper — daily in food or warm drink",
-          "Boswellia (frankincense) capsule — 400mg, twice daily with food",
-          "Omega-3 rich foods daily: ground flaxseed, walnuts, chia seeds",
-          "Tart cherry juice — 240ml daily (highest natural source of anti-inflammatory anthocyanins)",
-        ],
-        steps: [
-          {
-                    instruction: "Take 1000 milligrams of Boswellia serrata extract daily. Take with food for best absorption.",
-                    tip: "Boswellic acids inhibit leukotriene synthesis — the specific inflammatory pathway driving joint degradation. Unlike NSAIDs, Boswellia does not cause gastrointestinal side effects."
-          },
-          {
-                    instruction: "Drink 250 millilitres of tart cherry juice daily — unsweetened, not from concentrate.",
-                    tip: "Tart cherry contains the highest known concentration of anti-inflammatory anthocyanins of any food. Studies show it reduces gout attack frequency by 35%."
-          },
-          {
-                    instruction: "Take turmeric daily — either as golden milk or 500 milligrams of curcumin extract with black pepper.",
-                    tip: "Turmeric addresses the broader inflammatory environment. Always take with black pepper and fat for absorption."
-          },
-          {
-                    instruction: "Add omega-3 rich foods to your daily diet: walnuts, flaxseed, chia seeds, or wild salmon.",
-                    tip: "Omega-3 fatty acids reduce inflammatory markers throughout the body. Aim for at least one rich source every day."
-          }
-],
-        science: "Mary Jones documents this combination as the most comprehensive natural joint protocol in her herbal work. Multiple clinical trials support Boswellia for joint inflammation.",
-        method: "Boswellic acids in Boswellia serrata have been shown in clinical trials to reduce joint inflammation by inhibiting leukotriene synthesis — the specific inflammatory pathway driving joint degradation. Unlike NSAIDs, Boswellia does not inhibit prostaglandins, avoiding the gastrointestinal side effects. Tart cherry juice contains the highest known concentration of anti-inflammatory anthocyanins of any food — multiple studies show it reduces markers of exercise-induced inflammation and reduces gout attack frequency by 35%. Turmeric addresses the broader inflammatory environment. Mary Jones documents this combination as the most comprehensive natural joint protocol in her herbal work.",
-        frequency: "Daily — minimum 8 weeks for measurable joint improvement",
-        caution: "Boswellia may interact with anti-inflammatory medications. Discuss with your doctor if on NSAIDs.",
-        sources_detail: {
-          BON: "Barbara O'Neill recommends the turmeric and omega-3 combination as her primary dietary anti-inflammatory protocol for joint conditions.",
-          MJ: "Mary Jones documents Boswellia and tart cherry as the most clinically validated herbal interventions specifically for joint inflammation.",
-          BTE: "Jethro Kloss documents anti-inflammatory herbs and whole food nutrition as the foundation of joint health throughout Back to Eden.",
-        },
-      },
-      {
-        name: "Castor Oil Pack & Hydrotherapy",
-        tagline: "Direct anti-inflammatory application to the affected joint",
-        sources: ["BTE", "BON"],
-        lawLink: "04",
-        ingredients: [
-          "Cold-pressed castor oil — generous amount",
-          "Flannel cloth — cut to cover the joint",
-          "Plastic wrap to secure",
-          "Warm compress or hot water bottle",
-          "Contrast shower or cold compress after — 30 seconds cold",
-        ],
-        steps: [
-          {
-                    instruction: "Apply cold-pressed castor oil generously to the affected joint. Massage gently for 2 minutes.",
-                    tip: "Ricinoleic acid in castor oil penetrates deeply into joint tissue with significant anti-inflammatory and analgesic properties."
-          },
-          {
-                    instruction: "Cover with a flannel cloth and plastic wrap. Place a warm compress on top and rest for 45 minutes.",
-                    timer: 2700,
-                    tip: "Heat drives the castor oil deeper into the tissue and supports lymphatic movement around the joint."
-          },
-          {
-                    instruction: "Remove the pack. Immediately apply warm water to the joint for 3 minutes.",
-                    timer: 180,
-                    tip: "Warm water opens blood vessels and drives fresh oxygenated blood into the joint space."
-          },
-          {
-                    instruction: "Switch to cold water for 30 seconds.",
-                    timer: 30,
-                    tip: "Cold contracts vessels, pushing inflammatory waste out of the joint."
-          },
-          {
-                    instruction: "Repeat the warm and cold cycle 2 more times. Always finish on cold.",
-                    tip: "Three cycles of contrast hydrotherapy is the therapeutic standard. Jethro Kloss documents this as the traditional standard of care for arthritis."
-          }
-],
-        science: "Jethro Kloss documents oil-based joint treatments and hydrotherapy as the traditional standard of care for arthritis throughout Back to Eden.",
-        method: "Apply castor oil generously to the affected joint, cover with flannel and plastic wrap, place warm compress on top and rest for 45–60 minutes. The ricinoleic acid penetrates deeply into joint tissue and has demonstrated significant anti-inflammatory and analgesic properties in peer-reviewed research. Follow with contrast hydrotherapy — warm water for 3 minutes, cold for 30 seconds, repeated 3 times. This drives fresh oxygenated blood into the joint space while removing inflammatory waste. Jethro Kloss documents oil-based joint treatments and hydrotherapy as the traditional standard of care for arthritis throughout Back to Eden.",
-        frequency: "3–5 times per week for acute flare; weekly for maintenance",
-        caution: "Do not apply to broken or infected skin. Seek medical assessment for sudden severe joint swelling.",
-        sources_detail: {
-          BTE: "Back to Eden documents oil-based poultices and hydrotherapy as the traditional standard approach to joint inflammation and arthritis.",
-          BON: "Barbara O'Neill demonstrates castor oil packs for joint conditions as one of her primary topical anti-inflammatory protocols.",
-        },
-      },
-    ],
-  },
-
-  {
-    id: "skin",
-    ailment: "Skin Issues",
-    icon: "✨",
-    color: "#F472B6",
-    categories: ["skin", "inflammation"],
-    remedies: [
-      {
-        name: "Internal Cleansing Protocol",
-        tagline: "Skin is the body's third kidney — what appears outside reflects what is inside",
-        sources: ["AE", "BON"],
-        lawLink: "03",
-        ingredients: [
-          "Eliminate: dairy, refined sugar, refined vegetable oils, alcohol",
-          "Dandelion root tea — 2 cups daily (liver support and blood purification)",
-          "Nettle tea — 2 cups daily (mineral-rich, natural antihistamine)",
-          "Burdock root tea — 1 cup daily (traditional blood purifier)",
-          "Increase water to minimum 2.5 litres daily",
-        ],
-        steps: [
-          {
-                    instruction: "Begin drinking dandelion root tea daily — 2 strong cups, one morning and one afternoon.",
-                    tip: "The skin eliminates what the liver and kidneys cannot process. Supporting the liver is the first step to clearing skin conditions."
-          },
-          {
-                    instruction: "Remove the primary skin-aggravating foods: dairy, refined sugar, and processed oils.",
-                    tip: "Chronic skin conditions originate in the internal environment, not the skin itself. This is confirmed by both traditional and modern dermatology."
-          },
-          {
-                    instruction: "Increase your water intake to 2 litres of filtered water per day. Add lemon for additional liver support.",
-                    tip: "Hydration supports kidney function and gives the body an additional elimination pathway, reducing the burden on the skin."
-          },
-          {
-                    instruction: "Eat foods rich in zinc and vitamin A daily: pumpkin seeds, sweet potato, carrots, and leafy greens.",
-                    tip: "These nutrients are essential for skin cell regeneration and barrier repair. Most people with chronic skin conditions are deficient."
-          },
-          {
-                    instruction: "Maintain this internal protocol for 30 days before expecting visible skin changes.",
-                    tip: "Barbara O'Neill identifies the liver as the primary organ of skin health. Internal cleansing takes time to manifest externally."
-          }
-],
-        science: "Arnold Ehret's clinical observation, confirmed by modern dermatology: chronic skin conditions originate internally. The skin is an elimination organ — clear the internal environment and the skin follows.",
-        method: "Arnold Ehret's consistent clinical observation — and one confirmed by modern dermatology — is that chronic skin conditions (eczema, psoriasis, acne, chronic rashes) originate in the internal environment, not the skin itself. The skin eliminates what the liver and kidneys cannot process. The protocol works from the inside: remove the inputs that generate inflammatory metabolic waste, support the liver and kidneys to process existing accumulation, and provide the skin with the nutrition it requires for barrier repair. Barbara O'Neill identifies the liver as the primary organ of skin health and dandelion root as her primary liver support herb.",
-        frequency: "4 weeks minimum to begin seeing skin changes. Full effect at 12 weeks.",
-        caution: "Burdock root not for use during pregnancy. Herbal teas in high quantities may interact with blood-thinning medication.",
-        sources_detail: {
-          AE: "Arnold Ehret consistently documented resolution of chronic skin conditions through internal dietary cleansing, identifying skin symptoms as elimination through the body's largest organ.",
-          BON: "Barbara O'Neill identifies the liver-skin connection as foundational to treating chronic skin conditions, recommending liver support herbs alongside dietary change.",
-        },
-      },
-      {
-        name: "Topical Natural Remedies",
-        tagline: "Nature's pharmacy for external skin support",
-        sources: ["BTE", "MJ"],
-        lawLink: "05",
-        ingredients: [
-          "Raw honey — apply directly to affected area for 20 minutes (antibacterial, wound-healing)",
-          "Aloe vera gel — fresh from the plant where possible (anti-inflammatory, skin repair)",
-          "Calendula infused oil — for dry, cracked, or inflamed skin (cellular repair)",
-          "Colloidal oatmeal paste — 1 tbsp oats ground fine, mixed with water (eczema relief)",
-          "Tea tree oil — 2 drops in 1 tsp carrier oil for fungal or bacterial skin issues",
-        ],
-        steps: [
-          {
-                    instruction: "For bacterial or fungal skin conditions: apply raw honey directly to the affected area. Leave for 20 minutes, then rinse.",
-                    timer: 1200,
-                    tip: "Raw honey's antimicrobial action comes from hydrogen peroxide production, defensin-1, and low pH. Clinically validated for wound healing."
-          },
-          {
-                    instruction: "For inflamed or irritated skin: apply pure aloe vera gel directly from the plant. Allow to absorb naturally.",
-                    tip: "Aloe vera contains acemannan, a polysaccharide that accelerates tissue repair with anti-inflammatory effects comparable to hydrocortisone cream."
-          },
-          {
-                    instruction: "For skin regeneration: apply calendula oil to the affected area twice daily.",
-                    tip: "Jethro Kloss documents calendula as one of the most healing herbs for skin throughout Back to Eden."
-          },
-          {
-                    instruction: "For fungal conditions: dilute 2 drops of tea tree oil in 1 teaspoon of carrier oil and apply to the area.",
-                    tip: "Mary Jones recommends tea tree oil as the primary topical treatment for bacterial and fungal skin conditions in Herbal Antibiotics."
-          }
-],
-        science: "These remedies address different skin conditions topically while the Internal Cleansing Protocol works on the root cause. Use both together for best results.",
-        method: "Raw honey's antimicrobial action comes from hydrogen peroxide production, a unique peptide (defensin-1), and its low pH — making it hostile to most bacteria and fungi. Clinically validated for wound healing and used in medical-grade Manuka formulations. Aloe vera contains acemannan, a polysaccharide that accelerates tissue repair and has demonstrated anti-inflammatory effects comparable to hydrocortisone cream in some studies. Calendula oil supports cellular regeneration — Jethro Kloss documents it throughout Back to Eden as one of the most healing herbs for skin. Tea tree oil is Mary Jones' primary recommendation for bacterial and fungal skin conditions in Herbal Antibiotics.",
-        frequency: "Twice daily for acute conditions. Once daily for maintenance.",
-        caution: "Tea tree oil must be diluted — never apply neat. Patch test all topical remedies before wider use.",
-        sources_detail: {
-          BTE: "Jethro Kloss documents honey, aloe, and calendula as primary skin healing herbs throughout Back to Eden.",
-          MJ: "Mary Jones identifies tea tree oil and raw honey as the most broadly active natural antimicrobials for skin infections in Herbal Antibiotics.",
-        },
-      },
-    ],
-  },
-
-  {
-    id: "digestion",
-    ailment: "Digestive Issues",
-    icon: "🌱",
-    color: "#A78BFA",
-    categories: ["digestive", "inflammation"],
-    remedies: [
-      {
-        name: "Digestive Bitters & Enzyme Protocol",
-        tagline: "Most digestive problems are low acid, not high acid — the opposite of what most people assume",
-        sources: ["BON", "BTE"],
-        lawLink: "05",
-        ingredients: [
-          "Raw apple cider vinegar — 1 tbsp in water, 10 minutes before meals",
-          "Fresh ginger tea — 1 cup before or after main meals",
-          "Digestive bitters: dandelion, gentian, or Swedish bitters — 15 drops before meals",
-          "Eliminate: eating under stress, eating quickly, cold drinks with meals",
-        ],
-        steps: [
-          {
-                    instruction: "Mix 1 tablespoon of raw apple cider vinegar in a small glass of warm water.",
-                    tip: "Most digestive complaints are caused by insufficient stomach acid, not excess. ACV's acetic acid mimics the stimulus your stomach needs."
-          },
-          {
-                    instruction: "Drink this 15 minutes before your main meal. This prepares the digestive cascade.",
-                    tip: "Stomach acid is required to activate digestive enzymes, kill pathogens in food, and signal the pyloric valve to open."
-          },
-          {
-                    instruction: "Grate fresh ginger into your meals or drink ginger tea with meals.",
-                    tip: "Ginger stimulates gastric motility and has significant anti-nausea and anti-inflammatory effects on the gut lining."
-          },
-          {
-                    instruction: "If available, take digestive bitters — 1 dropper-full on the tongue 10 minutes before eating.",
-                    tip: "Digestive bitters stimulate the entire digestive cascade reflexively through bitter receptors on the tongue. This is a reflex, not a chemical reaction."
-          }
-],
-        science: "Barbara O'Neill teaches that the majority of digestive complaints are caused by insufficient stomach acid, not excess. Jethro Kloss documents ginger as one of the most important digestive herbs.",
-        method: "Barbara O'Neill teaches that the majority of digestive complaints — bloating, reflux, indigestion, poor nutrient absorption — are caused by insufficient stomach acid, not excess. Stomach acid (hydrochloric acid) is required to activate digestive enzymes, kill pathogens in food, and signal the pyloric valve to open. ACV's acetic acid mimics this stimulus. Ginger stimulates gastric motility and has significant anti-nausea and anti-inflammatory effects on the gut lining. Digestive bitters stimulate the entire digestive cascade reflexively through bitter receptors on the tongue. Jethro Kloss documents ginger as one of the most important digestive herbs throughout Back to Eden.",
-        frequency: "Before each main meal as a consistent practice",
-        caution: "If on proton pump inhibitors (PPIs), discuss any change to digestive acid with your prescribing doctor first.",
-        sources_detail: {
-          BON: "Barbara O'Neill consistently teaches low stomach acid as the overlooked root cause of most digestive complaints, with ACV as the primary first intervention.",
-          BTE: "Back to Eden documents ginger and bitter herbs as foundational digestive aids throughout Jethro Kloss's work.",
-        },
-      },
-      {
-        name: "Gut Microbiome Restoration",
-        tagline: "90% of serotonin is produced in the gut — heal the gut, heal the whole person",
-        sources: ["BON", "AE"],
-        lawLink: "05",
-        ingredients: [
-          "Fermented foods daily: raw sauerkraut, kimchi, kefir, live yoghurt (one serving)",
-          "Prebiotic fibre: Jerusalem artichoke, leek, onion, garlic, green banana",
-          "Slippery elm powder — 1 tsp in water before bed (gut lining repair)",
-          "Aloe vera juice — 30ml daily (anti-inflammatory gut lining support)",
-          "Eliminate: antibiotics unless medically essential, artificial sweeteners, alcohol",
-        ],
-        steps: [
-          {
-                    instruction: "Begin eating fermented foods daily: live yoghurt, kefir, sauerkraut, or kimchi. Start with small portions.",
-                    tip: "These foods introduce beneficial bacteria directly into the gut. Start small — too much too fast can cause bloating as the microbiome adjusts."
-          },
-          {
-                    instruction: "Add a prebiotic fibre source to your daily diet: garlic, onions, leeks, asparagus, or bananas.",
-                    tip: "Prebiotics feed the beneficial bacteria you're introducing. Without them, the new bacteria cannot establish themselves."
-          },
-          {
-                    instruction: "If you have gut inflammation, take slippery elm powder — mix 1 tablespoon into warm water and drink before meals.",
-                    tip: "Slippery elm creates a protective mucilaginous coating on the gut lining, allowing irritated or damaged tissue to heal."
-          },
-          {
-                    instruction: "Eliminate the gut's primary disruptors for 30 days: refined sugar, artificial sweeteners, and unnecessary antibiotics.",
-                    tip: "The gut microbiome is a functional organ — 38 trillion bacteria that produce neurotransmitters, regulate immunity, and determine nutrient absorption."
-          }
-],
-        science: "Arnold Ehret identified accumulated undigested food matter in the intestinal wall as the root cause of most systemic disease. Modern microbiome research confirms the gut's central role in whole-body health.",
-        method: "The gut microbiome — the 38 trillion bacteria inhabiting the digestive tract — is now understood as a functional organ in its own right. It produces neurotransmitters, regulates immune function, influences mood and cognition, and determines the efficiency of nutrient absorption. Slippery elm creates a protective mucilaginous coating on the gut lining, allowing irritated or damaged tissue to heal — documented in Back to Eden and confirmed in modern gastroenterology research. Arnold Ehret identified the accumulation of undigested food matter in the intestinal wall as the root cause of most systemic disease — his mucusless protocol is essentially a gut environment reset.",
-        frequency: "Daily as a sustained dietary foundation — 3 months for significant microbiome shift",
-        caution: "Slippery elm may slow absorption of medications — take at least 2 hours apart from any medication.",
-        sources_detail: {
-          BON: "Barbara O'Neill teaches gut microbiome restoration as foundational to whole-body health, identifying the gut-brain connection as central to both physical and mental wellbeing.",
-          AE: "Arnold Ehret identified intestinal health as the foundation of all health and disease in his clinical work, with dietary cleansing as the primary intervention.",
-        },
-      },
-      {
-        name: "Activated Charcoal Protocol",
-        tagline: "Emergency adsorption — upset stomach, gas, food poisoning, and wound poultice",
-        sources: ["BTE"],
-        lawLink: "03",
-        ingredients: [
-          "Activated charcoal capsules or powder (food-grade, not barbecue charcoal)",
-          "Large glass of filtered water",
-          "For poultice: activated charcoal powder, ground flaxseed, warm water, cotton cloth, plastic wrap",
-        ],
-        steps: [
-          { instruction: "For upset stomach or suspected food poisoning: take 1 to 2 capsules (500 to 1000mg) of activated charcoal with a large glass of water.", tip: "Activated charcoal works by adsorption — its enormous internal surface area traps toxins and gas-producing compounds, carrying them through the digestive system for elimination. Native Americans used powdered charcoal with water for upset stomach centuries before modern medicine adopted it." },
-          { instruction: "Wait at least 1 hour before eating or taking any medication. Charcoal adsorbs indiscriminately — it will reduce the effectiveness of anything else in your stomach.", tip: "This is critical: activated charcoal reduces absorption of medications including antibiotics and birth control pills. Always separate by at least 1 hour, ideally 2." },
-          { instruction: "Drink extra water throughout the day. Charcoal can cause constipation — hydration prevents this.", tip: "Your stool may turn black. This is completely normal and harmless — it is simply the charcoal passing through." },
-          { instruction: "For a wound poultice: mix activated charcoal powder with ground flaxseed and enough warm water to make a paste. Spread onto a cotton cloth, apply to the wound or infected area, cover with plastic wrap, and leave for several hours or overnight.", tip: "The porous properties of charcoal attract toxins from areas of infection or inflammation. Charcoal poultices have been used traditionally for insect bites, stings, skin infections, and drawing out infection from open wounds. Replace the poultice every 8 to 12 hours." },
-        ],
-        science: "Activated charcoal is the standard medical treatment for acute poisoning in emergency departments worldwide. Its adsorptive properties are well-established — one gram of activated charcoal has a surface area of approximately 3,000 square metres. For digestive upset, it binds to gas-producing compounds, bacterial toxins, and irritants. Charcoal wound dressings are used in clinical wound care to control infection and promote healing.",
-        method: "For digestive upset: 1-2 capsules with a large glass of water, at least 1 hour away from food or medication. For wound poultice: mix charcoal powder with flaxseed and warm water into a paste, apply to affected area with cloth, cover and leave several hours.",
-        frequency: "As needed for acute digestive upset. Not for daily long-term use — it may reduce nutrient absorption over time",
-        caution: "Do not take activated charcoal within 1 hour of any medication — it will reduce its effectiveness. Not suitable for daily long-term use. Do not use if you have a gastrointestinal blockage or active stomach ulcer. Always use food-grade activated charcoal, never barbecue charcoal. Consult a doctor if symptoms persist.",
-        sources_detail: {
-          BTE: "Charcoal has been documented as a healing remedy since 1550 BC by the Egyptians. Back to Eden and naturopathic traditions include charcoal as both an internal remedy for digestive poisoning and an external poultice for drawing infection from wounds.",
-        },
-      },
-
-    ],
-  },
-
-  {
-    id: "detox",
-    ailment: "Detox & Liver Support",
-    icon: "🌿",
-    color: "#34D399",
-    categories: ["detox", "metabolic"],
-    remedies: [
-      {
-        name: "Liver Cleanse Protocol",
-        tagline: "The liver performs over 500 functions — when it is burdened, everything suffers",
-        sources: ["BTE", "BON", "AE"],
-        lawLink: "03",
-        ingredients: [
-          "Milk thistle — 175mg silymarin standardised extract, twice daily",
-          "Dandelion root tea — 2 strong cups daily",
-          "Lemon water — warm, first thing each morning",
-          "Beetroot — raw grated or juiced daily (contains betaine for liver cell repair)",
-          "Eliminate entirely during protocol: alcohol, processed food, refined sugar, pharmaceutical drugs unless essential",
-        ],
-        steps: [
-          {
-                    instruction: "Begin each morning with warm lemon water — juice of half a lemon in 250ml warm filtered water. Drink on an empty stomach.",
-                    tip: "Lemon water supports liver function first thing in the morning. The citric acid stimulates bile production, which is the liver's primary detoxification pathway."
-          },
-          {
-                    instruction: "Drink 2 strong cups of dandelion root tea daily — one mid-morning, one mid-afternoon.",
-                    tip: "Dandelion root is one of the most researched liver-support herbs. It stimulates bile flow and supports both phases of liver detoxification."
-          },
-          {
-                    instruction: "Apply a castor oil pack over the liver area — right side of abdomen beneath the ribcage — 3 times this week.",
-                    tip: "The ricinoleic acid in castor oil penetrates into liver tissue and stimulates lymphatic circulation in the treatment area."
-          },
-          {
-                    instruction: "Eat liver-supporting foods daily: beetroot, cruciferous vegetables, garlic, and turmeric.",
-                    tip: "These foods provide the specific nutrients the liver needs for its detoxification enzymes to function — sulphur compounds, antioxidants, and B vitamins."
-          },
-          {
-                    instruction: "Stay well hydrated throughout — minimum 2 litres of filtered water daily. Your body needs water to flush what the liver processes.",
-                    tip: "Important: start gradually. If you have a high toxin load, cleansing too fast can overwhelm the body. Listen to your body and adjust pace accordingly."
-          }
-],
-        science: "The liver is the body's primary detoxification organ. Barbara O'Neill identifies liver support as foundational to any healing protocol.",
-        method: "Silymarin in milk thistle is the most extensively researched natural hepatoprotective compound — it stimulates liver cell regeneration, inhibits toxin entry into liver cells, and acts as a powerful antioxidant within liver tissue. Dandelion root increases bile production and flow, improving fat digestion and the liver's ability to eliminate processed toxins. Lemon water alkalises the body and provides vitamin C required for liver glutathione production — the liver's primary detoxification molecule. Arnold Ehret documented systematic fasting and herbal liver support as the cornerstone of his clinical detoxification protocols. Barbara O'Neill teaches the liver as the master organ of health and identifies milk thistle as her primary liver support recommendation.",
-        frequency: "4-week protocol, 2–3 times per year",
-        caution: "Milk thistle may interact with certain medications metabolised by the liver. Discuss with a doctor if on regular medication.",
-        sources_detail: {
-          BTE: "Jethro Kloss documents liver-supporting herbs and the lemon water protocol throughout Back to Eden as foundational to systemic health.",
-          BON: "Barbara O'Neill identifies the liver as the master organ of health and milk thistle as her primary liver support recommendation.",
-          AE: "Arnold Ehret placed liver and intestinal cleansing at the centre of his detoxification protocols, identifying these as the prerequisite to all other healing.",
-        },
-      },
-      {
-        name: "Lymphatic Activation Protocol",
-        tagline: "The lymphatic system has no pump — it requires movement and manual stimulus",
-        sources: ["BON", "BTE"],
-        lawLink: "04",
-        ingredients: [
-          "Dry skin brushing — firm natural bristle brush, 5 minutes before showering",
-          "Contrast shower — 3 minutes warm, 30 seconds cold, 5 cycles",
-          "Rebounding — 10 minutes gentle bouncing on a trampoline or rebounder",
-          "Cleavers tea — 2 cups daily (traditional lymphatic herb)",
-          "Deep breathing — 10 deliberate deep belly breaths per hour",
-        ],
-        steps: [
-          {
-                    instruction: "Begin each morning with dry skin brushing before your shower. Use a natural bristle brush.",
-                    tip: "The lymphatic system has no pump — it relies on movement and external stimulus. Dry brushing manually stimulates lymphatic flow."
-          },
-          {
-                    instruction: "Brush in long strokes toward the heart — start at the feet and work upward, then from the hands toward the chest.",
-                    tip: "Always brush toward the heart. This follows the natural direction of lymphatic flow and avoids pushing fluid the wrong way."
-          },
-          {
-                    instruction: "Follow dry brushing with contrast hydrotherapy — alternate hot and cold water during your shower.",
-                    tip: "The alternating expansion and contraction of blood vessels acts as a pump for the lymphatic system."
-          },
-          {
-                    instruction: "Bounce gently on a rebounder or trampoline for 5 minutes if available. Alternatively, do 50 gentle jumping jacks.",
-                    tip: "Rebounding is one of the most effective lymphatic exercises. The up-and-down motion works with gravity to move lymph fluid throughout the body."
-          },
-          {
-                    instruction: "Drink 2 litres of filtered water throughout the day to support lymphatic drainage.",
-                    tip: "The lymphatic system is essentially a waste collection network. Without adequate hydration, it cannot flush what it collects."
-          }
-],
-        science: "The lymphatic system is the body's waste collection and immune defence network. Unlike the circulatory system, it has no pump and depends entirely on movement, breathing, and external stimulus.",
-        method: "The lymphatic system is the body's waste disposal network — collecting cellular debris, immune cells, and metabolic waste products from every tissue and transporting them for processing and elimination. Unlike the circulatory system, it has no pump and relies entirely on muscular movement, breathing, and external stimulus. Dry skin brushing stimulates superficial lymphatic vessels directly. Rebounding (gentle bouncing) is considered one of the most effective lymphatic exercises as it uses gravitational changes to move lymph through vessels. Cleavers (Galium aparine) is documented throughout Back to Eden and in traditional herbal medicine across cultures as the primary lymphatic herb. Barbara O'Neill teaches lymphatic activation as essential to any detoxification protocol.",
-        frequency: "Daily during a detox protocol; 3× per week for maintenance",
-        caution: "Dry brushing not suitable on inflamed, broken, or infected skin.",
-        sources_detail: {
-          BON: "Barbara O'Neill teaches lymphatic activation — particularly dry brushing and rebounding — as essential components of any detoxification programme.",
-          BTE: "Jethro Kloss documents hydrotherapy and herbal lymphatic support throughout Back to Eden as foundational to the body's self-cleaning capacity.",
-        },
-      },
-    ],
-  },
-
-  {
-    id: "womens-health",
-    ailment: "Women's Health",
-    icon: "🌸",
-    color: "#F472B6",
-    categories: ["womens", "hormonal"],
-    remedies: [
-      {
-        name: "Hormonal Balance Protocol",
-        tagline: "Most hormonal symptoms are liver and gut function problems — not purely hormone problems",
-        sources: ["BON", "BTE"],
-        lawLink: "03",
-        ingredients: [
-          "Ground flaxseed — 1–2 tbsp daily (lignans support oestrogen metabolism)",
-          "Vitex (chaste tree berry) — 400mg daily, taken first thing in the morning",
-          "Milk thistle — 175mg twice daily (liver processes excess oestrogen)",
-          "Reduce: alcohol, refined sugar, plastics exposure, synthetic fragrances (all xenoestrogens)",
-          "Maca root — 1 tsp powder daily (adaptogenic hormone support)",
-        ],
-        steps: [
-          {
-                    instruction: "Take evening primrose oil daily — 500 to 1000 milligrams with food.",
-                    tip: "Evening primrose oil provides GLA (gamma-linolenic acid), which the body converts into anti-inflammatory prostaglandins that support hormonal balance."
-          },
-          {
-                    instruction: "Eat cruciferous vegetables daily: broccoli, cauliflower, Brussels sprouts, kale.",
-                    tip: "These contain DIM (diindolylmethane) which supports healthy oestrogen metabolism — helping the body process and eliminate excess oestrogen."
-          },
-          {
-                    instruction: "Add ground flaxseed to your daily diet — 2 tablespoons in smoothies, yoghurt, or porridge.",
-                    tip: "Flaxseed contains lignans — phytoestrogens that help modulate oestrogen levels in both directions, whether too high or too low."
-          },
-          {
-                    instruction: "Reduce exposure to endocrine disruptors: switch to glass containers, avoid plastic-wrapped food, use natural personal care products.",
-                    tip: "Many everyday chemicals mimic oestrogen in the body. Reducing exposure allows the body's natural hormonal regulation to function properly."
-          }
-],
-        science: "Hormonal balance depends on both nutritional support and toxin reduction. The liver processes excess hormones — supporting liver health (see Liver Cleanse Protocol) amplifies these interventions.",
-        method: "Oestrogen dominance — excess oestrogen relative to progesterone — underlies most common hormonal complaints including PMS, irregular cycles, fibroids, and perimenopausal symptoms. The liver is responsible for processing and eliminating excess oestrogen. When the liver is burdened, oestrogen recirculates. Flaxseed lignans bind to oestrogen receptors and support the liver's oestrogen metabolism pathway. Vitex works through the hypothalamic-pituitary axis to increase progesterone production relative to oestrogen — it is the most clinically studied herb for PMS and cycle irregularity. Barbara O'Neill teaches hormonal health as inseparable from liver health and identifies these interventions as foundational.",
-        frequency: "Minimum 3 full menstrual cycles to assess Vitex effect — it works slowly and consistently",
-        caution: "Vitex not suitable during pregnancy, while breastfeeding, or if on hormonal contraception or HRT without medical guidance.",
-        sources_detail: {
-          BON: "Barbara O'Neill teaches hormonal imbalance as fundamentally a liver and gut health issue and identifies Vitex and flaxseed as her primary hormonal support recommendations.",
-          BTE: "Jethro Kloss documents herbs for female reproductive health extensively throughout Back to Eden.",
-        },
-      },
-      {
-        name: "Raspberry Leaf & Iron Protocol",
-        tagline: "The most documented uterine tonic in herbal medicine",
-        sources: ["BTE", "MJ"],
-        lawLink: "05",
-        ingredients: [
-          "Red raspberry leaf tea — 2–3 cups daily (uterine tonic, rich in fragarine)",
-          "Blackstrap molasses — 1 tbsp daily in warm water (iron replenishment)",
-          "Nettle tea — 2 cups daily (iron, calcium, vitamin K)",
-          "Vitamin C with every iron-containing food — up to 4× absorption increase",
-          "Yellow dock root tincture — 20 drops, 3× daily (iron-rich blood tonic)",
-        ],
-        steps: [
-          {
-                    instruction: "Brew raspberry leaf tea — steep 1 tablespoon of dried raspberry leaf in hot water for 10 minutes. Drink 2 cups daily.",
-                    timer: 600,
-                    tip: "Raspberry leaf is a traditional uterine tonic used for centuries. It strengthens and tones the uterine muscles."
-          },
-          {
-                    instruction: "Eat iron-rich foods daily: dark leafy greens, lentils, beans, pumpkin seeds, and dried apricots.",
-                    tip: "Iron deficiency is extremely common in women, especially during menstruation. Fatigue, brain fog, and low mood are often iron-related."
-          },
-          {
-                    instruction: "Always pair iron-rich foods with vitamin C to maximise absorption — squeeze lemon over your greens or eat fruit alongside.",
-                    tip: "Vitamin C can increase iron absorption by up to 300%. Without it, plant-based iron is poorly absorbed."
-          },
-          {
-                    instruction: "Avoid drinking tea or coffee with iron-rich meals — tannins block iron absorption by up to 60%.",
-                    tip: "Wait at least 1 hour after eating before drinking tea or coffee. This simple change can make a significant difference to iron levels."
-          }
-],
-        science: "Raspberry leaf has been used as a female reproductive tonic for centuries across multiple traditional medicine systems. Iron and B12 deficiency are the most common nutritional causes of fatigue in women.",
-        method: "Red raspberry leaf is documented in herbal traditions across cultures as the primary uterine tonic — fragarine, a unique alkaloid, tones uterine muscle tissue. It is most relevant for heavy periods, menstrual cramping, and as a pregnancy preparation herb (traditionally in the third trimester only). Iron deficiency is the most common consequence of heavy menstrual bleeding and a primary cause of fatigue, brain fog, and low mood in women. The combination of blackstrap molasses, nettle, and yellow dock provides iron in whole-food forms that the body regulates through absorption mechanisms — avoiding the constipation and oxidative stress associated with pharmaceutical iron supplements. Mary Jones documents this protocol in her herbal work for women's health.",
-        frequency: "Daily throughout the cycle. Raspberry leaf most beneficial in the second half of the cycle.",
-        caution: "Red raspberry leaf in the first trimester of pregnancy: discuss with a midwife before use. Yellow dock not for use in pregnancy.",
-        sources_detail: {
-          BTE: "Jethro Kloss documents red raspberry leaf as the primary female tonic herb and blackstrap molasses as a blood-building tonic throughout Back to Eden.",
-          MJ: "Mary Jones documents the raspberry leaf and iron protocol for menstrual health and uterine support in her herbal work.",
-        },
-      },
-    ],
-  },
-
-  {
-    id: "energy",
-    ailment: "No Energy",
-    icon: "⚡",
-    color: "#F59E0B",
-    categories: ["energy", "metabolic"],
-    remedies: [
-      {
-        name: "Adrenal Restoration Protocol",
-        tagline: "Most chronic fatigue is adrenal depletion — not laziness",
-        sources: ["BON", "BTE"],
-        lawLink: "03",
-        ingredients: [
-          "Ashwagandha — 300mg standardised extract or 1 tsp root powder daily",
-          "Vitamin C foods: red bell pepper, kiwi, citrus — daily (adrenal glands require vitamin C to produce cortisol)",
-          "¼ tsp sea salt in a glass of water first thing in the morning — aldosterone support",
-          "Eliminate: caffeine, refined sugar, alcohol — all directly tax the adrenal glands",
-        ],
-        steps: [
-          {
-                    instruction: "Cut caffeine gradually — reduce by one cup every 3 days until you reach maximum 1 cup of green tea daily.",
-                    tip: "Caffeine stimulates the adrenal glands to produce cortisol. If your adrenals are depleted, caffeine makes the problem worse, not better."
-          },
-          {
-                    instruction: "Take ashwagandha — 300 to 600 milligrams in the evening. This is an adaptogen that helps regulate the stress response.",
-                    tip: "Ashwagandha doesn't just reduce cortisol — it helps the adrenals recalibrate their response. The evening dose supports overnight recovery."
-          },
-          {
-                    instruction: "Be in bed by 10pm every night for 21 consecutive days. No exceptions.",
-                    tip: "The adrenal glands repair during deep sleep. The 10pm to 2am window is when growth hormone peaks and cortisol should be at its lowest."
-          },
-          {
-                    instruction: "Eat within 1 hour of waking — a balanced meal with protein, healthy fat, and complex carbohydrates.",
-                    tip: "Skipping breakfast forces the adrenals to produce cortisol to maintain blood sugar. This depletes them further. Eat early, eat balanced."
-          }
-],
-        science: "Adrenal fatigue is recognised in functional medicine as chronic HPA axis dysregulation. The adrenals regulate cortisol, energy, and stress response — their recovery requires consistent daily practices, not a single supplement.",
-        method: "The adrenal glands produce cortisol, adrenaline, and aldosterone — the hormones that regulate energy, stress response, and fluid balance. Chronic low energy is frequently adrenal depletion: the glands exhausted from sustained overstimulation by caffeine, refined sugar, and chronic stress. Barbara O'Neill's adrenal recovery protocol begins with removing the stressors first — caffeine and refined sugar are primary adrenal taxers that create an energy illusion followed by deeper depletion. Ashwagandha is the most clinically validated adaptogen for adrenal recovery, shown to reduce cortisol by 27% over 60 days. Jethro Kloss identifies mineral-rich and B-vitamin-rich whole foods as essential for adrenal function throughout Back to Eden.",
-        frequency: "Daily — allow 6–8 weeks for meaningful adrenal recovery. Do not rush this.",
-        caution: "If on thyroid medication, check ashwagandha interaction with your prescribing doctor before use.",
-        sources_detail: {
-          BON: "Barbara O'Neill identifies adrenal fatigue as epidemic and teaches a structured recovery protocol built on removing stimulants first, then rebuilding with adaptogens.",
-          BTE: "Back to Eden identifies the adrenal glands as central to vitality and documents herbal and nutritional support for their restoration.",
-        },
-      },
-      {
-        name: "Iron & B12 Foundation",
-        tagline: "The two deficiencies responsible for most unexplained fatigue",
-        sources: ["BON", "BTE"],
-        lawLink: "05",
-        ingredients: [
-          "Blackstrap molasses — 1 tbsp daily, stirred into warm water or plant milk",
-          "Nutritional yeast — 2 heaped tbsp daily (complete B-complex including B12)",
-          "Nettle tea — 2 strong cups daily (iron-rich, mineral-dense herb)",
-          "Vitamin C alongside every iron-rich food or drink — increases iron absorption up to 4-fold",
-        ],
-        steps: [
-          {
-                    instruction: "Get a blood test to establish your baseline iron and B12 levels. Ask your GP specifically for ferritin, serum iron, and B12.",
-                    tip: "Fatigue has specific nutritional causes that can be measured. Without testing, you're guessing. Ferritin below 30 causes fatigue even if it's 'in range.'"
-          },
-          {
-                    instruction: "Eat iron and B12 rich foods daily: dark leafy greens, lentils, eggs, nutritional yeast, and fortified foods.",
-                    tip: "Plant-based iron needs vitamin C for absorption. B12 is primarily found in animal products — if plant-based, supplementation is essential."
-          },
-          {
-                    instruction: "Take vitamin C with every iron-rich meal — a glass of orange juice, a squeeze of lemon, or bell peppers alongside.",
-                    tip: "Vitamin C increases iron absorption by up to 300%. This is the single most effective dietary change for improving iron status."
-          },
-          {
-                    instruction: "Reassess your levels after 60 days. Energy should improve noticeably within 3 to 4 weeks if deficiency was the cause.",
-                    tip: "If levels haven't improved after 60 days of dietary changes, consider supplementation under medical guidance. Some people have absorption issues that need investigation."
-          }
-],
-        science: "Iron deficiency is the most common nutritional deficiency worldwide. B12 deficiency causes irreversible neurological damage if left untreated. Both are testable and treatable.",
-        method: "Iron deficiency anaemia is the most common nutritional deficiency worldwide and the most common cause of fatigue, affecting energy, cognition, mood, and physical endurance simultaneously. Blackstrap molasses — the mineral-rich residue from the sugar refining process — is one of the most concentrated plant sources of iron, calcium, and magnesium available. Jethro Kloss documents it throughout Back to Eden as a superior natural tonic, specifically for blood building and energy restoration. B12 deficiency produces profound fatigue alongside neurological symptoms and low mood — nutritional yeast is the most reliable whole-food source of B12 that does not require animal products. Always pair iron-rich foods with vitamin C to maximise absorption — the iron in plant foods (non-haem iron) requires an acidic environment to convert to absorbable form.",
-        frequency: "Daily as a permanent dietary foundation",
-        caution: "Iron overload is possible with isolated supplementation — food sources of iron are self-regulating through the body's absorption mechanisms.",
-        sources_detail: {
-          BON: "Barbara O'Neill recommends blackstrap molasses and nutritional yeast as cornerstone natural energy foods, addressing the two most common deficiency-related causes of chronic fatigue.",
-          BTE: "Jethro Kloss documents blackstrap molasses as a superior natural tonic throughout Back to Eden, specifically for blood building, energy restoration, and mineral replenishment.",
-        },
-      },
-    ],
-  },
-
-  // ════════════════════════════════════════════════════════════════
-  // CATALOGUE CONTENT — Juices, Recipes & Daily Protocols
-  // ════════════════════════════════════════════════════════════════
-  {
-    id: "juices-nourishment",
-    ailment: "Quantum Fuel: Juices",
-    icon: "🥤",
-    color: "#A78BFA",
-    categories: ["nourishment","quantum-fuel"],
-    remedies: [
-      {
-        name: "Classic Green Juice",
-        tagline: "The foundation juice — daily alkalising nourishment",
-        sources: ["BTE"],
-        lawLink: "05",
-        ingredients: [
-          "½ packet spinach (organic)",
-          "3 green apples",
-          "4 sticks of celery",
-          "1 lemon (peeled)",
-          "½ glass Zero Water",
-          "1 tsp cinnamon (add if diabetic)",
-        ],
-        steps: [
-          { instruction: "Wash all produce thoroughly. All ingredients should be organic where possible.", tip: "Spinach and celery are on the high-pesticide list. Organic matters here." },
-          { instruction: "Juice in this order: spinach first, then lemon, then celery, then green apples.", tip: "This order pushes the leafy greens through the juicer most efficiently — the harder produce helps clear the chute." },
-          { instruction: "Pour half a glass of Zero Water through the juicer last to flush remaining juice from the pulp.", tip: "This recovers the nutrients trapped in the pulp. Don't skip it." },
-          { instruction: "Skim the foam from the top if desired. Stir well. Add cinnamon if you are managing blood sugar.", tip: "Cinnamon improves insulin sensitivity — a simple addition that makes a meaningful difference for diabetics." },
-          { instruction: "Drink slowly and chew your juice. This prepares the gut for incoming nutrition.", tip: "Chewing activates digestive enzymes in the saliva. It sounds unusual but it genuinely improves absorption." },
-        ],
-        science: "Green juice provides concentrated plant nutrition in a bioavailable form — the juicing process breaks cell walls, releasing nutrients that whole food chewing cannot fully access.",
-        method: "Juice in order: spinach, lemon, celery, green apples. Pour Zero Water through juicer to finish. Skim foam if desired. Mix well. Add cinnamon for diabetics. Chew your drink to prepare the gut.",
-        frequency: "Daily — ideally first thing in the morning on an empty stomach",
-        caution: "If on blood thinners, consult your doctor before adding large amounts of green leafy vegetables to your diet (vitamin K interaction).",
-        sources_detail: { BTE: "Green juicing is a foundational practice in Back to Eden naturopathic tradition — concentrated plant nutrition in its most bioavailable form." },
-      },
-      {
-        name: "Carrot & Apple Cleanse",
-        tagline: "Immune support and gentle liver cleanse",
-        sources: ["BTE"],
-        lawLink: "05",
-        ingredients: [
-          "1 bag of carrots (organic)",
-          "2 green apples",
-          "Piece of ginger (omit if on blood thinners)",
-          "½ lime",
-          "1 tsp ground cinnamon (add if diabetic)",
-        ],
-        steps: [
-          { instruction: "Wash all produce. Halve the green apples — no need to core them for juicing.", tip: "Green apples have lower sugar content than red varieties, making them better for juicing." },
-          { instruction: "Juice the apples first, then half the carrots, then the lime, then the remaining carrots.", tip: "Alternating harder and softer produce helps the juicer extract maximum juice." },
-          { instruction: "If you are NOT on blood thinners, juice a thumb-sized piece of ginger.", tip: "Ginger adds powerful anti-inflammatory and digestive support. Omit if on blood thinning medication — ginger can amplify the effect." },
-          { instruction: "Add cinnamon if managing blood sugar. Stir well and chew your juice as you drink.", tip: "Beta-carotene in carrots converts to vitamin A in the body — essential for immune function and skin health." },
-        ],
-        science: "Carrots are one of the richest dietary sources of beta-carotene. Combined with apple's pectin (a natural liver cleanser) and ginger's anti-inflammatory gingerols, this juice supports both immunity and gentle detoxification.",
-        method: "Juice apples first (halved), then half the carrots, then lime, then remaining carrots. Juice ginger only if not on blood thinners. Add cinnamon for diabetics.",
-        frequency: "3-4 times per week for ongoing support, or daily during immune challenges",
-        caution: "Omit ginger if on blood-thinning medication (warfarin, aspirin). Ginger may amplify anticoagulant effects.",
-        sources_detail: { BTE: "Carrot and apple juicing is documented throughout Back to Eden as a foundational cleansing and immune-supporting combination." },
-      },
-      {
-        name: "Carrot, Orange & Ginger",
-        tagline: "Vitamin C powerhouse for immunity and energy",
-        sources: ["BTE"],
-        lawLink: "05",
-        ingredients: [
-          "½ bag of carrots (organic)",
-          "4 oranges (peeled, pith removed)",
-          "Piece of ginger (omit if on blood thinners)",
-          "2 celery sticks",
-          "½ lime",
-          "½ glass Zero Water",
-          "1 tsp ground cinnamon (add if diabetic)",
-        ],
-        steps: [
-          { instruction: "Peel the oranges and remove as much white pith as practical. The pith adds bitterness.", tip: "Oranges provide a massive vitamin C boost — this juice is particularly effective during cold and flu season." },
-          { instruction: "Juice in order: oranges, celery, ginger, carrots, lime.", tip: "Celery adds potassium and natural electrolytes — it balances the sweetness of the oranges and carrots." },
-          { instruction: "Finish by pouring Zero Water through the juicer to recover trapped juice.", tip: "Using filtered water matters — tap water contaminants would undermine the cleansing purpose of the juice." },
-          { instruction: "Add cinnamon for blood sugar management. Stir well and chew as you drink.", tip: "This juice combines beta-carotene, vitamin C, gingerols, and celery phthalides — a comprehensive immune and cardiovascular support blend." },
-        ],
-        science: "This combination provides concentrated vitamin C, beta-carotene, anti-inflammatory gingerols, and celery's phthalides (shown to relax arterial walls). A comprehensive immune and cardiovascular support juice.",
-        method: "Juice in order: oranges, celery, ginger, carrots, lime. Finish with Zero Water through juicer. Add cinnamon for diabetics.",
-        frequency: "3-4 times per week, or daily during cold and flu season",
-        caution: "Omit ginger if on blood-thinning medication. High vitamin C intake may interact with certain medications — consult your doctor if concerned.",
-        sources_detail: { BTE: "Citrus and root vegetable juicing is a traditional naturopathic immune protocol documented in Back to Eden." },
-      },
-      {
-        name: "Happy Cucumber Melon",
-        tagline: "Gut cooling and inflammation reduction",
-        sources: ["BTE"],
-        lawLink: "05",
-        ingredients: [
-          "1 whole cucumber (organic)",
-          "1 cup honeydew melon (diced)",
-          "¼ cup fresh mint (chopped)",
-          "2 wedges of lime juice",
-        ],
-        steps: [
-          { instruction: "Wash the cucumber thoroughly. It must be organic — cucumber is on the high-pesticide list.", tip: "The skin contains the highest concentration of nutrients and silica. Only organic cucumbers should be juiced with skin on." },
-          { instruction: "Dice the honeydew melon into chunks. Chop the fresh mint.", tip: "Mint adds digestive support and a cooling effect that complements the cucumber. Fresh mint is far more potent than dried." },
-          { instruction: "Juice the cucumber, then the melon, then push the mint through with the lime wedges.", tip: "Cucumber is 96% water — this is one of the most hydrating juices you can make." },
-          { instruction: "Drink slowly. This juice is specifically designed to cool and soothe the gut lining.", tip: "Ideal for gut healing — the combination reduces inflammation in the intestinal walls while providing deep hydration." },
-        ],
-        science: "Cucumber provides deep hydration and silica for gut lining repair. Honeydew melon is alkalising and anti-inflammatory. Mint soothes digestive discomfort. Together they create a gentle gut-healing and cooling juice.",
-        method: "Juice cucumber, melon, and mint. Add lime juice. All ingredients must be organic — cucumber is on the high-pesticide list.",
-        frequency: "Daily during gut healing protocols, or 2-3 times weekly for maintenance",
-        caution: "None known. This is one of the gentlest juices in the protocol — suitable for sensitive stomachs.",
-        sources_detail: { BTE: "Cucumber and melon juicing is a traditional gut-soothing remedy documented across naturopathic traditions." },
-      },
-    ],
-  },
-  {
-    id: "recipes-nourishment",
-    ailment: "Quantum Fuel: Recipes",
-    icon: "🥗",
-    color: "#34D399",
-    categories: ["nourishment","quantum-fuel"],
-    remedies: [
-      {
-        name: "Chia Seed Pudding",
-        tagline: "Overnight omega-3 breakfast — 2 minutes to prepare",
-        sources: ["BTE"],
-        lawLink: "05",
-        ingredients: [
-          "3 tbsp chia seeds (white or black)",
-          "1 cup light coconut milk or almond milk",
-          "1 tbsp maple syrup (plus extra to drizzle)",
-          "½ tsp cinnamon",
-          "Pinch of sea salt",
-          "Fresh berries to serve",
-        ],
-        steps: [
-          { instruction: "Combine chia seeds, milk, maple syrup, cinnamon, and sea salt in a large lidded Mason jar.", tip: "Chia seeds expand to 10 times their size — use a jar larger than you think you need." },
-          { instruction: "Shake the jar vigorously for 30 seconds. Really shake it — you want everything well combined.", tip: "Vigorous shaking prevents the chia seeds from clumping together at the bottom." },
-          { instruction: "Refrigerate for a few hours, then open and stir well to break up any clumps that have formed.", tip: "This stirring step is important. Without it, you'll get a layer of gel and a layer of liquid." },
-          { instruction: "Refrigerate overnight. In the morning, top with fresh berries and a drizzle of maple syrup.", tip: "Chia seeds provide omega-3 fatty acids (ALA), complete protein, and soluble fibre. They have confirmed cardiovascular and anti-inflammatory benefits." },
-        ],
-        science: "Chia seeds are one of the richest plant sources of omega-3 ALA. They provide complete protein, soluble fibre, and have confirmed cardiovascular and anti-inflammatory benefits.",
-        method: "Combine all in a large lidded Mason jar. Shake vigorously. Refrigerate a few hours. Stir well to break up clumps. Refrigerate overnight. Top with fresh berries in the morning.",
-        frequency: "Daily breakfast or as needed — keeps 3 days refrigerated",
-        caution: "None. Suitable for most dietary requirements.",
-        sources_detail: { BTE: "Chia seeds are a traditional food source with documented health benefits across multiple cultures." },
-      },
-      {
-        name: "Detox Salad Dressing",
-        tagline: "Anti-inflammatory dressing for daily cleansing",
-        sources: ["BTE"],
-        lawLink: "05",
-        ingredients: [
-          "4 tbsp balsamic vinegar",
-          "1 tbsp apple cider vinegar",
-          "Italian herb mix",
-          "Himalayan pink salt",
-          "Juice of 1 lemon",
-          "Cold-pressed extra virgin olive oil",
-        ],
-        steps: [
-          { instruction: "Combine the balsamic vinegar and apple cider vinegar in a small jar or bowl.", tip: "The ACV adds digestive enzyme support. The balsamic adds depth of flavour and antioxidants." },
-          { instruction: "Add the Italian herb mix and a pinch of Himalayan pink salt. Stir well.", tip: "Himalayan salt contains 84 trace minerals compared to table salt's 2. Small difference, compounds over time." },
-          { instruction: "Squeeze in the juice of one whole lemon.", tip: "Lemon provides vitamin C and citric acid — supporting mineral absorption from whatever salad you pair this with." },
-          { instruction: "Finish with a generous pour of cold-pressed extra virgin olive oil. Mix thoroughly.", tip: "Always look for 'cold-pressed', 'cold extraction' and 'unfiltered' on the label. Cheap supermarket olive oils are often refined and lack nutritional value." },
-        ],
-        science: "Every ingredient in this dressing has documented health benefits — ACV for digestion, lemon for alkalising, olive oil for oleocanthal (a natural anti-inflammatory), and herbs for antioxidants.",
-        method: "Mix vinegars, add herbs and salt, squeeze in lemon, finish with olive oil. Pair with fresh green salad.",
-        frequency: "Daily with your main salad",
-        caution: "None. All ingredients are food-grade and safe for daily use.",
-        sources_detail: { BTE: "Vinegar-based dressings with fresh lemon and olive oil are a foundation of the naturopathic cleansing diet." },
-      },
-      {
-        name: "Roasted Butternut Squash",
-        tagline: "Heart-protective and nutrient-dense — two variations",
-        sources: ["BTE"],
-        lawLink: "05",
-        ingredients: [
-          "1 butternut squash (peeled and cubed)",
-          "Cold-pressed olive oil",
-          "Rosemary, thyme, sage, parsley",
-          "3 garlic cloves (crushed)",
-          "Himalayan salt and black pepper",
-          "Alternative sweet variation: cinnamon and raw honey instead of garlic and herbs",
-        ],
-        steps: [
-          { instruction: "Preheat your oven to 200 degrees Celsius or 400 degrees Fahrenheit.", tip: "Butternut squash is just 45 calories per 100 grams — low calorie but packed with vitamin A, vitamin C, potassium, and fibre." },
-          { instruction: "Peel and cube the squash. Toss with olive oil, herbs, salt, and pepper in a roasting tray.", tip: "For the sweet variation, replace the herbs with cinnamon and drizzle with raw honey after roasting." },
-          { instruction: "Roast for 20 minutes. Remove, add the crushed garlic, toss gently, and return to the oven.", tip: "Adding garlic partway through prevents it from burning while still getting the roasted flavour." },
-          { instruction: "Roast for another 10 to 20 minutes until golden and soft. Finish under the grill for 1 to 3 minutes for browning.", tip: "Yellow and orange vegetables are particularly effective at protecting against heart disease — the colour compounds are the protective agents." },
-          { instruction: "Serve with a large green salad or steamed broccoli and the detox dressing.", tip: "Pairing with greens maximises the nutritional profile of the meal. This is a complete Quantum Fuel plate." },
-        ],
-        science: "Butternut squash provides vitamin A, vitamin C (35%), B6 (10%), potassium (352mg), fibre, magnesium, and manganese. Yellow and orange vegetables are particularly effective at protecting against heart disease.",
-        method: "Season and roast at 200°C for 20 minutes. Add garlic, toss, roast further 10-20 minutes. Grill 1-3 minutes for browning. Serve with green salad or steamed broccoli.",
-        frequency: "2-3 times per week as a main meal component",
-        caution: "None. Suitable for most dietary requirements.",
-        sources_detail: { BTE: "Root vegetables and squash are foundational foods in the naturopathic whole-food tradition." },
-      },
-      {
-        name: "Spicy Superfood Sauce",
-        tagline: "Medicinal marinade, dip, and hot sauce in one",
-        sources: ["BTE"],
-        lawLink: "05",
-        ingredients: [
-          "Handful dried red chilis (¼ cup reconstituted)",
-          "1.5 inch turmeric root",
-          "1 inch ginger root",
-          "¼ cup red onion (diced)",
-          "1 dash olive oil",
-          "1 tsp lemon juice",
-          "1 tsp coconut aminos (or ½ tsp tamari)",
-          "1 tbsp raw unfiltered honey",
-          "2 tbsp fresh chives (diced)",
-          "⅛ cup water",
-        ],
-        steps: [
-          { instruction: "De-seed the dried chilis and soak them in warm water for 20 to 30 minutes until softened.", timer: 1200, tip: "Capsaicin in chilis triggers endorphin release and increases thermogenesis — your body's heat production and metabolism." },
-          { instruction: "Peel the ginger and turmeric root. Dice the red onion.", tip: "Turmeric will stain everything it touches — use gloves if you prefer and clean surfaces immediately." },
-          { instruction: "Sauté the onions in olive oil for 3 to 5 minutes until soft and translucent.", tip: "The sauté releases the onion's natural sugars and creates a flavour base for the sauce." },
-          { instruction: "Combine everything in a blender — the soaked chilis, ginger, turmeric, sautéed onions, lemon juice, coconut aminos, honey, chives, and water.", tip: "Every ingredient in this sauce has documented medicinal properties — turmeric, ginger, raw honey, chilis, lemon." },
-          { instruction: "Blend until smooth. Taste and adjust — too spicy, add a touch more honey or vinegar.", tip: "This sauce works as a marinade, a dip, or a hot sauce. Store in the fridge for up to 2 weeks." },
-        ],
-        science: "Every ingredient is a documented superfood: turmeric (anti-inflammatory), ginger (digestive and immune), raw honey (antibacterial), chilis (metabolism), lemon (vitamin C and detox). This is medicine that tastes good.",
-        method: "De-seed and soak chilis 20-30 mins. Peel ginger and turmeric. Sauté onions 3-5 mins. Blend everything until smooth. Adjust — too spicy, add vinegar or honey.",
-        frequency: "Use as a condiment with any meal — daily use maximises the medicinal benefit",
-        caution: "Hot chilis can irritate sensitive stomachs. Start with less chili and build up. Avoid if you have active stomach ulcers.",
-        sources_detail: { BTE: "Turmeric, ginger, garlic, and chilis have been used as medicinal foods across every traditional healing system for thousands of years." },
-      },
-    ],
-  },
-  {
-    id: "daily-protocols",
-    ailment: "Daily Wellness Protocols",
-    icon: "☀️",
-    color: "#F59E0B",
-    categories: ["daily","protocols"],
-    remedies: [
-      {
-        name: "Morning Window Breathing",
-        tagline: "2 minutes to oxygenate your blood and clear your lungs",
-        sources: ["BTE","BON"],
-        lawLink: "02",
-        ingredients: [
-          "An open window or outdoor space",
-          "2 minutes of uninterrupted time",
-        ],
-        steps: [
-          { instruction: "On waking, go directly to an open window or step outside. Stand comfortably with good posture.", tip: "Do this before checking your phone, before coffee, before anything. First breath of the day sets the tone." },
-          { instruction: "Breathe in deeply through your nose for 4 counts. Fill your lungs completely — feel your ribs expand.", tip: "Nasal breathing filters, warms, and humidifies the air before it reaches your lungs. It also activates receptors that mouth-breathing bypasses." },
-          { instruction: "Exhale slowly through your mouth for 6 counts. Empty your lungs completely.", tip: "The extended exhale activates the parasympathetic nervous system — your body's rest and recovery mode." },
-          { instruction: "Continue this pattern for 2 full minutes. You may feel slightly lightheaded — this is normal.", timer: 120, tip: "The lightheadedness is temporary CO2 reduction — it passes quickly. Pure oxygen is essential for healthy blood and cellular function." },
-        ],
-        science: "Deep diaphragmatic breathing activates the parasympathetic nervous system, reduces cortisol, and improves blood oxygenation. Published in Frontiers in Psychology, 2018.",
-        method: "On waking, go to the window and breathe deeply in and out for 2 minutes. You may feel slightly lightheaded — this is normal. Clears the lungs and oxygenates the blood.",
-        frequency: "Daily — first thing every morning, non-negotiable",
-        caution: "If you have a respiratory condition, breathe at your own pace. The lightheadedness should pass within seconds — if it persists, sit down and breathe normally.",
-        sources_detail: {
-          BTE: "Back to Eden identifies fresh air as one of the eight fundamental laws of health.",
-          BON: "Barbara O'Neill teaches morning deep breathing as a foundational daily wellness practice.",
-        },
-      },
-      {
-        name: "Understanding Cleansing Responses",
-        tagline: "What to expect when you begin the LQM programme — and when to seek help",
-        sources: ["BTE","BON"],
-        lawLink: "03",
-        ingredients: [
-          "Filtered water — minimum 2 litres daily during any cleansing protocol",
-          "Patience and self-awareness",
-          "Access to a healthcare professional if needed",
-        ],
-        steps: [
-          { instruction: "Understand this principle before you begin: when the body starts receiving better nutrition and fewer toxins, it begins releasing what it has stored. This is a natural process.", tip: "Think of it like cleaning a house that hasn't been cleaned in years. The dust has to come out before the house is clean. The process looks messy before it looks better." },
-          { instruction: "Common responses include: headaches, fatigue, mild skin breakouts, changes in digestion, and temporary flu-like symptoms. These typically last 3 to 7 days.", tip: "These responses are similar to what happens when someone comes off any substance the body has become dependent on. The body is recalibrating." },
-          { instruction: "Always start with a gentle stomach cleanse before any deeper protocol. Stay well hydrated — minimum 2 litres of filtered water daily.", tip: "Starting with the gut is essential. If the elimination pathways are blocked, toxins released from tissues have nowhere to go — this is what causes severe reactions." },
-          { instruction: "Go at your own pace. If you have a high toxin load or existing health conditions, start very gradually and extend the timeline.", tip: "Someone with years of poor diet should not fast for 3 days in their first week. Begin with simple dietary changes, then progress to juicing, then to fasting — always in that order." },
-          { instruction: "Know when to seek help: persistent high fever, difficulty breathing, severe rashes, chest pain, or any symptom that feels dangerous — see a doctor immediately.", tip: "The body is intelligent and will heal itself given the right conditions. But every person is different. If you are on medication, inform your doctor before making significant dietary changes. Caution and patience are always the correct approach." },
-        ],
-        science: "The body's adjustment to improved nutrition and reduced toxic input is well-documented in naturopathic medicine. Modern detoxification research confirms that stored toxins are mobilised during dietary changes. The key is supporting elimination pathways (gut, liver, kidneys) and proceeding gradually.",
-        method: "When beginning the LQM programme, your body will adjust to the changes. Start with a stomach cleanse, stay hydrated, proceed gradually, and listen to your body. Each person's experience is different — patience and self-awareness are essential.",
-        frequency: "Awareness protocol — revisit this guidance whenever beginning a new cleansing phase",
-        caution: "This is educational guidance, not medical advice. If you experience severe symptoms, persistent fever, difficulty breathing, or any reaction that concerns you, seek medical attention immediately. Always inform your doctor if you are making significant dietary changes while on medication.",
-        sources_detail: {
-          BTE: "Back to Eden documents the body's cleansing responses as a natural and expected part of the healing process, while emphasising gradual progress and individual tolerance.",
-          BON: "Barbara O'Neill teaches that the body's adjustment period is proportional to the individual's toxic load, and that the stomach and gut must be addressed first before any deeper cleansing protocol.",
-        },
-      },
-      {
-        name: "Contrast Hydrotherapy Routine",
-        tagline: "Daily circulation boost — hot and cold shower protocol",
-        sources: ["BTE","BON"],
-        lawLink: "02",
-        ingredients: [
-          "A shower with temperature control",
-          "3 minutes for the full routine",
-        ],
-        steps: [
-          { instruction: "Start your shower with warm water for 1 minute. Let it warm your muscles and open your blood vessels.", timer: 60, tip: "Hot water dilates blood vessels, driving circulation to the surface and bringing fresh oxygen to tissue." },
-          { instruction: "Switch to cold water for 15 seconds. Breathe steadily through it.", timer: 15, tip: "Cold water contracts vessels, pushing blood and lymph back toward the core. This is the pump action your lymphatic system needs." },
-          { instruction: "Switch back to warm for 1 minute.", timer: 60, tip: "Each alternation moves fluid through your lymphatic system. Unlike your heart, the lymphatic system has no pump — it relies on this kind of stimulus." },
-          { instruction: "Switch to cold for 15 seconds. Always finish on cold.", timer: 15, tip: "Finishing cold closes pores, invigorates circulation, and leaves you alert. Finnish studies link regular cold exposure to significantly reduced cardiovascular mortality." },
-        ],
-        science: "Contrast hydrotherapy activates circulation, lymphatic drainage, and immune response. Multiple peer-reviewed studies confirm benefits for inflammation reduction and recovery. Finnish cohort studies link regular practice to reduced cardiovascular mortality.",
-        method: "Start with hot water, switch to cold, repeat — always end on cold. Activates circulation, lymphatic drainage and immune response. Begin gently and build tolerance gradually.",
-        frequency: "Daily — at the end of every shower",
-        caution: "Begin gently and build tolerance. Avoid if you have a heart condition without medical clearance. The cold should be bracing, not painful.",
-        sources_detail: {
-          BTE: "Jethro Kloss dedicates extensive sections of Back to Eden to hydrotherapy as the body's greatest restorer.",
-          BON: "Barbara O'Neill teaches contrast hydrotherapy as a fundamental daily practice for immune function and circulation.",
-        },
-      },
-      {
-        name: "Evening Eating Window",
-        tagline: "Stop eating by 7pm — circadian biology in action",
-        sources: ["BON"],
-        lawLink: "03",
-        ingredients: [
-          "A clock or timer",
-          "Your last meal completed by 7pm",
-        ],
-        steps: [
-          { instruction: "Plan your evening meal to be finished by 7pm tonight. This is your eating window closing.", tip: "The body's metabolic processes follow a circadian rhythm. Eating late disrupts insulin sensitivity and fat metabolism." },
-          { instruction: "After 7pm, drink only water or herbal tea. No food, no sugary drinks, no snacking.", tip: "The digestive system needs to shut down before sleep. Continued activity prevents the body from entering the deep repair states that constitute restorative sleep." },
-          { instruction: "If hunger arises after 7pm, drink warm water with lemon or herbal tea. The sensation passes within 20 minutes.", tip: "Late-night hunger is often habitual, not biological. Breaking the habit takes about 7 to 10 days of consistency." },
-          { instruction: "Maintain this eating window consistently for 21 days. It will become automatic.", tip: "Salk Institute research confirms early time-restricted eating improves insulin sensitivity and metabolic markers. This is one of the simplest and most impactful changes you can make." },
-        ],
-        science: "Salk Institute research confirms early time-restricted eating improves insulin sensitivity and metabolic markers. Arnold Ehret identified evening overeating as a primary cause of disturbed sleep and impaired healing.",
-        method: "Try not to eat after 7PM. Backed by circadian biology research — eating late disrupts insulin sensitivity and fat metabolism.",
-        frequency: "Every evening — non-negotiable part of the LQM daily rhythm",
-        caution: "If you have diabetes or are on blood sugar medication, consult your doctor before changing meal timing.",
-        sources_detail: {
-          BON: "Barbara O'Neill teaches the evening eating window as foundational to both sleep quality and metabolic health.",
-        },
-      },
-      {
-        name: "Sauna Practice",
-        tagline: "Detoxification through perspiration — accessible to everyone",
-        sources: ["BTE"],
-        lawLink: "04",
-        ingredients: [
-          "Access to a sauna (portable infrared saunas are an affordable option)",
-          "2 large glasses of filtered water",
-          "A towel",
-        ],
-        steps: [
-          { instruction: "Drink a full glass of filtered water before entering the sauna. Hydration before, during, and after is essential.", tip: "The body will lose significant fluid through perspiration. Pre-hydrating prevents dehydration headaches and supports the detoxification process." },
-          { instruction: "Enter the sauna and sit comfortably. Begin with 15 minutes if you are new to sauna use.", timer: 900, tip: "Portable infrared saunas are accessible and effective — you don't need a gym or spa membership. The health investment pays for itself quickly." },
-          { instruction: "If you feel dizzy or unwell at any point, exit immediately. Listen to your body.", tip: "Sauna tolerance builds over time. Start with shorter sessions and extend gradually. The goal is comfortable perspiration, not endurance." },
-          { instruction: "After your session, drink another full glass of water. Allow your body to cool naturally — don't rush to shower.", tip: "Finnish studies link regular sauna use to significantly reduced cardiovascular mortality. The benefits come from consistency, not intensity." },
-        ],
-        science: "Finnish cohort studies demonstrate that regular sauna use significantly reduces cardiovascular mortality. Perspiration supports the movement of toxins from the body, complementing the liver and kidneys as the primary detox organs.",
-        method: "Introduce a sauna into your routine — portable saunas are an accessible option. Supports movement of toxins through perspiration. Start gently and build tolerance.",
-        frequency: "2-3 times per week for maintenance, daily during active cleansing phases",
-        caution: "Avoid if pregnant, if you have uncontrolled blood pressure, or if you have a heart condition without medical clearance. Always hydrate before and after.",
-        sources_detail: {
-          BTE: "Back to Eden documents heat therapy as a fundamental healing practice, supporting circulation and the body's natural elimination processes.",
-        },
-      },
-      {
-        name: "Coconut Oil Pulling",
-        tagline: "Ancient Ayurvedic oral cleanse — reduces bacteria comparable to chlorhexidine",
-        sources: ["BTE"],
-        lawLink: "03",
-        ingredients: [
-          "1 tablespoon virgin coconut oil",
-          "Optional: 1 drop lemon essential oil or pinch of xylitol for taste",
-        ],
-        steps: [
-          { instruction: "First thing in the morning, before eating, drinking, or brushing your teeth, place 1 tablespoon of virgin coconut oil in your mouth.", tip: "The oil will be solid if your room is cool — it melts within seconds in your mouth. Virgin coconut oil is roughly 50% lauric acid, which has documented antimicrobial and anti-inflammatory properties." },
-          { instruction: "Swish the oil around your mouth gently and thoroughly for 15 to 20 minutes. Push and pull it between your teeth.", timer: 900, tip: "This is longer than it sounds — start with 5 minutes and build up. The swishing action mechanically removes bacteria from surfaces the toothbrush cannot reach. The oil traps and pulls toxins and pathogens from the oral cavity." },
-          { instruction: "Spit the oil into a bin — not the sink, as coconut oil solidifies and can block pipes. The oil will be thin and white or yellowish.", tip: "Do not swallow the oil. After 15 minutes of swishing, it is loaded with bacteria and toxins pulled from your mouth." },
-          { instruction: "Rinse your mouth with warm salt water. Then brush your teeth as normal.", tip: "A systematic review of randomised controlled trials found oil pulling with coconut oil significantly reduces bacterial colony counts and plaque scores. One clinical trial found it comparable to chlorhexidine mouthwash for plaque inhibition — with less tooth staining." },
-        ],
-        science: "A systematic review in Heliyon (2020) found oil pulling with coconut oil significantly reduced salivary bacterial counts and plaque index scores in randomised controlled trials. A crossover trial found coconut oil pulling had similar plaque inhibition to 0.2% chlorhexidine with significantly less staining. Coconut oil's lauric acid has confirmed antimicrobial activity against Streptococcus mutans and Candida albicans.",
-        method: "Swish 1 tablespoon of virgin coconut oil in the mouth for 15-20 minutes first thing in the morning, before eating or brushing. Spit into bin, rinse with salt water, then brush normally.",
-        frequency: "Daily — first thing every morning, 3 to 4 times per week minimum",
-        caution: "Do not swallow the oil after swishing. Spit into a bin, not the sink. Oil pulling is a complement to normal brushing and flossing, not a replacement. If you have dental work or gum disease, consult your dentist.",
-        sources_detail: {
-          BTE: "Oil pulling is an ancient Ayurvedic practice documented for over 3,000 years. Modern clinical trials have validated its antimicrobial effects, particularly with coconut oil due to its high lauric acid content.",
-        },
-      },
-
-    ],
-  },
-  {
-    id: "wellness-essentials",
-    ailment: "Wellness Essentials",
-    icon: "🌿",
-    color: "#34D399",
-    categories: ["essentials","supplements"],
-    remedies: [
-      {
-        name: "Lion's Mane & Ashwagandha Stack",
-        tagline: "Morning cognition + evening calm — the LQM brain and stress stack",
-        sources: ["BON"],
-        lawLink: "01",
-        ingredients: [
-          "Morning — Lion's Mane 500-1000mg (20-30% polysaccharide extract)",
-          "Evening — Ashwagandha 300-600mg (KSM-66 or Sensoril extract)",
-        ],
-        steps: [
-          { instruction: "Each morning, take 500 to 1000 milligrams of Lion's Mane mushroom extract with breakfast.", tip: "Lion's Mane is the only known food that stimulates Nerve Growth Factor production — the protein responsible for growing and maintaining neurons. Look for 20 to 30 percent polysaccharide extract on the label." },
-          { instruction: "Each evening, take 300 to 600 milligrams of Ashwagandha. Look for KSM-66 or Sensoril extract specifically.", tip: "Multiple randomised controlled trials confirm ashwagandha reduces cortisol by an average of 27% over 60 days. It also improves sleep quality and reduces anxiety." },
-          { instruction: "Maintain this stack consistently for a minimum of 60 days before assessing results.", tip: "Adaptogens and nootropics build their effects over time. The first noticeable changes are usually improved sleep quality (week 1-2) and clearer thinking (week 3-4)." },
-        ],
-        science: "Lion's Mane stimulates Nerve Growth Factor production — the most studied natural compound for neuroplasticity. Ashwagandha has strong RCT evidence for stress reduction, cortisol lowering, and sleep quality improvement.",
-        method: "Morning: Lion's Mane for cognitive function and nerve growth factor support. Evening: Ashwagandha for cortisol reduction and sleep quality. Both are well-researched and complementary.",
-        frequency: "Daily — morning and evening, with food",
-        caution: "Ashwagandha: avoid if hyperthyroid or pregnant. Consult your GP if on medication. Supplements are adjuncts to the 5 Quantum Laws, not replacements.",
-        sources_detail: {
-          BON: "Barbara O'Neill identifies adrenal support as foundational to stress management and recommends ashwagandha as a primary adaptogen alongside dietary and lifestyle changes.",
-        },
-      },
-      {
-        name: "Kidney Detox Tea Blend",
-        tagline: "Traditional kidney support — three herbs in equal parts",
-        sources: ["BTE"],
-        lawLink: "03",
-        ingredients: [
-          "Parsley & Cornsilk Tea (The Herbalist's Kitchen — Wild Cornsilk, Dandelion Leaf, Parsley Leaf, Wild Juniper Berry)",
-          "Couchgrass Root — certified organic",
-          "Corn Silk Herb — certified organic",
-        ],
-        steps: [
-          { instruction: "Mix equal parts of all three tea blends in a large jar. Shake well to combine.", tip: "Mixing a large batch in advance means you only have to measure once. Store in a sealed container away from light." },
-          { instruction: "Use 1 heaped tablespoon of the blend per cup. Pour boiling water over and steep for 10 minutes.", timer: 600, tip: "Parsley flushes the kidneys. Dandelion cleanses liver and kidneys. Cornsilk soothes the urinary tract. Juniper berry is a kidney tonic. Couchgrass supports urinary tract health." },
-          { instruction: "Drink 2 cups daily — one mid-morning, one mid-afternoon. Do not drink close to bedtime.", tip: "This tea is a mild diuretic. Drinking it too close to bedtime may disrupt sleep with bathroom visits." },
-        ],
-        science: "Each herb in this blend targets a different aspect of kidney and urinary tract health. Traditional herbalism has used these combinations for centuries, and modern research confirms the diuretic and kidney-protective properties of each ingredient.",
-        method: "Mix equal parts of all three teas. Use 1 heaped tablespoon per cup. Steep 10 minutes. Drink 2 cups daily.",
-        frequency: "Daily during kidney support protocols, or 3-4 times weekly for maintenance",
-        caution: "If you have kidney disease, consult your doctor before using kidney-stimulating herbs. Increase water intake to support the flushing action.",
-        sources_detail: {
-          BTE: "Parsley, dandelion, and cornsilk are documented throughout Back to Eden as foundational kidney and urinary support herbs.",
-        },
-      },
-      {
-        name: "Frozen Lemon Technique",
-        tagline: "5-10x more vitamins than juice alone — the simplest nutritional upgrade",
-        sources: ["BTE"],
-        lawLink: "05",
-        ingredients: [
-          "1 whole lemon (organic, unwaxed)",
-          "A freezer",
-          "A fine grater or microplane",
-        ],
-        steps: [
-          { instruction: "Wash the lemon thoroughly under warm running water. Use organic, unwaxed lemons only.", tip: "Conventional lemons are coated in wax and pesticide residue. Since you're eating the peel, organic is essential here." },
-          { instruction: "Place the whole lemon in the freezer. Leave until completely frozen — minimum 4 hours, overnight is ideal.", tip: "Freezing makes the peel brittle and easy to grate. It also preserves the nutrients indefinitely — frozen lemons last months." },
-          { instruction: "When you need it, take the frozen lemon out and grate the entire thing — skin, flesh, and all — using a fine grater.", tip: "Lemon peel contains 5 to 10 times more vitamins than the juice alone. The peel is where the concentrated nutrients live." },
-          { instruction: "Sprinkle the grated frozen lemon on foods, salads, juices, soups, yoghurt — anything. Return the rest to the freezer.", tip: "This is one of the simplest and highest-return nutritional upgrades you can make. Genuine antimicrobial, immune-supporting, and vitamin-rich properties — at almost no cost." },
-        ],
-        science: "Lemon peel contains significantly higher concentrations of vitamins, minerals, and beneficial compounds than the juice. The peel is rich in limonene, vitamin C, pectin, and flavonoids with documented antimicrobial and immune-supporting properties.",
-        method: "Wash lemon, freeze completely, then grate the whole lemon — skin and all. Sprinkle on foods, salads, juices, soups. Lemon peel contains 5-10x more vitamins than the juice.",
-        frequency: "Daily — add to any meal or drink",
-        caution: "Use organic, unwaxed lemons only. Conventional lemons are coated with wax and pesticide residue that you do not want to consume.",
-        sources_detail: {
-          BTE: "Citrus peel has been used in traditional medicine for centuries. The frozen grating technique makes daily use practical and accessible.",
-        },
-      },
-      {
-        name: "Alkalising Water with Sodium Bicarbonate",
-        tagline: "Simple daily water enhancement for pH balance",
-        sources: ["BTE"],
-        lawLink: "05",
-        ingredients: [
-          "1 litre of Zero Water (filtered)",
-          "½ teaspoon sodium bicarbonate (baking soda)",
-          "Optional: green powder supplement",
-        ],
-        steps: [
-          { instruction: "Fill a litre bottle or jug with filtered water. Zero Water or equivalent filtered water is recommended.", tip: "Filtered water removes contaminants that would undermine the alkalising purpose. Tap water contains chlorine, fluoride, and heavy metals depending on your area." },
-          { instruction: "Add half a teaspoon of sodium bicarbonate to the water. Stir until fully dissolved.", tip: "Sodium bicarbonate is one of the safest and most effective alkalising agents available. It is widely used in medicine and completely food-grade." },
-          { instruction: "Optionally add a scoop of green powder — barley grass, wheatgrass, or a greens blend.", tip: "Green powders add chlorophyll, which is oxygenating and further supports an alkaline internal environment." },
-          { instruction: "Drink this throughout the day. Prepare a fresh batch daily.", tip: "Drink 1 to 2 glasses on an empty stomach 45 minutes before breakfast for maximum effect. Continue sipping throughout the day." },
-        ],
-        science: "Sodium bicarbonate is a well-researched alkalising agent used safely in medicine for decades. An alkaline internal environment supports enzyme function, mineral absorption, and cellular health.",
-        method: "Add half a teaspoon of sodium bicarbonate to 1 litre of filtered water. Optionally add green powder. Drink throughout the day.",
-        frequency: "Daily — prepare fresh each morning",
-        caution: "Do not exceed the recommended amount. Excessive sodium bicarbonate intake can cause electrolyte imbalances. If you have kidney disease or are on a sodium-restricted diet, consult your doctor.",
-        sources_detail: {
-          BTE: "Alkalising the body's internal environment is a foundational principle in Back to Eden naturopathic practice.",
-        },
-      },
-    ],
-  },
-];
-
-// ── Category browse pills ─────────────────────────────────────────────────
-const CATEGORIES = [
-  { id:"cardiovascular",label:"Heart & Blood",   color:"#EF4444" },
-  { id:"digestive",     label:"Digestion",       color:"#A78BFA" },
-  { id:"detox",         label:"Detox",           color:GREEN  },
-  { id:"energy",        label:"Energy",          color:"#F59E0B" },
-  { id:"hormonal",      label:"Hormonal",        color:"#F472B6" },
-  { id:"immunity",      label:"Immunity",        color:GREEN  },
-  { id:"inflammation",  label:"Inflammation",    color:"#EF4444" },
-  { id:"pain",          label:"Pain",            color:"#00C8FF" },
-  { id:"respiratory",   label:"Respiratory",     color:PURPLE },
-  { id:"skin",          label:"Skin",            color:GREEN  },
-  { id:"sleep",         label:"Sleep",           color:PURPLE },
-  { id:"stress",        label:"Stress",          color:GREEN  },
-  { id:"metabolic",     label:"Blood Sugar",     color:"#F59E0B" },
-  { id:"womens",        label:"Women's Health",  color:"#F472B6" },
-  { id:"nourishment",   label:"Quantum Fuel",    color:"#A78BFA" },
-  { id:"daily",         label:"Daily Protocols",  color:"#F59E0B" },
-  { id:"essentials",    label:"Essentials",       color:GREEN },
-  { id:"all",           label:"All Remedies",    color:E_BLUE  },
-];
-
-// ── Source badge ──────────────────────────────────────────────────────────
-function SourceBadge({ code }) {
-  const s = SOURCE_META[code];
-  if (!s) return null;
+function ArchetypeIllustration({ type: t }) {
+  const ARCH_COLORS = {A:"#00C8FF",B:"#38BDF8",C:"#34D399",D:"#A78BFA"};
+  const c = ARCH_COLORS[t] || "#00C8FF";
+  const uid = `lqm_${t}`;
+  const css = `
+    #${uid}_r1 { transform-box:fill-box; transform-origin:center; animation:${uid}_s1 9s linear infinite; }
+    #${uid}_r2 { transform-box:fill-box; transform-origin:center; animation:${uid}_s2 15s linear infinite; }
+    #${uid}_r3 { transform-box:fill-box; transform-origin:center; animation:${uid}_s3 5s linear infinite; }
+    @keyframes ${uid}_s1 { from{transform:rotate(0deg);} to{transform:rotate(360deg);} }
+    @keyframes ${uid}_s2 { from{transform:rotate(0deg);} to{transform:rotate(-360deg);} }
+    @keyframes ${uid}_s3 { from{transform:rotate(45deg);} to{transform:rotate(405deg);} }
+  `;
   return (
-    <span style={{
-      fontSize:11, fontWeight:700, color:s.color,
-      background:s.bg, border:`1px solid ${s.border}`,
-      borderRadius:100, padding:"2px 8px",
-      letterSpacing:".08em", flexShrink:0,
-    }}>{s.short}</span>
+    <svg viewBox="0 0 200 140" style={{width:"100%",maxWidth:340,display:"block",margin:"0 auto"}}>
+      <style>{css}</style>
+      <defs><radialGradient id={`${uid}_g`} cx="50%" cy="50%" r="50%"><stop offset="0%" stopColor={c} stopOpacity="0.3"/><stop offset="100%" stopColor={c} stopOpacity="0"/></radialGradient></defs>
+      <ellipse cx="100" cy="70" rx="55" ry="45" fill={`url(#${uid}_g)`} opacity="0.8"/>
+      {[35,65,100,135,165].map(x=><line key={`v${x}`} x1={x} y1="15" x2={x} y2="125" stroke={c} strokeWidth="0.3" opacity="0.15"/>)}
+      {[25,50,70,90,115].map(y=><line key={`h${y}`} x1="15" y1={y} x2="185" y2={y} stroke={c} strokeWidth="0.3" opacity="0.15"/>)}
+      {[[18,18],[182,18],[18,122],[182,122]].map(([x,y],i)=>(<circle key={i} cx={x} cy={y} r="2.5" fill={c} opacity="0.5"/>))}
+      <circle cx="100" cy="70" r="50" fill="none" stroke={c} strokeWidth="0.4" opacity="0.2"/>
+      <g id={`${uid}_r1`}><circle cx="100" cy="70" r="40" fill="none" stroke="white" strokeWidth="1.5" strokeDasharray="42 22" opacity="0.5"/><circle cx="100" cy="30" r="4.5" fill="white" opacity="0.9"/><circle cx="140" cy="70" r="3" fill="white" opacity="0.65"/></g>
+      <g id={`${uid}_r2`}><circle cx="100" cy="70" r="28" fill="none" stroke="white" strokeWidth="1.2" strokeDasharray="30 16" opacity="0.55"/><circle cx="100" cy="42" r="4" fill="white" opacity="0.95"/><circle cx="72" cy="70" r="3" fill={c} opacity="1"/></g>
+      <g id={`${uid}_r3`}><circle cx="100" cy="70" r="16" fill="none" stroke="white" strokeWidth="1.8" strokeDasharray="18 10" opacity="0.65"/><circle cx="100" cy="54" r="3.5" fill={c} opacity="1"/></g>
+      <line x1="100" y1="22" x2="100" y2="118" stroke={c} strokeWidth="0.6" opacity="0.2"/>
+      <line x1="52" y1="70" x2="148" y2="70" stroke={c} strokeWidth="0.6" opacity="0.2"/>
+      <circle cx="100" cy="70" r="9" fill={c} opacity="0.2"/>
+      <circle cx="100" cy="70" r="5.5" fill={c} opacity="0.6"/>
+      <circle cx="100" cy="70" r="2.5" fill="white" opacity="1"/>
+    </svg>
   );
 }
 
-// ── Single remedy card ────────────────────────────────────────────────────
-// ── Audio narration — pre-recorded protocol voice clips ───────────────────
-// Files live in /public: protocol-{id}-{step}.mp3
-// Map remedy name to audio file prefix
-const AUDIO_PREFIX = {
-  // Blood Pressure
-  "Garlic, Lemon & Cayenne Morning Tonic": "protocol-garlic-tonic",
-  "Magnesium & Potassium Protocol": "protocol-mag-potassium",
-  "Mucusless Cleansing Protocol": "protocol-mucusless-bp",
-  // Diabetes
-  "Apple Cider Vinegar & Cinnamon Protocol": "protocol-acv-cinnamon",
-  "Bitter Herbs & Chromium Foods": "protocol-bitter-herbs",
-  "Mucusless Diet \u2014 Addressing the Root": "protocol-mucusless-diabetes",
-  // Inflammation
-  "Turmeric, Ginger & Black Pepper Protocol": "protocol-golden-milk",
-  "Castor Oil Pack": "protocol-castor-oil",
-  "Hot & Cold Hydrotherapy": "protocol-hydrotherapy",
-  "Mucusless Anti-Inflammatory Diet": "protocol-mucusless-inflam",
-  // Cold & Flu
-  "Garlic, Lemon, Ginger & Honey Shot": "protocol-immune-shot",
-  "Oil of Oregano & Elderberry Protocol": "protocol-oregano-elderberry",
-  // Sleep
-  "Magnesium & Herbal Evening Protocol": "protocol-sleep-evening",
-  "Circadian Reset Protocol": "protocol-circadian-reset",
-  // Headaches
-  "Peppermint & Lavender Temple Protocol": "protocol-temple-headache",
-  "Magnesium & Hydration Protocol": "protocol-hydration-headache",
-  // Anxiety
-  "Adaptogen & Nervous System Tonic": "protocol-adaptogen-tonic",
-  "Breath & Movement Reset": "protocol-breath-reset",
-  // Joint Pain
-  "Turmeric, Boswellia & Omega Protocol": "protocol-joint-supplement",
-  "Castor Oil Pack & Hydrotherapy": "protocol-joint-castor",
-  // Skin
-  "Internal Cleansing Protocol": "protocol-skin-internal",
-  "Topical Natural Remedies": "protocol-skin-topical",
-  // Digestion
-  "Digestive Bitters & Enzyme Protocol": "protocol-digestive-bitters",
-  "Gut Microbiome Restoration": "protocol-gut-restore",
-  // Detox
-  "Liver Cleanse Protocol": "protocol-liver-cleanse",
-  "Lymphatic Activation Protocol": "protocol-lymphatic",
-  // Women's Health
-  "Hormonal Balance Protocol": "protocol-hormonal",
-  "Raspberry Leaf & Iron Protocol": "protocol-raspberry-iron",
-  // Energy
-  "Adrenal Restoration Protocol": "protocol-adrenal",
-  "Iron & B12 Foundation": "protocol-iron-b12",
-  // Juices (catalogue content)
-  "Classic Green Juice": "protocol-green-juice",
-  "Carrot & Apple Cleanse": "protocol-carrot-apple",
-  "Carrot, Orange & Ginger": "protocol-carrot-orange",
-  "Happy Cucumber Melon": "protocol-cucumber-melon",
-  // Recipes
-  "Chia Seed Pudding": "protocol-chia-pudding",
-  "Roasted Butternut Squash": "protocol-butternut",
-  "Spicy Superfood Sauce": "protocol-superfood-sauce",
-  "Detox Salad Dressing": "protocol-detox-dressing",
-  // Daily Protocols (additional)
-  "Morning Window Breathing": "protocol-morning-breathing",
-  "Contrast Hydrotherapy Routine": "protocol-contrast-shower",
-  "Evening Eating Window": "protocol-eating-window",
-  "Sauna Practice": "protocol-sauna",
-  "Understanding Cleansing Responses": "protocol-cleansing-responses",
-  // Wellness Essentials
-  "Lion's Mane & Ashwagandha Stack": "protocol-brain-stack",
-  "Kidney Detox Tea Blend": "protocol-kidney-tea",
-  "Frozen Lemon Technique": "protocol-frozen-lemon",
-  "Alkalising Water with Sodium Bicarbonate": "protocol-alkalise-water",
-  // New protocols
-  "Hawthorn Berry Tea": "protocol-hawthorn-tea",
-  "Hibiscus Tea": "protocol-hibiscus-tea",
-  "Mullein Leaf Tea": "protocol-mullein-tea",
-  "Clove, Ginger & Cinnamon Tea": "protocol-clove-tea",
-  "Activated Charcoal Protocol": "protocol-charcoal",
-  "Coconut Oil Pulling": "protocol-oil-pulling",
+function FlameIcon({size=16}) {
+  const w = Math.round(size * 0.75);
+  return (
+    <svg width={w} height={size} viewBox="0 0 15 20" style={{display:"inline-block",verticalAlign:"middle",flexShrink:0,transformOrigin:"center bottom",animation:"flamePulse 1.9s ease-in-out infinite"}}>
+      <path d="M7.5 1C7.5 1 4.5 4.5 4.5 8C4.5 8 3 6 3.5 3.5C1 5.5 1 9.5 3 11.5C2 13 2 15 3 16.5C4.2 18.5 5.8 19.5 7.5 19.5C9.2 19.5 10.8 18.5 12 16.5C13 15 13 13 12 11.5C14 9.5 14 5.5 11.5 3.5C12 6 10.5 8 10.5 8C10.5 4.5 7.5 1 7.5 1Z" fill="#7DD3FC" opacity="0.92"/>
+      <path d="M7.5 8C7.5 8 6 10 6 12C6 12 5 11 5.5 9.5C4 11 4.5 13.5 6 15C6.5 16 7 17 7.5 17C8 17 8.5 16 9 15C10.5 13.5 11 11 9.5 9.5C10 11 9 12 9 12C9 10 7.5 8 7.5 8Z" fill="#FFFFFF" opacity="0.96"/>
+    </svg>
+  );
+}
+
+function StrengthBars({strengths,color}){
+  const widths=[95,88,82,76];
+  return <div style={{marginTop:8}}>{strengths.map((s,i)=>(<div key={i} style={{marginBottom:14}}><div style={{display:"flex",justifyContent:"space-between",marginBottom:6}}><span style={{fontSize:13,fontWeight:600,color:WHITE}}>{s}</span><span style={{fontSize:12,color,fontWeight:700}}>{widths[i]}%</span></div><div style={{height:6,background:"rgba(255,255,255,0.06)",borderRadius:100,overflow:"hidden"}}><div style={{height:"100%",width:`${widths[i]}%`,background:`linear-gradient(90deg,${color}88,${color})`,borderRadius:100,boxShadow:`0 0 8px ${color}66`}}/></div></div>))}</div>;
+}
+
+function BlindSpotCard({text,index,color}){
+  const icons=["⚠","◎","△"];
+  return <div style={{display:"flex",gap:16,alignItems:"flex-start",padding:"16px 18px",background:"rgba(255,160,40,0.06)",border:"1px solid rgba(255,160,40,0.2)",borderRadius:12,marginBottom:10,borderLeft:"3px solid rgba(255,160,40,0.5)"}}><div style={{width:32,height:32,borderRadius:"50%",background:"rgba(255,160,40,0.12)",border:"1px solid rgba(255,160,40,0.3)",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,fontSize:14}}>{icons[index]}</div><div><p style={{fontSize:16,fontWeight:700,color:"rgba(255,200,80,0.97)",lineHeight:1.5,marginBottom:2}}>{text}</p><p style={{fontSize:13,color:"rgba(255,200,80,0.78)",fontWeight:400}}>Awareness is the first step to navigation</p></div></div>;
+}
+
+const questions = [
+  {id:1,sym:"⚛",text:"When you set a major goal, what's your first instinct?",opts:[{t:"Design a precise system and track every step",ty:"A"},{t:"Research deeply until I truly understand it",ty:"B"},{t:"Find someone who's done it and learn from them",ty:"C"},{t:"Visualise the person I'll become when I achieve it",ty:"D"}]},
+  {id:2,sym:"◎",text:"Your honest definition of success:",opts:[{t:"Consistent, measurable results — proof in the numbers",ty:"A"},{t:"Genuine mastery — understanding something at its deepest level",ty:"B"},{t:"Making a meaningful difference to people I care about",ty:"C"},{t:"Creating something original that only I could have made",ty:"D"}]},
+  {id:3,sym:"△",text:"You've been stuck for three days. What actually breaks the deadlock?",opts:[{t:"I reset my system — break it into smaller daily actions",ty:"A"},{t:"I reframe it as a problem to be solved with better information",ty:"B"},{t:"Someone I respect holds me accountable",ty:"C"},{t:"I change the environment entirely and start fresh",ty:"D"}]},
+  {id:4,sym:"⬡",text:"Which condition produces your best work?",opts:[{t:"Clear structure, defined metrics, known expectations",ty:"A"},{t:"Freedom to explore, question, and go deep",ty:"B"},{t:"A strong team with shared purpose and mutual trust",ty:"C"},{t:"Full creative autonomy over the vision and execution",ty:"D"}]},
+  {id:5,sym:"⊕",text:"What depletes your motivation fastest?",opts:[{t:"Effort with no visible progress or measurable result",ty:"A"},{t:"Repetition with no growth or learning",ty:"B"},{t:"Isolation — working without human connection",ty:"C"},{t:"Being handed a script and told to follow it",ty:"D"}]},
+  {id:6,sym:"⟁",text:"Someone critiques your work sharply. Your real first reaction:",opts:[{t:"I measure it against the objective — is it accurate?",ty:"A"},{t:"I ask questions to understand their reasoning",ty:"B"},{t:"I notice how it affects my relationship with them",ty:"C"},{t:"I feel it intensely — then use the friction as fuel",ty:"D"}]},
+  {id:7,sym:"◈",text:"When learning something genuinely difficult, you naturally:",opts:[{t:"Follow a proven system or structured curriculum",ty:"A"},{t:"Go straight to source material and build your own understanding",ty:"B"},{t:"Learn by doing it with others or teaching it",ty:"C"},{t:"Experiment, fail, iterate — trial is the teacher",ty:"D"}]},
+  {id:8,sym:"⬢",text:"Your relationship with long-term goals:",opts:[{t:"I thrive on them — the system is the goal",ty:"A"},{t:"I like goals that evolve as my understanding deepens",ty:"B"},{t:"Goals feel most alive when shared with others",ty:"C"},{t:"My north star is fixed — how I get there is flexible",ty:"D"}]},
+  {id:9,sym:"⚛",text:"At the end of a high-performance day, you feel:",opts:[{t:"Accomplished — the system ran perfectly",ty:"A"},{t:"Expanded — I understand something I didn't this morning",ty:"B"},{t:"Connected — I contributed to something beyond myself",ty:"C"},{t:"Alive — I made something that didn't exist before",ty:"D"}]},
+  {id:10,sym:"△",text:"The sentence that wires deepest into your brain:",opts:[{t:"\u201cYou do not rise to the level of your goals. You fall to the level of your systems.\u201d",ty:"A"},{t:"\u201cThe more I learn, the more I realise how much I don\u2019t know.\u201d",ty:"B"},{t:"\u201cAlone we can do so little. Together we can do so much.\u201d",ty:"C"},{t:"\u201cThe people crazy enough to think they can change the world are the ones who do.\u201d",ty:"D"}]},
+  {id:11,sym:"🎨",text:"BONUS: Quick Visual Insight",subtitle:"Look at the image below. What stands out to you first?",isVisual:true,imageUrl:"tree-woman-illusion.jpg",opts:[{t:"The tree structure",ty:"A",visual:"tree"},{t:"The woman's face",ty:"C",visual:"woman"},{t:"Both equally",ty:"neutral",visual:"both"}]},
+];
+const TYPES = {
+  A:{sym:"◈",name:"The Systems Architect",arch:"Identity: The Builder",tag:"You don't chase motivation. You engineer it.",hook:"Most people try to motivate themselves. You build systems that make motivation irrelevant.",desc:"Your psychology is wired for precision and process. While others rely on willpower — a depleting resource — you intuitively understand that sustainable performance follows systems, not intentions. This is a genuine edge. But there is a cost that high-performing Systems Architects rarely name openly: the system can become the hiding place. The moment the structure feels incomplete is often the exact moment action is required. The question is not whether your system is good. It almost certainly is. The question is whether you are currently building systems for the right outputs — or optimising beautifully in the wrong direction.",identity:"I am someone who builds systems that work even when I don't feel like it.",atomic:"Your quantum stack needs auditing, not expanding. You likely have good systems — but they may be optimised for the wrong outputs. Identify the ONE behaviour that, if repeated daily, would make everything else easier or unnecessary.",strengths:["Systems Design","Execution Consistency","Long-Horizon Thinking","Process Optimisation"],blindspots:["Can mistake motion for progress — busyness masquerading as output","Perfectionism delays launch — the system must be perfect before it begins","May optimise the wrong thing efficiently — precision without direction"],strategies:[{area:"The Quantum Increment",scenario:"I delay starting when the outcome feels uncertain or the project feels too large.",solution:"Shrink the action until it feels almost embarrassingly small. The goal isn't to write a chapter — it's to open the document. Identity is built by showing up, not by performing. Every small act of showing up is a vote for the person you're becoming."},{area:"Motivation Architecture",scenario:"My drive fluctuates week to week, making long-term projects unreliable.",solution:"Design your environment before you design your schedule. Make the desired behaviour the path of least resistance. Remove friction from what you want to do. Add friction to what you want to stop. Motivation follows the path you've already cleared."},{area:"The Identity Shift",scenario:"I feel frustrated when results don't match effort — I'm doing everything right but it's not working.",solution:"Ask not 'what do I want to achieve?' but 'who do I need to become?' Rewrite your daily actions as identity statements: 'I am someone who reviews progress every Friday.' Outcomes are lagging measures of identity. Build the identity first."}],blue:"#00C8FF",glow:"rgba(0,200,255,0.1)"},
+  B:{sym:"◉",name:"The Deep Learner",arch:"Identity: The Scholar",tag:"Your curiosity is a compounding asset.",hook:"Shallow knowledge is everywhere. What you build goes three levels deeper than anyone else in the room.",desc:"You are driven by a rare and powerful force: the need to genuinely understand. Not surface knowledge — real comprehension. This is the foundation of expertise, and expertise is the foundation of irreplaceable value. But there is a cost that Deep Learners rarely admit. The research is sometimes a sophisticated form of delay. 'Not ready yet' can be true — or it can be the most convincing avoidance strategy available to an intelligent person. The insight you are chasing at midnight is usually available at 6am — rested, with 70% of the information you want, and ready to act on it.",identity:"I am someone who turns deep understanding into decisive, courageous action.",atomic:"Knowledge without deployment is stored potential. Your quantum stack needs a 'publish' step — a regular moment where you translate internal understanding into external output, however imperfect.",strengths:["Intellectual Depth","Pattern Recognition","Mastery Orientation","Analytical Precision"],blindspots:["Analysis paralysis — research becomes a substitute for action","'Not ready yet' as avoidance — readiness is a feeling, not a fact","Over-invests in understanding, under-invests in the doing"],strategies:[{area:"The 70% Threshold",scenario:"I over-research and delay acting until I feel truly ready — which rarely comes.",solution:"Set a decision threshold: when you have 70% of the information you want, act. Treat the remaining 30% as field research — data you can only gather by doing. Action is the most advanced form of learning available to you."},{area:"Complexity as Motivation",scenario:"Repetitive or routine tasks drain me rapidly — I lose interest and disengage.",solution:"Find the hidden variable. In every routine task, there is one dimension you could optimise. Make the question 'how could I do this 10% more intelligently?' your daily prompt. Turn execution into experimentation."},{area:"The Output Practice",scenario:"I accumulate knowledge but struggle to show my work or share my thinking.",solution:"Build a weekly 'output ritual' — one piece of thinking made visible. A note, a voice memo, a conversation where you teach what you've learned. The act of explaining is the act of understanding at depth."}],blue:"#38BDF8",glow:"rgba(56,189,248,0.1)"},
+  C:{sym:"◎",name:"The Relational Catalyst",arch:"Identity: The Connector",tag:"You make everything — and everyone — better.",hook:"While others optimise for outputs, you understand the lever that moves everything: people.",desc:"Your motivation is relational at its core. You are energised by shared purpose, activated by belonging, and sustained by the knowledge that your effort matters to real people. This is a genuine superpower — social commitment is one of the most powerful forces in behaviour change, and you harness it naturally. But Relational Catalysts carry a shadow that is rarely discussed: without your own anchor, you become the person who holds everyone else's vision together while quietly losing track of your own. Other people's goals become your goals. Their urgency becomes your urgency. Their stagnation becomes your stagnation.",identity:"I am someone who builds relationships that hold me accountable to my own growth.",atomic:"Your quantum stack needs a social architecture layer. Every major goal should have one human being attached to it — someone who benefits from your success, or to whom you've made a commitment. Accountability is your performance-enhancing mechanism.",strengths:["Emotional Intelligence","Trust-Building","Authentic Leadership","Sustained Effort Under Commitment"],blindspots:["Loses personal direction without external anchors — others' goals become your own","Avoids necessary conflict — keeps the peace at the cost of progress","Absorbs others' energy — their demotivation can become yours"],strategies:[{area:"The Relational Goal Stack",scenario:"I lose motivation when working in isolation — the drive evaporates without connection.",solution:"Attach every personal goal to a specific person. Write: 'Achieving this allows me to show up better for [name] because [reason].' Share it with them. You have just created the most powerful motivational force in your psychology."},{area:"The Morning Anchor",scenario:"I absorb the emotional weather of those around me — their demotivation becomes mine.",solution:"Create a 10-minute pre-contact ritual each morning before interacting with anyone. Write three intentions. This builds an internal foundation that external moods cannot destabilise. Your identity precedes their influence."},{area:"The Accountability Architecture",scenario:"I need external commitment to sustain effort — and feel this is a weakness.",solution:"It isn't a weakness — it's a feature. Formalise it. Identify one person for a weekly check-in: one win, one struggle, one commitment. You're not removing the need for connection. You're building it intelligently into your growth system."}],blue:"#34D399",glow:"rgba(52,211,153,0.1)"},
+  D:{sym:"◇",name:"The Visionary Pioneer",arch:"Identity: The Creator",tag:"You don't follow the map. You draw it.",hook:"Every framework, every system, every method you've ever used — someone like you invented it first.",desc:"You are driven by possibility. You think in futures that don't exist yet. Your motivation comes from creative autonomy, the thrill of the blank canvas, and the deep satisfaction of making something that carries your fingerprint. But Visionary Pioneers carry a specific burden that is rarely discussed openly: the gap between the vision and the reality of building it. The idea is alive. The execution is work. That gap — between what you can see and what currently exists — is where most Visionary Pioneers quietly stall. The project you are working on right now almost certainly needs a completion mechanism as strong as your starting mechanism.",identity:"I am someone who brings bold visions into the world with enough structure to complete them.",atomic:"Your quantum stack needs a completion mechanism. You likely have strong starting rituals. Build equally strong finishing rituals — a defined moment where you declare a project 'shipped' and begin the next creative act.",strengths:["Original Thinking","Intrinsic Drive","Bold Risk Tolerance","Inspiring Through Vision"],blindspots:["Motivation drops after the initial spark — the build phase feels less alive","Too many projects open, too few completed — beginnings are exciting, endings are work","Structure feels like a cage — but without it, the vision never fully lands"],strategies:[{area:"The Evolution Frame",scenario:"My motivation collapses once the exciting creation phase ends and execution begins.",solution:"Reframe completion as the beginning of the next creative act, not the death of this one. Keep an 'Evolution Log' — a live document tracking how your project is changing and improving. The project is never finished. It is always becoming."},{area:"The One Brilliant Thing",scenario:"I scatter energy across multiple ideas simultaneously and make shallow progress on all of them.",solution:"Each week, identify the single most important creative act. Protect 90 uninterrupted minutes for it — first, before anything else. Everything else is secondary until that window is honoured. Constraint creates the conditions for your best work."},{area:"The Separation Protocol",scenario:"My output never matches my internal vision and this gap demotivates me deeply.",solution:"Separate creation from evaluation entirely. During making: no judgement allowed. Schedule a 'critical review' 24 hours after completion with fresh eyes. The inner critic and the inner creator cannot occupy the same creative moment."}],blue:"#A78BFA",glow:"rgba(167,139,250,0.1)"},
 };
 
-function useProtocolAudio(remedyName) {
-  const audioRef = useRef(null);
-  const prefix = AUDIO_PREFIX[remedyName] || null;
+// CHANGE 1: Pattern engine
+const PATTERN_DATA = {
+  A: {
+    label: "Structure orientation",
+    summary: "You prioritise frameworks and clarity before committing to action.",
+    tendency: "You often wait until the system feels fully complete before starting — and sometimes that delay costs you.",
+    strength: "You build solutions that are durable and scalable where others build things that break.",
+  },
+  B: {
+    label: "Analysis orientation",
+    summary: "You seek deep understanding before committing to a direction.",
+    tendency: "You may continue researching past the point where action would serve you better.",
+    strength: "You arrive at insights others miss by going three levels deeper than anyone else in the room.",
+  },
+  C: {
+    label: "Relational orientation",
+    summary: "You orient toward people and connection as your primary resource.",
+    tendency: "Your motivation can drop sharply when working without meaningful human connection.",
+    strength: "You create trust and alignment in ways that outlast any single project or initiative.",
+  },
+  D: {
+    label: "Creative orientation",
+    summary: "You naturally generate possibilities and envision futures that don't yet exist.",
+    tendency: "Your energy consistently peaks at the beginning of something new and dips during the execution phase.",
+    strength: "You see what could exist before others have even noticed the gap.",
+  },
+};
 
-  function play(stepIndex) {
-    stop();
-    if (!prefix) return;
-    const file = `/${prefix}-${stepIndex + 1}.mp3`;
+// ── Behavioural tension narratives ────────────────────────────────────────
+// One narrative per primary+secondary combination (12 total).
+// These describe the INTERACTION between the two tendencies — not just
+// a restatement of each one. The tension IS the insight.
+const TENSION_NARRATIVES = {
+  "A+B": {
+    balance: "You combine structural thinking with deep analytical capability.",
+    tension: "You may experience friction between building the perfect system and understanding every variable within it. Both tendencies demand completeness before action.",
+    edge: "When you allow imperfect systems to generate data, your analytical layer sharpens them rapidly. The two tendencies compound when you let them sequence — structure first, then analysis — rather than running them simultaneously.",
+  },
+  "A+C": {
+    balance: "You combine structured thinking with strong relational awareness.",
+    tension: "You may feel friction between the clarity of a well-defined system and the messiness of human dynamics. People rarely fit neatly into architectures.",
+    edge: "Your structural approach gives teams the clarity they need to perform, and your relational awareness ensures the system actually gets adopted. This combination builds things that last.",
+  },
+  "A+D": {
+    balance: "You combine structured thinking with a drive to create and explore new possibilities.",
+    tension: "You often feel the pull between building the right system and starting something entirely new. The existing structure can feel like a constraint when a new idea is alive.",
+    edge: "You are capable of both envisioning and engineering — one of the rarest combinations. The challenge is deciding when to iterate on what exists and when to build something new entirely.",
+  },
+  "B+A": {
+    balance: "You combine deep analytical capability with a strong desire for structural clarity.",
+    tension: "Both tendencies pull toward completeness before action. Analysis informs the structure. The structure demands more analysis. This loop can delay execution significantly.",
+    edge: "Set a decision threshold: when you have reached 70% of the understanding you want, act. The remaining 30% is available as field data — which your analytical tendency is well-equipped to process.",
+  },
+  "B+C": {
+    balance: "You combine deep analytical capability with strong relational intelligence.",
+    tension: "You may feel friction between the solitary nature of deep work and the relational energy that sustains you. Long periods of research can leave you feeling disconnected.",
+    edge: "Teaching what you understand to others serves both tendencies simultaneously. Your depth becomes useful. Your relational need is met. The output sharpens the thinking.",
+  },
+  "B+D": {
+    balance: "You combine deep analytical capability with strong creative and visionary thinking.",
+    tension: "You can see both the depth of how something works and the breadth of what it could become. This is powerful — and it can also create paralysis when neither analysis nor vision produces a clear starting point.",
+    edge: "Use your analytical layer to evaluate the creative ideas your visionary tendency generates. One produces the raw material. The other determines which ones are worth pursuing.",
+  },
+  "C+A": {
+    balance: "You combine relational intelligence with a strong desire for structural clarity.",
+    tension: "You care deeply about people and also want clear frameworks. When the human dynamics of a situation resist structure, you may feel pulled between maintaining harmony and imposing order.",
+    edge: "You are unusually good at creating systems that people actually want to follow — because you understand both how systems work and how people respond to them.",
+  },
+  "C+B": {
+    balance: "You combine relational intelligence with strong analytical depth.",
+    tension: "Your relational orientation drives you toward people, but your analytical tendency sometimes pulls you inward for extended reflection. Moving between the two can feel disorienting.",
+    edge: "Your analytical depth makes your relational insights unusually accurate. You do not just read people — you understand the patterns behind how they behave.",
+  },
+  "C+D": {
+    balance: "You combine relational intelligence with strong creative and visionary energy.",
+    tension: "You may feel friction between the vision you can see and the relational reality of bringing others with you. Visionary ideas require buy-in, and buy-in requires patience.",
+    edge: "You are unusually capable of inspiring others toward futures they could not yet see themselves. Your relational intelligence means people trust the vision because they trust you.",
+  },
+  "D+A": {
+    balance: "You combine visionary and creative energy with a strong desire for structural clarity.",
+    tension: "You generate ambitious ideas and simultaneously want the architecture to support them. The vision often outpaces the structure — and the structure often constrains the vision.",
+    edge: "When you allow yourself to vision freely first, then apply structural thinking to the most promising ideas, you create something rare: bold concepts that are actually buildable.",
+  },
+  "D+B": {
+    balance: "You combine visionary and creative energy with deep analytical capability.",
+    tension: "You can simultaneously see what could exist and understand deeply why things are the way they are. This creates a tension between disruption and comprehension — between building new and understanding existing.",
+    edge: "Your analytical layer prevents you from being a dreamer who never lands. Your visionary layer prevents you from being an analyst who never moves. The two tendencies, properly sequenced, produce original and rigorous thinking.",
+  },
+  "D+C": {
+    balance: "You combine visionary and creative energy with strong relational intelligence.",
+    tension: "You have a clear picture of where things could go and you care deeply about the people involved in getting there. The tension appears when the speed of the vision outpaces the readiness of the people around you.",
+    edge: "You are capable of building movements, not just products. Your vision gives direction. Your relational intelligence brings people into it. Together they create genuine momentum.",
+  },
+};
+
+// ── Pattern calculator ────────────────────────────────────────────────────
+// Returns: primary, secondary, counts, tension, confidence, dominance.
+// All values derived from the 10 answers. No backend. Pure client logic.
+function calcPatterns(answers) {
+  const scored = answers.slice(0, 10); // Only the 10 scored questions — exclude visual bonus Q11
+  const counts = {A:0, B:0, C:0, D:0};
+  scored.forEach(a => { if (counts.hasOwnProperty(a)) counts[a]++; });
+  const sorted = Object.entries(counts).sort((x,y) => y[1]-x[1]);
+
+  const primaryKey   = sorted[0][0];
+  const secondaryKey = sorted[1][0];
+  const primaryScore = sorted[0][1];
+  const secondaryScore = sorted[1][1];
+
+  // Tension: difference between primary and secondary score
+  const tension = primaryScore - secondaryScore;
+
+  // Dominance level: how strongly primary dominates
+  const dominance = tension <= 1 ? "blended"
+                  : tension <= 3 ? "balanced"
+                  : "dominant";
+
+  // Confidence: expressed as percentage of answers pointing to primary
+  const total = Object.values(counts).reduce((a,b)=>a+b,0);
+  const confidence = total > 0 ? Math.round((primaryScore / total) * 100) : 0;
+
+  return {
+    primary:       primaryKey,
+    secondary:     secondaryKey,
+    counts,
+    tension,
+    dominance,
+    confidence,
+    tensionKey:    `${primaryKey}+${secondaryKey}`,
+  };
+}
+
+const ORIGINAL = 27, DISCOUNTED = 9, TIMER_SECS = 5 * 60;
+const TEST_MODE = false;
+
+function Particles() {
+  return (
+    <div style={{position:"fixed",inset:0,pointerEvents:"none",zIndex:0,overflow:"hidden"}}>
+      {Array.from({length:14}).map((_,i) => {
+        const sym=SYMS[i%SYMS.length],left=5+(i*6.8)%88,dur=18+(i*2.9)%16,delay=-((i*3.1)%22),size=9+(i*1.9)%13,opacity=0.03+(i*0.004)%0.055;
+        return <div key={i} style={{position:"absolute",left:`${left}%`,bottom:-50,fontSize:size,color:E_BLUE,opacity,animation:`floatUp ${dur}s ${delay}s linear infinite`}}>{sym}</div>;
+      })}
+    </div>
+  );
+}
+
+export default function App() {
+  const [phase,setPhase]=useState("landing");
+  const [qIdx,setQIdx]=useState(0);
+  const [answers,setAnswers]=useState([]);
+  const [sel,setSel]=useState(null);
+  const [charType,setCharType]=useState(null);
+  const [timeLeft,setTimeLeft]=useState(TIMER_SECS);
+  const [timerOn,setTimerOn]=useState(false);
+  const [procStep,setProcStep]=useState(0);
+  const [showLegal,setShowLegal]=useState(null);
+  const [activeAddon,setActiveAddon]=useState(null);
+  const [showRestore,setShowRestore]=useState(false);
+  const [customerEmail,setCustomerEmail]=useState(()=>localStorage.getItem("lqm_customer_email")||"");
+  const [testMode,setTestMode]=useState(()=>new URLSearchParams(window.location.search).get('test')==='true');
+  // CHANGE 3: patterns state
+  const [patterns, setPatterns] = useState(null);
+
+  async function sendReport(email, typeKey) {
+    const t = TYPES[typeKey];
+    if (!t || !email) return { ok: false };
     try {
-      const a = new Audio(file);
-      a.volume = 0.92;
-      audioRef.current = a;
-      a.play().catch(() => {});
-    } catch {}
-  }
-
-  function stop() {
-    if (audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current.currentTime = 0;
-      audioRef.current = null;
-    }
-  }
-
-  // Cleanup on unmount
-  useEffect(() => { return () => stop(); }, []);
-
-  return { play, stop, hasAudio: !!prefix };
-}
-
-// ── Timer display ────────────────────────────────────────────────────────
-function formatTimer(secs) {
-  const m = Math.floor(secs / 60);
-  const s = secs % 60;
-  return `${m}:${s.toString().padStart(2, "0")}`;
-}
-
-// ══════════════════════════════════════════════════════════════════════════
-// GUIDED PROTOCOL — step-by-step walkthrough with optional voice
-// ══════════════════════════════════════════════════════════════════════════
-function GuidedProtocol({ remedy, accentColor, onClose }) {
-  const [step, setStep] = useState(0);
-  const [voiceOn, setVoiceOn] = useState(true);
-  const [timer, setTimer] = useState(null);
-  const [timerActive, setTimerActive] = useState(false);
-  const [showTip, setShowTip] = useState(false);
-  const [complete, setComplete] = useState(false);
-  const timerRef = useRef(null);
-  const contentRef = useRef(null);
-  const { play, stop, hasAudio } = useProtocolAudio(remedy.name);
-
-  const steps = remedy.steps;
-  const current = steps[step];
-  const total = steps.length;
-  const hasTimer = current && current.timer;
-
-  // Auto-play narration on step change when voice is on
-  useEffect(() => {
-    if (voiceOn && current && !complete) {
-      play(step);
-    }
-    return () => stop();
-  }, [step, voiceOn, complete]);
-
-  // Timer countdown
-  useEffect(() => {
-    if (!timerActive || timer <= 0) return;
-    timerRef.current = setInterval(() => {
-      setTimer(t => {
-        if (t <= 1) {
-          clearInterval(timerRef.current);
-          setTimerActive(false);
-          if (voiceOn) stop(); // stop any playing audio
-          return 0;
-        }
-        return t - 1;
+      const delivery = JSON.parse(localStorage.getItem("lqm_delivery")||"{}");
+      const r = await fetch("/api/send-report", {
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body: JSON.stringify({email,typeKey,name:t.name,arch:t.arch,tag:t.tag,hook:t.hook,desc:t.desc,identity:t.identity,atomic:t.atomic,strengths:t.strengths,blindspots:t.blindspots,strategies:t.strategies,blue:t.blue,deliveryRef:delivery.ref||"",deliveryTs:delivery.ts||""}),
       });
-    }, 1000);
-    return () => clearInterval(timerRef.current);
-  }, [timerActive]);
+      return { ok: r.ok };
+    } catch { return { ok: false }; }
+  }
 
-  // Cleanup on unmount
-  useEffect(() => {
-    return () => { clearInterval(timerRef.current); stop(); };
-  }, []);
+  const [activeView,setActiveView]=useState("hub");
+  const [unlocks,setUnlocks]=useState(getUnlocks);
+  const [showDeliveryGate,setShowDeliveryGate]=useState(false);
+  const [deliveryRef,setDeliveryRef]=useState(null);
+  const [deliveryTs,setDeliveryTs]=useState(null);
+  const timerRef=useRef(null);
 
-  // Auto-scroll content to top on step change
-  useEffect(() => {
-    if (contentRef.current) contentRef.current.scrollTop = 0;
-  }, [step]);
+  function generateDeliveryRef(){
+    localStorage.setItem("lqm_pending_session",JSON.stringify({answers, charType}));
+  }
 
-  function goNext() {
-    stop();
-    setShowTip(false);
-    setTimerActive(false);
-    if (step < total - 1) {
-      setStep(step + 1);
-      const nextStep = steps[step + 1];
-      if (nextStep.timer) { setTimer(nextStep.timer); }
-      else { setTimer(null); }
-    } else {
-      setComplete(true);
-      stop();
+  // CHANGE 14: confirmDelivery routes to "reveal" not "report"
+  function confirmDelivery(email){
+    const stored=JSON.parse(localStorage.getItem("lqm_delivery")||"{}");
+    localStorage.setItem("lqm_delivery",JSON.stringify({...stored,confirmed:true}));
+    if(email){
+      localStorage.setItem("lqm_customer_email", email);
+      setCustomerEmail(email);
+      sendReport(email, charType);
+    }
+    setShowDeliveryGate(false);
+    setActiveView("reveal");
+  }
+
+  useEffect(()=>{
+    const params=new URLSearchParams(window.location.search);
+    const paid=params.get("paid");
+    const cancelled=params.get("cancelled");
+
+    if(paid==="main"){
+      const saved=JSON.parse(localStorage.getItem("lqm_pending_session")||"null");
+      if(saved&&saved.answers){
+        const ref="LQM-"+new Date().getFullYear()+"-"+Math.random().toString(36).substring(2,10).toUpperCase();
+        const ts=new Date().toLocaleString("en-GB",{day:"2-digit",month:"short",year:"numeric",hour:"2-digit",minute:"2-digit"});
+        localStorage.setItem("lqm_answers",JSON.stringify(saved.answers));
+        localStorage.setItem("lqm_delivery",JSON.stringify({ref,ts,confirmed:false}));
+        localStorage.removeItem("lqm_pending_session");
+        setAnswers(saved.answers);
+        setCharType(saved.charType||calcType(saved.answers));
+        // CHANGE 5: patterns on Scenario A1
+        setPatterns(calcPatterns(saved.answers));
+        trackReturnVisit("stripe_main");
+        setDeliveryRef(ref);
+        setDeliveryTs(ts);
+        setPhase("paid");
+        setShowDeliveryGate(true);
+      }
+      window.history.replaceState({},"",window.location.pathname);
+      return;
+    }
+
+    if(paid==="neural"||paid==="vital"||paid==="both"){
+      if(paid==="both"){ setUnlock("neural"); setUnlock("vital"); }
+      else { setUnlock(paid); }
+      const saved=JSON.parse(localStorage.getItem("lqm_session_state")||"null");
+      if(saved&&saved.answers){
+        const deliveryData=JSON.parse(localStorage.getItem("lqm_delivery")||"{}");
+        setAnswers(saved.answers);
+        setCharType(saved.charType||calcType(saved.answers));
+        setPatterns(calcPatterns(saved.answers));
+        setDeliveryRef(deliveryData.ref || null);
+        setDeliveryTs(deliveryData.ts || null);
+        setUnlocks(getUnlocks());
+        setPhase("paid");
+        setActiveView("hub");
+        localStorage.removeItem("lqm_session_state");
+      }
+      window.history.replaceState({},"",window.location.pathname);
+      return;
+    }
+
+    if(cancelled){
+      const saved=JSON.parse(localStorage.getItem("lqm_session_state")||"null");
+      if(saved&&saved.answers){
+        const deliveryData=JSON.parse(localStorage.getItem("lqm_delivery")||"{}");
+        setAnswers(saved.answers);
+        setCharType(saved.charType||calcType(saved.answers));
+        setPatterns(calcPatterns(saved.answers));
+        setDeliveryRef(deliveryData.ref || null);
+        setDeliveryTs(deliveryData.ts || null);
+        setUnlocks(getUnlocks());
+        setPhase("paid");
+        setActiveView("hub");
+        localStorage.removeItem("lqm_session_state");
+      }
+      window.history.replaceState({},"",window.location.pathname);
+      return;
+    }
+
+    // Scenario C: page refresh restore — goes straight to report (already seen reveal)
+    const delivery=localStorage.getItem("lqm_delivery");
+    if(delivery&&phase==="landing"){
+      const deliveryData=JSON.parse(delivery);
+      if(deliveryData.confirmed){
+        const savedAnswers=JSON.parse(localStorage.getItem("lqm_answers")||"null");
+        if(savedAnswers&&savedAnswers.length>=10){
+          setAnswers(savedAnswers);
+          setCharType(calcType(savedAnswers));
+          setPatterns(calcPatterns(savedAnswers));
+          trackReturnVisit("page_refresh");
+          setUnlocks(getUnlocks());
+          setPhase("paid");
+          setDeliveryRef(deliveryData.ref);
+          setDeliveryTs(deliveryData.ts);
+          setActiveView("report");
+        } else {
+          // Delivery confirmed but answers lost — quiz is free since they already paid.
+          // Quiz completion will detect confirmed delivery and skip payment automatically.
+          setUnlocks(getUnlocks());
+          setDeliveryRef(deliveryData.ref);
+          setDeliveryTs(deliveryData.ts);
+          setPhase("quiz"); setQIdx(0); setSel(null);
+        }
+      }
+    }
+  },[]);
+
+  function handleUnlockAddon(key) {
+    setUnlock(key);
+    setUnlocks(getUnlocks());
+    setActiveAddon(key);
+  }
+
+  function handleAddonRedirect(stripeUrl){
+    localStorage.setItem("lqm_session_state",JSON.stringify({answers, charType, activeView:"hub"}));
+    window.location.href=stripeUrl;
+  }
+
+  useEffect(()=>{
+    const params = new URLSearchParams(window.location.search);
+    if(params.get('test')==='true'){
+      if(!localStorage.getItem('lqm_delivery')){
+        localStorage.setItem('lqm_delivery',JSON.stringify({ref:'LQM-2026-TEST'+Math.random().toString(36).substring(2,8).toUpperCase(),ts:new Date().toLocaleString('en-GB',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}),confirmed:true}));
+      }
+      localStorage.setItem('lqm_unlocks',JSON.stringify({neural:true,vital:true}));
+      if(charType && phase==='teaser'){ setPhase('paid'); }
+    }
+  },[charType,phase]);
+
+  useEffect(()=>{
+    const s=document.createElement("style");
+    s.textContent=FONTS+`
+      *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+      html,body{background:${BG};}
+      @keyframes floatUp{from{transform:translateY(0) rotate(0deg);}to{transform:translateY(-110vh) rotate(360deg);opacity:0;}}
+      @keyframes fadeUp{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}
+      @keyframes glow{0%,100%{text-shadow:0 0 18px #00C8FF88;}50%{text-shadow:0 0 35px #00C8FF;}}
+      @keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.45;}}
+      @keyframes spin{to{transform:rotate(360deg);}}
+      @keyframes shimmer{0%{background-position:-200% center;}100%{background-position:200% center;}}
+      @keyframes blurIn{from{filter:blur(8px);opacity:0;}to{filter:blur(0);opacity:1;}}
+      @keyframes barGrow{from{width:0;}to{width:var(--w);}}
+      @keyframes eureka{0%,100%{filter:drop-shadow(0 0 3px rgba(0,200,255,0.4));opacity:0.78;}45%{filter:drop-shadow(0 0 22px rgba(0,200,255,1)) drop-shadow(0 0 50px rgba(0,200,255,0.55)) drop-shadow(0 0 90px rgba(0,200,255,0.2));opacity:1;}}
+      @keyframes ctaGlow{0%,100%{filter:brightness(1);}50%{filter:brightness(1.55);}}
+      @keyframes flamePulse{0%,100%{filter:drop-shadow(0 0 2px #00C8FF) drop-shadow(0 0 5px rgba(0,200,255,0.35));transform:scaleY(1);}40%{filter:drop-shadow(0 0 5px #00C8FF) drop-shadow(0 0 14px rgba(0,200,255,0.65)) drop-shadow(0 0 26px rgba(0,200,255,0.25));transform:scaleY(1.06);}70%{filter:drop-shadow(0 0 3px #00C8FF) drop-shadow(0 0 8px rgba(0,200,255,0.45));transform:scaleY(0.97);}}
+      @keyframes atomGlow{0%,100%{filter:drop-shadow(0 0 3px rgba(0,200,255,0.6)) drop-shadow(0 0 1px #fff);}50%{filter:drop-shadow(0 0 8px rgba(0,200,255,1)) drop-shadow(0 0 18px rgba(0,200,255,0.45)) drop-shadow(0 0 2px #fff);}}
+      @keyframes rocketFloat{0%,100%{filter:drop-shadow(0 0 3px rgba(0,200,255,0.55));transform:translateY(0);}50%{filter:drop-shadow(0 0 7px rgba(0,200,255,0.9)) drop-shadow(0 0 18px rgba(0,200,255,0.3));transform:translateY(-2px);}}
+      .fu{animation:fadeUp .6s ease both;}.fu1{animation:fadeUp .6s .1s ease both;}.fu2{animation:fadeUp .6s .22s ease both;}.fu3{animation:fadeUp .6s .36s ease both;}.fu4{animation:fadeUp .6s .5s ease both;}.fu5{animation:fadeUp .6s .65s ease both;}
+      .elec{background:linear-gradient(90deg,${E_BLUE} 0%,#fff 40%,${E_BLUE} 60%,${E_BLUE2} 100%);background-size:200% auto;-webkit-background-clip:text;-webkit-text-fill-color:transparent;animation:shimmer 3s linear infinite;}
+      .urgent{animation:pulse 1s infinite;}
+      .blur-lock{filter:blur(5px);user-select:none;pointer-events:none;}
+    `;
+    document.head.appendChild(s);
+    return()=>document.head.removeChild(s);
+  },[]);
+
+  useEffect(()=>{
+    if(timerOn&&timeLeft>0){timerRef.current=setInterval(()=>setTimeLeft(t=>t-1),1000);return()=>clearInterval(timerRef.current);}
+  },[timerOn,timeLeft]);
+
+  const fmt=s=>`${Math.floor(s/60).toString().padStart(2,"0")}:${(s%60).toString().padStart(2,"0")}`;
+  const calcType=ans=>{const c={A:0,B:0,C:0,D:0};ans.forEach(a=>c[a]++);return Object.entries(c).sort((a,b)=>b[1]-a[1])[0][0];};
+
+  // CHANGE 4: handleNext with pattern analytics
+  const handleNext=()=>{
+    if(!sel)return;
+    const a=[...answers,sel];setAnswers(a);setSel(null);
+    if(qIdx<questions.length-1){setQIdx(qIdx+1);}
+    else{
+      // Save answers to localStorage immediately — prevents data loss on refresh/restore
+      localStorage.setItem("lqm_answers",JSON.stringify(a));
+      setCharType(calcType(a));
+      setPhase("processing");
+      let st=0;
+      const iv=setInterval(()=>{
+        st++;setProcStep(st);
+        if(st>=5){
+          clearInterval(iv);
+          setTimeout(()=>{
+            const p = calcPatterns(a);
+            setPatterns(p);
+            trackArchetypeResult(p.primary, p.counts);
+            trackPatternDistribution(p);
+            // Check if delivery already confirmed (e.g. restore code or previous purchase)
+            const existingDelivery=JSON.parse(localStorage.getItem("lqm_delivery")||"{}");
+            if(existingDelivery.confirmed){
+              // Already paid — skip teaser/payment, go straight to reveal
+              setDeliveryRef(existingDelivery.ref||null);
+              setDeliveryTs(existingDelivery.ts||null);
+              setPhase("paid");
+              setActiveView("reveal");
+            } else {
+              setTimerOn(true);
+              setPhase("teaser");
+            }
+          },600);
+        }
+      },850);
+    }
+  };
+
+  function handleRestoreSuccess(result) {
+    const used = JSON.parse(localStorage.getItem("lqm_used_codes")||"[]");
+    used.push(result.codeKey);
+    localStorage.setItem("lqm_used_codes", JSON.stringify(used));
+    if (result.neural) setUnlock("neural");
+    if (result.vital)  setUnlock("vital");
+    if (result.report) {
+      const existing = JSON.parse(localStorage.getItem("lqm_delivery")||"{}");
+      if (!existing.confirmed) {
+        const ref = "LQM-RST-"+Date.now().toString(36).toUpperCase();
+        const ts = new Date().toLocaleString("en-GB",{day:"2-digit",month:"short",year:"numeric",hour:"2-digit",minute:"2-digit"});
+        localStorage.setItem("lqm_delivery", JSON.stringify({ref,ts,confirmed:true}));
+      }
+    }
+    setUnlocks(getUnlocks());
+    setShowRestore(false);
+    if (result.report) {
+      const savedAnswers = JSON.parse(localStorage.getItem("lqm_answers")||"[]");
+      if (savedAnswers.length >= 10) {
+        const deliveryData = JSON.parse(localStorage.getItem("lqm_delivery")||"{}");
+        setAnswers(savedAnswers);
+        setCharType(calcType(savedAnswers));
+        setPatterns(calcPatterns(savedAnswers));
+        setDeliveryRef(deliveryData.ref || null);
+        setDeliveryTs(deliveryData.ts || null);
+        setPhase("paid");
+        setActiveView("report");
+        trackReturnVisit("restore_code");
+      } else {
+        // Answers lost but delivery confirmed via restore code.
+        // Send to quiz — quiz completion will detect confirmed delivery and skip payment.
+        const deliveryData = JSON.parse(localStorage.getItem("lqm_delivery")||"{}");
+        setDeliveryRef(deliveryData.ref || null);
+        setDeliveryTs(deliveryData.ts || null);
+        setPhase("quiz"); setQIdx(0); setSel(null);
+      }
     }
   }
 
-  function goPrev() {
-    stop();
-    setShowTip(false);
-    setTimerActive(false);
-    if (step > 0) {
-      setStep(step - 1);
-      const prevStep = steps[step - 1];
-      if (prevStep.timer) { setTimer(prevStep.timer); }
-      else { setTimer(null); }
-    }
+  if(showRestore) return <RestoreAccess onBack={()=>setShowRestore(false)} onSuccess={handleRestoreSuccess}/>;
+  if(activeAddon==="neural" && unlocks.neural) return <BrainTraining archetype={charType} onBack={()=>setActiveAddon(null)}/>;
+  if(activeAddon==="vital"  && unlocks.vital)  return <QuantumLiving  archetype={charType} onBack={()=>setActiveAddon(null)}/>;
+
+  return(
+    <div style={{minHeight:"100vh",background:`radial-gradient(ellipse 90% 45% at 50% -5%,rgba(0,200,255,0.06) 0%,transparent 65%),${BG}`,fontFamily:"'Space Grotesk',sans-serif",color:WHITE,display:"flex",flexDirection:"column",alignItems:"center",padding:"0 16px 80px",position:"relative",overflow:"hidden"}}>
+      <Particles/>
+      {!activeAddon && <>
+        <div style={{width:"100%",borderBottom:`1px solid ${BORDER}`,padding:"13px 24px",display:"flex",alignItems:"center",justifyContent:"space-between",background:"rgba(7,15,30,0.88)",backdropFilter:"blur(14px)",position:"sticky",top:0,zIndex:100}}>
+          <Logo size="sm"/>
+          {phase==="paid" && activeView!=="hub" && (
+            <button onClick={()=>{setActiveAddon(null);setActiveView("hub");}} style={{background:"rgba(0,200,255,0.08)",border:`1px solid ${BORDER}`,borderRadius:100,padding:"6px 14px",color:E_BLUE,fontSize:14,fontWeight:700,cursor:"pointer",fontFamily:"'Space Grotesk',sans-serif",letterSpacing:".06em"}}>⌂ My Hub</button>
+          )}
+          {phase==="paid" && activeView==="hub" && activeAddon===null && (
+            <div style={{fontSize:13,color:DIMMED,fontWeight:600,letterSpacing:".08em"}}>LQM HUB</div>
+          )}
+        </div>
+        <div style={{width:"100%",maxWidth:680,position:"relative",zIndex:1,paddingTop:40}}>
+          {showLegal==="privacy" && <LegalPage type="privacy" onClose={()=>setShowLegal(null)}/>}
+          {showLegal==="terms"   && <LegalPage type="terms"   onClose={()=>setShowLegal(null)}/>}
+          {!showLegal && phase==="landing"    && <Landing onStart={()=>setPhase("quiz")}/>}
+          {!showLegal && phase==="quiz"       && <Quiz q={questions[qIdx]} idx={qIdx} sel={sel} onSel={setSel} onNext={handleNext}/>}
+          {!showLegal && phase==="processing" && <Processing step={procStep}/>}
+          {!showLegal && phase==="teaser"     && <Teaser type={TYPES[charType]} t={timeLeft} fmt={fmt} onUnlockOffer={()=>{ generateDeliveryRef(); window.open(STRIPE_MAIN,"_blank"); }} onUnlockFull={()=>{ generateDeliveryRef(); window.open(STRIPE_MAIN_FULL,"_blank"); }}/>}
+          {!showLegal && phase==="paid" && <>
+            {showDeliveryGate && <DeliveryGate ref_={deliveryRef} ts={deliveryTs} type={TYPES[charType]} onConfirm={confirmDelivery}/>}
+            {!showDeliveryGate && <>
+              {activeView==="hub" && <Hub type={TYPES[charType]} unlocks={unlocks} onOpenNeural={()=>setActiveAddon("neural")} onOpenVital={()=>setActiveAddon("vital")} onViewReport={()=>setActiveView("report")} onUnlockNeural={()=>handleAddonRedirect(STRIPE_BRAIN)} onUnlockVital={()=>handleAddonRedirect(STRIPE_VITAL)} onUnlockBundle={()=>handleAddonRedirect(STRIPE_BUNDLE)} onSimulateNeural={()=>handleUnlockAddon("neural")} onSimulateVital={()=>handleUnlockAddon("vital")} customerEmail={customerEmail} onSendReport={(email)=>{ localStorage.setItem("lqm_customer_email",email); setCustomerEmail(email); return sendReport(email,charType); }}/>}
+              {/* CHANGE 15: Result Reveal screen */}
+              {activeView==="reveal" && (
+                <ResultReveal
+                  type={TYPES[charType]}
+                  patterns={patterns}
+                  onExplore={() => setActiveView("report")}
+                />
+              )}
+              {/* CHANGE 7: patterns prop passed to Report */}
+              {activeView==="report" && <><Report type={TYPES[charType]} patterns={patterns} deliveryRef={deliveryRef} deliveryTs={deliveryTs} visualAnswer={answers[10]}/><button onClick={()=>setActiveView("hub")} style={{width:"100%",marginTop:16,border:"1px solid rgba(0,200,255,0.32)",borderRadius:100,padding:"13px",fontSize:14,fontWeight:700,background:"rgba(0,200,255,0.07)",color:E_BLUE,cursor:"pointer",fontFamily:"'Space Grotesk',sans-serif",letterSpacing:".05em",transition:"all .18s"}} onMouseEnter={e=>{e.currentTarget.style.background="rgba(0,200,255,0.16)";e.currentTarget.style.borderColor="rgba(0,200,255,0.65)";}} onMouseLeave={e=>{e.currentTarget.style.background="rgba(0,200,255,0.07)";e.currentTarget.style.borderColor="rgba(0,200,255,0.32)";}}>⌂ Back to My Hub</button></>}
+            </>}
+          </>}
+        </div>
+        {!showLegal && <Footer onShowLegal={setShowLegal} onRestore={()=>setShowRestore(true)} testMode={testMode}/>}
+      </>}
+    </div>
+  );
+}
+
+function Logo({size="md"}){
+  const sc=size==="sm"?.58:size==="lg"?1.25:1;
+  return(
+    <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:2}}>
+      <div style={{position:"relative",display:"inline-block",paddingBottom:4*sc}}>
+        <span style={{position:"absolute",top:"50%",left:"50%",transform:"translate(-50%,-52%) rotate(-5deg)",fontFamily:"'Bebas Neue',sans-serif",fontSize:90*sc,letterSpacing:6*sc,background:"linear-gradient(160deg,rgba(0,200,255,0.12),rgba(0,200,255,0.03))",WebkitBackgroundClip:"text",backgroundClip:"text",WebkitTextFillColor:"transparent",whiteSpace:"nowrap",pointerEvents:"none",zIndex:0,lineHeight:1}}>LQM</span>
+        <svg style={{position:"absolute",top:`${-36*sc}px`,left:`${-22*sc}px`,width:`calc(100% + ${44*sc}px)`,height:`calc(100% + ${58*sc}px)`,zIndex:1,pointerEvents:"none",animation:"eureka 3s ease-in-out infinite",overflow:"visible"}} viewBox="0 0 300 110" preserveAspectRatio="none">
+          <defs>
+            <linearGradient id="lqmBolt" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stopColor="#ffffff" stopOpacity="1"/><stop offset="15%" stopColor="#a8f0ff" stopOpacity="1"/><stop offset="32%" stopColor="#00C8FF" stopOpacity="0.95"/><stop offset="58%" stopColor="#00C8FF" stopOpacity="0.45"/><stop offset="78%" stopColor="#00C8FF" stopOpacity="0.08"/><stop offset="100%" stopColor="#00C8FF" stopOpacity="0"/></linearGradient>
+            <linearGradient id="lqmCore" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stopColor="#ffffff" stopOpacity="0.9"/><stop offset="25%" stopColor="#ffffff" stopOpacity="0.5"/><stop offset="50%" stopColor="#ffffff" stopOpacity="0.1"/><stop offset="100%" stopColor="#ffffff" stopOpacity="0"/></linearGradient>
+          </defs>
+          <path d="M 52 0 L 18 52 L 42 52 L 6 110 L 14 110 L 52 60 L 28 60 L 64 0 Z" transform="skewX(-8)" fill="url(#lqmBolt)"/>
+          <path d="M 55 2 L 24 50 L 44 50 L 10 106 L 50 58 L 32 58 L 62 2 Z" transform="skewX(-8)" fill="url(#lqmCore)" opacity="0.55"/>
+        </svg>
+        <span style={{position:"relative",zIndex:2,fontFamily:"'Bebas Neue',sans-serif",fontSize:52*sc,letterSpacing:3*sc,color:WHITE,lineHeight:1,textShadow:`0 0 28px ${E_BLUE}22`,display:"block"}}>LQM</span>
+        <svg style={{position:"absolute",bottom:0,left:0,width:"100%",zIndex:3,pointerEvents:"none"}} height={5*sc} viewBox="0 0 160 5"><path d="M18 4 Q80 1 142 4" stroke={E_BLUE} strokeWidth="1.5" fill="none" strokeLinecap="round" opacity=".6"/></svg>
+      </div>
+    </div>
+  );
+}
+function TimerBadge({t,fmt}){
+  const urgent=t<180;
+  return(<div className={urgent?"urgent":""} style={{display:"inline-flex",alignItems:"center",gap:8,background:urgent?"rgba(255,60,60,0.08)":"rgba(0,200,255,0.06)",border:`1px solid ${urgent?"rgba(255,60,60,0.35)":BORDER}`,borderRadius:100,padding:"6px 16px",fontSize:15,fontWeight:600,letterSpacing:".06em",color:urgent?"#FF6B6B":E_BLUE}}><span>⚡</span>{t>0?`Offer expires ${fmt(t)}`:"Offer expired"}</div>);
+}
+function Panel({children,style={},glow=false}){
+  return(<div style={{background:PANEL,border:`1px solid ${BORDER2}`,borderRadius:16,padding:"26px",boxShadow:glow?`0 0 40px ${E_GLOW}`:"none",...style}}>{children}</div>);
+}
+function SLabel({children,color=E_BLUE}){
+  return(<div style={{display:"flex",alignItems:"center",gap:12,marginBottom:16}}><p style={{fontSize:16,fontWeight:700,letterSpacing:".14em",textTransform:"uppercase",color,whiteSpace:"nowrap"}}>{children}</p><div style={{flex:1,height:1,background:`linear-gradient(90deg,${color}44,transparent)`}}/></div>);
+}
+function PrimaryBtn({onClick,children}){
+  return(<button onClick={onClick} style={{width:"100%",border:"none",borderRadius:100,padding:"17px",fontSize:16,fontWeight:700,fontFamily:"'Space Grotesk',sans-serif",cursor:"pointer",letterSpacing:".05em",transition:"all .2s ease",display:"block",background:`linear-gradient(135deg,${E_BLUE2},${E_BLUE})`,color:BG,boxShadow:`0 6px 24px rgba(0,200,255,0.22)`}} onMouseEnter={e=>{e.currentTarget.style.transform="translateY(-2px)";e.currentTarget.style.boxShadow=`0 12px 36px rgba(0,200,255,0.38)`;}} onMouseLeave={e=>{e.currentTarget.style.transform="translateY(0)";e.currentTarget.style.boxShadow=`0 6px 24px rgba(0,200,255,0.22)`;}}>
+    {children}
+  </button>);
+}
+
+function RestoreAccess({ onBack, onSuccess }) {
+  const [code, setCode]     = useState("");
+  const [error, setError]   = useState(null);
+  const [status, setStatus] = useState("idle");
+  function formatInput(raw) {
+    const clean = raw.replace(/[^A-Za-z0-9]/g,"").toUpperCase().slice(0,12);
+    if (clean.length <= 3)  return clean;
+    if (clean.length <= 7)  return clean.slice(0,3)+"-"+clean.slice(3);
+    return clean.slice(0,3)+"-"+clean.slice(3,7)+"-"+clean.slice(7);
   }
-
-  function startTimer() {
-    if (hasTimer && !timerActive) {
-      setTimer(current.timer);
-      setTimerActive(true);
-    }
+  function handleChange(e) { setError(null); setCode(formatInput(e.target.value)); }
+  function handleSubmit() {
+    const result = lqmValidateCode(code);
+    if (!result.valid) { setError(result.reason); return; }
+    setStatus("success");
+    setTimeout(() => onSuccess(result), 1200);
   }
-
-  function toggleVoice() {
-    if (voiceOn) { stop(); setVoiceOn(false); }
-    else {
-      setVoiceOn(true);
-      if (current && !complete) play(step);
-    }
-  }
-
-  // Initialize first step timer if applicable
-  useEffect(() => {
-    if (steps[0]?.timer) setTimer(steps[0].timer);
-  }, []);
-
-  // ── Completion screen ────────────────────────────────────────────────
-  if (complete) {
-    return (
-      <div style={{
-        position: "fixed", inset: 0, zIndex: 600,
-        background: BG,
-        display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
-        padding: 24,
-        fontFamily: "'Space Grotesk',sans-serif",
-      }}>
-        <div style={{ fontSize: 64, marginBottom: 20 }}>✓</div>
-        <h2 style={{
-          fontFamily: "'Bebas Neue',sans-serif", fontSize: 36, letterSpacing: 2,
-          color: GREEN, marginBottom: 10, textAlign: "center",
-        }}>Protocol Complete</h2>
-        <p style={{
-          fontFamily: "'Crimson Pro',serif", fontStyle: "italic",
-          fontSize: 18, color: MUTED, textAlign: "center", maxWidth: 400,
-          lineHeight: 1.75, marginBottom: 12,
-        }}>{remedy.name}</p>
-        <p style={{ fontSize: 15, color: DIMMED, textAlign: "center", maxWidth: 400, lineHeight: 1.7, marginBottom: 8 }}>
-          {remedy.frequency}
-        </p>
-        {remedy.science && (
-          <div style={{
-            maxWidth: 440, margin: "12px 0 28px", padding: "14px 18px",
-            background: `${accentColor}0a`, border: `1px solid ${accentColor}22`,
-            borderLeft: `3px solid ${accentColor}55`,
-            borderRadius: "0 10px 10px 0",
-          }}>
-            <p style={{ fontSize: 11, fontWeight: 700, color: accentColor, letterSpacing: ".12em", textTransform: "uppercase", marginBottom: 6 }}>Why this works</p>
-            <p style={{ fontSize: 14, color: MUTED, lineHeight: 1.75, fontStyle: "italic" }}>{remedy.science}</p>
+  const unlockLabel = (() => {
+    const clean = code.replace(/[-\s]/g,"").toUpperCase();
+    if (clean.length !== 12) return "your content";
+    try {
+      const data=clean.slice(3),b36=data.slice(0,7),raw=parseInt(b36,36)^LQM_SECRET,p=raw&0xF;
+      const parts=[];
+      if(p&1)parts.push("LQM Report");if(p&2)parts.push("Brain Training");if(p&4)parts.push("Quantum Living");
+      return parts.join(" + ")||"your content";
+    } catch { return "your content"; }
+  })();
+  return (
+    <div style={{minHeight:"100vh",background:`radial-gradient(ellipse 80% 40% at 50% 0%,rgba(0,200,255,0.07),${BG})`,fontFamily:"'Space Grotesk',sans-serif",color:WHITE,display:"flex",flexDirection:"column",alignItems:"center",padding:"0 16px 80px"}}>
+      <div style={{width:"100%",borderBottom:`1px solid ${BORDER}`,padding:"13px 24px",display:"flex",alignItems:"center",background:"rgba(7,15,30,0.9)",backdropFilter:"blur(14px)",position:"sticky",top:0,zIndex:100}}>
+        <button onClick={onBack} style={{background:"rgba(0,200,255,0.07)",border:`1px solid ${BORDER}`,borderRadius:100,padding:"6px 16px",color:E_BLUE,fontSize:14,fontWeight:700,cursor:"pointer",fontFamily:"'Space Grotesk',sans-serif",letterSpacing:".06em"}}>← Back</button>
+      </div>
+      <div style={{width:"100%",maxWidth:480,paddingTop:56,animation:"fadeUp .5s ease both"}}>
+        <div style={{textAlign:"center",marginBottom:36}}>
+          <div style={{fontSize:40,marginBottom:16}}>🔑</div>
+          <h1 style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:36,letterSpacing:2,color:WHITE,marginBottom:8}}>Restore Access</h1>
+          <p style={{fontSize:14,color:MUTED,lineHeight:1.7,maxWidth:360,margin:"0 auto"}}>Already purchased LQM? Enter your restore code below to unlock your content on this device. If you don't have a code, email <a href="mailto:lqm@lqmmethod.com" style={{color:E_BLUE,textDecoration:"none"}}>lqm@lqmmethod.com</a> with your Stripe reference.</p>
+        </div>
+        {status === "success" ? (
+          <div style={{background:"rgba(52,211,153,0.08)",border:"1px solid rgba(52,211,153,0.3)",borderRadius:16,padding:"32px 24px",textAlign:"center",animation:"fadeUp .3s ease both"}}>
+            <div style={{fontSize:40,marginBottom:12}}>✓</div>
+            <p style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:26,letterSpacing:1.5,color:"#34D399",marginBottom:8}}>Access Restored</p>
+            <p style={{fontSize:14,color:MUTED}}>{unlockLabel} unlocked — loading now…</p>
+          </div>
+        ) : (
+          <div style={{background:PANEL,border:`1px solid ${BORDER2}`,borderRadius:16,padding:"28px 24px"}}>
+            <p style={{fontSize:12,fontWeight:700,color:DIMMED,letterSpacing:".14em",textTransform:"uppercase",marginBottom:10}}>Your Restore Code</p>
+            <input value={code} onChange={handleChange} onKeyDown={e=>e.key==="Enter"&&handleSubmit()} placeholder="LQM-XXXX-XXXXX" spellCheck={false} autoComplete="off" style={{width:"100%",background:"rgba(0,200,255,0.04)",border:`1.5px solid ${error?"#EF4444":code.length===15?"rgba(0,200,255,0.55)":BORDER2}`,borderRadius:10,padding:"14px 16px",fontFamily:"'Space Grotesk',sans-serif",fontSize:22,fontWeight:700,letterSpacing:".12em",color:error?"#EF4444":E_BLUE,outline:"none",transition:"border-color .2s",textAlign:"center"}}/>
+            <div style={{display:"flex",justifyContent:"space-between",marginTop:6,marginBottom:16}}>
+              <p style={{fontSize:14,color:error?"#EF4444":MUTED}}>{error||"Format: LQM-XXXX-XXXXX"}</p>
+              <p style={{fontSize:13,color:code.replace(/-/g,"").length===12?"rgba(52,211,153,0.7)":DIMMED,fontWeight:700}}>{code.replace(/-/g,"").length}/12</p>
+            </div>
+            <button onClick={handleSubmit} disabled={code.replace(/-/g,"").length!==12} style={{width:"100%",padding:"14px",borderRadius:100,background:code.replace(/-/g,"").length===12?E_BLUE:"rgba(0,200,255,0.12)",border:"none",cursor:code.replace(/-/g,"").length===12?"pointer":"default",color:code.replace(/-/g,"").length===12?BG:"rgba(0,200,255,0.3)",fontFamily:"'Space Grotesk',sans-serif",fontWeight:800,fontSize:15,letterSpacing:".08em",transition:"all .2s"}}>Unlock My Content</button>
+            <p style={{fontSize:14,color:MUTED,textAlign:"center",marginTop:16,lineHeight:1.7}}>Codes are single-use and expire after 30 days.<br/>They are linked to your purchase record and cannot be shared.</p>
           </div>
         )}
-        <button onClick={onClose} style={{
-          border: "none", borderRadius: 100, padding: "15px 40px",
-          fontSize: 16, fontWeight: 700, fontFamily: "'Space Grotesk',sans-serif",
-          cursor: "pointer", background: `linear-gradient(135deg,${accentColor}cc,${accentColor})`,
-          color: BG, letterSpacing: ".05em",
-        }}>Done</button>
+        <div style={{marginTop:24,background:"rgba(255,255,255,0.02)",border:`1px solid ${BORDER2}`,borderRadius:12,padding:"16px 18px"}}>
+          <p style={{fontSize:13,fontWeight:700,color:MUTED,letterSpacing:".1em",textTransform:"uppercase",marginBottom:6}}>Don't have a code?</p>
+          <p style={{fontSize:13,color:MUTED,lineHeight:1.7}}>Email <a href="mailto:lqm@lqmmethod.com" style={{color:E_BLUE,textDecoration:"none",fontWeight:700}}>lqm@lqmmethod.com</a> and include your Stripe payment reference number. We'll generate a restore code and send it back within 48 hours.</p>
+        </div>
       </div>
-    );
+    </div>
+  );
+}
+
+function Footer({onShowLegal, onRestore, testMode}){
+  const showTestTools = TEST_MODE || testMode;
+  function activateTestMode(){
+    localStorage.setItem('lqm_delivery',JSON.stringify({ref:'LQM-2026-TEST'+Math.random().toString(36).substring(2,8).toUpperCase(),ts:new Date().toLocaleString('en-GB',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}),confirmed:true}));
+    localStorage.setItem('lqm_unlocks',JSON.stringify({neural:true,vital:true}));
+    alert('\u2713 TEST MODE ACTIVATED\n\nAll features unlocked!\n\nClick OK then refresh the page (F5) to see everything.');
+  }
+  function resetAll(){ localStorage.clear(); alert('\u2713 All data cleared. Refreshing now...'); window.location.reload(); }
+  return(
+    <div style={{width:"100%",maxWidth:680,marginTop:60,paddingTop:24,borderTop:`1px solid ${BORDER2}`,display:"flex",flexDirection:"column",gap:12,alignItems:"center"}}>
+      <div style={{display:"flex",gap:24,flexWrap:"wrap",justifyContent:"center"}}>
+        <button onClick={()=>onShowLegal("privacy")} style={{background:"none",border:"none",color:DIMMED,fontSize:15,cursor:"pointer",textDecoration:"underline",fontFamily:"'Space Grotesk',sans-serif"}} onMouseEnter={e=>e.currentTarget.style.color=E_BLUE} onMouseLeave={e=>e.currentTarget.style.color=DIMMED}>Privacy Policy</button>
+        <button onClick={()=>onShowLegal("terms")} style={{background:"none",border:"none",color:DIMMED,fontSize:15,cursor:"pointer",textDecoration:"underline",fontFamily:"'Space Grotesk',sans-serif"}} onMouseEnter={e=>e.currentTarget.style.color=E_BLUE} onMouseLeave={e=>e.currentTarget.style.color=DIMMED}>Terms & Conditions</button>
+        <button onClick={onRestore} style={{background:"none",border:"none",color:"rgba(0,200,255,0.35)",fontSize:13,cursor:"pointer",fontFamily:"'Space Grotesk',sans-serif",letterSpacing:".04em"}} onMouseEnter={e=>e.currentTarget.style.color=E_BLUE} onMouseLeave={e=>e.currentTarget.style.color="rgba(0,200,255,0.35)"}>{String.fromCodePoint(0x1F511)} Restore Access</button>
+      </div>
+      <p style={{fontSize:14,color:DIMMED,textAlign:"center"}}>&copy; 2026 Learning Quantum Method. All rights reserved.</p>
+      <p style={{fontSize:16,color:DIMMED,textAlign:"center",maxWidth:500,lineHeight:1.5}}>For questions or support: <a href="mailto:lqm@lqmmethod.com" style={{color:E_BLUE,textDecoration:"none"}}>lqm@lqmmethod.com</a></p>
+      {showTestTools && (
+        <div style={{marginTop:16,display:"flex",gap:10,flexWrap:"wrap",justifyContent:"center"}}>
+          <button onClick={activateTestMode} style={{background:'rgba(251,191,36,0.12)',border:'1px solid rgba(251,191,36,0.35)',borderRadius:8,padding:'10px 20px',color:'#FBBF24',fontSize:15,fontWeight:700,cursor:'pointer',fontFamily:"'Space Grotesk',sans-serif"}}>{String.fromCharCode(0x1F527)} Unlock All (Test)</button>
+          <button onClick={resetAll} style={{background:'rgba(239,68,68,0.1)',border:'1px solid rgba(239,68,68,0.3)',borderRadius:8,padding:'10px 20px',color:'#EF4444',fontSize:15,fontWeight:700,cursor:'pointer',fontFamily:"'Space Grotesk',sans-serif"}}>{String.fromCharCode(0x1F5D1, 0xFE0F)} Reset All Data</button>
+        </div>
+      )}
+      {showTestTools && (<p style={{fontSize:12,color:'rgba(251,191,36,0.5)',fontWeight:700,letterSpacing:'.1em'}}>{String.fromCharCode(0x26A0, 0xFE0F)} TEST MODE IS ON — set TEST_MODE = false before going live</p>)}
+    </div>
+  );
+}
+
+function LegalPage({type,onClose}){
+  const content = type==="privacy" ? PRIVACY_TEXT : TERMS_TEXT;
+  return(
+    <div style={{animation:"fadeUp .5s ease both"}}>
+      <button onClick={onClose} style={{marginBottom:20,background:"rgba(0,200,255,0.07)",border:"1px solid rgba(0,200,255,0.32)",borderRadius:100,padding:"9px 20px",color:E_BLUE,fontSize:14,fontWeight:700,cursor:"pointer",display:"flex",alignItems:"center",gap:8,fontFamily:"'Space Grotesk',sans-serif",letterSpacing:".04em",transition:"all .18s"}} onMouseEnter={e=>{e.currentTarget.style.background="rgba(0,200,255,0.16)";e.currentTarget.style.borderColor="rgba(0,200,255,0.65)";}} onMouseLeave={e=>{e.currentTarget.style.background="rgba(0,200,255,0.07)";e.currentTarget.style.borderColor="rgba(0,200,255,0.32)";}}>← Back</button>
+      <Panel style={{maxWidth:680}}><div style={{fontFamily:"'Crimson Pro',serif",fontSize:15,lineHeight:1.8,color:"rgba(255,255,255,0.85)"}} dangerouslySetInnerHTML={{__html:content}}/></Panel>
+    </div>
+  );
+}
+
+const PRIVACY_TEXT=`<h1 style="font-family:'Bebas Neue',sans-serif;font-size:36px;color:#00C8FF;margin-bottom:8px;letter-spacing:2px">Privacy Policy</h1><p style="font-size:12px;color:rgba(255,255,255,0.4);margin-bottom:32px">Last updated: 21 February 2026</p><p style="margin-bottom:20px"><strong>Learning Quantum Method (LQM)</strong> is committed to protecting your privacy.</p><h2 style="font-size:20px;color:#00C8FF;margin:28px 0 12px;font-family:'Space Grotesk',sans-serif;font-weight:600">1. Who We Are</h2><p style="margin-bottom:12px"><strong>Business name:</strong> Learning Quantum Method (LQM)<br/><strong>Contact email:</strong> lqm@lqmmethod.com<br/><strong>Website:</strong> https://lqmmethod.com</p><h2 style="font-size:20px;color:#00C8FF;margin:28px 0 12px;font-family:'Space Grotesk',sans-serif;font-weight:600">2. What Information We Collect</h2><p style="margin-bottom:12px"><strong>Information you provide:</strong> Email address when you purchase<br/><strong>Payment information:</strong> Processed securely by Stripe (we never see card details)<br/><strong>Quiz responses:</strong> Stored temporarily in your browser to generate your report<br/><strong>We do NOT collect:</strong> Sensitive data, children's data, or marketing preferences without consent</p><h2 style="font-size:20px;color:#00C8FF;margin:28px 0 12px;font-family:'Space Grotesk',sans-serif;font-weight:600">3. How We Use Your Information</h2><p style="margin-bottom:12px">We use your information to deliver your purchased report, process payments via Stripe, and provide customer support.<br/><strong>Legal basis (UK GDPR):</strong> Contract performance and legitimate interests</p><h2 style="font-size:20px;color:#00C8FF;margin:28px 0 12px;font-family:'Space Grotesk',sans-serif;font-weight:600">4. How We Share Your Information</h2><p style="margin-bottom:12px">We share your data ONLY with <strong>Stripe</strong> to process payments. <strong>We do NOT</strong> sell your data, use it for advertising, or share quiz responses.</p><h2 style="font-size:20px;color:#00C8FF;margin:28px 0 12px;font-family:'Space Grotesk',sans-serif;font-weight:600">5. How Long We Keep Your Data</h2><p style="margin-bottom:12px">&bull; Purchase records: 7 years (UK tax law)<br/>&bull; Quiz responses: Deleted after report generation<br/>&bull; Browser session: Cleared when you close browser</p><h2 style="font-size:20px;color:#00C8FF;margin:28px 0 12px;font-family:'Space Grotesk',sans-serif;font-weight:600">6. Your Rights Under UK GDPR</h2><p style="margin-bottom:12px">Access, Rectify, Erase, Restrict, Portability, Object. Email <strong>lqm@lqmmethod.com</strong> to exercise these rights. We respond within 30 days.</p><h2 style="font-size:20px;color:#00C8FF;margin:28px 0 12px;font-family:'Space Grotesk',sans-serif;font-weight:600">7. How We Protect Your Data</h2><p style="margin-bottom:12px">All payments encrypted by Stripe. HTTPS on our website. We never store card details.</p><h2 style="font-size:20px;color:#00C8FF;margin:28px 0 12px;font-family:'Space Grotesk',sans-serif;font-weight:600">8. Cookies</h2><p style="margin-bottom:12px">We use only essential session cookies for the quiz to function. No tracking cookies.</p><h2 style="font-size:20px;color:#00C8FF;margin:28px 0 12px;font-family:'Space Grotesk',sans-serif;font-weight:600">9. Complaints</h2><p style="margin-bottom:12px">You can complain to the UK ICO: <a href="https://ico.org.uk/make-a-complaint/" style="color:#00C8FF">ico.org.uk/make-a-complaint</a> &mdash; Phone: 0303 123 1113</p>`;
+
+const TERMS_TEXT=`<h1 style="font-family:'Bebas Neue',sans-serif;font-size:36px;color:#00C8FF;margin-bottom:8px;letter-spacing:2px">Terms &amp; Conditions</h1><p style="font-size:12px;color:rgba(255,255,255,0.4);margin-bottom:32px">Last updated: 21 February 2026</p><p style="margin-bottom:20px">By using our website and purchasing our report, you agree to these terms.</p><h2 style="font-size:20px;color:#00C8FF;margin:28px 0 12px;font-family:'Space Grotesk',sans-serif;font-weight:600">1. The Service</h2><p style="margin-bottom:12px"><strong>What you receive:</strong> An 11-question behavioural quiz and personalised LQM report with your archetype, identity statement, strengths, blind spots, and 3 strategy cards. Optional add-ons: Brain Training and Quantum Living, each &pound;5.00. <strong>What this is NOT:</strong> Professional counselling, medical advice, or employment screening.</p><h2 style="font-size:20px;color:#00C8FF;margin:28px 0 12px;font-family:'Space Grotesk',sans-serif;font-weight:600">2. Pricing &amp; Payment</h2><p style="margin-bottom:12px">Main report: &pound;9.00 &bull; Brain Training add-on: &pound;5.00 &bull; Quantum Living add-on: &pound;5.00 &bull; Payment via Stripe &bull; One-time payments (no subscriptions)</p><h2 style="font-size:20px;color:#00C8FF;margin:28px 0 12px;font-family:'Space Grotesk',sans-serif;font-weight:600">3. Delivery &amp; Confirmation</h2><p style="margin-bottom:12px">Your report is delivered <strong>instantly on screen</strong> after payment. You must confirm receipt by clicking "I Confirm Receipt" to access your report. An optional email copy may be sent to the address you provide. Where a customer opts to receive their report by email, delivery of that email constitutes additional confirmation of receipt and does not alter the refund policy or create any additional rights.</p><h2 style="font-size:20px;color:#00C8FF;margin:28px 0 12px;font-family:'Space Grotesk',sans-serif;font-weight:600">4. Refund Policy</h2><p style="margin-bottom:12px"><strong>7-day money-back guarantee.</strong> Email <strong>lqm@lqmmethod.com</strong> within 7 days. No refunds if you confirmed receipt and then claim you "never received" the report, or if 7 days have passed since purchase.</p><h2 style="font-size:20px;color:#00C8FF;margin:28px 0 12px;font-family:'Space Grotesk',sans-serif;font-weight:600">5. Intellectual Property</h2><p style="margin-bottom:12px">All LQM content is copyrighted by Learning Quantum Method. You CAN use your report personally. You CANNOT republish commercially or resell.</p><h2 style="font-size:20px;color:#00C8FF;margin:28px 0 12px;font-family:'Space Grotesk',sans-serif;font-weight:600">6. Disclaimer</h2><p style="margin-bottom:12px">For <strong>educational and informational purposes only</strong>. We do not guarantee specific results.</p><h2 style="font-size:20px;color:#00C8FF;margin:28px 0 12px;font-family:'Space Grotesk',sans-serif;font-weight:600">7. Age Restriction</h2><p style="margin-bottom:12px">You must be 18 years or older to purchase.</p><h2 style="font-size:20px;color:#00C8FF;margin:28px 0 12px;font-family:'Space Grotesk',sans-serif;font-weight:600">8. Digital Product Nature</h2><p style="margin-bottom:12px">By confirming receipt, the standard 14-day cooling-off period does not apply. Your delivery confirmation serves as proof of delivery.</p><h2 style="font-size:20px;color:#00C8FF;margin:28px 0 12px;font-family:'Space Grotesk',sans-serif;font-weight:600">9. Governing Law</h2><p style="margin-bottom:12px">Governed by the laws of England and Wales. Contact: <strong>lqm@lqmmethod.com</strong></p>`;
+
+function RotatingTestimonial({quotes, accentColor}) {
+  const [idx, setIdx] = useState(0);
+  const [visible, setVisible] = useState(true);
+  useEffect(() => {
+    if(quotes.length <= 1) return;
+    const t = setInterval(() => {
+      setVisible(false);
+      setTimeout(() => { setIdx(i => (i+1) % quotes.length); setVisible(true); }, 500);
+    }, 5000);
+    return () => clearInterval(t);
+  }, [quotes.length]);
+  return (
+    <div style={{transition:"opacity .5s", opacity:visible?1:0, padding:"10px 14px", background:"rgba(255,255,255,0.03)", border:`1px solid ${accentColor}22`, borderLeft:`3px solid ${accentColor}`, borderRadius:"0 10px 10px 0", marginBottom:14}}>
+      <p style={{fontFamily:"'Crimson Pro',serif", fontStyle:"italic", fontSize:14, color:"rgba(255,255,255,0.72)", lineHeight:1.55, marginBottom:4}}>"{quotes[idx].text}"</p>
+      <p style={{fontSize:13, color:"rgba(255,255,255,0.55)", fontWeight:700, letterSpacing:".06em"}}>— {quotes[idx].author}</p>
+    </div>
+  );
+}
+
+function AtomIcon({size=24}) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" style={{display:"inline-block",verticalAlign:"middle",flexShrink:0,animation:"atomGlow 2.4s ease-in-out infinite"}}>
+      <ellipse cx="12" cy="12" rx="10.5" ry="3.8" fill="none" stroke="#00C8FF" strokeWidth="1.1" opacity="0.85"/>
+      <ellipse cx="12" cy="12" rx="10.5" ry="3.8" fill="none" stroke="#7DD3FC" strokeWidth="0.9" opacity="0.65" transform="rotate(60 12 12)"/>
+      <ellipse cx="12" cy="12" rx="10.5" ry="3.8" fill="none" stroke="#BAE6FD" strokeWidth="0.8" opacity="0.50" transform="rotate(120 12 12)"/>
+      <circle cx="22.5" cy="12" r="1.6" fill="#00C8FF" opacity="0.9"/>
+      <circle cx="7.25" cy="5.05" r="1.4" fill="#7DD3FC" opacity="0.78"/>
+      <circle cx="7.25" cy="18.95" r="1.3" fill="#BAE6FD" opacity="0.65"/>
+      <circle cx="12" cy="12" r="2.6" fill="#FFFFFF" opacity="0.98"/>
+      <circle cx="12" cy="12" r="1.4" fill="#00C8FF" opacity="0.5"/>
+    </svg>
+  );
+}
+
+function Hub({type, unlocks, onOpenNeural, onOpenVital, onViewReport, onUnlockNeural, onUnlockVital, onUnlockBundle, onSimulateNeural, onSimulateVital, customerEmail, onSendReport}) {
+  const [emailOpen,   setEmailOpen]   = useState(false);
+  const [emailInput,  setEmailInput]  = useState(customerEmail||"");
+  const [emailStatus, setEmailStatus] = useState("idle");
+  const brainData = (() => { try { return JSON.parse(localStorage.getItem("lqm_brain")||"{}"); } catch { return {}; } })();
+  const livingData = (() => { try { return JSON.parse(localStorage.getItem("lqm_living")||"{}"); } catch { return {}; } })();
+  const challengeBrain = (() => { try { return JSON.parse(localStorage.getItem("lqm_challenge_brain")||"{}"); } catch { return {}; } })();
+  // challengeQuantum removed
+  const brainDay = challengeBrain.currentDay || 0;
+  // quantumDay removed
+  const brainStreak = brainData.streak || 0;
+  const quantumStreak = livingData.streak || 0;
+  const brainXP = brainData.totalXP || 0;
+
+  async function handleEmailSend() {
+    if (!emailInput || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailInput)) return;
+    setEmailStatus("sending");
+    const result = await onSendReport(emailInput);
+    setEmailStatus(result.ok ? "sent" : "error");
   }
 
-  // ── Step view ────────────────────────────────────────────────────────
   return (
-    <div style={{
-      position: "fixed", inset: 0, zIndex: 600,
-      background: BG,
-      display: "flex", flexDirection: "column",
-      fontFamily: "'Space Grotesk',sans-serif",
-      overflow: "hidden",
-    }}>
-
-      {/* Top bar */}
-      <div style={{
-        padding: "14px 20px", borderBottom: `1px solid ${BORDER2}`,
-        display: "flex", alignItems: "center", justifyContent: "space-between",
-        background: "rgba(7,15,30,0.95)", backdropFilter: "blur(14px)",
-        flexShrink: 0,
-      }}>
-        <button onClick={() => { stop(); onClose(); }} style={{
-          background: "none", border: `1px solid ${BORDER2}`, borderRadius: 100,
-          padding: "6px 14px", color: DIMMED, fontSize: 13, fontWeight: 600,
-          cursor: "pointer", fontFamily: "'Space Grotesk',sans-serif",
-        }}>✕ Exit</button>
-        <p style={{ fontSize: 13, fontWeight: 700, color: accentColor, letterSpacing: ".08em" }}>
-          STEP {step + 1} OF {total}
-        </p>
-        {hasAudio && (
-          <button onClick={toggleVoice} title={voiceOn ? "Voice off" : "Voice on"} style={{
-            background: voiceOn ? "rgba(0,200,255,0.1)" : "rgba(255,255,255,0.05)",
-            border: `1px solid ${voiceOn ? "rgba(0,200,255,0.35)" : BORDER2}`,
-            borderRadius: 100, width: 38, height: 38,
-            display: "flex", alignItems: "center", justifyContent: "center",
-            cursor: "pointer", fontSize: 18, transition: "all .2s",
-          }}>{voiceOn ? "🔊" : "🔇"}</button>
+    <div style={{animation:"fadeUp .5s ease both", paddingBottom:20}}>
+      <div style={{textAlign:"center", marginBottom:28}}>
+        <div style={{display:"inline-block", background:`${type.blue}15`, border:`1px solid ${type.blue}44`, borderRadius:100, padding:"6px 18px", marginBottom:14}}>
+          <span style={{fontSize:13, fontWeight:700, color:type.blue, letterSpacing:".14em", textTransform:"uppercase"}}>Welcome to Your LQM Hub</span>
+        </div>
+        <h1 style={{fontFamily:"'Bebas Neue',sans-serif", fontSize:"clamp(28px,6vw,44px)", letterSpacing:2, color:WHITE, lineHeight:1.1, marginBottom:8}}>{type.name}</h1>
+        <p style={{fontFamily:"'Crimson Pro',serif", fontStyle:"italic", fontSize:16, color:MUTED, maxWidth:400, margin:"0 auto", lineHeight:1.65}}>"{type.identity}"</p>
+      </div>
+      <div style={{display:"flex", gap:8, marginBottom:24, justifyContent:"center", flexWrap:"wrap"}}>
+        {brainStreak > 0 && <div style={{background:"rgba(0,200,255,0.08)", border:`1px solid ${BORDER}`, borderRadius:100, padding:"6px 14px", fontSize:13, color:E_BLUE, fontWeight:700}}>⚡ {brainStreak} day brain streak</div>}
+        {quantumStreak > 0 && <div style={{background:"rgba(52,211,153,0.08)", border:"1px solid rgba(52,211,153,0.25)", borderRadius:100, padding:"6px 14px", fontSize:13, color:"#34D399", fontWeight:700}}>🌿 {quantumStreak} day living streak</div>}
+        {brainXP > 0 && <div style={{background:"rgba(251,191,36,0.08)", border:"1px solid rgba(251,191,36,0.25)", borderRadius:100, padding:"6px 14px", fontSize:13, color:AMBER, fontWeight:700}}>⭐ {brainXP} XP</div>}
+      </div>
+      <div onClick={onViewReport} style={{background:`linear-gradient(135deg,${type.blue}12,${DARK2})`, border:`1px solid ${type.blue}44`, borderTop:`2px solid ${type.blue}`, borderRadius:18, padding:"20px 22px", marginBottom:12, cursor:"pointer", transition:"all .2s"}} onMouseEnter={e=>{e.currentTarget.style.transform="translateY(-2px)";e.currentTarget.style.boxShadow=`0 8px 30px ${type.blue}18`;}} onMouseLeave={e=>{e.currentTarget.style.transform="translateY(0)";e.currentTarget.style.boxShadow="none";}}>
+        <div style={{display:"flex", alignItems:"center", justifyContent:"space-between"}}>
+          <div style={{display:"flex", alignItems:"center", gap:14}}>
+            <div style={{width:46, height:46, borderRadius:14, background:`${type.blue}18`, border:`1px solid ${type.blue}44`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:22}}>📊</div>
+            <div>
+              <p style={{fontSize:13, fontWeight:700, color:type.blue, letterSpacing:".12em", textTransform:"uppercase", marginBottom:3}}>My Profile Report</p>
+              <p style={{fontSize:18, fontWeight:700, color:WHITE}}>Full Archetype Analysis</p>
+              <p style={{fontSize:15, color:MUTED, marginTop:2}}>Strengths · Blind spots · 3 strategy cards · Visual insight</p>
+            </div>
+          </div>
+          <div style={{background:"rgba(255,255,255,0.08)", border:"1px solid rgba(255,255,255,0.22)", borderRadius:100, padding:"6px 14px", fontSize:13, color:WHITE, fontWeight:700, flexShrink:0, animation:"ctaGlow 2s ease-in-out infinite"}}>View →</div>
+        </div>
+      </div>
+      <div style={{background:unlocks.neural?`linear-gradient(135deg,rgba(0,200,255,0.07),${DARK2})`:DARK, border:`1px solid ${unlocks.neural?"rgba(0,200,255,0.35)":BORDER2}`, borderTop:`2px solid ${unlocks.neural?E_BLUE:"rgba(0,200,255,0.2)"}`, borderRadius:18, padding:"20px 22px", marginBottom:12, cursor:unlocks.neural?"pointer":"default", transition:"all .2s"}} onClick={unlocks.neural?onOpenNeural:undefined} onMouseEnter={e=>{if(unlocks.neural){e.currentTarget.style.transform="translateY(-2px)";e.currentTarget.style.boxShadow="0 8px 30px rgba(0,200,255,0.1)";}}} onMouseLeave={e=>{e.currentTarget.style.transform="translateY(0)";e.currentTarget.style.boxShadow="none";}}>
+        <div style={{display:"flex", alignItems:"flex-start", justifyContent:"space-between", gap:12}}>
+          <div style={{display:"flex", alignItems:"flex-start", gap:14, flex:1}}>
+            <div style={{width:46, height:46, borderRadius:14, background:"rgba(0,200,255,0.1)", border:"1px solid rgba(0,200,255,0.3)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}><AtomIcon size={28}/></div>
+            <div style={{flex:1}}>
+              <p style={{fontSize:13, fontWeight:700, color:E_BLUE, letterSpacing:".12em", textTransform:"uppercase", marginBottom:3}}>Brain Training</p>
+              <p style={{fontSize:18, fontWeight:700, color:WHITE, marginBottom:4}}>Neural Protocol</p>
+              {unlocks.neural?(<><p style={{fontSize:15, color:MUTED, marginBottom:10}}>6 cognitive challenges · XP system · 21-day journey</p><div style={{marginBottom:6}}><div style={{display:"flex", justifyContent:"space-between", marginBottom:4}}><span style={{fontSize:13, color:MUTED}}>21-Day Challenge</span><span style={{fontSize:13, color:E_BLUE, fontWeight:700}}>Day {brainDay} of 21</span></div><div style={{height:6, background:"rgba(255,255,255,0.06)", borderRadius:100, overflow:"hidden"}}><div style={{height:"100%", width:`${(brainDay/21)*100}%`, background:`linear-gradient(90deg,${E_BLUE2},${E_BLUE})`, borderRadius:100}}/></div></div><div style={{display:"flex", gap:12}}>{[{d:7,icon:"⭐"},{d:14,icon:"🌟"},{d:21,icon:"🏆"}].map(m=>(<span key={m.d} style={{fontSize:16, opacity:brainDay>=m.d?1:0.2}}>{m.icon}</span>))}{brainStreak>0&&<span style={{fontSize:13, color:AMBER, fontWeight:700, marginLeft:"auto"}}><FlameIcon size={13}/> {brainStreak} day streak</span>}</div></>):(<><p style={{fontSize:14, color:"rgba(255,255,255,0.82)", fontWeight:500, lineHeight:1.5, marginBottom:4}}>Most people never train the muscle between their ears.</p><p style={{fontSize:15, color:MUTED, marginBottom:12}}>6 challenges · 6 minutes a day · 21 days to a measurably sharper mind.</p><RotatingTestimonial accentColor={E_BLUE} quotes={[{text:"By week two I was noticeably faster at decisions.",author:"Jamie, 34"},{text:"The streak system kept me honest. 21 days straight — my focus is unrecognisable.",author:"Marcus, 29"},{text:"I thought brain training was gimmicky. This changed my mind completely.",author:"Sophie, 43"}]}/></>)}
+            </div>
+          </div>
+          <div style={{flexShrink:0}}>{unlocks.neural?<div style={{background:"rgba(0,200,255,0.1)", border:"1px solid rgba(0,200,255,0.3)", borderRadius:100, padding:"6px 14px", fontSize:13, color:E_BLUE, fontWeight:700, animation:"ctaGlow 2s ease-in-out infinite"}}>Open →</div>:<button onClick={e=>{e.stopPropagation();onUnlockNeural();}} style={{border:"none", borderRadius:100, padding:"8px 16px", fontSize:13, fontWeight:700, background:`linear-gradient(135deg,${E_BLUE2},${E_BLUE})`, color:BG, cursor:"pointer", fontFamily:"'Space Grotesk',sans-serif", whiteSpace:"nowrap"}}>🔒 £5</button>}</div>
+        </div>
+      </div>
+      <div style={{background:unlocks.vital?"linear-gradient(135deg,rgba(52,211,153,0.07),#0D1830)":DARK, border:`1px solid ${unlocks.vital?"rgba(52,211,153,0.35)":BORDER2}`, borderTop:`2px solid ${unlocks.vital?"#34D399":"rgba(52,211,153,0.2)"}`, borderRadius:18, padding:"20px 22px", marginBottom:20, cursor:unlocks.vital?"pointer":"default", transition:"all .2s"}} onClick={unlocks.vital?onOpenVital:undefined} onMouseEnter={e=>{if(unlocks.vital){e.currentTarget.style.transform="translateY(-2px)";e.currentTarget.style.boxShadow="0 8px 30px rgba(52,211,153,0.08)";}}} onMouseLeave={e=>{e.currentTarget.style.transform="translateY(0)";e.currentTarget.style.boxShadow="none";}}>
+        <div style={{display:"flex", alignItems:"flex-start", justifyContent:"space-between", gap:12}}>
+          <div style={{display:"flex", alignItems:"flex-start", gap:14, flex:1}}>
+            <div style={{width:46, height:46, borderRadius:14, background:"rgba(52,211,153,0.1)", border:"1px solid rgba(52,211,153,0.3)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:22, flexShrink:0}}>🌿</div>
+            <div style={{flex:1}}>
+              <p style={{fontSize:13, fontWeight:700, color:"#34D399", letterSpacing:".12em", textTransform:"uppercase", marginBottom:3}}>Quantum Living</p>
+              <p style={{fontSize:18, fontWeight:700, color:WHITE, marginBottom:4}}>5 Laws of Living</p>
+              {unlocks.vital?(<><p style={{fontSize:15, color:MUTED, marginBottom:10}}>Daily checklist · 5 quantum laws</p><div style={{display:"flex", gap:12}}>{quantumStreak>0&&<span style={{fontSize:13, color:AMBER, fontWeight:700}}><FlameIcon size={13}/> {quantumStreak} day streak</span>}</div></>):(<><p style={{fontSize:14, color:"rgba(255,255,255,0.82)", fontWeight:500, lineHeight:1.5, marginBottom:4}}>Your biology is either working for you or against you.</p><p style={{fontSize:15, color:MUTED, marginBottom:12}}>5 quantum laws · sleep, breath, movement, temperance, nourishment · built around your archetype.</p><RotatingTestimonial accentColor="#34D399" quotes={[{text:"I've read every wellness book going. This is the first thing that actually stuck.",author:"Rachel, 41"},{text:"Simple enough to do daily, powerful enough to actually change things.",author:"Priya, 37"},{text:"By week three I hadn't needed my usual 3pm coffee in days.",author:"Tom, 45"}]}/></>)}
+            </div>
+          </div>
+          <div style={{flexShrink:0}}>{unlocks.vital?<div style={{background:"rgba(52,211,153,0.1)", border:"1px solid rgba(52,211,153,0.3)", borderRadius:100, padding:"6px 14px", fontSize:13, color:"#34D399", fontWeight:700, animation:"ctaGlow 2s ease-in-out infinite"}}>Open →</div>:<button onClick={e=>{e.stopPropagation();onUnlockVital();}} style={{border:"none", borderRadius:100, padding:"8px 16px", fontSize:13, fontWeight:700, background:"linear-gradient(135deg,#059669,#34D399)", color:BG, cursor:"pointer", fontFamily:"'Space Grotesk',sans-serif", whiteSpace:"nowrap"}}>🔒 £5</button>}</div>
+        </div>
+      </div>
+      {!(unlocks.neural && unlocks.vital) && (
+        <div style={{background:"linear-gradient(135deg,rgba(251,191,36,0.06),rgba(0,200,255,0.04))", border:"1px solid rgba(251,191,36,0.28)", borderRadius:16, padding:"18px 20px", marginBottom:16, position:"relative", overflow:"hidden"}}>
+          <div style={{position:"absolute",top:0,left:0,right:0,height:2,background:"linear-gradient(90deg,rgba(251,191,36,0.6),rgba(0,200,255,0.5),rgba(52,211,153,0.5))"}}/>
+          {(!unlocks.neural && !unlocks.vital)?(<><div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:12,marginBottom:12}}><div style={{flex:1}}><p style={{fontSize:12,fontWeight:700,color:AMBER,letterSpacing:".14em",textTransform:"uppercase",marginBottom:5}}>⭐ Complete Your LQM System</p><p style={{fontSize:16,fontWeight:700,color:WHITE,marginBottom:4}}>Both Add-Ons · <span style={{color:AMBER}}>£8 today</span></p><p style={{fontSize:15,color:MUTED,lineHeight:1.6}}>Brain Training + Quantum Living. 21 days of cognitive training and daily wellness practice. Purchased separately: £10.</p></div><div style={{textAlign:"right",flexShrink:0}}><div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:32,letterSpacing:1,color:AMBER}}>£8</div><div style={{fontSize:13,color:MUTED,textDecoration:"line-through"}}>£10</div></div></div><button onClick={e=>{e.stopPropagation();onUnlockBundle();}} style={{width:"100%",border:"none",borderRadius:100,padding:"11px",fontSize:14,fontWeight:700,background:"linear-gradient(135deg,rgba(251,191,36,0.85),rgba(251,191,36,0.65))",color:"#070F1E",cursor:"pointer",fontFamily:"'Space Grotesk',sans-serif",letterSpacing:".04em",transition:"all .18s"}} onMouseEnter={e=>e.currentTarget.style.transform="translateY(-2px)"} onMouseLeave={e=>e.currentTarget.style.transform="translateY(0)"}>Get the Complete System → £8</button></>):(<div><p style={{fontSize:12,fontWeight:700,color:AMBER,letterSpacing:".14em",textTransform:"uppercase",marginBottom:5}}>⭐ You're Halfway There</p><p style={{fontSize:15,fontWeight:700,color:WHITE,marginBottom:4}}>Add {unlocks.neural?"Quantum Living":"Brain Training"} for just <span style={{color:AMBER}}>£5</span></p><button onClick={e=>{e.stopPropagation(); unlocks.neural?onUnlockVital():onUnlockNeural();}} style={{width:"100%",border:"none",borderRadius:100,padding:"11px",fontSize:14,fontWeight:700,background:"linear-gradient(135deg,rgba(251,191,36,0.8),rgba(251,191,36,0.55))",color:"#070F1E",cursor:"pointer",fontFamily:"'Space Grotesk',sans-serif",letterSpacing:".04em"}}>{unlocks.neural?"Unlock Quantum Living → £5":"Unlock Brain Training → £5"}</button></div>)}
+        </div>
+      )}
+      {(unlocks.neural || unlocks.vital) && (
+        <div style={{background:"rgba(255,255,255,0.02)", border:`1px solid ${BORDER2}`, borderRadius:14, padding:"16px 20px", marginBottom:8}}>
+          <p style={{fontSize:13, fontWeight:700, color:DIMMED, letterSpacing:".12em", textTransform:"uppercase", marginBottom:10}}>💡 Your Daily Habit</p>
+          <p style={{fontSize:14, color:MUTED, lineHeight:1.6}}>{unlocks.neural&&unlocks.vital?"Complete today's Brain Training session + tick all 5 Quantum Laws to log your daily progress on both 21-day journeys.":unlocks.neural?"Complete today's Brain Training session to log your daily progress and keep your streak alive.":"Tick all 5 Quantum Laws today to log your daily progress and keep your streak alive."}</p>
+        </div>
+      )}
+      <div style={{marginTop:16,marginBottom:4,border:`1px solid ${emailStatus==="sent"?"rgba(52,211,153,0.35)":E_BLUE+"22"}`,borderRadius:14,overflow:"hidden",transition:"border-color .3s"}}>
+        <button onClick={()=>{setEmailOpen(v=>!v);setEmailStatus("idle");}} style={{width:"100%",background:emailOpen?`${E_BLUE}08`:"transparent",border:"none",cursor:"pointer",padding:"14px 18px",display:"flex",alignItems:"center",gap:12,fontFamily:"'Space Grotesk',sans-serif",transition:"background .2s"}}>
+          <span style={{fontSize:18}}>📧</span>
+          <div style={{flex:1,textAlign:"left"}}><p style={{fontSize:13,fontWeight:700,color:E_BLUE,margin:0,letterSpacing:".04em"}}>Email My Full Report</p><p style={{fontSize:13,color:MUTED,margin:0,marginTop:2}}>{customerEmail?`Last sent to ${customerEmail}`:"Send your complete report to your inbox"}</p></div>
+          <span style={{fontSize:13,color:DIMMED,fontWeight:700,letterSpacing:".06em"}}>{emailOpen?"↑ Close":"Open →"}</span>
+        </button>
+        {emailOpen && (
+          <div style={{padding:"0 18px 18px",borderTop:`1px solid ${E_BLUE}18`,background:`${E_BLUE}05`,animation:"fadeUp .2s ease both"}}>
+            {emailStatus==="sent"?(
+              <div style={{textAlign:"center",padding:"20px 0"}}><div style={{fontSize:32,marginBottom:8}}>✅</div><p style={{fontSize:15,fontWeight:700,color:"#34D399",margin:"0 0 4px"}}>Report Sent</p><p style={{fontSize:13,color:DIMMED}}>Check your inbox — it may take a minute to arrive.</p><button onClick={()=>{setEmailStatus("idle");setEmailOpen(false);}} style={{marginTop:14,background:"none",border:"none",cursor:"pointer",fontSize:13,color:E_BLUE,fontFamily:"'Space Grotesk',sans-serif",fontWeight:700}}>Close ↑</button></div>
+            ):(
+              <><p style={{fontSize:15,color:MUTED,margin:"14px 0 10px",lineHeight:1.7}}>Your full report sent as a premium email to your inbox.</p><input value={emailInput} onChange={e=>{setEmailInput(e.target.value);setEmailStatus("idle");}} placeholder="your@email.com" type="email" style={{width:"100%",background:"rgba(0,0,0,0.3)",border:`1px solid ${emailStatus==="error"?"rgba(239,68,68,0.5)":E_BLUE+"33"}`,borderRadius:9,padding:"11px 14px",color:"#fff",fontSize:14,fontFamily:"'Space Grotesk',sans-serif",outline:"none",boxSizing:"border-box",marginBottom:10}}/>{emailStatus==="error"&&<p style={{fontSize:13,color:"#EF4444",margin:"-4px 0 8px"}}>Something went wrong — please try again or email lqm@lqmmethod.com</p>}<button onClick={handleEmailSend} disabled={emailStatus==="sending"} style={{width:"100%",padding:"12px",borderRadius:100,border:"none",cursor:emailStatus==="sending"?"default":"pointer",background:emailStatus==="sending"?"rgba(0,200,255,0.1)":E_BLUE,color:emailStatus==="sending"?E_BLUE:"#070F1E",fontFamily:"'Space Grotesk',sans-serif",fontWeight:800,fontSize:14,letterSpacing:".06em",transition:"all .2s"}}>{emailStatus==="sending"?"Sending…":"Send My Report →"}</button></>
+            )}
+          </div>
         )}
       </div>
+    </div>
+  );
+}
 
-      {/* Progress dots */}
-      <div style={{
-        display: "flex", gap: 5, padding: "14px 24px 0",
-        justifyContent: "center", flexShrink: 0,
+function RotatingStrapline() {
+  const lines = ["Know your type. Train your mind. Live by design.","Daily brain challenges. Real cognitive gains.","Five laws of health. One daily practice."];
+  const [idx, setIdx] = useState(0);
+  const [visible, setVisible] = useState(true);
+  useEffect(() => {
+    const cycle = setInterval(() => {
+      setVisible(false);
+      setTimeout(() => { setIdx(i => (i+1)%lines.length); setVisible(true); }, 600);
+    }, 4000);
+    return () => clearInterval(cycle);
+  }, []);
+  return (
+    <div style={{textAlign:"center",height:36,marginBottom:24,overflow:"hidden"}}>
+      <p style={{fontFamily:"'Crimson Pro',serif",fontStyle:"italic",fontSize:20,color:"rgba(255,255,255,0.72)",letterSpacing:".03em",lineHeight:1.6,transition:"opacity .65s ease, transform .65s ease",opacity:visible?1:0,transform:visible?"translateY(0)":"translateY(8px)"}}>{lines[idx]}</p>
+    </div>
+  );
+}
+
+
+// ── FAQ component ─────────────────────────────────────────────────────────
+function LandingFAQ() {
+  const [openIdx, setOpenIdx] = useState(null);
+  const faqs = [
+    {
+      q: "Is this just another personality quiz?",
+      a: "No. LQM is a diagnostic tool built on how people actually decide, act, and perform — not how they think they do. Personality quizzes tell you who you are. LQM tells you how you operate, and gives you systems to build around it.",
+    },
+    {
+      q: "What do I actually get in the paid report?",
+      a: "Your full report includes: your complete Behavioural Archetype analysis, Strengths & Blind Spot breakdown, 3 personalised LQM Quantum Strategy Cards, your Identity Statement, and your Behavioural Pattern Profile. The free result shows your archetype name only — the report is where the real insight lives.",
+    },
+    {
+      q: "What is your refund policy?",
+      a: "7-day no-questions-asked guarantee. If you feel the report wasn't worth it, email lqm@lqmmethod.com within 7 days for a full refund.",
+    },
+    {
+      q: "How long does the assessment take?",
+      a: "Approximately 3 minutes. 11 questions, no tricks, no filler. You'll see your archetype result before any payment is required.",
+    },
+    {
+      q: "Is my data stored or shared?",
+      a: "Your quiz answers are processed in your browser and are not stored on our servers. Only your email address and payment reference are retained for report delivery. We do not share your data with third parties. Full details in our Privacy Policy.",
+    },
+  ];
+  return (
+    <div style={{marginBottom:24}}>
+      <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:14}}>
+        <p style={{fontSize:13,fontWeight:700,color:MUTED,letterSpacing:".14em",textTransform:"uppercase",whiteSpace:"nowrap"}}>Common questions</p>
+        <div style={{flex:1,height:1,background:`linear-gradient(90deg,${BORDER2},transparent)`}}/>
+      </div>
+      {faqs.map((item, i) => (
+        <div key={i} style={{
+          borderBottom:`1px solid ${BORDER2}`,
+          overflow:"hidden",
+        }}>
+          <button
+            onClick={() => setOpenIdx(openIdx === i ? null : i)}
+            style={{
+              width:"100%", background:"none", border:"none", cursor:"pointer",
+              display:"flex", justifyContent:"space-between", alignItems:"center",
+              padding:"14px 0", gap:12,
+              fontFamily:"'Space Grotesk',sans-serif",
+            }}
+          >
+            <span style={{fontSize:15,fontWeight:600,color:WHITE,textAlign:"left",lineHeight:1.45}}>{item.q}</span>
+            <span style={{
+              fontSize:18, color:E_BLUE, flexShrink:0,
+              transform: openIdx === i ? "rotate(45deg)" : "rotate(0deg)",
+              transition:"transform .2s ease",
+              display:"inline-block",
+            }}>+</span>
+          </button>
+          <div style={{
+            maxHeight: openIdx === i ? 300 : 0,
+            overflow:"hidden",
+            transition:"max-height .3s ease",
+          }}>
+            <p style={{
+              fontSize:15, color:MUTED, lineHeight:1.75,
+              paddingBottom:16, paddingRight:32,
+            }}>{item.a}</p>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// CHANGE 12: New Landing with archetype teaser, science strip, micro-preview
+function Landing({onStart}){
+  return(
+    <div>
+      {/* Logo */}
+      <div className="fu" style={{textAlign:"center",marginBottom:28,paddingTop:8}}>
+        <Logo size="lg"/>
+      </div>
+
+      {/* Hero headline */}
+      <div className="fu1" style={{textAlign:"center",marginBottom:20}}>
+        <p style={{fontSize:14,fontWeight:700,letterSpacing:".16em",textTransform:"uppercase",color:E_BLUE,marginBottom:14}}>
+          ⚡ Behavioural Intelligence Assessment
+        </p>
+        <h1 style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"clamp(36px,8vw,64px)",lineHeight:1.05,letterSpacing:2,color:WHITE,marginBottom:6}}>
+          You Don't Have A<br/><span className="elec">Motivation Problem.</span>
+        </h1>
+        <h2 style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"clamp(24px,5vw,40px)",lineHeight:1,letterSpacing:2,color:"rgba(255,255,255,0.28)",marginBottom:20}}>
+          You Have A Systems Problem.
+        </h2>
+        <RotatingStrapline/>
+      </div>
+
+      {/* Philosophy quote */}
+      <p className="fu2" style={{textAlign:"center",fontFamily:"'Crimson Pro',serif",fontStyle:"italic",fontSize:19,lineHeight:1.75,color:MUTED,maxWidth:500,margin:"0 auto 28px"}}>
+        "Small shifts, consistently honoured, produce quantum results. The habit is not the destination — it is the vehicle." — Q, Founder of LQM Method
+      </p>
+
+      {/* ── ARCHETYPE TEASER ─────────────────────────────────────── */}
+      <div className="fu3" style={{marginBottom:28}}>
+        <p style={{textAlign:"center",fontSize:14,fontWeight:700,color:MUTED,letterSpacing:".14em",textTransform:"uppercase",marginBottom:16}}>
+          Discover your archetype
+        </p>
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:10}}>
+          {[
+            {name:"Systems Architect", sym:"◈", color:"#00C8FF", tag:"Strategic · Precise · Systems-driven"},
+            {name:"Deep Learner",       sym:"◉", color:"#38BDF8", tag:"Curious · Thorough · Knowledge-first"},
+            {name:"Relational Catalyst",sym:"◎", color:"#34D399", tag:"Empathetic · Connecting · People-led"},
+            {name:"Visionary Pioneer",  sym:"◇", color:"#A78BFA", tag:"Creative · Bold · Future-focused"},
+          ].map(a=>(
+            <div key={a.name} style={{
+              display:"flex",alignItems:"center",gap:12,
+              padding:"14px 16px",
+              background:"rgba(255,255,255,0.03)",
+              border:`1px solid ${a.color}44`,
+              borderLeft:`3px solid ${a.color}88`,
+              borderRadius:"0 12px 12px 0",
+              transition:"all .2s",
+            }}>
+              <span style={{fontSize:24,color:a.color,flexShrink:0}}>{a.sym}</span>
+              <div>
+                <p style={{fontSize:15,fontWeight:700,color:WHITE,marginBottom:3}}>{a.name}</p>
+                <p style={{fontSize:13,color:MUTED,lineHeight:1.5}}>{a.tag}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+        <p style={{textAlign:"center",fontSize:17,color:E_BLUE,fontFamily:"'Crimson Pro',serif",fontStyle:"italic",fontWeight:500,animation:"glow 2.5s ease-in-out infinite",letterSpacing:".04em"}}>
+          Which one are you?
+        </p>
+      </div>
+
+      {/* ── SCIENCE CREDIBILITY STRIP ────────────────────────────── */}
+      <div className="fu3" style={{
+        marginBottom:28,padding:"20px 22px",
+        background:"rgba(0,200,255,0.04)",
+        border:`1px solid ${BORDER}`,
+        borderRadius:14,
       }}>
-        {steps.map((_, i) => (
-          <div key={i} style={{
-            height: 4, flex: 1, maxWidth: 48, borderRadius: 100,
-            background: i < step ? accentColor : i === step ? `${accentColor}` : "rgba(255,255,255,0.08)",
-            opacity: i < step ? 0.4 : 1,
-            transition: "all .3s",
-          }} />
+        <p style={{fontSize:12,fontWeight:700,color:E_BLUE,letterSpacing:".16em",textTransform:"uppercase",marginBottom:14,textAlign:"center"}}>
+          Built on behavioural science
+        </p>
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
+          {[
+            ["◈","Cognitive flexibility","How the brain adapts between tasks and rules"],
+            ["△","Decision architecture","How environment shapes the choices you make"],
+            ["⟁","Habit formation research","How behaviours become automatic through systems"],
+            ["⬡","Systems-based design","How small structural changes compound over time"],
+          ].map(([sym,title,desc])=>(
+            <div key={title} style={{display:"flex",gap:10,alignItems:"flex-start"}}>
+              <span style={{color:E_BLUE,fontSize:14,flexShrink:0,marginTop:2}}>{sym}</span>
+              <div>
+                <p style={{fontSize:13,fontWeight:700,color:WHITE,marginBottom:2}}>{title}</p>
+                <p style={{fontSize:12,color:DIMMED,lineHeight:1.5}}>{desc}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+        <p style={{fontSize:12,color:DIMMED,textAlign:"center",marginTop:14,lineHeight:1.7}}>
+          LQM is not a personality quiz. It is a diagnostic tool built on how people actually decide, act, and perform.
+        </p>
+      </div>
+
+      {/* ── MICRO-PREVIEW EXAMPLE CARD ───────────────────────────── */}
+      <div className="fu3" style={{marginBottom:28}}>
+        <p style={{textAlign:"center",fontSize:14,fontWeight:700,color:MUTED,letterSpacing:".14em",textTransform:"uppercase",marginBottom:14}}>
+          Your result will look like this
+        </p>
+        <div style={{
+          background:`linear-gradient(145deg,${DARK2},${DARK})`,
+          border:`1px solid rgba(0,200,255,0.35)`,
+          borderTop:`2px solid #00C8FF`,
+          borderRadius:16,padding:"20px 22px",
+          position:"relative",overflow:"hidden",
+        }}>
+          {/* Example badge */}
+          <div style={{
+            position:"absolute",top:12,right:12,
+            background:"rgba(251,191,36,0.12)",
+            border:"1px solid rgba(251,191,36,0.35)",
+            borderRadius:100,padding:"3px 10px",
+            fontSize:11,fontWeight:700,color:AMBER,letterSpacing:".1em",
+          }}>EXAMPLE ONLY</div>
+
+          {/* Archetype header */}
+          <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:14}}>
+            <span style={{fontSize:30,color:"#00C8FF"}}>◈</span>
+            <div>
+              <p style={{fontSize:12,fontWeight:700,color:"#00C8FF",letterSpacing:".12em",textTransform:"uppercase",marginBottom:3}}>Your LQM Archetype</p>
+              <p style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:26,letterSpacing:2,color:WHITE,lineHeight:1}}>The Systems Architect</p>
+            </div>
+          </div>
+
+          {/* Tag */}
+          <p style={{fontFamily:"'Crimson Pro',serif",fontStyle:"italic",fontSize:17,color:"rgba(0,200,255,0.9)",marginBottom:16,lineHeight:1.6}}>
+            "You don't chase motivation. You engineer it."
+          </p>
+
+          {/* Behavioural pattern */}
+          <div style={{
+            background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.12)",
+            borderRadius:10,padding:"14px 16px",marginBottom:14,
+          }}>
+            <p style={{fontSize:11,fontWeight:700,color:"rgba(255,255,255,0.55)",letterSpacing:".1em",textTransform:"uppercase",marginBottom:5}}>
+              Behavioural tendency
+            </p>
+            <p style={{fontSize:16,color:WHITE,fontWeight:700,marginBottom:4}}>Structure orientation</p>
+            <p style={{fontSize:14,color:MUTED,lineHeight:1.65}}>You prioritise frameworks and clarity before committing to action — and sometimes that delay costs you.</p>
+          </div>
+
+          {/* Strength + blind spot */}
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:16}}>
+            <div style={{background:"rgba(0,200,255,0.06)",border:"1px solid rgba(0,200,255,0.25)",borderRadius:10,padding:"12px 14px"}}>
+              <p style={{fontSize:11,fontWeight:700,color:"#00C8FF",letterSpacing:".1em",textTransform:"uppercase",marginBottom:4}}>Strength</p>
+              <p style={{fontSize:14,color:WHITE,fontWeight:600,lineHeight:1.4}}>Systems Design</p>
+            </div>
+            <div style={{background:"rgba(255,160,40,0.06)",border:"1px solid rgba(255,160,40,0.25)",borderRadius:10,padding:"12px 14px"}}>
+              <p style={{fontSize:11,fontWeight:700,color:"rgba(255,180,50,0.9)",letterSpacing:".1em",textTransform:"uppercase",marginBottom:4}}>Blind spot</p>
+              <p style={{fontSize:14,color:WHITE,fontWeight:600,lineHeight:1.4}}>Perfectionism delays launch</p>
+            </div>
+          </div>
+
+          <p style={{fontSize:14,color:MUTED,textAlign:"center",fontStyle:"italic",lineHeight:1.6}}>
+            Your report includes 3 personalised strategy cards built for your specific profile
+          </p>
+        </div>
+      </div>
+
+      {/* ── WHAT'S INSIDE ──────────────────────────────────────────── */}
+      <div style={{background:PANEL,border:`1px solid ${BORDER2}`,borderRadius:16,padding:"26px",marginBottom:24,borderTop:`2px solid rgba(0,200,255,0.18)`}}>
+        <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:16}}>
+          <p style={{fontSize:16,fontWeight:700,letterSpacing:".14em",textTransform:"uppercase",color:E_BLUE,whiteSpace:"nowrap"}}>
+            What's inside your report
+          </p>
+          <div style={{flex:1,height:1,background:`linear-gradient(90deg,${E_BLUE}44,transparent)`}}/>
+        </div>
+        {[
+          ["⚛","Your Behavioural Archetype","Deep analysis of your unique motivation architecture — how you're wired to learn, decide and perform"],
+          ["◈","Strengths & Blind Spot Analysis","An honest breakdown of your psychological edge and the patterns that are quietly holding you back"],
+          ["△","3 LQM Quantum Strategy Cards","Scenario-based systems designed specifically for your profile — not generic advice you've already tried"],
+          ["⬡","Your Identity Statement","The single sentence that, when repeated, rewires how you show up every day"],
+          ["◎","Behavioural Pattern Profile","How your answers distributed across structure, analysis, relational and creative tendencies — new in 2026"],
+        ].map(([ic,ti,de])=>(
+          <div key={ti} style={{display:"flex",gap:14,marginBottom:16,alignItems:"flex-start"}}>
+            <span style={{color:E_BLUE,fontSize:17,flexShrink:0,marginTop:2}}>{ic}</span>
+            <div>
+              <p style={{fontSize:14,fontWeight:600,color:WHITE,marginBottom:3}}>{ti}</p>
+              <p style={{fontSize:16,color:MUTED,fontWeight:300,lineHeight:1.6}}>{de}</p>
+            </div>
+          </div>
         ))}
       </div>
 
-      {/* Main content area */}
-      <div ref={contentRef} style={{
-        flex: 1, display: "flex", flexDirection: "column",
-        alignItems: "center",
-        padding: "24px 28px 100px", overflow: "auto",
-      }}>
 
-        {/* Step number */}
-        <div style={{
-          width: 44, height: 44, borderRadius: "50%", marginBottom: 20,
-          background: `${accentColor}18`, border: `2px solid ${accentColor}55`,
-          display: "flex", alignItems: "center", justifyContent: "center",
-          fontSize: 20, fontWeight: 800, color: accentColor,
-        }}>{step + 1}</div>
-
-        {/* Instruction */}
-        <p style={{
-          fontSize: "clamp(18px,4.5vw,24px)", color: WHITE,
-          textAlign: "center", lineHeight: 1.7, fontWeight: 500,
-          maxWidth: 500, marginBottom: 20,
-        }}>{current.instruction}</p>
-
-        {/* Timer */}
-        {hasTimer && (
-          <div style={{ textAlign: "center", marginBottom: 20 }}>
-            {!timerActive && timer > 0 ? (
-              <button onClick={startTimer} style={{
-                border: `2px solid ${accentColor}`,  borderRadius: 100,
-                padding: "12px 28px", background: `${accentColor}12`,
-                color: accentColor, fontSize: 16, fontWeight: 700,
-                cursor: "pointer", fontFamily: "'Space Grotesk',sans-serif",
-                letterSpacing: ".05em",
-              }}>⏱ Start Timer — {formatTimer(timer)}</button>
-            ) : timerActive ? (
-              <div>
-                <p style={{
-                  fontFamily: "'Bebas Neue',sans-serif", fontSize: 54, letterSpacing: 2,
-                  color: timer <= 30 ? "#F87171" : timer <= 60 ? AMBER : accentColor,
-                  lineHeight: 1,
-                }}>{formatTimer(timer)}</p>
-                <p style={{ fontSize: 13, color: DIMMED, marginTop: 6 }}>Remaining</p>
-              </div>
-            ) : (
-              <div style={{
-                padding: "10px 20px", background: "rgba(52,211,153,0.1)",
-                border: "1px solid rgba(52,211,153,0.3)", borderRadius: 100,
-              }}>
-                <p style={{ fontSize: 15, fontWeight: 700, color: GREEN }}>✓ Timer complete</p>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Tip toggle */}
-        {current.tip && (
-          <div style={{ maxWidth: 500, width: "100%" }}>
-            <button onClick={() => setShowTip(v => !v)} style={{
-              background: "none", border: "none", cursor: "pointer",
-              fontSize: 14, color: showTip ? accentColor : DIMMED,
-              fontFamily: "'Space Grotesk',sans-serif", fontWeight: 600,
-              display: "flex", alignItems: "center", gap: 6,
-              margin: "0 auto", transition: "color .2s",
-            }}>
-              {showTip ? "↑ Hide" : "💡 Why this matters"}
-            </button>
-            {showTip && (
-              <div style={{
-                marginTop: 10, padding: "14px 18px",
-                background: `${accentColor}08`, border: `1px solid ${accentColor}22`,
-                borderRadius: 12,
-                animation: "fadeUp .2s ease both",
-              }}>
-                <p style={{
-                  fontSize: 14, color: MUTED, lineHeight: 1.75,
-                  fontStyle: "italic", textAlign: "center",
-                }}>{current.tip}</p>
-              </div>
-            )}
-          </div>
-        )}
+      {/* ── FOUNDER TESTIMONIAL ─────────────────────────────────────────── */}
+      <div style={{background:"rgba(0,200,255,0.04)",border:"1px solid rgba(0,200,255,0.15)",borderLeft:"3px solid rgba(0,200,255,0.5)",borderRadius:"0 14px 14px 0",padding:"20px 22px",marginBottom:24}}>
+        <p style={{fontFamily:"'Crimson Pro',serif",fontStyle:"italic",fontSize:17,color:MUTED,lineHeight:1.8,marginBottom:10}}>
+          “I always wondered why I could never stay motivated to finish what I started. Then I discovered my archetype — and everything clicked. Once I understood my blind spots, I stopped fighting myself and started building around the way I actually work. The results followed. The confidence followed. That’s why I built LQM — so other people don’t have to figure it out the hard way.”
+        </p>
+        <p style={{fontSize:12,fontWeight:700,color:"rgba(0,200,255,0.6)",letterSpacing:".12em",textTransform:"uppercase"}}>— Q, Founder of LQM Method</p>
+        <p style={{fontSize:14,color:DIMMED,marginTop:10,lineHeight:1.7}}>
+          Do you have a similar story? Find out what archetype you are — every insight is backed by behavioural science.
+        </p>
       </div>
 
-      {/* Bottom nav — fixed to bottom so Next is always visible */}
-      <div style={{
-        padding: "16px 24px", borderTop: `1px solid ${BORDER2}`,
-        paddingBottom: "max(16px, env(safe-area-inset-bottom, 16px))",
-        display: "flex", gap: 12, alignItems: "center",
-        background: "rgba(7,15,30,0.97)", backdropFilter: "blur(14px)",
-        flexShrink: 0,
-        position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 610,
-      }}>
-        <button onClick={goPrev} disabled={step === 0} style={{
-          flex: 1, border: `1px solid ${step === 0 ? BORDER2 : accentColor+"55"}`,
-          borderRadius: 100, padding: "14px", fontSize: 15, fontWeight: 700,
-          background: "transparent", color: step === 0 ? DIMMED : WHITE,
-          cursor: step === 0 ? "default" : "pointer",
-          fontFamily: "'Space Grotesk',sans-serif", transition: "all .2s",
-        }}>← Back</button>
-        <button onClick={goNext} style={{
-          flex: 2, border: "none", borderRadius: 100, padding: "14px",
-          fontSize: 15, fontWeight: 700,
-          background: `linear-gradient(135deg,${accentColor}cc,${accentColor})`,
-          color: BG, cursor: "pointer",
-          fontFamily: "'Space Grotesk',sans-serif", letterSpacing: ".04em",
-        }}>{step < total - 1 ? "Next Step →" : "Complete ✓"}</button>
+      {/* ── FAQ ───────────────────────────────────────────────────────────── */}
+      <LandingFAQ/>
+
+      {/* ── CTA ──────────────────────────────────────────────────────── */}
+      <div className="fu4" style={{textAlign:"center"}}>
+        <PrimaryBtn onClick={onStart}>⚡ Begin My Free Assessment →</PrimaryBtn>
+        <p style={{marginTop:10,fontSize:15,color:DIMMED}}>
+          Takes 3 minutes · See your result before paying
+        </p>
       </div>
     </div>
   );
 }
 
-function RemedyCard({ remedy, accentColor }) {
-  const [open, setOpen] = useState(false);
-  const [detailOpen, setDetailOpen] = useState(false);
-  const [guidedMode, setGuidedMode] = useState(false);
-  const law = LAW_LABELS[remedy.lawLink];
 
-  if (guidedMode && remedy.steps) {
-    return <GuidedProtocol remedy={remedy} accentColor={accentColor} onClose={() => setGuidedMode(false)} />;
+function Quiz({q,idx,sel,onSel,onNext}){
+  const pct=(idx/questions.length)*100;
+  return(
+    <div style={{animation:"fadeUp .4s ease both"}}>
+      <div style={{display:"flex",justifyContent:"center",alignItems:"center",marginBottom:20}}>
+        <span style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:18,letterSpacing:2,color:DIMMED}}>{String(idx+1).padStart(2,"0")} / {String(questions.length).padStart(2,"0")}</span>
+      </div>
+      <div style={{height:2,background:"rgba(255,255,255,0.06)",borderRadius:100,marginBottom:30,overflow:"hidden"}}>
+        <div style={{height:"100%",width:`${pct}%`,background:`linear-gradient(90deg,${E_BLUE2},${E_BLUE})`,borderRadius:100,transition:"width .5s ease",boxShadow:`0 0 10px ${E_BLUE}55`}}/>
+      </div>
+      <Panel glow>
+        <div style={{fontSize:28,color:E_BLUE,marginBottom:12,textShadow:`0 0 18px ${E_BLUE}`}}>{q.sym}</div>
+        {q.isVisual && (<div style={{marginBottom:20}}><div style={{display:"inline-block",background:"rgba(251,191,36,0.1)",border:"1px solid rgba(251,191,36,0.3)",borderRadius:100,padding:"6px 16px",marginBottom:16}}><span style={{fontSize:12,fontWeight:700,color:AMBER,letterSpacing:".12em"}}>VISUAL INSIGHT</span></div></div>)}
+        <h2 style={{fontFamily:"'Crimson Pro',serif",fontSize:"clamp(19px,3.5vw,25px)",fontWeight:400,lineHeight:1.5,color:WHITE,marginBottom:q.subtitle?10:26}}>{q.text}</h2>
+        {q.subtitle && (<p style={{fontSize:15,color:MUTED,marginBottom:20,fontStyle:"italic"}}>{q.subtitle}</p>)}
+        {q.isVisual && (<div style={{marginBottom:24,textAlign:"center"}}><img src="/tree-woman.jpg" alt="Visual perception test" style={{maxWidth:"100%",width:340,height:"auto",borderRadius:12,border:`2px solid ${BORDER2}`,boxShadow:`0 4px 24px rgba(0,0,0,0.45)`}}/></div>)}
+        <div style={{display:"flex",flexDirection:"column",gap:10,marginBottom:22}}>
+          {q.opts.map((opt,i)=>{
+            const isS=sel===opt.ty;
+            return(<button key={i} onClick={()=>onSel(opt.ty)} style={{background:isS?"rgba(0,200,255,0.08)":"rgba(255,255,255,0.025)",border:`1.5px solid ${isS?E_BLUE:BORDER2}`,borderRadius:12,padding:"14px 18px",textAlign:"left",cursor:"pointer",transition:"all .2s ease",color:isS?WHITE:MUTED,fontSize:16,fontFamily:"'Space Grotesk',sans-serif",fontWeight:isS?500:400,lineHeight:1.5,display:"flex",alignItems:"center",gap:14,boxShadow:isS?`0 0 18px ${E_GLOW}`:"none"}} onMouseEnter={e=>{if(!isS){e.currentTarget.style.borderColor=BORDER;e.currentTarget.style.color=WHITE;}}} onMouseLeave={e=>{if(!isS){e.currentTarget.style.borderColor=BORDER2;e.currentTarget.style.color=MUTED;}}}>
+              <span style={{width:26,height:26,borderRadius:"50%",border:`1.5px solid ${isS?E_BLUE:BORDER2}`,background:isS?E_BLUE:"transparent",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,fontSize:14,color:isS?BG:"transparent",fontWeight:800,transition:"all .2s"}}>✓</span>
+              {opt.t}
+            </button>);
+          })}
+        </div>
+        {sel?<PrimaryBtn onClick={onNext}>{idx<questions.length-1?"Next Question →":"Reveal My Profile →"}</PrimaryBtn>:<button disabled style={{width:"100%",border:"none",borderRadius:100,padding:"17px",fontSize:16,fontWeight:700,fontFamily:"'Space Grotesk',sans-serif",cursor:"not-allowed",background:"rgba(255,255,255,0.04)",color:DIMMED}}>Select an answer to continue</button>}
+      </Panel>
+    </div>
+  );
+}
+
+function Processing({step}){
+  const steps=["Decoding your response patterns…","Mapping your motivation architecture…","Cross-referencing LQM behavioural data…","Identifying your psychological edge…","Generating your personalised system…"];
+  return(
+    <div style={{textAlign:"center",paddingTop:60}}>
+      <div style={{position:"relative",width:80,height:80,margin:"0 auto 36px"}}><div style={{width:80,height:80,borderRadius:"50%",border:"2px solid rgba(0,200,255,0.1)",borderTop:`2px solid ${E_BLUE}`,animation:"spin 1s linear infinite"}}/><div style={{position:"absolute",top:"50%",left:"50%",transform:"translate(-50%,-50%)",fontSize:28}}>⚛</div></div>
+      <h2 style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:32,letterSpacing:2,marginBottom:8,color:WHITE}}>Analysing Your Profile</h2>
+      <p style={{fontFamily:"'Crimson Pro',serif",fontStyle:"italic",fontSize:15,color:DIMMED,marginBottom:36}}>Learning Quantum Method behavioural analysis in progress</p>
+      <Panel style={{maxWidth:400,margin:"0 auto",textAlign:"left"}}>
+        {steps.map((s,i)=>(<div key={i} style={{display:"flex",gap:12,alignItems:"center",marginBottom:i<steps.length-1?14:0,opacity:step>i?1:.2,transition:"opacity .5s ease"}}><span style={{color:step>i?E_BLUE:DIMMED,fontSize:14,flexShrink:0}}>{step>i?"⚡":"○"}</span><span style={{fontSize:16,color:step>i?WHITE:DIMMED,fontWeight:step>i?500:300}}>{s}</span></div>))}
+      </Panel>
+    </div>
+  );
+}
+
+function Teaser({type,t,fmt,onUnlockOffer,onUnlockFull}){
+  return(
+    <div style={{animation:"fadeUp .6s ease both"}}>
+      <Panel glow style={{textAlign:"center",marginBottom:14,borderColor:`${type.blue}44`}}>
+        <p style={{fontSize:16,fontWeight:700,letterSpacing:".16em",textTransform:"uppercase",color:type.blue,marginBottom:14}}>⚡ Your LQM Behavioural Profile</p>
+        <div style={{fontSize:50,color:type.blue,marginBottom:10}}>{type.sym}</div>
+        <h1 style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"clamp(26px,5vw,40px)",letterSpacing:2,color:WHITE,marginBottom:4}}>{type.name}</h1>
+        <p style={{fontFamily:"'Crimson Pro',serif",fontSize:16,fontStyle:"italic",color:type.blue,marginBottom:18}}>{type.arch}</p>
+        <div style={{width:50,height:2,background:`linear-gradient(90deg,transparent,${type.blue},transparent)`,margin:"0 auto 18px"}}/>
+        <p style={{fontFamily:"'Crimson Pro',serif",fontStyle:"italic",fontSize:17,color:MUTED,lineHeight:1.7,maxWidth:440,margin:"0 auto"}}>"{type.hook}"</p>
+      </Panel>
+      <Panel style={{marginBottom:12,position:"relative",overflow:"hidden",minHeight:100}}>
+        <SLabel color={type.blue}>Your Identity Statement</SLabel>
+        <div className="blur-lock" style={{background:type.glow,border:`1px solid ${type.blue}33`,borderRadius:10,padding:"14px 18px"}}><p style={{fontFamily:"'Crimson Pro',serif",fontSize:18,fontStyle:"italic",color:WHITE,lineHeight:1.6}}>"{type.identity}"</p></div>
+        <div style={{position:"absolute",bottom:0,left:0,right:0,height:"50%",background:`linear-gradient(to bottom,transparent,${DARK})`,display:"flex",alignItems:"flex-end",justifyContent:"center",paddingBottom:10}}><span style={{fontSize:16,color:DIMMED}}>🔒 Unlock to reveal</span></div>
+      </Panel>
+      <Panel style={{marginBottom:18,position:"relative",overflow:"hidden",minHeight:170}}>
+        <SLabel color={type.blue}>Your 3 LQM Quantum Strategy Cards</SLabel>
+        <div className="blur-lock">{type.strategies.map((s,i)=>(<div key={i} style={{display:"flex",gap:12,marginBottom:14,alignItems:"flex-start"}}><span style={{color:type.blue,fontSize:15,flexShrink:0}}>◈</span><div><p style={{fontSize:16,fontWeight:600,color:WHITE,marginBottom:3}}>{s.area}</p><p style={{fontSize:15,color:MUTED,fontWeight:300}}>{s.scenario}</p></div></div>))}</div>
+        <div style={{position:"absolute",bottom:0,left:0,right:0,height:"60%",background:`linear-gradient(to bottom,transparent,${DARK})`,display:"flex",alignItems:"flex-end",justifyContent:"center",paddingBottom:12}}><span style={{fontSize:16,color:DIMMED}}>🔒 3 personalised strategy cards inside</span></div>
+      </Panel>
+      <Panel glow style={{borderColor:t>0?BORDER:"rgba(255,60,60,0.25)"}}>
+        <div style={{textAlign:"center",marginBottom:18}}><TimerBadge t={t} fmt={fmt}/></div>
+        {t>0?(<>
+          <div style={{textAlign:"center",marginBottom:20}}><div style={{display:"flex",alignItems:"baseline",gap:12,justifyContent:"center",marginBottom:6}}><span style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:54,letterSpacing:1,color:WHITE}}>£{DISCOUNTED}</span><span style={{fontSize:22,color:DIMMED,textDecoration:"line-through"}}>£{ORIGINAL}</span><span style={{background:"rgba(0,200,255,0.1)",border:`1px solid ${BORDER}`,color:E_BLUE,padding:"3px 12px",borderRadius:100,fontSize:15,fontWeight:700}}>67% off</span></div><p style={{fontSize:16,color:DIMMED}}>One-time · Instant access · Full personalised report</p></div>
+          <PrimaryBtn onClick={onUnlockOffer}>⚡ Unlock My Full Profile Report →</PrimaryBtn>
+          <div style={{display:"flex",gap:20,justifyContent:"center",flexWrap:"wrap",marginTop:14}}>{["Instant access","Built for your profile","7-day guarantee"].map(f=>(<span key={f} style={{fontSize:15,color:DIMMED,display:"flex",alignItems:"center",gap:5}}><span style={{color:E_BLUE}}>✓</span>{f}</span>))}</div>
+        </>):(<>
+          <div style={{textAlign:"center",marginBottom:20}}><div style={{display:"flex",alignItems:"baseline",gap:12,justifyContent:"center",marginBottom:6}}><span style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:54,letterSpacing:1,color:WHITE}}>£{ORIGINAL}</span></div><p style={{fontSize:16,color:"rgba(255,255,255,0.45)"}}>The launch offer has expired — standard price applies</p></div>
+          <button onClick={onUnlockFull} style={{width:"100%",border:"none",borderRadius:100,padding:"17px",fontSize:16,fontWeight:700,fontFamily:"'Space Grotesk',sans-serif",cursor:"pointer",letterSpacing:".05em",transition:"all .2s ease",display:"block",background:"linear-gradient(135deg,rgba(255,255,255,0.15),rgba(255,255,255,0.08))",color:WHITE,boxShadow:"0 6px 24px rgba(255,255,255,0.08)"}}>Unlock My Full Profile Report →</button>
+          <div style={{display:"flex",gap:20,justifyContent:"center",flexWrap:"wrap",marginTop:14}}>{["Instant access","Built for your profile","7-day guarantee"].map(f=>(<span key={f} style={{fontSize:15,color:DIMMED,display:"flex",alignItems:"center",gap:5}}><span style={{color:"rgba(255,255,255,0.4)"}}>✓</span>{f}</span>))}</div>
+        </>)}
+      </Panel>
+    </div>
+  );
+}
+
+function DeliveryGate({ref_, ts, type, onConfirm}){
+  const [countdown, setCountdown] = useState(5);
+  const [email, setEmail]         = useState("");
+  const [emailError, setEmailError] = useState(null);
+  useEffect(()=>{ if(countdown<=0) return; const t=setInterval(()=>setCountdown(c=>c-1),1000); return()=>clearInterval(t); },[countdown]);
+  function handleConfirm(){
+    if(countdown>0) return;
+    if(email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ setEmailError("Please enter a valid email address"); return; }
+    onConfirm(email);
+  }
+  return(
+    <div style={{position:"fixed",inset:0,background:"rgba(7,15,30,0.97)",backdropFilter:"blur(12px)",zIndex:500,display:"flex",alignItems:"center",justifyContent:"flex-start",padding:"40px 20px",overflowY:"auto"}}>
+      <div style={{width:"100%",maxWidth:480,background:`linear-gradient(145deg,${DARK2},${DARK})`,border:`2px solid rgba(52,211,153,0.4)`,borderRadius:22,padding:"40px 32px",textAlign:"center",boxShadow:"0 0 60px rgba(52,211,153,0.08)"}}>
+        <div style={{fontSize:48,marginBottom:16}}>📋</div>
+        <p style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:28,letterSpacing:2,color:"#34D399",marginBottom:6}}>Report Ready</p>
+        <p style={{fontFamily:"'Crimson Pro',serif",fontStyle:"italic",fontSize:16,color:"rgba(255,255,255,0.6)",marginBottom:28,lineHeight:1.65}}>Your full LQM {type.name} report has been prepared and is ready for delivery.</p>
+        <div style={{background:"rgba(52,211,153,0.06)",border:"1px solid rgba(52,211,153,0.2)",borderRadius:14,padding:"18px 20px",marginBottom:24,textAlign:"left"}}>
+          <p style={{fontSize:15,fontWeight:700,color:"rgba(52,211,153,0.7)",letterSpacing:".12em",textTransform:"uppercase",marginBottom:10}}>Delivery Details</p>
+          <div style={{display:"flex",flexDirection:"column",gap:8}}>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}><span style={{fontSize:15,color:"rgba(255,255,255,0.4)"}}>Reference</span><span style={{fontSize:15,fontFamily:"monospace",color:"#34D399",fontWeight:700}}>{ref_}</span></div>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}><span style={{fontSize:15,color:"rgba(255,255,255,0.4)"}}>Delivered</span><span style={{fontSize:15,color:"rgba(255,255,255,0.7)"}}>{ts}</span></div>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}><span style={{fontSize:15,color:"rgba(255,255,255,0.4)"}}>Profile</span><span style={{fontSize:15,color:type.blue,fontWeight:600}}>{type.name}</span></div>
+          </div>
+        </div>
+        <div style={{background:"rgba(0,200,255,0.04)",border:`1px solid ${emailError?"rgba(239,68,68,0.5)":"rgba(0,200,255,0.18)"}`,borderRadius:14,padding:"18px 20px",marginBottom:20,textAlign:"left"}}>
+          <p style={{fontSize:13,fontWeight:700,color:"rgba(0,200,255,0.7)",letterSpacing:".14em",textTransform:"uppercase",marginBottom:8}}>📧 Email a copy to yourself <span style={{fontWeight:400,opacity:0.7}}>(optional)</span></p>
+          <input value={email} onChange={e=>{setEmailError(null);setEmail(e.target.value);}} onKeyDown={e=>e.key==="Enter"&&handleConfirm()} placeholder="your@email.com" type="email" style={{width:"100%",background:"rgba(0,0,0,0.3)",border:`1px solid ${emailError?"rgba(239,68,68,0.4)":"rgba(0,200,255,0.2)"}`,borderRadius:9,padding:"11px 14px",color:"#fff",fontSize:15,fontFamily:"'Space Grotesk',sans-serif",outline:"none",boxSizing:"border-box"}}/>
+          {emailError&&<p style={{fontSize:13,color:"#EF4444",marginTop:6,marginBottom:0}}>{emailError}</p>}
+          {!emailError&&<p style={{fontSize:14,color:"rgba(255,255,255,0.65)",marginTop:6,marginBottom:0}}>Your full report sent to your inbox. Optional — you can skip this.</p>}
+        </div>
+        <p style={{fontSize:14,color:"rgba(255,255,255,0.4)",lineHeight:1.65,marginBottom:22,textAlign:"left"}}>By clicking below you confirm that your full LQM report has been successfully delivered to you on screen. This serves as your delivery receipt.</p>
+        <button onClick={handleConfirm} disabled={countdown>0} style={{width:"100%",border:"none",borderRadius:100,padding:"16px",fontSize:16,fontWeight:700,fontFamily:"'Space Grotesk',sans-serif",cursor:countdown>0?"not-allowed":"pointer",background:countdown>0?"rgba(255,255,255,0.06)":"linear-gradient(135deg,#059669,#34D399)",color:countdown>0?"rgba(255,255,255,0.3)":"#070F1E",letterSpacing:".05em",transition:"all .3s"}}>
+          {countdown>0?`Please read — confirming in ${countdown}s…`:`✓ I Confirm Receipt — View My Report →`}
+        </button>
+        <p style={{fontSize:14,color:"rgba(255,255,255,0.55)",marginTop:12}}>Ref: {ref_} · LQM Terms apply · {ts}</p>
+      </div>
+    </div>
+  );
+}
+
+// CHANGES 9, 13: PC_ design tokens + ResultReveal + BehaviouralPatternSection + ShareableCard
+function ResultReveal({type, patterns, onExplore}) {
+  const [shareOpen, setShareOpen] = useState(false);
+  const [copied,    setCopied]    = useState(false);
+  const [saving,    setSaving]    = useState(false);
+  const revealCardRef = useRef(null);
+  async function handleScreenshot() { setSaving(true); await captureAndShare(revealCardRef); setSaving(false); }
+
+  // Colour tokens — aligned with the app's design system
+  const E_BLUE  = "#00C8FF";
+  const WHITE   = "#FFFFFF";
+  const MUTED   = "rgba(255,255,255,0.78)";
+  const DIMMED  = "rgba(255,255,255,0.55)";
+  const DARK    = "#0D1830";
+  const DARK2   = "#111E38";
+  const BORDER  = "rgba(0,200,255,0.18)";
+  const BORDER2 = "rgba(255,255,255,0.09)";
+  const AMBER   = "#FBBF24";
+
+  const secondary  = patterns ? PATTERN_DATA[patterns.secondary]  : null;
+  const tension    = patterns ? TENSION_NARRATIVES[patterns.tensionKey] : null;
+
+  const domColor   = !patterns ? E_BLUE
+                   : patterns.dominance === "blended"  ? "#A78BFA"
+                   : patterns.dominance === "balanced" ? E_BLUE
+                   : "#34D399";
+
+  function copyLink() {
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText("https://lqmmethod.com").catch(() => {});
+    }
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2500);
+  }
+
+  // Archetype colour from the type object (e.g. type.blue = "#00C8FF")
+  const archColor = type ? type.blue : E_BLUE;
+
+  return (
+    <div style={{animation:"fadeUp .5s ease both", paddingBottom:32}}>
+
+      {/* Header pill */}
+      <div style={{textAlign:"center", marginBottom:24}}>
+        <div style={{
+          display:"inline-block",
+          background:"rgba(0,200,255,0.08)",
+          border:`1px solid rgba(0,200,255,0.28)`,
+          borderRadius:100, padding:"5px 18px", marginBottom:8,
+        }}>
+          <span style={{
+            fontSize:12, fontWeight:700, color:E_BLUE,
+            letterSpacing:".14em", textTransform:"uppercase",
+          }}>Your LQM Archetype</span>
+        </div>
+      </div>
+
+      {/* Archetype identity — the identity moment */}
+      <div style={{
+        background:`linear-gradient(145deg,${DARK2},${DARK})`,
+        border:`2px solid ${archColor}44`,
+        borderTop:`3px solid ${archColor}`,
+        borderRadius:20, padding:"28px 24px",
+        marginBottom:16, textAlign:"center",
+      }}>
+
+        {/* Symbol */}
+        <p style={{fontSize:48, marginBottom:10}}>{type ? type.sym : "◈"}</p>
+
+        {/* Archetype name — the moment */}
+        <p style={{
+          fontFamily:"'Bebas Neue',sans-serif",
+          fontSize:"clamp(32px,7vw,48px)",
+          letterSpacing:3, color:WHITE, lineHeight:1,
+          marginBottom:8,
+        }}>{type ? type.name : "Your Archetype"}</p>
+
+        {/* Tag */}
+        <p style={{
+          fontFamily:"'Crimson Pro',serif", fontStyle:"italic",
+          fontSize:18, color:archColor, lineHeight:1.6, marginBottom:16,
+        }}>"{type ? type.tag : ""}"</p>
+
+        {/* Confidence badge */}
+        {patterns && (
+          <div style={{
+            display:"inline-flex", alignItems:"center", gap:6,
+            background:`${archColor}12`,
+            border:`1px solid ${archColor}30`,
+            borderRadius:100, padding:"5px 14px", marginBottom:20,
+          }}>
+            <span style={{fontSize:16, fontWeight:700, color:archColor}}>
+              {patterns.confidence}%
+            </span>
+            <span style={{fontSize:12, color:DIMMED, letterSpacing:".06em"}}>
+              result confidence
+            </span>
+          </div>
+        )}
+
+        {/* Divider */}
+        <div style={{height:1, background:"rgba(255,255,255,0.08)", marginBottom:20}}/>
+
+        {/* Secondary influence */}
+        {secondary && (
+          <div style={{marginBottom:16, textAlign:"left"}}>
+            <p style={{
+              fontSize:11, fontWeight:700, color:DIMMED,
+              letterSpacing:".14em", textTransform:"uppercase", marginBottom:6,
+            }}>Secondary influence</p>
+            <p style={{fontSize:16, fontWeight:600, color:WHITE, marginBottom:4}}>
+              {secondary.label.replace(" orientation", "")}
+            </p>
+            <p style={{fontSize:14, color:MUTED, lineHeight:1.65}}>
+              {secondary.summary}
+            </p>
+          </div>
+        )}
+
+        {/* Behavioural balance insight — the hook */}
+        {tension && (
+          <div style={{
+            background:"rgba(167,139,250,0.07)",
+            border:"1px solid rgba(167,139,250,0.22)",
+            borderLeft:"3px solid rgba(167,139,250,0.55)",
+            borderRadius:"0 12px 12px 0",
+            padding:"14px 16px", textAlign:"left",
+          }}>
+            <p style={{
+              fontSize:11, fontWeight:700, color:"#A78BFA",
+              letterSpacing:".12em", textTransform:"uppercase", marginBottom:6,
+            }}>⬡ Behavioural balance</p>
+            <p style={{fontSize:15, color:WHITE, fontWeight:600, marginBottom:6, lineHeight:1.5}}>
+              {tension.balance}
+            </p>
+            <p style={{fontSize:14, color:MUTED, lineHeight:1.8}}>
+              {tension.tension}
+            </p>
+          </div>
+        )}
+      </div>
+
+      {/* Primary action — explore full profile */}
+      <button
+        onClick={onExplore}
+        style={{
+          width:"100%", marginBottom:10,
+          background:`linear-gradient(135deg,${archColor}22,rgba(0,200,255,0.08))`,
+          border:`2px solid ${archColor}66`,
+          borderRadius:100, padding:"16px",
+          fontSize:16, fontWeight:700, color:archColor,
+          cursor:"pointer", fontFamily:"'Space Grotesk',sans-serif",
+          letterSpacing:".04em", transition:"all .2s",
+        }}
+      >⚛ Explore My Full Profile →</button>
+
+      {/* Share action */}
+      <button
+        onClick={() => setShareOpen(v => !v)}
+        style={{
+          width:"100%", marginBottom:16,
+          background:"rgba(255,255,255,0.03)",
+          border:`1px solid ${shareOpen ? "rgba(0,200,255,0.40)" : "rgba(255,255,255,0.09)"}`,
+          borderRadius:100, padding:"14px",
+          fontSize:14, fontWeight:700,
+          color: shareOpen ? E_BLUE : DIMMED,
+          cursor:"pointer", fontFamily:"'Space Grotesk',sans-serif",
+          transition:"all .2s",
+        }}
+      >{shareOpen ? "↑ Close share" : "⬡ Share my archetype"}</button>
+
+      {/* Inline share panel */}
+      {shareOpen && (
+        <div style={{
+          background:"rgba(0,200,255,0.03)",
+          border:"1px solid rgba(0,200,255,0.20)",
+          borderRadius:14, padding:"16px",
+          marginBottom:16,
+          animation:"fadeUp .25s ease both",
+        }}>
+          {/* Mini screenshot card */}
+          <div ref={revealCardRef} style={{
+            background:`linear-gradient(145deg,${DARK2},${DARK})`,
+            border:`2px solid ${archColor}44`,
+            borderTop:`3px solid ${archColor}`,
+            borderRadius:14, padding:"18px", marginBottom:14,
+          }}>
+            <div style={{
+              display:"flex", alignItems:"center", justifyContent:"space-between",
+              marginBottom:14, paddingBottom:10,
+              borderBottom:"1px solid rgba(255,255,255,0.08)",
+            }}>
+              <div style={{display:"flex", alignItems:"center", gap:8}}>
+                <span style={{
+                  fontFamily:"'Bebas Neue',sans-serif",
+                  fontSize:16, letterSpacing:3, color:WHITE,
+                }}>LQM</span>
+                <span style={{
+                  fontSize:10, fontWeight:700, color:E_BLUE, letterSpacing:".1em",
+                }}>BEHAVIOURAL INTELLIGENCE</span>
+              </div>
+              {patterns && (
+                <div style={{
+                  background:`${archColor}15`, border:`1px solid ${archColor}33`,
+                  borderRadius:100, padding:"2px 8px",
+                  display:"flex", alignItems:"center", gap:4,
+                }}>
+                  <span style={{fontSize:12, fontWeight:700, color:archColor}}>
+                    {patterns.confidence}%
+                  </span>
+                  <span style={{fontSize:9, color:"rgba(255,255,255,0.40)"}}>conf.</span>
+                </div>
+              )}
+            </div>
+            <p style={{
+              fontSize:11, fontWeight:700, color:archColor,
+              letterSpacing:".14em", textTransform:"uppercase", marginBottom:4,
+            }}>My archetype</p>
+            <p style={{
+              fontFamily:"'Bebas Neue',sans-serif",
+              fontSize:24, letterSpacing:2, color:WHITE, lineHeight:1, marginBottom:6,
+            }}>{type ? type.name : ""}</p>
+            {tension && (
+              <p style={{fontSize:13, color:MUTED, lineHeight:1.55, marginBottom:12}}>
+                {tension.balance}
+              </p>
+            )}
+            <div style={{
+              textAlign:"center",
+              borderTop:"1px solid rgba(255,255,255,0.08)",
+              paddingTop:10,
+            }}>
+              <p style={{fontSize:13, fontWeight:700, color:E_BLUE}}>lqmmethod.com</p>
+            </div>
+          </div>
+
+          {/* Copy + screenshot buttons */}
+          <div style={{display:"flex", gap:8}}>
+            <button
+              onClick={copyLink}
+              style={{
+                flex:1,
+                background: copied ? "rgba(52,211,153,0.15)" : "rgba(0,200,255,0.08)",
+                border:`1px solid ${copied ? "rgba(52,211,153,0.40)" : "rgba(0,200,255,0.40)"}`,
+                borderRadius:100, padding:"11px",
+                fontSize:13, fontWeight:700,
+                color: copied ? "#34D399" : E_BLUE,
+                cursor:"pointer", fontFamily:"'Space Grotesk',sans-serif",
+                transition:"all .2s",
+              }}
+            >{copied ? "✓ Copied!" : "⬡ Copy link"}</button>
+            <button
+              onClick={handleScreenshot}
+              style={{
+                flex:1, textAlign:"center",
+                background: saving ? "rgba(0,200,255,0.08)" : "rgba(255,255,255,0.04)",
+                border: `1px solid ${saving ? "rgba(0,200,255,0.35)" : "rgba(255,255,255,0.12)"}`,
+                borderRadius:100, padding:"11px",
+                fontSize:13, fontWeight:700,
+                color: saving ? E_BLUE : DIMMED,
+                cursor:"pointer", fontFamily:"'Space Grotesk',sans-serif",
+                transition:"all .2s",
+              }}
+            >{saving ? "Saving…" : "📱 Screenshot"}</button>
+          </div>
+        </div>
+      )}
+
+      {/* Footnote */}
+      <p style={{
+        textAlign:"center", fontSize:13, color:DIMMED,
+        fontFamily:"'Crimson Pro',serif", fontStyle:"italic",
+        lineHeight:1.7,
+      }}>
+        Your full profile includes strategy cards, blind spot analysis,<br/>
+        behavioural pattern breakdown and your identity statement.
+      </p>
+    </div>
+  );
+}
+
+// ── Module-level design tokens (shared by all pattern components) ─────────
+const PC_BLUE       = "#00C8FF";
+const PC_WHITE      = "#FFFFFF";
+const PC_MUTED      = "rgba(255,255,255,0.78)";
+const PC_DIMMED     = "rgba(255,255,255,0.55)";
+const PC_DARK       = "#0D1830";
+const PC_DARK2      = "#111E38";
+const PC_BORDER     = "rgba(255,255,255,0.09)";
+const PC_CYAN_GLOW  = "rgba(0,200,255,0.06)";
+const PC_CYAN_EDGE  = "rgba(0,200,255,0.25)";
+const PC_CYAN_LINE  = "rgba(0,200,255,0.70)";
+const PC_PURPLE     = "#A78BFA";
+const PC_PURPLE_BG  = "rgba(167,139,250,0.06)";
+const PC_PURPLE_BD  = "rgba(167,139,250,0.25)";
+const PC_PURPLE_LN  = "rgba(167,139,250,0.60)";
+const PC_AMBER_BG   = "rgba(255,160,40,0.06)";
+const PC_AMBER_BD   = "rgba(255,160,40,0.20)";
+const PC_AMBER_TX   = "rgba(255,180,50,0.80)";
+const PC_GREEN_TX   = "rgba(52,211,153,0.85)";
+const PC_TEAL_SUC   = "#34D399";
+const PC_BARS = [
+  { key:"A", label:"Structure", color:"#00C8FF" },
+  { key:"B", label:"Analysis",  color:"#38BDF8" },
+  { key:"C", label:"Relational",color:"#34D399" },
+  { key:"D", label:"Creative",  color:"#A78BFA" },
+];
+
+
+// ── Behavioural Pattern Section ───────────────────────────────────────────
+// Full analysis layer rendered in the report.
+// Section order (matches feedback recommendation):
+//   1. Confidence score + dominance label
+//   2. Primary tendency (summary, honest cost, strength)
+//   3. Secondary tendency
+//   4. Behavioural Balance — tension narrative
+//   5. Distribution bars
+//
+// Props: patterns = { primary, secondary, counts, tension, dominance,
+//                     confidence, tensionKey }   (from calcPatterns)
+// ─────────────────────────────────────────────────────────────────────────
+function BehaviouralPatternSection({patterns}) {
+  if (!patterns) return null;
+
+  const primary   = PATTERN_DATA[patterns.primary];
+  const secondary = PATTERN_DATA[patterns.secondary];
+  const tension   = TENSION_NARRATIVES[patterns.tensionKey];
+  const total     = Object.values(patterns.counts).reduce((a, b) => a + b, 0);
+
+  const domLabel  = patterns.dominance === "blended"  ? "Highly blended style"
+                  : patterns.dominance === "balanced" ? "Balanced with clear primary"
+                  : "Strong archetype dominance";
+  const domColor  = patterns.dominance === "blended"  ? PC_PURPLE
+                  : patterns.dominance === "balanced" ? PC_BLUE
+                  : PC_TEAL_SUC;
+
+  return (
+    <div style={{
+      background:"rgba(255,255,255,0.03)",
+      border:`1px solid ${PC_BORDER}`,
+      borderTop:"2px solid rgba(255,255,255,0.15)",
+      borderRadius:16, padding:"24px", marginBottom:14,
+    }}>
+
+      {/* Heading */}
+      <p style={{
+        fontSize:16, fontWeight:700, color:"rgba(255,255,255,0.55)",
+        letterSpacing:".12em", textTransform:"uppercase", marginBottom:4,
+      }}>◈ Your Behavioural Pattern Profile</p>
+      <p style={{
+        fontFamily:"'Crimson Pro',serif", fontStyle:"italic",
+        fontSize:14, color:PC_MUTED, marginBottom:18, lineHeight:1.6,
+      }}>Derived from your 10 answers — not a label, but a map of how you naturally operate.</p>
+
+      {/* 1 — Confidence score */}
+      <div style={{
+        display:"flex", alignItems:"center", justifyContent:"space-between",
+        background:"rgba(255,255,255,0.025)",
+        border:`1px solid ${PC_BORDER}`,
+        borderRadius:10, padding:"10px 14px", marginBottom:14,
+      }}>
+        <div>
+          <p style={{
+            fontSize:11, fontWeight:700, color:"rgba(255,255,255,0.45)",
+            letterSpacing:".12em", textTransform:"uppercase", marginBottom:2,
+          }}>Result confidence</p>
+          <p style={{fontSize:12, color:"rgba(255,255,255,0.55)", lineHeight:1.5}}>
+            {domLabel}
+          </p>
+        </div>
+        <div style={{textAlign:"right", flexShrink:0}}>
+          <p style={{
+            fontFamily:"'Bebas Neue',sans-serif",
+            fontSize:36, letterSpacing:2, lineHeight:1, color:domColor,
+          }}>{patterns.confidence}%</p>
+          <p style={{fontSize:11, color:"rgba(255,255,255,0.40)", marginTop:2}}>
+            of answers aligned
+          </p>
+        </div>
+      </div>
+
+      {/* 2 — Primary tendency */}
+      <div style={{
+        background:PC_CYAN_GLOW,
+        border:`1px solid ${PC_CYAN_EDGE}`,
+        borderLeft:`3px solid ${PC_CYAN_LINE}`,
+        borderRadius:"0 12px 12px 0",
+        padding:"14px 16px", marginBottom:10,
+      }}>
+        <p style={{
+          fontSize:11, fontWeight:700, color:PC_BLUE,
+          letterSpacing:".14em", textTransform:"uppercase", marginBottom:6,
+        }}>Primary tendency — {primary.label}</p>
+        <p style={{fontSize:15, color:PC_WHITE, fontWeight:600, marginBottom:6, lineHeight:1.5}}>
+          {primary.summary}
+        </p>
+        <p style={{fontSize:14, color:PC_MUTED, lineHeight:1.75, marginBottom:8}}>
+          {primary.tendency}
+        </p>
+        <p style={{fontSize:14, color:PC_GREEN_TX, fontWeight:500, lineHeight:1.6}}>
+          Strength: {primary.strength}
+        </p>
+      </div>
+
+      {/* 3 — Secondary tendency */}
+      {secondary && secondary.label !== primary.label && (
+        <div style={{
+          background:"rgba(255,255,255,0.025)",
+          border:`1px solid ${PC_BORDER}`,
+          borderLeft:"3px solid rgba(255,255,255,0.2)",
+          borderRadius:"0 12px 12px 0",
+          padding:"12px 16px", marginBottom:14,
+        }}>
+          <p style={{
+            fontSize:11, fontWeight:700, color:PC_DIMMED,
+            letterSpacing:".14em", textTransform:"uppercase", marginBottom:4,
+          }}>Secondary tendency — {secondary.label}</p>
+          <p style={{fontSize:14, color:PC_MUTED, lineHeight:1.7}}>
+            {secondary.summary}
+          </p>
+        </div>
+      )}
+
+      {/* 4 — Behavioural Balance */}
+      {tension && (
+        <div style={{
+          background:PC_PURPLE_BG,
+          border:`1px solid ${PC_PURPLE_BD}`,
+          borderLeft:`3px solid ${PC_PURPLE_LN}`,
+          borderRadius:"0 12px 12px 0",
+          padding:"16px 18px", marginBottom:14,
+        }}>
+          <p style={{
+            fontSize:11, fontWeight:700, color:PC_PURPLE,
+            letterSpacing:".14em", textTransform:"uppercase", marginBottom:10,
+          }}>⬡ Behavioural Balance</p>
+          <p style={{fontSize:15, color:PC_WHITE, fontWeight:600, marginBottom:10, lineHeight:1.5}}>
+            {tension.balance}
+          </p>
+          <p style={{fontSize:14, color:PC_MUTED, lineHeight:1.85, marginBottom:12}}>
+            {tension.tension}
+          </p>
+          <div style={{
+            background:"rgba(167,139,250,0.08)",
+            border:"1px solid rgba(167,139,250,0.20)",
+            borderRadius:8, padding:"10px 12px",
+          }}>
+            <p style={{
+              fontSize:11, fontWeight:700,
+              color:"rgba(167,139,250,0.80)",
+              letterSpacing:".1em", textTransform:"uppercase", marginBottom:4,
+            }}>Your edge</p>
+            <p style={{fontSize:14, color:"rgba(255,255,255,0.82)", lineHeight:1.8}}>
+              {tension.edge}
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* 5 — Distribution bars */}
+      <p style={{
+        fontSize:11, fontWeight:700, color:PC_DIMMED,
+        letterSpacing:".12em", textTransform:"uppercase", marginBottom:10,
+      }}>How your answers distributed</p>
+      {PC_BARS.map(b => {
+        const count = patterns.counts[b.key] || 0;
+        const pct   = total > 0 ? Math.round((count / total) * 100) : 0;
+        return (
+          <div key={b.key} style={{marginBottom:8}}>
+            <div style={{display:"flex", justifyContent:"space-between", marginBottom:4}}>
+              <span style={{fontSize:13, color:PC_MUTED, fontWeight:600}}>{b.label}</span>
+              <span style={{fontSize:12, color:b.color, fontWeight:700}}>{pct}%</span>
+            </div>
+            <div style={{
+              height:5, background:"rgba(255,255,255,0.06)",
+              borderRadius:100, overflow:"hidden",
+            }}>
+              <div style={{
+                height:"100%", width:`${pct}%`,
+                background:`linear-gradient(90deg,${b.color}88,${b.color})`,
+                borderRadius:100, transition:"width .8s ease",
+              }}/>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+
+// ── Shareable Card ────────────────────────────────────────────────────────
+// Collapsed toggle in the report. Opens to a screenshottable archetype card
+// containing confidence badge, behavioural balance, strength, blind spot,
+// and lqmmethod.com link. Plus clipboard copy button.
+// Zero backend. Pure client. All colours from module-level tokens above.
+// ─────────────────────────────────────────────────────────────────────────
+function ShareableCard({type, patterns}) {
+  const [open,   setOpen]   = useState(false);
+  const [copied, setCopied] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const cardRef = useRef(null);
+  async function handleScreenshot() { setSaving(true); await captureAndShare(cardRef); setSaving(false); }
+
+  const tension = patterns ? TENSION_NARRATIVES[patterns.tensionKey] : null;
+
+  function copyLink() {
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText("https://lqmmethod.com").catch(() => {});
+    }
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2500);
   }
 
   return (
-    <div style={{
-      border:`1px solid ${accentColor}33`,
-      borderTop:`2px solid ${accentColor}`,
-      borderRadius:14, overflow:"hidden",
-      background:`linear-gradient(135deg,${accentColor}08,${DARK2})`,
-      marginBottom:10, transition:"all .2s",
-    }}>
-      {/* Card header — always visible */}
-      <div onClick={()=>setOpen(v=>!v)} style={{
-        padding:"14px 16px", cursor:"pointer",
-        display:"flex", alignItems:"flex-start", justifyContent:"space-between", gap:12,
-      }}>
-        <div style={{flex:1}}>
-          <div style={{display:"flex", gap:6, flexWrap:"wrap", marginBottom:6}}>
-            {remedy.sources.map(s => <SourceBadge key={s} code={s}/>)}
-          </div>
-          <p style={{fontSize:17, fontWeight:700, color:WHITE, lineHeight:1.3, marginBottom:4}}>
-            {remedy.name}
-          </p>
-          <p style={{
-            fontFamily:"'Crimson Pro',serif", fontStyle:"italic",
-            fontSize:15, color:MUTED, lineHeight:1.5,
-          }}>{remedy.tagline}</p>
-        </div>
-        <div style={{
-          flexShrink:0,
-          background: open ? `${accentColor}22` : "rgba(255,255,255,0.05)",
-          border:`1px solid ${open ? accentColor+"55" : BORDER2}`,
-          borderRadius:100, padding:"5px 12px",
-          fontSize:12, fontWeight:700,
-          color: open ? accentColor : DIMMED,
-          transition:"all .2s", whiteSpace:"nowrap",
-        }}>{open ? "↑ Close" : "View →"}</div>
-      </div>
+    <div style={{marginBottom:14}}>
 
-      {/* Expanded content */}
+      {/* Collapsed toggle */}
+      <button
+        onClick={() => setOpen(v => !v)}
+        style={{
+          width:"100%",
+          background: open ? PC_CYAN_GLOW : "rgba(255,255,255,0.03)",
+          border:`1px solid ${open ? "rgba(0,200,255,0.40)" : PC_BORDER}`,
+          borderRadius:12, padding:"14px 16px",
+          display:"flex", alignItems:"center", justifyContent:"space-between",
+          cursor:"pointer", fontFamily:"'Space Grotesk',sans-serif",
+          transition:"all .2s",
+        }}
+      >
+        <div style={{display:"flex", alignItems:"center", gap:10}}>
+          <span style={{fontSize:16}}>⬡</span>
+          <div style={{textAlign:"left"}}>
+            <p style={{
+              fontSize:13, fontWeight:700, color:PC_BLUE,
+              letterSpacing:".04em", marginBottom:2,
+            }}>Share Your Result</p>
+            <p style={{fontSize:12, color:PC_DIMMED}}>
+              Screenshot your archetype card or copy your link
+            </p>
+          </div>
+        </div>
+        <span style={{
+          fontSize:12, color:PC_BLUE, fontWeight:700, flexShrink:0,
+        }}>{open ? "↑ Close" : "Open →"}</span>
+      </button>
+
+      {/* Expanded panel */}
       {open && (
         <div style={{
-          borderTop:`1px solid ${accentColor}22`,
-          padding:"16px 16px 18px",
+          marginTop:8,
+          background:"rgba(0,200,255,0.03)",
+          border:"1px solid rgba(0,200,255,0.20)",
+          borderRadius:14, padding:"16px",
           animation:"fadeUp .25s ease both",
         }}>
-
-          {/* Law link */}
-          {law && (
-            <div style={{
-              display:"flex", alignItems:"center", gap:8, marginBottom:14,
-              padding:"8px 12px",
-              background:`${law.color}0a`, border:`1px solid ${law.color}22`,
-              borderLeft:`3px solid ${law.color}55`,
-              borderRadius:"0 8px 8px 0",
-            }}>
-              <span style={{fontSize:14}}>{law.icon}</span>
-              <div>
-                <p style={{fontSize:11, fontWeight:700, color:law.color, letterSpacing:".12em", textTransform:"uppercase"}}>Quantum Law {remedy.lawLink}</p>
-                <p style={{fontSize:13, color:MUTED}}>{law.title}</p>
-              </div>
-            </div>
-          )}
-
-          {/* Ingredients */}
-          <p style={{fontSize:11, fontWeight:700, color:accentColor, letterSpacing:".14em", textTransform:"uppercase", marginBottom:8}}>
-            What you need
-          </p>
-          <div style={{marginBottom:14}}>
-            {remedy.ingredients.map((ing, i) => (
-              <div key={i} style={{
-                display:"flex", gap:10, alignItems:"flex-start",
-                marginBottom:7, padding:"8px 12px",
-                background:"rgba(255,255,255,0.025)",
-                border:`1px solid ${BORDER2}`, borderRadius:8,
-              }}>
-                <span style={{color:accentColor, fontSize:13, flexShrink:0, marginTop:1}}>◦</span>
-                <span style={{fontSize:15, color:"rgba(255,255,255,0.82)", lineHeight:1.6}}>{ing}</span>
-              </div>
-            ))}
-          </div>
-
-          {/* Method */}
-          {remedy.steps && (
-            <button onClick={() => setGuidedMode(true)} style={{
-              width: "100%", marginBottom: 14,
-              border: `2px solid ${accentColor}`,
-              borderRadius: 100, padding: "14px",
-              fontSize: 15, fontWeight: 700,
-              fontFamily: "'Space Grotesk',sans-serif",
-              cursor: "pointer", letterSpacing: ".05em",
-              background: `linear-gradient(135deg,${accentColor}18,${accentColor}08)`,
-              color: accentColor,
-              display: "flex", alignItems: "center", justifyContent: "center", gap: 10,
-              transition: "all .2s",
-              boxShadow: `0 4px 18px ${accentColor}22`,
-            }}
-              onMouseEnter={e => { e.currentTarget.style.background = `${accentColor}25`; e.currentTarget.style.boxShadow = `0 6px 28px ${accentColor}33`; }}
-              onMouseLeave={e => { e.currentTarget.style.background = `linear-gradient(135deg,${accentColor}18,${accentColor}08)`; e.currentTarget.style.boxShadow = `0 4px 18px ${accentColor}22`; }}
-            >
-              <span style={{ fontSize: 18 }}>▶</span>
-              Follow Protocol — Step by Step
-              {remedy.steps.some(s => s.timer) && <span style={{ fontSize: 13, opacity: 0.7 }}>⏱</span>}
-            </button>
-          )}
-          <p style={{fontSize:11, fontWeight:700, color:accentColor, letterSpacing:".14em", textTransform:"uppercase", marginBottom:8}}>
-            Method & Protocol
-          </p>
           <p style={{
-            fontSize:15, color:"rgba(255,255,255,0.82)",
-            lineHeight:1.9, fontWeight:400, marginBottom:14,
-          }}>{remedy.method}</p>
+            fontSize:12, fontWeight:700, color:PC_DIMMED,
+            letterSpacing:".12em", textTransform:"uppercase",
+            marginBottom:14, textAlign:"center",
+          }}>Your shareable archetype card</p>
 
-          {/* Frequency */}
-          <div style={{
-            padding:"10px 14px", marginBottom:14,
-            background:`${accentColor}0a`, border:`1px solid ${accentColor}22`,
-            borderRadius:8, display:"flex", gap:10, alignItems:"center",
+          {/* THE SCREENSHOT CARD */}
+          <div ref={cardRef} style={{
+            background:`linear-gradient(145deg,${PC_DARK2},${PC_DARK})`,
+            border:`2px solid ${type.blue}55`,
+            borderTop:`3px solid ${type.blue}`,
+            borderRadius:16, padding:"22px", marginBottom:14,
           }}>
-            <span style={{fontSize:14, flexShrink:0}}>⏱</span>
-            <p style={{fontSize:13, color:MUTED, lineHeight:1.6}}>{remedy.frequency}</p>
-          </div>
 
-          {/* Source details — expandable */}
-          <div onClick={()=>setDetailOpen(v=>!v)} style={{cursor:"pointer", marginBottom:10}}>
+            {/* Brand row + confidence badge */}
             <div style={{
               display:"flex", alignItems:"center", justifyContent:"space-between",
-              padding:"8px 12px",
-              background:"rgba(255,255,255,0.02)", border:`1px solid ${BORDER2}`,
-              borderRadius:8,
+              marginBottom:16, paddingBottom:12,
+              borderBottom:"1px solid rgba(255,255,255,0.08)",
             }}>
-              <p style={{fontSize:12, fontWeight:700, color:DIMMED, letterSpacing:".1em", textTransform:"uppercase"}}>
-                Source references
-              </p>
-              <span style={{fontSize:12, color:DIMMED, fontWeight:700}}>{detailOpen ? "↑" : "↓"}</span>
+              <div style={{display:"flex", alignItems:"center", gap:8}}>
+                <span style={{
+                  fontFamily:"'Bebas Neue',sans-serif",
+                  fontSize:17, letterSpacing:3, color:PC_WHITE,
+                }}>LQM</span>
+                <span style={{
+                  fontSize:10, fontWeight:700, color:PC_BLUE, letterSpacing:".1em",
+                }}>BEHAVIOURAL INTELLIGENCE</span>
+              </div>
+              {patterns && (
+                <div style={{
+                  background:`${type.blue}15`,
+                  border:`1px solid ${type.blue}33`,
+                  borderRadius:100, padding:"3px 10px",
+                  display:"flex", alignItems:"center", gap:4,
+                }}>
+                  <span style={{fontSize:13, fontWeight:700, color:type.blue}}>
+                    {patterns.confidence}%
+                  </span>
+                  <span style={{
+                    fontSize:9, color:"rgba(255,255,255,0.40)", letterSpacing:".06em",
+                  }}>confidence</span>
+                </div>
+              )}
             </div>
-            {detailOpen && (
+
+            {/* Archetype identity */}
+            <div style={{marginBottom:14}}>
+              <p style={{
+                fontSize:11, fontWeight:700, color:type.blue,
+                letterSpacing:".16em", textTransform:"uppercase", marginBottom:4,
+              }}>My archetype</p>
+              <p style={{
+                fontFamily:"'Bebas Neue',sans-serif",
+                fontSize:26, letterSpacing:2, color:PC_WHITE,
+                lineHeight:1, marginBottom:6,
+              }}>{type.name}</p>
+              <p style={{
+                fontFamily:"'Crimson Pro',serif", fontStyle:"italic",
+                fontSize:14, color:type.blue, lineHeight:1.5,
+              }}>"{type.tag}"</p>
+            </div>
+
+            {/* Behavioural balance one-liner */}
+            {tension && (
               <div style={{
-                padding:"12px 12px 0",
-                animation:"fadeUp .2s ease both",
+                background:"rgba(255,255,255,0.04)",
+                border:`1px solid ${PC_BORDER}`,
+                borderRadius:8, padding:"10px 12px", marginBottom:12,
               }}>
-                {Object.entries(remedy.sources_detail).map(([code, text]) => {
-                  const s = SOURCE_META[code];
-                  return (
-                    <div key={code} style={{
-                      marginBottom:10, padding:"10px 12px",
-                      background:`${s.color}06`, border:`1px solid ${s.color}22`,
-                      borderLeft:`2px solid ${s.color}55`,
-                      borderRadius:"0 8px 8px 0",
-                    }}>
-                      <p style={{fontSize:11, fontWeight:700, color:s.color, letterSpacing:".1em", textTransform:"uppercase", marginBottom:4}}>
-                        {s.label}
-                      </p>
-                      <p style={{fontSize:13, color:MUTED, lineHeight:1.7, fontStyle:"italic"}}>{text}</p>
-                    </div>
-                  );
-                })}
+                <p style={{
+                  fontSize:10, fontWeight:700, color:PC_DIMMED,
+                  letterSpacing:".1em", textTransform:"uppercase", marginBottom:3,
+                }}>Behavioural balance</p>
+                <p style={{fontSize:12, color:PC_WHITE, lineHeight:1.55}}>
+                  {tension.balance}
+                </p>
               </div>
             )}
+
+            {/* Strength + blind spot */}
+            <div style={{
+              display:"grid", gridTemplateColumns:"1fr 1fr",
+              gap:8, marginBottom:14,
+            }}>
+              <div style={{
+                background:`${type.blue}0a`,
+                border:`1px solid ${type.blue}22`,
+                borderRadius:8, padding:"8px 10px",
+              }}>
+                <p style={{
+                  fontSize:10, fontWeight:700, color:type.blue,
+                  letterSpacing:".1em", textTransform:"uppercase", marginBottom:3,
+                }}>Strength</p>
+                <p style={{fontSize:12, color:PC_WHITE, lineHeight:1.4}}>
+                  {type.strengths[0]}
+                </p>
+              </div>
+              <div style={{
+                background:PC_AMBER_BG,
+                border:`1px solid ${PC_AMBER_BD}`,
+                borderRadius:8, padding:"8px 10px",
+              }}>
+                <p style={{
+                  fontSize:10, fontWeight:700, color:PC_AMBER_TX,
+                  letterSpacing:".1em", textTransform:"uppercase", marginBottom:3,
+                }}>Blind spot</p>
+                <p style={{fontSize:12, color:PC_WHITE, lineHeight:1.4}}>
+                  {type.blindspots[0].split("—")[0].trim().split(",")[0]}
+                </p>
+              </div>
+            </div>
+
+            {/* Link footer */}
+            <div style={{
+              textAlign:"center",
+              borderTop:"1px solid rgba(255,255,255,0.08)",
+              paddingTop:12,
+            }}>
+              <p style={{fontSize:11, color:PC_DIMMED, marginBottom:2}}>
+                Discover your archetype
+              </p>
+              <p style={{
+                fontSize:14, fontWeight:700, color:PC_BLUE, letterSpacing:".04em",
+              }}>lqmmethod.com</p>
+            </div>
           </div>
 
-          {/* Caution */}
-          {remedy.caution && (
-            <div style={{
-              padding:"10px 14px",
-              background:"rgba(245,158,11,0.05)", border:"1px solid rgba(245,158,11,0.2)",
-              borderLeft:"3px solid rgba(245,158,11,0.5)",
-              borderRadius:"0 8px 8px 0",
-            }}>
-              <p style={{fontSize:12, fontWeight:700, color:AMBER, letterSpacing:".1em", textTransform:"uppercase", marginBottom:4}}>Note</p>
-              <p style={{fontSize:13, color:"rgba(255,200,80,0.85)", lineHeight:1.65}}>{remedy.caution}</p>
-            </div>
-          )}
+          {/* Action buttons */}
+          <div style={{display:"flex", gap:8, marginBottom:10}}>
+            <button
+              onClick={copyLink}
+              style={{
+                flex:1,
+                background: copied ? "rgba(52,211,153,0.15)" : PC_CYAN_GLOW,
+                border:`1px solid ${copied
+                  ? "rgba(52,211,153,0.40)"
+                  : "rgba(0,200,255,0.40)"}`,
+                borderRadius:100, padding:"11px",
+                fontSize:13, fontWeight:700,
+                color: copied ? PC_TEAL_SUC : PC_BLUE,
+                cursor:"pointer",
+                fontFamily:"'Space Grotesk',sans-serif",
+                transition:"all .2s",
+              }}
+            >{copied ? "✓ Link copied!" : "⬡ Copy lqmmethod.com"}</button>
+            <button
+              onClick={handleScreenshot}
+              style={{
+                flex:1, textAlign:"center",
+                background: saving ? "rgba(0,200,255,0.08)" : "rgba(255,255,255,0.04)",
+                border: `1px solid ${saving ? "rgba(0,200,255,0.35)" : "rgba(255,255,255,0.12)"}`,
+                borderRadius:100, padding:"11px",
+                fontSize:13, fontWeight:700,
+                color: saving ? PC_BLUE : PC_DIMMED,
+                cursor:"pointer", fontFamily:"'Space Grotesk',sans-serif",
+                transition:"all .2s",
+              }}
+            >{saving ? "Saving…" : "📱 Screenshot to share"}</button>
+          </div>
+          <p style={{fontSize:12, color:PC_DIMMED, textAlign:"center", lineHeight:1.65}}>
+            Post on Instagram, TikTok, or send to someone who'd find this useful.
+          </p>
         </div>
       )}
     </div>
   );
 }
 
-// ── Ailment group ─────────────────────────────────────────────────────────
-function AilmentGroup({ ailment }) {
-  const [open, setOpen] = useState(false);
-  return (
-    <div style={{marginBottom:20}}>
-      <div onClick={()=>setOpen(v=>!v)} style={{
-        display:"flex", alignItems:"center", justifyContent:"space-between",
-        padding:"14px 16px", cursor:"pointer",
-        background:`linear-gradient(135deg,${ailment.color}12,${DARK2})`,
-        border:`1px solid ${ailment.color}44`,
-        borderTop:`2px solid ${ailment.color}`,
-        borderRadius: open ? "14px 14px 0 0" : 14,
-        transition:"border-radius .2s",
-      }}>
-        <div style={{display:"flex", alignItems:"center", gap:10}}>
-          <span style={{fontSize:22}}>{ailment.icon}</span>
-          <p style={{fontSize:18, fontWeight:700, color:WHITE, letterSpacing:".02em"}}>{ailment.ailment}</p>
-          <span style={{
-            fontSize:11, fontWeight:700, color:ailment.color,
-            background:`${ailment.color}18`, border:`1px solid ${ailment.color}44`,
-            borderRadius:100, padding:"2px 8px",
-          }}>{ailment.remedies.length} {ailment.remedies.length === 1 ? "remedy" : "remedies"}</span>
-        </div>
-        <span style={{fontSize:13, color:ailment.color, fontWeight:700}}>
-          {open ? "↑" : "↓"}
-        </span>
+// CHANGE 8: Report accepts patterns prop
+function Report({type, patterns, deliveryRef, deliveryTs, visualAnswer}){
+  const visualInsights = {
+    tree: {icon:"🌳",title:"Big Picture Processing",text:"You noticed the tree structure first, suggesting you naturally see systems, patterns, and the whole before individual elements. This big-picture processing style aligns with strategic thinking and systems design. You tend to step back and see the forest, not just the trees."},
+    woman: {icon:"👤",title:"Detail-First Processing",text:"You noticed the woman's face first, suggesting you naturally focus on specific details, human elements, and individual components before seeing the larger pattern. This detail-oriented processing enhances your ability to spot nuances others miss and connect with people on a deeper level."},
+    both: {icon:"⚖️",title:"Dual-Mode Processing",text:"You saw both the tree and the woman equally, suggesting flexible cognitive processing. You can shift between big-picture strategic thinking and detail-oriented analysis depending on what the situation requires. This adaptability is a significant strength."},
+    neutral: {icon:"⚖️",title:"Balanced Processing",text:"Your visual processing shows balanced attention to both patterns and details. You can zoom in and zoom out as needed, giving you cognitive flexibility across different contexts."}
+  };
+  let visualInsight = null;
+  if (visualAnswer) {
+    const question11 = questions[10];
+    const selectedOption = question11?.opts?.find(opt => opt.ty === visualAnswer);
+    const visualType = selectedOption?.visual || "neutral";
+    visualInsight = visualInsights[visualType];
+  }
+  return(
+    <div style={{animation:"blurIn .8s ease both"}}>
+      {deliveryRef && <div style={{background:"rgba(52,211,153,0.06)",border:"1px solid rgba(52,211,153,0.25)",borderRadius:12,padding:"10px 18px",marginBottom:14,display:"flex",alignItems:"center",gap:12,flexWrap:"wrap"}}><span style={{fontSize:14,color:"#34D399",flexShrink:0}}>✓</span><div style={{flex:1}}><p style={{fontSize:14,fontWeight:700,color:"#34D399",letterSpacing:".08em"}}>REPORT DELIVERED · {deliveryTs}</p><p style={{fontSize:16,color:"rgba(255,255,255,0.35)",fontFamily:"monospace",marginTop:2}}>Ref: {deliveryRef}</p></div><span style={{fontSize:16,color:"rgba(255,255,255,0.25)"}}>Screenshot for your records</span></div>}
+
+      {/* CHANGE 10: ShareableCard after delivery bar */}
+      <ShareableCard type={type} patterns={patterns}/>
+
+      <div style={{background:`linear-gradient(145deg,${DARK2} 0%,${DARK} 100%)`,border:`1px solid ${type.blue}33`,borderRadius:20,padding:"40px 28px",textAlign:"center",marginBottom:14,boxShadow:`0 0 50px ${type.glow}`}}>
+        <div style={{display:"inline-block",background:"rgba(0,200,255,0.08)",border:`1px solid ${BORDER}`,borderRadius:100,padding:"5px 14px",fontSize:14,color:E_BLUE,fontWeight:700,letterSpacing:".1em",textTransform:"uppercase",marginBottom:16}}>⚡ Report Unlocked — For You Only</div>
+        <Logo size="sm"/>
+        <p style={{fontSize:16,color:DIMMED,letterSpacing:".14em",textTransform:"uppercase",fontWeight:600,marginTop:8,marginBottom:20}}>Behavioural Intelligence Report</p>
+        <div style={{padding:"8px 0 16px"}}><ArchetypeIllustration type={Object.keys({A:1,B:2,C:3,D:4}).find(k=>TYPES[k]===type)||"A"}/></div>
+        <div style={{fontSize:52,color:type.blue,marginBottom:10,textShadow:`0 0 30px ${type.blue}`}}>{type.sym}</div>
+        <h1 style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"clamp(28px,6vw,48px)",letterSpacing:2,color:WHITE,marginBottom:4}}>{type.name}</h1>
+        <p style={{fontFamily:"'Crimson Pro',serif",fontSize:17,fontStyle:"italic",color:type.blue}}>{type.arch}</p>
       </div>
-      {open && (
-        <div style={{
-          borderLeft:`2px solid ${ailment.color}33`,
-          borderRight:`1px solid ${ailment.color}22`,
-          borderBottom:`1px solid ${ailment.color}22`,
-          borderRadius:"0 0 14px 14px",
-          padding:"14px 14px 4px",
-          background:`${ailment.color}05`,
-        }}>
-          {ailment.remedies.map((remedy, i) => (
-            <RemedyCard key={i} remedy={remedy} accentColor={ailment.color}/>
-          ))}
-        </div>
+
+      <Panel style={{borderLeft:`3px solid ${type.blue}`,borderRadius:"0 14px 14px 0",marginBottom:14,background:type.glow}}>
+        <p style={{fontFamily:"'Crimson Pro',serif",fontSize:21,fontStyle:"italic",color:WHITE,lineHeight:1.65}}>"{type.tag}"</p>
+      </Panel>
+
+      <Panel glow style={{marginBottom:14,textAlign:"center",background:`linear-gradient(135deg,${type.glow},rgba(0,0,0,0.2))`}}>
+        <p style={{fontSize:16,fontWeight:700,letterSpacing:".16em",textTransform:"uppercase",color:type.blue,marginBottom:14}}>◈ Your Identity Statement</p>
+        <p style={{fontFamily:"'Crimson Pro',serif",fontSize:23,fontStyle:"italic",color:WHITE,lineHeight:1.65,marginBottom:12}}>"{type.identity}"</p>
+        <p style={{fontSize:16,color:MUTED,fontWeight:300}}>Repeat this daily. Identity precedes behaviour. Behaviour compounds into results.</p>
+      </Panel>
+
+      <Panel style={{marginBottom:14}}>
+        <SLabel color={type.blue}>Profile Overview</SLabel>
+        <p style={{fontFamily:"'Crimson Pro',serif",fontSize:18,lineHeight:1.9,color:"rgba(255,255,255,0.85)",fontWeight:300}}>{type.desc}</p>
+      </Panel>
+
+      <Panel style={{marginBottom:14,borderLeft:`3px solid ${E_BLUE}`,background:"rgba(0,200,255,0.04)"}}>
+        <p style={{fontSize:16,fontWeight:700,letterSpacing:".14em",textTransform:"uppercase",color:E_BLUE,marginBottom:10}}>⚛ LQM Quantum Insight</p>
+        <p style={{fontSize:16,lineHeight:1.85,color:"rgba(255,255,255,0.88)",fontWeight:400}}>{type.atomic}</p>
+      </Panel>
+
+      {/* CHANGE 11: BehaviouralPatternSection after Quantum Insight */}
+      <BehaviouralPatternSection patterns={patterns}/>
+
+      {visualInsight && (
+        <Panel style={{marginBottom:14,borderLeft:`3px solid ${AMBER}`,background:"rgba(251,191,36,0.04)"}}>
+          <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:12}}><span style={{fontSize:24}}>{visualInsight.icon}</span><p style={{fontSize:16,fontWeight:700,letterSpacing:".14em",textTransform:"uppercase",color:AMBER}}>Visual Processing Style</p></div>
+          <p style={{fontSize:17,fontWeight:600,color:WHITE,marginBottom:8}}>{visualInsight.title}</p>
+          <p style={{fontSize:16,lineHeight:1.85,color:"rgba(255,255,255,0.88)",fontWeight:400}}>{visualInsight.text}</p>
+        </Panel>
       )}
-    </div>
-  );
-}
 
-// ── Main component ────────────────────────────────────────────────────────
-export default function NaturalRemedySearch({ onBack }) {
-  const [search, setSearch] = useState("");
-  const [activeCategory, setActiveCategory] = useState(null);
+      <Panel style={{marginBottom:14}}>
+        <SLabel color={type.blue}>Core Strengths</SLabel>
+        <StrengthBars strengths={type.strengths} color={type.blue}/>
+      </Panel>
 
-  // Scroll to top when entering the search page
-  useEffect(() => { window.scrollTo(0, 0); }, []);
+      <Panel style={{marginBottom:18}}>
+        <SLabel color="rgba(255,180,50,0.9)">Blind Spots to Navigate</SLabel>
+        <p style={{fontFamily:"'Crimson Pro',serif",fontStyle:"italic",fontSize:15,color:MUTED,lineHeight:1.6,marginBottom:16}}>These aren't weaknesses. They're patterns to recognise — awareness is the first step to transcendence.</p>
+        {type.blindspots.map((b,i)=>(<BlindSpotCard key={i} text={b} index={i} color={type.blue}/>))}
+      </Panel>
 
-  // Filter ailments by search and category
-  // Catalogue sections appear first, then health conditions alphabetically
-  const PRIORITY_IDS = ["juices-nourishment","recipes-nourishment","daily-protocols","wellness-essentials"];
-  const filtered = REMEDY_DATA
-    .filter(ailment => {
-      const matchesCategory = !activeCategory || activeCategory === "all" || ailment.categories.includes(activeCategory);
-      const matchesSearch = !search.trim() || (
-        ailment.ailment.toLowerCase().includes(search.toLowerCase()) ||
-        ailment.remedies.some(r =>
-          r.name.toLowerCase().includes(search.toLowerCase()) ||
-          r.tagline.toLowerCase().includes(search.toLowerCase()) ||
-          r.method.toLowerCase().includes(search.toLowerCase())
-        )
-      );
-      return matchesCategory && matchesSearch;
-    })
-    .sort((a, b) => {
-      const aPri = PRIORITY_IDS.indexOf(a.id);
-      const bPri = PRIORITY_IDS.indexOf(b.id);
-      if (aPri !== -1 && bPri !== -1) return aPri - bPri;
-      if (aPri !== -1) return -1;
-      if (bPri !== -1) return 1;
-      return a.ailment.localeCompare(b.ailment);
-    });
+      <Panel style={{marginBottom:12}}>
+        <SLabel color={type.blue}>Your 3 LQM Quantum Strategy Cards</SLabel>
+        <p style={{fontFamily:"'Crimson Pro',serif",fontStyle:"italic",fontSize:16,color:MUTED,lineHeight:1.65}}>The following systems are built specifically for your behavioural profile. Read them as instructions written for you alone.</p>
+      </Panel>
 
-  return (
-    <div style={{
-      minHeight:"100vh",
-      background:`radial-gradient(ellipse 80% 40% at 50% 0%,rgba(52,211,153,0.05) 0%,transparent 60%),${BG}`,
-      fontFamily:"'Space Grotesk',sans-serif",
-      color:WHITE,
-      display:"flex", flexDirection:"column", alignItems:"center",
-      padding:"0 16px 80px",
-    }}>
-
-      {/* Header */}
-      <div style={{
-        width:"100%", borderBottom:`1px solid ${BORDER}`,
-        padding:"12px 20px",
-        display:"flex", alignItems:"center", justifyContent:"space-between",
-        background:"rgba(7,15,30,0.9)", backdropFilter:"blur(14px)",
-        position:"sticky", top:0, zIndex:100,
-      }}>
-        <button onClick={onBack} style={{
-          background:"rgba(52,211,153,0.08)", border:"1px solid rgba(52,211,153,0.35)",
-          borderRadius:100, padding:"8px 18px",
-          color:GREEN, fontSize:13, fontWeight:700, cursor:"pointer",
-          fontFamily:"'Space Grotesk',sans-serif", letterSpacing:".04em", transition:"all .18s",
-        }}
-          onMouseEnter={e=>{e.currentTarget.style.background="rgba(52,211,153,0.18)";}}
-          onMouseLeave={e=>{e.currentTarget.style.background="rgba(52,211,153,0.08)";}}>
-          ← Back
-        </button>
-        <div style={{display:"flex", alignItems:"center", gap:8}}>
-          <span style={{fontFamily:"'Bebas Neue',sans-serif", fontSize:16, letterSpacing:2, color:WHITE}}>LQM</span>
-          <span style={{fontSize:13, color:GREEN, fontWeight:700, letterSpacing:".1em"}}>NATURAL REMEDIES</span>
+      {type.strategies.map((s,i)=>(
+        <div key={i} style={{background:PANEL,border:`1px solid ${BORDER2}`,borderTop:`2px solid ${type.blue}`,borderRadius:16,overflow:"hidden",marginBottom:12}}>
+          <div style={{background:type.glow,borderBottom:`1px solid ${type.blue}22`,padding:"14px 22px",display:"flex",alignItems:"center",gap:12}}><span style={{width:30,height:30,borderRadius:"50%",background:type.blue,display:"flex",alignItems:"center",justifyContent:"center",fontSize:16,color:BG,fontWeight:800,flexShrink:0}}>{i+1}</span><p style={{fontSize:14,fontWeight:700,color:type.blue,letterSpacing:".08em",textTransform:"uppercase"}}>{s.area}</p></div>
+          <div style={{background:`linear-gradient(90deg,${type.glow},transparent)`,borderBottom:`1px solid ${type.blue}11`,padding:"14px 22px",display:"flex",gap:12,alignItems:"flex-start"}}><div style={{width:36,height:36,borderRadius:10,background:`${type.glow}`,border:`1px solid ${type.blue}33`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,flexShrink:0}}>{["⟁","◎","◈"][i]}</div><div><p style={{fontSize:16,fontWeight:700,color:DIMMED,letterSpacing:".1em",textTransform:"uppercase",marginBottom:6}}>The Scenario</p><p style={{fontFamily:"'Crimson Pro',serif",fontSize:16,fontStyle:"italic",color:"rgba(255,255,255,0.82)",lineHeight:1.65}}>"{s.scenario}"</p></div></div>
+          <div style={{padding:"18px 22px"}}><div style={{display:"flex",alignItems:"center",gap:8,marginBottom:10}}><div style={{width:20,height:20,borderRadius:"50%",background:type.blue,display:"flex",alignItems:"center",justifyContent:"center",fontSize:16,flexShrink:0}}>→</div><p style={{fontSize:16,fontWeight:700,color:type.blue,letterSpacing:".1em",textTransform:"uppercase"}}>Your Quantum System</p></div><p style={{fontSize:14,lineHeight:1.9,color:"rgba(255,255,255,0.78)",fontWeight:400}}>{s.solution}</p></div>
         </div>
-        <div style={{width:80}}/>
-      </div>
+      ))}
 
-      <div style={{width:"100%", maxWidth:620, paddingTop:24, zIndex:1}}>
-
-        {/* Hero */}
-        <div style={{textAlign:"center", marginBottom:24, animation:"fadeUp .4s ease both"}}>
-          <div style={{
-            display:"inline-block",
-            background:"rgba(52,211,153,0.08)", border:"1px solid rgba(52,211,153,0.25)",
-            borderRadius:100, padding:"5px 16px", marginBottom:12,
-          }}>
-            <span style={{fontSize:12, fontWeight:700, color:GREEN, letterSpacing:".14em", textTransform:"uppercase"}}>
-              The Healing Intelligence Library
-            </span>
-          </div>
-          <h1 style={{
-            fontFamily:"'Bebas Neue',sans-serif",
-            fontSize:"clamp(32px,7vw,48px)", letterSpacing:2,
-            color:WHITE, lineHeight:1.05, marginBottom:12,
-          }}>Nature's Remedy Library</h1>
-          <p style={{
-            fontFamily:"'Crimson Pro',serif", fontStyle:"italic",
-            fontSize:17, color:MUTED, lineHeight:1.7, maxWidth:440, margin:"0 auto 20px",
-          }}>Detailed protocols from Back to Eden, Barbara O'Neill, Mary Jones, and Arnold Ehret — cross-referenced and aligned to the 5 Quantum Laws.</p>
-
-          {/* Quantum ethos */}
-          <div style={{
-            background:"linear-gradient(135deg,rgba(52,211,153,0.07),rgba(0,200,255,0.04))",
-            border:"1px solid rgba(52,211,153,0.25)",
-            borderLeft:"3px solid rgba(52,211,153,0.6)",
-            borderRadius:"0 14px 14px 0",
-            padding:"16px 20px", marginBottom:4, textAlign:"left",
-          }}>
-            <p style={{
-              fontFamily:"'Crimson Pro',serif", fontStyle:"italic",
-              fontSize:17, color:"rgba(255,255,255,0.88)", lineHeight:1.75, marginBottom:6,
-            }}>
-              "Small shifts, consistently honoured, produce quantum results. The habit is not the destination — it is the vehicle."
-            </p>
-            <p style={{fontSize:12, fontWeight:700, color:"rgba(52,211,153,0.65)", letterSpacing:".12em", textTransform:"uppercase"}}>
-              — The Learning Quantum Method
-            </p>
-          </div>
-        </div>
-
-        {/* Source legend */}
-        <div style={{
-          display:"flex", gap:8, flexWrap:"wrap", justifyContent:"center",
-          marginBottom:20, animation:"fadeUp .4s .06s ease both",
-        }}>
-          {Object.entries(SOURCE_META).map(([code, s]) => (
-            <div key={code} style={{
-              display:"flex", alignItems:"center", gap:6,
-              background:s.bg, border:`1px solid ${s.border}`,
-              borderRadius:100, padding:"5px 12px",
-            }}>
-              <span style={{
-                fontSize:11, fontWeight:700, color:s.color,
-                background:"rgba(0,0,0,0.2)", borderRadius:100,
-                padding:"1px 6px", letterSpacing:".06em",
-              }}>{s.short}</span>
-              <span style={{fontSize:12, color:MUTED}}>{s.label}</span>
-            </div>
-          ))}
-        </div>
-
-        {/* Search input */}
-        <div style={{position:"relative", marginBottom:14, animation:"fadeUp .4s .1s ease both"}}>
-          <input
-            value={search}
-            onChange={e=>{setSearch(e.target.value);if(e.target.value.trim())setActiveCategory(null);}}
-            placeholder="Search by ailment or remedy name…"
-            style={{
-              width:"100%", background:"rgba(0,200,255,0.04)",
-              border:`1.5px solid ${search ? "rgba(0,200,255,0.5)" : BORDER2}`,
-              borderRadius:12, padding:"12px 40px 12px 16px",
-              fontFamily:"'Space Grotesk',sans-serif",
-              fontSize:15, color:WHITE, outline:"none",
-              transition:"border-color .2s", boxSizing:"border-box",
-            }}
-          />
-          {search && (
-            <button onClick={()=>setSearch("")} style={{
-              position:"absolute", right:12, top:"50%", transform:"translateY(-50%)",
-              background:"none", border:"none", cursor:"pointer",
-              color:DIMMED, fontSize:16, padding:4,
-            }}>✕</button>
-          )}
-        </div>
-
-        {/* Category pills */}
-        <div style={{
-          display:"flex", gap:8, flexWrap:"wrap", marginBottom:24,
-          animation:"fadeUp .4s .14s ease both",
-        }}>
-          {CATEGORIES.map(cat => (
-            <button key={cat.id} onClick={()=>setActiveCategory(activeCategory===cat.id ? null : cat.id)} style={{
-              background: activeCategory===cat.id ? `${cat.color}22` : "rgba(255,255,255,0.03)",
-              border:`1px solid ${activeCategory===cat.id ? cat.color+"66" : BORDER2}`,
-              borderRadius:100, padding:"6px 14px",
-              fontSize:13, fontWeight:700,
-              color: activeCategory===cat.id ? cat.color : DIMMED,
-              cursor:"pointer", fontFamily:"'Space Grotesk',sans-serif",
-              transition:"all .18s", letterSpacing:".03em",
-            }}>
-              {cat.label}
-            </button>
-          ))}
-        </div>
-
-        {/* Results — Quantum Living sections first, then Health Conditions */}
-        {filtered.length === 0 ? (
-          <div style={{
-            padding:"32px 24px",
-            background:"rgba(255,255,255,0.02)", border:`1px solid ${BORDER2}`,
-            borderRadius:16, textAlign:"center",
-          }}>
-            <p style={{fontSize:28, marginBottom:12}}>🌿</p>
-            <p style={{fontSize:17, fontWeight:700, color:WHITE, marginBottom:6}}>
-              Not in the library yet
-            </p>
-            <p style={{fontSize:15, color:MUTED, lineHeight:1.75, marginBottom:16, maxWidth:400, margin:"0 auto 16px"}}>
-              This specific ailment isn't included in the current library. The Quantum Living remedy collection is growing — check back as new protocols are added.
-            </p>
-            <div style={{
-              padding:"14px 18px", borderRadius:12,
-              background:"rgba(0,200,255,0.05)", border:`1px solid ${BORDER}`,
-              textAlign:"left", marginBottom:12,
-            }}>
-              <p style={{fontSize:13, fontWeight:700, color:E_BLUE, letterSpacing:".1em", textTransform:"uppercase", marginBottom:6}}>
-                In the meantime
-              </p>
-              <p style={{fontSize:14, color:MUTED, lineHeight:1.75}}>
-                For personalised guidance on natural protocols not yet in this library, email <a href="mailto:lqm@lqmmethod.com" style={{color:E_BLUE, textDecoration:"none", fontWeight:700}}>lqm@lqmmethod.com</a> — include your archetype and the condition you're researching.
-              </p>
-            </div>
-            <button onClick={()=>{setSearch("");setActiveCategory(null);}} style={{
-              background:"none", border:`1px solid ${BORDER2}`,
-              borderRadius:100, padding:"8px 20px",
-              fontSize:13, fontWeight:700, color:DIMMED,
-              cursor:"pointer", fontFamily:"'Space Grotesk',sans-serif",
-            }}>← Clear search and browse all</button>
-          </div>
-        ) : (
-          <div style={{animation:"fadeUp .3s ease both"}}>
-            {(()=>{
-              const qlSections = filtered.filter(a => PRIORITY_IDS.includes(a.id));
-              const healthSections = filtered.filter(a => !PRIORITY_IDS.includes(a.id));
-              return (<>
-                {qlSections.length > 0 && (
-                  <div style={{marginBottom:8}}>
-                    {!search.trim() && (<div style={{display:"flex",alignItems:"center",gap:10,marginBottom:14}}>
-                      <span style={{fontSize:16}}>🌿</span>
-                      <p style={{fontSize:13,fontWeight:700,color:GREEN,letterSpacing:".14em",textTransform:"uppercase"}}>Quantum Living</p>
-                      <div style={{flex:1,height:1,background:"rgba(52,211,153,0.2)"}}/>
-                    </div>)}
-                    {qlSections.map(ailment => (
-                      <AilmentGroup key={ailment.id} ailment={ailment}/>
-                    ))}
-                  </div>
-                )}
-                {healthSections.length > 0 && (
-                  <div>
-                    {!search.trim() && qlSections.length > 0 && (<div style={{display:"flex",alignItems:"center",gap:10,marginBottom:14,marginTop:8}}>
-                      <span style={{fontSize:16}}>❤️‍🩹</span>
-                      <p style={{fontSize:13,fontWeight:700,color:"rgba(239,68,68,0.7)",letterSpacing:".14em",textTransform:"uppercase"}}>Health Conditions</p>
-                      <div style={{flex:1,height:1,background:"rgba(239,68,68,0.15)"}}/>
-                    </div>)}
-                    {healthSections.map(ailment => (
-                      <AilmentGroup key={ailment.id} ailment={ailment}/>
-                    ))}
-                  </div>
-                )}
-              </>);
-            })()}
-          </div>
-        )}
-
-        {/* Disclaimer */}
-        <div style={{
-          marginTop:24, padding:"16px 18px",
-          background:"rgba(255,255,255,0.02)", border:`1px solid ${BORDER2}`,
-          borderRadius:14,
-        }}>
-          <p style={{fontSize:11, fontWeight:700, color:DIMMED, letterSpacing:".14em", textTransform:"uppercase", marginBottom:8}}>
-            Important notice
-          </p>
-          <p style={{fontSize:14, color:MUTED, lineHeight:1.75}}>
-            These remedies are traditional and educational protocols drawn from Back to Eden (Jethro Kloss), the teachings of Barbara O'Neill, Herbal Antibiotics (Mary Jones), and the work of Professor Arnold Ehret. They are presented for educational reference only and do not constitute medical advice. Always consult a qualified healthcare professional before making changes to your health regimen, particularly if you are on medication or managing a diagnosed condition. Do not stop prescribed medication without medical guidance.
-          </p>
-        </div>
-      </div>
+      <Panel style={{textAlign:"center",background:`linear-gradient(145deg,${DARK2},${DARK})`}}>
+        <Logo size="sm"/>
+        <div style={{width:50,height:1,background:`linear-gradient(90deg,transparent,${E_BLUE}44,transparent)`,margin:"18px auto"}}/>
+        <p style={{fontFamily:"'Crimson Pro',serif",fontSize:20,fontStyle:"italic",color:MUTED,lineHeight:1.75,maxWidth:420,margin:"0 auto 12px"}}>"Small shifts, consistently honoured, produce quantum results. The habit is not the destination — it is the vehicle."</p>
+        <p style={{fontSize:14,color:DIMMED,letterSpacing:".06em"}}>— Q, Founder of LQM Method</p>
+        <div style={{height:1,background:BORDER2,margin:"18px 0"}}/>
+        <p style={{fontSize:14,color:DIMMED,letterSpacing:".1em"}}>LQM Behavioural Intelligence Report · {type.name}</p>
+      </Panel>
     </div>
   );
 }
