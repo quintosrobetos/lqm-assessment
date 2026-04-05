@@ -931,6 +931,75 @@ function RotatingStrapline() {
 }
 
 
+// ── FAQ component ─────────────────────────────────────────────────────────
+function LandingFAQ() {
+  const [openIdx, setOpenIdx] = useState(null);
+  const faqs = [
+    {
+      q: "Is this just another personality quiz?",
+      a: "No. LQM is a diagnostic tool built on how people actually decide, act, and perform — not how they think they do. Personality quizzes tell you who you are. LQM tells you how you operate, and gives you systems to build around it.",
+    },
+    {
+      q: "What do I actually get in the paid report?",
+      a: "Your full report includes: your complete Behavioural Archetype analysis, Strengths & Blind Spot breakdown, 3 personalised LQM Quantum Strategy Cards, your Identity Statement, and your Behavioural Pattern Profile. The free result shows your archetype name only — the report is where the real insight lives.",
+    },
+    {
+      q: "What is your refund policy?",
+      a: "7-day no-questions-asked guarantee. If you feel the report wasn't worth it, email lqm@lqmmethod.com within 7 days for a full refund.",
+    },
+    {
+      q: "How long does the assessment take?",
+      a: "Approximately 3 minutes. 11 questions, no tricks, no filler. You'll see your archetype result before any payment is required.",
+    },
+    {
+      q: "Is my data stored or shared?",
+      a: "Your quiz answers are processed in your browser and are not stored on our servers. Only your email address and payment reference are retained for report delivery. We do not share your data with third parties. Full details in our Privacy Policy.",
+    },
+  ];
+  return (
+    <div style={{marginBottom:24}}>
+      <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:14}}>
+        <p style={{fontSize:13,fontWeight:700,color:MUTED,letterSpacing:".14em",textTransform:"uppercase",whiteSpace:"nowrap"}}>Common questions</p>
+        <div style={{flex:1,height:1,background:`linear-gradient(90deg,${BORDER2},transparent)`}}/>
+      </div>
+      {faqs.map((item, i) => (
+        <div key={i} style={{
+          borderBottom:`1px solid ${BORDER2}`,
+          overflow:"hidden",
+        }}>
+          <button
+            onClick={() => setOpenIdx(openIdx === i ? null : i)}
+            style={{
+              width:"100%", background:"none", border:"none", cursor:"pointer",
+              display:"flex", justifyContent:"space-between", alignItems:"center",
+              padding:"14px 0", gap:12,
+              fontFamily:"'Space Grotesk',sans-serif",
+            }}
+          >
+            <span style={{fontSize:15,fontWeight:600,color:WHITE,textAlign:"left",lineHeight:1.45}}>{item.q}</span>
+            <span style={{
+              fontSize:18, color:E_BLUE, flexShrink:0,
+              transform: openIdx === i ? "rotate(45deg)" : "rotate(0deg)",
+              transition:"transform .2s ease",
+              display:"inline-block",
+            }}>+</span>
+          </button>
+          <div style={{
+            maxHeight: openIdx === i ? 300 : 0,
+            overflow:"hidden",
+            transition:"max-height .3s ease",
+          }}>
+            <p style={{
+              fontSize:15, color:MUTED, lineHeight:1.75,
+              paddingBottom:16, paddingRight:32,
+            }}>{item.a}</p>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 // CHANGE 12: New Landing with archetype teaser, science strip, micro-preview
 function Landing({onStart}){
   return(
@@ -956,7 +1025,7 @@ function Landing({onStart}){
 
       {/* Philosophy quote */}
       <p className="fu2" style={{textAlign:"center",fontFamily:"'Crimson Pro',serif",fontStyle:"italic",fontSize:19,lineHeight:1.75,color:MUTED,maxWidth:500,margin:"0 auto 28px"}}>
-        "Small shifts, consistently honoured, produce quantum results. The habit is not the destination — it is the vehicle." — The Learning Quantum Method
+        "Small shifts, consistently honoured, produce quantum results. The habit is not the destination — it is the vehicle." — Q, Founder of LQM Method
       </p>
 
       {/* ── ARCHETYPE TEASER ─────────────────────────────────────── */}
@@ -1113,6 +1182,21 @@ function Landing({onStart}){
           </div>
         ))}
       </div>
+
+
+      {/* ── FOUNDER TESTIMONIAL ─────────────────────────────────────────── */}
+      <div style={{background:"rgba(0,200,255,0.04)",border:"1px solid rgba(0,200,255,0.15)",borderLeft:"3px solid rgba(0,200,255,0.5)",borderRadius:"0 14px 14px 0",padding:"20px 22px",marginBottom:24}}>
+        <p style={{fontFamily:"'Crimson Pro',serif",fontStyle:"italic",fontSize:17,color:MUTED,lineHeight:1.8,marginBottom:10}}>
+          “I always wondered why I could never stay motivated to finish what I started. Then I discovered my archetype — and everything clicked. Once I understood my blind spots, I stopped fighting myself and started building around the way I actually work. The results followed. The confidence followed. That’s why I built LQM — so other people don’t have to figure it out the hard way.”
+        </p>
+        <p style={{fontSize:12,fontWeight:700,color:"rgba(0,200,255,0.6)",letterSpacing:".12em",textTransform:"uppercase"}}>— Q, Founder of LQM Method</p>
+        <p style={{fontSize:14,color:DIMMED,marginTop:10,lineHeight:1.7}}>
+          Do you have a similar story? Find out what archetype you are — every insight is backed by behavioural science.
+        </p>
+      </div>
+
+      {/* ── FAQ ───────────────────────────────────────────────────────────── */}
+      <LandingFAQ/>
 
       {/* ── CTA ──────────────────────────────────────────────────────── */}
       <div className="fu4" style={{textAlign:"center"}}>
@@ -2063,7 +2147,7 @@ function Report({type, patterns, deliveryRef, deliveryTs, visualAnswer}){
         <Logo size="sm"/>
         <div style={{width:50,height:1,background:`linear-gradient(90deg,transparent,${E_BLUE}44,transparent)`,margin:"18px auto"}}/>
         <p style={{fontFamily:"'Crimson Pro',serif",fontSize:20,fontStyle:"italic",color:MUTED,lineHeight:1.75,maxWidth:420,margin:"0 auto 12px"}}>"Small shifts, consistently honoured, produce quantum results. The habit is not the destination — it is the vehicle."</p>
-        <p style={{fontSize:14,color:DIMMED,letterSpacing:".06em"}}>— The Learning Quantum Method</p>
+        <p style={{fontSize:14,color:DIMMED,letterSpacing:".06em"}}>— Q, Founder of LQM Method</p>
         <div style={{height:1,background:BORDER2,margin:"18px 0"}}/>
         <p style={{fontSize:14,color:DIMMED,letterSpacing:".1em"}}>LQM Behavioural Intelligence Report · {type.name}</p>
       </Panel>
