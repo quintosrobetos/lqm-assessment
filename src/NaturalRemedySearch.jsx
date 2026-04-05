@@ -2142,9 +2142,10 @@ function GuidedProtocol({ remedy, accentColor, onClose }) {
     return () => { clearInterval(timerRef.current); stop(); };
   }, []);
 
-  // Auto-scroll content to top on step change
+  // Auto-scroll content to top on step change — reset both the inner div and window
   useEffect(() => {
     if (contentRef.current) contentRef.current.scrollTop = 0;
+    window.scrollTo({ top: 0, behavior: "instant" });
   }, [step]);
 
   function goNext() {
@@ -2293,7 +2294,7 @@ function GuidedProtocol({ remedy, accentColor, onClose }) {
       <div ref={contentRef} style={{
         flex: 1, display: "flex", flexDirection: "column",
         alignItems: "center", justifyContent: "flex-start",
-        padding: "24px 28px 100px", overflow: "auto",
+        padding: "24px 28px 32px", overflow: "auto",
         overflowX: "hidden",
       }}>
 
@@ -2372,14 +2373,14 @@ function GuidedProtocol({ remedy, accentColor, onClose }) {
         )}
       </div>
 
-      {/* Bottom nav — fixed to bottom so Next is always visible */}
+      {/* Bottom nav — docked to bottom of flex column, always visible, no gap */}
       <div style={{
-        padding: "16px 24px", borderTop: `1px solid ${BORDER2}`,
+        padding: "16px 24px",
         paddingBottom: "max(16px, env(safe-area-inset-bottom, 16px))",
+        borderTop: `1px solid ${BORDER2}`,
         display: "flex", gap: 12, alignItems: "center",
         background: "rgba(7,15,30,0.97)", backdropFilter: "blur(14px)",
         flexShrink: 0,
-        position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 610,
       }}>
         <button onClick={goPrev} disabled={step === 0} style={{
           flex: 1, border: `1px solid ${step === 0 ? BORDER2 : accentColor+"55"}`,
