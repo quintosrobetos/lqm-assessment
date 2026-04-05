@@ -646,7 +646,7 @@ const REMEDY_DATA = [
         sources: ["Q"],
         lawLink: "05",
         ingredients: [
-          "2 red onions — cut up, skin on (organic, unwaxed)",
+          "2 red onions — cut up, skin on (organic)",
           "6–8 garlic cloves — cut through, skin on (organic)",
           "1 thumb fresh ginger",
           "1 thumb fresh turmeric",
@@ -658,12 +658,12 @@ const REMEDY_DATA = [
           "AT SERVING: 2 extra garlic cloves (crushed, rested 10 mins), 1 spoonful raw honey, juice of 1 lemon",
         ],
         steps: [
-          { instruction: "Add all pot ingredients — red onions, 6–8 garlic cloves, ginger, turmeric, oranges, lemons, cayenne, black pepper and turmeric powder — to a large pan. Cover with water.", tip: "Everything goes in with the skin on. The skin of red onions contains quercetin — one of the most powerful natural antivirals. The orange and lemon pith and skin contain bioflavonoids that boost absorption of vitamin C." },
-          { instruction: "Bring to the boil then reduce to a simmer. Cook for 10–15 minutes until the liquid is deep red and fragrant.", timer: 900, tip: "The colour change to deep red tells you the quercetin from the onion skins is fully released. Do not rush this step." },
-          { instruction: "Remove from heat. Let the mixture cool to a warm (not hot) temperature — hot enough to hold a cup comfortably but not burn your mouth.", tip: "Temperature matters. Too hot and you destroy the raw honey's active enzymes. Too cold and you lose the circulatory benefit. Warm is the target." },
-          { instruction: "Crush 2 fresh garlic cloves separately. Let stand for exactly 10 minutes before using.", timer: 600, tip: "Crushing and resting 10 minutes activates allicin — garlic's most potent antiviral compound. Heat destroys allicin, so these two cloves go in raw at serving time." },
-          { instruction: "Pour the warm mixture through a sieve into a mug until it is three-quarters full. Drop in the rested raw garlic cloves.", tip: "The three-quarter measure leaves room for the honey and lemon without diluting the mixture." },
-          { instruction: "Add one generous spoonful of raw honey. Squeeze in the juice of one whole lemon. Stir gently and drink slowly.", tip: "Raw honey is antimicrobial and coats the throat. Lemon adds a final dose of vitamin C. Drink slowly — this is medicine." },
+          { instruction: "Before you do anything else — crush 2 fresh garlic cloves now and set them aside. They need to rest for 10 minutes to activate allicin. Start the timer, then begin preparing the pot while they rest.", timer: 600, tip: "Allicin is garlic's most potent antiviral compound. It is only activated when the cell walls are crushed, and it needs 10 minutes to fully develop. Heat destroys it — so these cloves go in raw at the very end. Crushing them first means no wasted time waiting later." },
+          { instruction: "Add all pot ingredients to a large pan — red onions, 6–8 garlic cloves, ginger, turmeric, oranges, lemons, cayenne, black pepper and turmeric powder. Cover with water.", tip: "Everything goes in with the skin on. The skin of red onions contains quercetin — one of the most powerful natural antivirals. The orange and lemon pith and skin contain bioflavonoids that boost absorption of vitamin C.", image: "red-onion-raw.jpg" },
+          { instruction: "Bring to the boil then reduce to a simmer. Cook for 10–15 minutes until the liquid turns deep red and fragrant.", timer: 900, tip: "The deep red colour tells you the quercetin from the onion skins has fully released. Do not rush this step — the simmer is doing the work. Your crushed garlic should now have had its 10-minute rest.", image: "red-onion-boiling.jpg" },
+          { instruction: "Remove from heat. Let the mixture cool to warm — comfortable to hold in a cup but not burn your mouth.", tip: "Temperature matters. Too hot and you destroy the raw honey's active enzymes. Too cold and you lose the circulatory benefit. Warm is the target." },
+          { instruction: "Pour the warm mixture through a sieve into a mug until three-quarters full. Drop in your rested crushed garlic cloves.", tip: "The three-quarter measure leaves room for the honey and lemon without diluting the mixture. The garlic has been resting since step one — it is fully activated and ready." },
+          { instruction: "Add one generous spoonful of raw honey. Squeeze in the juice of one whole lemon. Stir gently and drink slowly.", tip: "Raw honey is antimicrobial and coats the throat. Lemon adds a final dose of vitamin C. Drink slowly — this is medicine. Repeat 3–4 times throughout the day.", image: "red-onion-done.jpg" },
         ],
         science: "Red onion skins are exceptionally high in quercetin — a flavonoid with well-documented antiviral, anti-inflammatory and immune-modulating properties. Combined with allicin from garlic, gingerol from ginger, curcumin from turmeric, and vitamin C from citrus, this tonic covers every major pathway of acute immune support. Q developed and refined this formula over 15 years within family and community health settings.",
         method: "Boil all ingredients skin-on for 10–15 minutes until deep red. Cool to warm. Add fresh rested garlic, raw honey and lemon at serving. Drink three-quarters of a cup 3–4 times daily during illness.",
@@ -2715,6 +2715,18 @@ function GuidedProtocol({ remedy, accentColor, onClose }) {
           textAlign: "center", lineHeight: 1.7, fontWeight: 500,
           maxWidth: 500, marginBottom: 20,
         }}>{current.instruction}</p>
+
+        {/* Step image — shown only if this step has an image */}
+        {current.image && (
+          <div style={{ width: "100%", maxWidth: 400, marginBottom: 20, borderRadius: 14, overflow: "hidden", border: `1px solid ${accentColor}22` }}>
+            <img
+              src={`/${current.image}`}
+              alt=""
+              style={{ width: "100%", display: "block", objectFit: "cover", maxHeight: 220 }}
+              onError={e => { e.currentTarget.style.display = "none"; }}
+            />
+          </div>
+        )}
 
         {/* Timer */}
         {hasTimer && (
