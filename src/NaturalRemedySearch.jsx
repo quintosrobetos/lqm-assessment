@@ -2677,26 +2677,49 @@ function GuidedProtocol({ remedy, accentColor, onClose }) {
         )}
       </div>
 
-      {/* Progress dots */}
+      {/* Progress dots — clickable to navigate to any visited step */}
       <div style={{
-        display: "flex", gap: 5, padding: "14px 24px 0",
+        display: "flex", gap: 5, padding: "10px 24px 0",
         justifyContent: "center", flexShrink: 0,
       }}>
         {steps.map((_, i) => (
-          <div key={i} style={{
-            height: 4, flex: 1, maxWidth: 48, borderRadius: 100,
-            background: i < step ? accentColor : i === step ? `${accentColor}` : "rgba(255,255,255,0.08)",
-            opacity: i < step ? 0.4 : 1,
-            transition: "all .3s",
-          }} />
+          <div
+            key={i}
+            onClick={() => {
+              if (i !== step) {
+                stop();
+                setShowTip(false);
+                setTimerActive(false);
+                setStep(i);
+                if (steps[i].timer) setTimer(steps[i].timer);
+                else setTimer(null);
+              }
+            }}
+            title={`Step ${i + 1}`}
+            style={{
+              height: i === step ? 6 : 4,
+              flex: 1, maxWidth: 48, borderRadius: 100,
+              background: i < step ? accentColor : i === step ? accentColor : "rgba(255,255,255,0.08)",
+              opacity: i < step ? 0.55 : i === step ? 1 : 0.25,
+              transition: "all .25s",
+              cursor: i <= step ? "pointer" : "default",
+              transform: i === step ? "scaleY(1.2)" : "none",
+            }}
+          />
         ))}
       </div>
+      {/* Step label under dots */}
+      <p style={{
+        textAlign: "center", fontSize: 11, color: "rgba(255,255,255,0.25)",
+        letterSpacing: ".1em", textTransform: "uppercase",
+        paddingTop: 6, flexShrink: 0,
+      }}>Tap a dot to navigate</p>
 
       {/* Main content area */}
       <div ref={contentRef} style={{
         flex: 1, display: "flex", flexDirection: "column",
-        alignItems: "center", justifyContent: "flex-start",
-        padding: "24px 28px 32px", overflow: "auto",
+        alignItems: "center", justifyContent: "center",
+        padding: "16px 24px 24px", overflow: "auto",
         overflowX: "hidden",
       }}>
 
