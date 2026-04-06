@@ -437,6 +437,7 @@ export default function QuantumLiving({ onBack, archetype }) {
       @keyframes todayRing{0%{transform:scale(1);opacity:0.9;}50%{transform:scale(1.18);opacity:0.35;}100%{transform:scale(1);opacity:0.9;}}
       @keyframes todayBadge{0%,100%{opacity:0.8;transform:scale(1);}50%{opacity:1;transform:scale(1.06);}}
       @keyframes shopGlow{0%,100%{box-shadow:0 0 0 0 rgba(52,211,153,0.0);border-color:rgba(52,211,153,0.25);}50%{box-shadow:0 0 20px rgba(52,211,153,0.2);border-color:rgba(52,211,153,0.55);}}
+      @keyframes remedyPulse{0%,100%{box-shadow:0 0 12px rgba(0,200,255,0.2),0 0 4px rgba(0,200,255,0.1);border-color:rgba(0,200,255,0.6);}50%{box-shadow:0 0 28px rgba(0,200,255,0.45),0 0 10px rgba(0,200,255,0.25);border-color:rgba(0,200,255,1);}}
       @keyframes pct20Pulse{0%,100%{color:#ffffff;text-shadow:0 0 8px rgba(255,255,255,0.3);}50%{color:#34D399;text-shadow:0 0 20px rgba(52,211,153,0.8),0 0 40px rgba(52,211,153,0.3);}}
       @keyframes hiCardPulse{0%,100%{border-color:rgba(200,185,154,0.18);box-shadow:none;}50%{border-color:rgba(200,185,154,0.42);box-shadow:0 0 12px rgba(200,185,154,0.1);}}
       @keyframes guidePulse{0%,100%{opacity:0.5;transform:translateX(0);}50%{opacity:1;transform:translateX(3px);}}
@@ -746,7 +747,7 @@ export default function QuantumLiving({ onBack, archetype }) {
                   </div>
                 )}
                 {!active && (<p style={{textAlign:"center",fontSize:12,color:"rgba(0,200,255,0.55)",letterSpacing:".1em",textTransform:"uppercase",fontStyle:"italic"}}>Tap an orb to reveal</p>)}
-                <button onClick={()=>setShowRemedySearch(true)} style={{width:"100%",marginTop:12,border:"1px solid rgba(0,200,255,0.35)",borderRadius:100,padding:"11px",fontSize:13,fontWeight:700,background:"rgba(0,200,255,0.06)",color:"#00C8FF",cursor:"pointer",fontFamily:"'Space Grotesk',sans-serif",letterSpacing:".06em"}}>🌿 Natural Remedy Library →</button>
+                <button onClick={()=>setShowRemedySearch(true)} style={{width:"100%",marginTop:16,border:"2px solid rgba(0,200,255,0.7)",borderRadius:100,padding:"15px",fontSize:16,fontWeight:800,background:"linear-gradient(135deg,rgba(0,200,255,0.15),rgba(0,200,255,0.08))",color:"#FFFFFF",cursor:"pointer",fontFamily:"'Space Grotesk',sans-serif",letterSpacing:".08em",boxShadow:"0 0 18px rgba(0,200,255,0.25), 0 0 6px rgba(0,200,255,0.15)",animation:"remedyPulse 2.5s ease-in-out infinite"}}>🌿 Natural Remedy Library →</button>
               </div>
             );
           })()}
