@@ -2718,24 +2718,24 @@ function GuidedProtocol({ remedy, accentColor, onClose }) {
       {/* Main content area */}
       <div ref={contentRef} style={{
         flex: 1, display: "flex", flexDirection: "column",
-        alignItems: "center", justifyContent: "center",
-        padding: "16px 24px 24px", overflow: "auto",
+        alignItems: "center", justifyContent: "flex-start",
+        padding: "12px 20px 16px", overflow: "auto",
         overflowX: "hidden",
       }}>
 
         {/* Step number */}
         <div style={{
-          width: 44, height: 44, borderRadius: "50%", marginBottom: 20,
+          width: 36, height: 36, borderRadius: "50%", marginBottom: 12,
           background: `${accentColor}18`, border: `2px solid ${accentColor}55`,
           display: "flex", alignItems: "center", justifyContent: "center",
-          fontSize: 20, fontWeight: 800, color: accentColor,
+          fontSize: 17, fontWeight: 800, color: accentColor,
         }}>{step + 1}</div>
 
         {/* Instruction */}
         <p style={{
-          fontSize: "clamp(18px,4.5vw,24px)", color: WHITE,
-          textAlign: "center", lineHeight: 1.7, fontWeight: 500,
-          maxWidth: 500, marginBottom: 20,
+          fontSize: "clamp(16px,4vw,21px)", color: WHITE,
+          textAlign: "center", lineHeight: 1.6, fontWeight: 500,
+          maxWidth: 500, marginBottom: 14,
         }}>{current.instruction}</p>
 
         {/* Step image — shown only if this step has an image */}
@@ -2811,12 +2811,12 @@ function GuidedProtocol({ remedy, accentColor, onClose }) {
 
         {/* Scroll hint — always visible, points user to the Next Step button below */}
         <div style={{
-          marginTop: 28, paddingTop: 16,
+          marginTop: 12, paddingTop: 10,
           borderTop: `1px solid rgba(255,255,255,0.05)`,
           textAlign: "center", width: "100%",
         }}>
           <p style={{
-            fontSize: 12, color: "rgba(255,255,255,0.2)",
+            fontSize: 11, color: "rgba(255,255,255,0.18)",
             letterSpacing: ".1em", textTransform: "uppercase",
             animation: "guidePulse 2s ease-in-out infinite",
           }}>↓ Next Step button below</p>
