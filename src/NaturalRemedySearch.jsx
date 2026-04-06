@@ -2808,6 +2808,19 @@ function GuidedProtocol({ remedy, accentColor, onClose }) {
             )}
           </div>
         )}
+
+        {/* Scroll hint — always visible, points user to the Next Step button below */}
+        <div style={{
+          marginTop: 28, paddingTop: 16,
+          borderTop: `1px solid rgba(255,255,255,0.05)`,
+          textAlign: "center", width: "100%",
+        }}>
+          <p style={{
+            fontSize: 12, color: "rgba(255,255,255,0.2)",
+            letterSpacing: ".1em", textTransform: "uppercase",
+            animation: "guidePulse 2s ease-in-out infinite",
+          }}>↓ Next Step button below</p>
+        </div>
       </div>
 
       {/* Bottom nav — docked to bottom of flex column, always visible, no gap */}
