@@ -1893,7 +1893,7 @@ function ShareableCard({type, patterns}) {
             letterSpacing:".12em", textTransform:"uppercase",
             marginBottom:14, textAlign:"center",
           }}>Your shareable archetype card</p>
-
+<LilQVideo archetype={patterns ? patterns.primary : null} size="md" label="Tap to hear Lil'Q" />
           {/* THE SCREENSHOT CARD */}
           <div ref={cardRef} style={{
             background:`linear-gradient(145deg,${PC_DARK2},${PC_DARK})`,
