@@ -2007,6 +2007,7 @@ function ShareableCard({type, patterns}) {
               borderTop:"1px solid rgba(255,255,255,0.08)",
               paddingTop:12,
             }}>
+            <img src="/lilq-avatar.jpg" alt="Lil'Q" style={{width:48,height:48,borderRadius:"50%",objectFit:"cover",border:"2px solid rgba(0,200,255,0.4)",marginBottom:8,display:"block",marginLeft:"auto",marginRight:"auto"}} />  
               <p style={{fontSize:11, color:PC_DIMMED, marginBottom:2}}>
                 Discover your archetype
               </p>
