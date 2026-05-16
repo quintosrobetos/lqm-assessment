@@ -1,20 +1,16 @@
 import { useState, useRef, useEffect } from "react";
 
 // ═══════════════════════════════════════════════════════════════════════
-// LilQVideo — Reusable talking avatar component
+// LilQVideo — Reusable talking avatar component (v2)
 // ═══════════════════════════════════════════════════════════════════════
 //
-// USAGE:
-//   <LilQVideo size="md" />                              — idle, generic on tap
-//   <LilQVideo size="md" archetype="A" />                — Systems Architect video
-//   <LilQVideo size="lg" autoPlay />                     — auto-plays on mount
-//   <LilQVideo size="sm" position="floating" />          — fixed bottom-right
-//   <LilQVideo size="md" label="Tap me!" />              — with text label
-//   <LilQVideo size="md" videoSrc="/my-custom.mp4" />    — custom video override
+// CHANGES from v1:
+//   - Idle state is a STATIC IMAGE (mouth closed) instead of video loop
+//   - Added "xl" size (180px) for hero placement
+//   - Fixes mouthing-after-speech issue
 //
 // FILES REQUIRED IN /public/:
-//   /lilq-idle.mp4              — 2.5s silent loop (84KB)
-//   /lilq-poster.jpg            — still frame (42KB)
+//   /lilq-avatar.jpg            — static idle image, mouth closed (15KB)
 //   /lilq-share-generic.mp4     — generic share prompt (742KB)
 //   /lilq-share-architect.mp4   — Systems Architect (745KB)
 //   /lilq-share-learner.mp4     — Deep Learner (487KB)
@@ -34,30 +30,28 @@ const SIZES = {
   sm: { bubble: 64,  border: 2, icon: 14, labelSize: 11 },
   md: { bubble: 100, border: 3, icon: 18, labelSize: 12 },
   lg: { bubble: 140, border: 3, icon: 22, labelSize: 13 },
+  xl: { bubble: 180, border: 4, icon: 26, labelSize: 14 },
 };
 
 export default function LilQVideo({
-  size = "md",            // "sm" | "md" | "lg"
-  archetype = null,       // "A" | "B" | "C" | "D" — picks archetype-specific video
-  videoSrc = null,        // custom video URL (overrides archetype)
-  autoPlay = false,       // auto-play talking video on mount
-  position = "inline",    // "inline" | "floating"
-  label = "",             // optional text label below bubble
-  onFinish = null,        // callback when talking video ends
-  style = {},             // additional wrapper styles
+  size = "md",
+  archetype = null,
+  videoSrc = null,
+  autoPlay = false,
+  position = "inline",
+  label = "",
+  onFinish = null,
+  style = {},
 }) {
   const [playing, setPlaying] = useState(false);
   const [hasPlayed, setHasPlayed] = useState(false);
   const talkRef = useRef(null);
-  const idleRef = useRef(null);
   const s = SIZES[size] || SIZES.md;
 
-  // Resolve which talking video to use
   const talkingSrc = videoSrc
     || (archetype && ARCHETYPE_VIDEOS[archetype])
     || "/lilq-share-generic.mp4";
 
-  // Auto-play on mount if requested
   useEffect(() => {
     if (autoPlay) {
       const timer = setTimeout(() => startTalking(), 600);
@@ -69,7 +63,6 @@ export default function LilQVideo({
     if (playing) return;
     setPlaying(true);
     setHasPlayed(true);
-    if (idleRef.current) { idleRef.current.pause(); }
     if (talkRef.current) {
       talkRef.current.currentTime = 0;
       talkRef.current.play().catch(() => {});
@@ -78,7 +71,6 @@ export default function LilQVideo({
 
   function handleTalkEnd() {
     setPlaying(false);
-    if (idleRef.current) { idleRef.current.play().catch(() => {}); }
     if (onFinish) onFinish();
   }
 
@@ -86,7 +78,6 @@ export default function LilQVideo({
     if (playing) {
       if (talkRef.current) { talkRef.current.pause(); }
       setPlaying(false);
-      if (idleRef.current) { idleRef.current.play().catch(() => {}); }
     } else {
       startTalking();
     }
@@ -107,7 +98,6 @@ export default function LilQVideo({
       ...floatingStyle,
       ...style,
     }}>
-      {/* Circular video bubble */}
       <div
         onClick={handleTap}
         style={{
@@ -125,27 +115,24 @@ export default function LilQVideo({
           flexShrink: 0,
         }}
       >
-        {/* Idle loop — silent, loops forever */}
-        <video
-          ref={idleRef}
-          src="/lilq-idle.mp4"
-          poster="/lilq-poster.jpg"
-          autoPlay
-          loop
-          muted
-          playsInline
-          style={{
-            width: "100%", height: "100%",
-            objectFit: "cover",
-            display: playing ? "none" : "block",
-          }}
-        />
+        {/* Idle state — static image, mouth closed */}
+        {!playing && (
+          <img
+            src="/lilq-avatar.jpg"
+            alt="Lil'Q"
+            style={{
+              width: "100%", height: "100%",
+              objectFit: "cover",
+              display: "block",
+            }}
+          />
+        )}
 
         {/* Talking video — with audio, archetype-specific */}
         <video
           ref={talkRef}
           src={talkingSrc}
-          poster="/lilq-poster.jpg"
+          poster="/lilq-avatar.jpg"
           playsInline
           onEnded={handleTalkEnd}
           style={{
@@ -159,7 +146,7 @@ export default function LilQVideo({
         {!playing && (
           <div style={{
             position: "absolute",
-            bottom: 4, right: 4,
+            bottom: Math.max(4, s.bubble * 0.03), right: Math.max(4, s.bubble * 0.03),
             width: s.icon + 6, height: s.icon + 6,
             borderRadius: "50%",
             background: "rgba(0,200,255,0.85)",
@@ -175,7 +162,7 @@ export default function LilQVideo({
         {playing && (
           <div style={{
             position: "absolute",
-            bottom: 4, right: 4,
+            bottom: Math.max(4, s.bubble * 0.03), right: Math.max(4, s.bubble * 0.03),
             width: s.icon + 6, height: s.icon + 6,
             borderRadius: "50%",
             background: "rgba(0,200,255,0.85)",
@@ -187,7 +174,6 @@ export default function LilQVideo({
         )}
       </div>
 
-      {/* Optional label */}
       {label && (
         <p style={{
           fontSize: s.labelSize,
@@ -200,7 +186,6 @@ export default function LilQVideo({
         }}>{label}</p>
       )}
 
-      {/* CSS animations */}
       <style>{`
         @keyframes lilqPulse {
           0%, 100% { border-color: rgba(0,200,255,0.3); box-shadow: 0 0 12px rgba(0,200,255,0.15); }
