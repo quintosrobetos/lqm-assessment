@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import BrainTraining from "./BrainTraining.jsx";
 import QuantumLiving from "./QuantumLiving.jsx";
 import html2canvas from "html2canvas";
+import LilQVideo from "./LilQVideo.jsx";
 
 import {
   trackArchetypeResult,
@@ -1486,7 +1487,7 @@ function ResultReveal({type, patterns, onExplore}) {
           letterSpacing:".04em", transition:"all .2s",
         }}
       >⚛ Explore My Full Profile →</button>
-
+<LilQVideo archetype={patterns?.primary} size="md" label="Tap to hear Lil'Q" />
       {/* Share action */}
       <button
         onClick={() => setShareOpen(v => !v)}
