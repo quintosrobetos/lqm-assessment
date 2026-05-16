@@ -1487,7 +1487,7 @@ function ResultReveal({type, patterns, onExplore}) {
           letterSpacing:".04em", transition:"all .2s",
         }}
       >⚛ Explore My Full Profile →</button>
-<LilQVideo archetype={patterns?.primary} size="md" label="Tap to hear Lil'Q" />
+<LilQVideo archetype={patterns?.primary} size="lg" label="Tap to hear Lil'Q" />
       {/* Share action */}
       <button
         onClick={() => setShareOpen(v => !v)}
@@ -1893,7 +1893,7 @@ function ShareableCard({type, patterns}) {
             letterSpacing:".12em", textTransform:"uppercase",
             marginBottom:14, textAlign:"center",
           }}>Your shareable archetype card</p>
-<LilQVideo archetype={patterns ? patterns.primary : null} size="md" label="Tap to hear Lil'Q" />
+<LilQVideo archetype={patterns ? patterns.primary : null} size="lg" label="Tap to hear Lil'Q" />
           {/* THE SCREENSHOT CARD */}
           <div ref={cardRef} style={{
             background:`linear-gradient(145deg,${PC_DARK2},${PC_DARK})`,
