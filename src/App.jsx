@@ -1868,9 +1868,9 @@ function ShareableCard({type, patterns}) {
             <p style={{
               fontSize:13, fontWeight:700, color:PC_BLUE,
               letterSpacing:".04em", marginBottom:2,
-            }}>Share Your Result</p>
+            }}>Challenge a Friend</p>
             <p style={{fontSize:12, color:PC_DIMMED}}>
-              Screenshot your archetype card or copy your link
+              Share your archetype — dare them to discover theirs
             </p>
           </div>
         </div>
@@ -1893,7 +1893,7 @@ function ShareableCard({type, patterns}) {
             letterSpacing:".12em", textTransform:"uppercase",
             marginBottom:14, textAlign:"center",
           }}>Your shareable archetype card</p>
-<LilQVideo archetype={patterns ? patterns.primary : null} size="lg" label="Tap to hear Lil'Q" />
+
           {/* THE SCREENSHOT CARD */}
           <div ref={cardRef} style={{
             background:`linear-gradient(145deg,${PC_DARK2},${PC_DARK})`,
@@ -2050,7 +2050,7 @@ function ShareableCard({type, patterns}) {
             >{saving ? "Saving…" : "📱 Screenshot to share"}</button>
           </div>
           <p style={{fontSize:12, color:PC_DIMMED, textAlign:"center", lineHeight:1.65}}>
-            Post on Instagram, TikTok, or send to someone who'd find this useful.
+            Most people have no idea how they're wired. Send this to someone who should.
           </p>
         </div>
       )}
