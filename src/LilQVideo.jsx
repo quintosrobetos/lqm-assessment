@@ -1,28 +1,26 @@
 import { useState, useRef, useEffect } from "react";
 
 // ═══════════════════════════════════════════════════════════════════════
-// LilQVideo — Reusable talking avatar component (v3)
+// LilQVideo — Reusable talking avatar component (v3.1)
 // ═══════════════════════════════════════════════════════════════════════
 //
-// USAGE:
-//   <LilQVideo archetype="A" context="guide" size="lg" />   — mentor video
-//   <LilQVideo archetype="A" context="share" size="lg" />   — marketing video
-//   <LilQVideo archetype="A" size="lg" />                   — defaults to guide
+// FIX: v3 tried to load guide videos that don't exist yet and failed
+// silently. v3.1 detects the load error and falls back to share videos.
 //
 // FILES IN /public/:
 //   /lilq-avatar.jpg              — static idle image (15KB)
 //
-//   Guide videos (post-purchase mentor):
+//   Guide videos (post-purchase, add when recorded):
 //   /lilq-guide-architect.mp4     — Systems Architect guide
 //   /lilq-guide-learner.mp4       — Deep Learner guide
 //   /lilq-guide-catalyst.mp4      — Relational Catalyst guide
 //   /lilq-guide-pioneer.mp4       — Visionary Pioneer guide
 //
-//   Share videos (external marketing):
-//   /lilq-share-architect.mp4     — Systems Architect share
-//   /lilq-share-learner.mp4       — Deep Learner share
-//   /lilq-share-catalyst.mp4      — Relational Catalyst share
-//   /lilq-share-pioneer.mp4       — Visionary Pioneer share
+//   Share videos (marketing, already uploaded):
+//   /lilq-share-architect.mp4     — Systems Architect
+//   /lilq-share-learner.mp4       — Deep Learner
+//   /lilq-share-catalyst.mp4      — Relational Catalyst
+//   /lilq-share-pioneer.mp4       — Visionary Pioneer
 //   /lilq-share-generic.mp4       — generic fallback
 //
 // ═══════════════════════════════════════════════════════════════════════
@@ -51,8 +49,8 @@ const SIZES = {
 export default function LilQVideo({
   size = "md",
   archetype = null,
-  context = "guide",        // "guide" = mentor, "share" = marketing
-  videoSrc = null,           // custom override
+  context = "guide",
+  videoSrc = null,
   autoPlay = false,
   position = "inline",
   label = "",
@@ -61,15 +59,40 @@ export default function LilQVideo({
 }) {
   const [playing, setPlaying] = useState(false);
   const [hasPlayed, setHasPlayed] = useState(false);
+  const [currentSrc, setCurrentSrc] = useState(null);
   const talkRef = useRef(null);
   const s = SIZES[size] || SIZES.md;
 
-  // Pick the right video: custom > archetype+context > generic fallback
-  const videoMap = context === "share" ? SHARE_VIDEOS : GUIDE_VIDEOS;
-  const talkingSrc = videoSrc
-    || (archetype && videoMap[archetype])
-    || (archetype && SHARE_VIDEOS[archetype])  // fallback to share if guide not yet recorded
-    || "/lilq-share-generic.mp4";
+  // Build ordered list of video URLs to try
+  // First choice: custom override or context-specific
+  // Fallback: share video for this archetype
+  // Last resort: generic
+  useEffect(() => {
+    if (videoSrc) {
+      setCurrentSrc(videoSrc);
+    } else if (archetype) {
+      const primary = context === "share"
+        ? SHARE_VIDEOS[archetype]
+        : GUIDE_VIDEOS[archetype];
+      setCurrentSrc(primary || SHARE_VIDEOS[archetype] || "/lilq-share-generic.mp4");
+    } else {
+      setCurrentSrc("/lilq-share-generic.mp4");
+    }
+  }, [archetype, context, videoSrc]);
+
+  // If video fails to load (file doesn't exist), fall back to share video
+  function handleVideoError() {
+    if (!currentSrc) return;
+    const shareFallback = archetype ? SHARE_VIDEOS[archetype] : "/lilq-share-generic.mp4";
+    const genericFallback = "/lilq-share-generic.mp4";
+
+    if (currentSrc !== shareFallback && shareFallback) {
+      setCurrentSrc(shareFallback);
+    } else if (currentSrc !== genericFallback) {
+      setCurrentSrc(genericFallback);
+    }
+    // If even generic fails, video just won't play — no crash
+  }
 
   useEffect(() => {
     if (autoPlay) {
@@ -148,18 +171,21 @@ export default function LilQVideo({
         )}
 
         {/* Talking video */}
-        <video
-          ref={talkRef}
-          src={talkingSrc}
-          poster="/lilq-avatar.jpg"
-          playsInline
-          onEnded={handleTalkEnd}
-          style={{
-            width: "100%", height: "100%",
-            objectFit: "cover",
-            display: playing ? "block" : "none",
-          }}
-        />
+        {currentSrc && (
+          <video
+            ref={talkRef}
+            src={currentSrc}
+            poster="/lilq-avatar.jpg"
+            playsInline
+            onEnded={handleTalkEnd}
+            onError={handleVideoError}
+            style={{
+              width: "100%", height: "100%",
+              objectFit: "cover",
+              display: playing ? "block" : "none",
+            }}
+          />
+        )}
 
         {/* Play/Speaker indicator */}
         {!playing && (
