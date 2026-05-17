@@ -1,25 +1,40 @@
 import { useState, useRef, useEffect } from "react";
 
 // ═══════════════════════════════════════════════════════════════════════
-// LilQVideo — Reusable talking avatar component (v2)
+// LilQVideo — Reusable talking avatar component (v3)
 // ═══════════════════════════════════════════════════════════════════════
 //
-// CHANGES from v1:
-//   - Idle state is a STATIC IMAGE (mouth closed) instead of video loop
-//   - Added "xl" size (180px) for hero placement
-//   - Fixes mouthing-after-speech issue
+// USAGE:
+//   <LilQVideo archetype="A" context="guide" size="lg" />   — mentor video
+//   <LilQVideo archetype="A" context="share" size="lg" />   — marketing video
+//   <LilQVideo archetype="A" size="lg" />                   — defaults to guide
 //
-// FILES REQUIRED IN /public/:
-//   /lilq-avatar.jpg            — static idle image, mouth closed (15KB)
-//   /lilq-share-generic.mp4     — generic share prompt (742KB)
-//   /lilq-share-architect.mp4   — Systems Architect (745KB)
-//   /lilq-share-learner.mp4     — Deep Learner (487KB)
-//   /lilq-share-catalyst.mp4    — Relational Catalyst (480KB)
-//   /lilq-share-pioneer.mp4     — Visionary Pioneer (714KB)
+// FILES IN /public/:
+//   /lilq-avatar.jpg              — static idle image (15KB)
+//
+//   Guide videos (post-purchase mentor):
+//   /lilq-guide-architect.mp4     — Systems Architect guide
+//   /lilq-guide-learner.mp4       — Deep Learner guide
+//   /lilq-guide-catalyst.mp4      — Relational Catalyst guide
+//   /lilq-guide-pioneer.mp4       — Visionary Pioneer guide
+//
+//   Share videos (external marketing):
+//   /lilq-share-architect.mp4     — Systems Architect share
+//   /lilq-share-learner.mp4       — Deep Learner share
+//   /lilq-share-catalyst.mp4      — Relational Catalyst share
+//   /lilq-share-pioneer.mp4       — Visionary Pioneer share
+//   /lilq-share-generic.mp4       — generic fallback
 //
 // ═══════════════════════════════════════════════════════════════════════
 
-const ARCHETYPE_VIDEOS = {
+const GUIDE_VIDEOS = {
+  A: "/lilq-guide-architect.mp4",
+  B: "/lilq-guide-learner.mp4",
+  C: "/lilq-guide-catalyst.mp4",
+  D: "/lilq-guide-pioneer.mp4",
+};
+
+const SHARE_VIDEOS = {
   A: "/lilq-share-architect.mp4",
   B: "/lilq-share-learner.mp4",
   C: "/lilq-share-catalyst.mp4",
@@ -36,7 +51,8 @@ const SIZES = {
 export default function LilQVideo({
   size = "md",
   archetype = null,
-  videoSrc = null,
+  context = "guide",        // "guide" = mentor, "share" = marketing
+  videoSrc = null,           // custom override
   autoPlay = false,
   position = "inline",
   label = "",
@@ -48,8 +64,11 @@ export default function LilQVideo({
   const talkRef = useRef(null);
   const s = SIZES[size] || SIZES.md;
 
+  // Pick the right video: custom > archetype+context > generic fallback
+  const videoMap = context === "share" ? SHARE_VIDEOS : GUIDE_VIDEOS;
   const talkingSrc = videoSrc
-    || (archetype && ARCHETYPE_VIDEOS[archetype])
+    || (archetype && videoMap[archetype])
+    || (archetype && SHARE_VIDEOS[archetype])  // fallback to share if guide not yet recorded
     || "/lilq-share-generic.mp4";
 
   useEffect(() => {
@@ -115,7 +134,7 @@ export default function LilQVideo({
           flexShrink: 0,
         }}
       >
-        {/* Idle state — static image, mouth closed */}
+        {/* Idle — static image, mouth closed */}
         {!playing && (
           <img
             src="/lilq-avatar.jpg"
@@ -128,7 +147,7 @@ export default function LilQVideo({
           />
         )}
 
-        {/* Talking video — with audio, archetype-specific */}
+        {/* Talking video */}
         <video
           ref={talkRef}
           src={talkingSrc}
