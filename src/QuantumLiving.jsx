@@ -383,6 +383,7 @@ export default function QuantumLiving({ onBack, archetype }) {
   const [showRemedySearch, setShowRemedySearch] = useState(false);
   const [bodyZone, setBodyZone] = useState(null);
   const [natureExpanded, setNatureExpanded] = useState(false);
+  const [healingExpanded, setHealingExpanded] = useState(false);
   const todayKey = new Date().toISOString().split("T")[0];
 
   const [checklist, setChecklist] = useState(() => {
@@ -437,7 +438,6 @@ export default function QuantumLiving({ onBack, archetype }) {
       @keyframes todayRing{0%{transform:scale(1);opacity:0.9;}50%{transform:scale(1.18);opacity:0.35;}100%{transform:scale(1);opacity:0.9;}}
       @keyframes todayBadge{0%,100%{opacity:0.8;transform:scale(1);}50%{opacity:1;transform:scale(1.06);}}
       @keyframes shopGlow{0%,100%{box-shadow:0 0 0 0 rgba(52,211,153,0.0);border-color:rgba(52,211,153,0.25);}50%{box-shadow:0 0 20px rgba(52,211,153,0.2);border-color:rgba(52,211,153,0.55);}}
-      @keyframes remedyPulse{0%,100%{box-shadow:0 0 12px rgba(0,200,255,0.2),0 0 4px rgba(0,200,255,0.1);border-color:rgba(0,200,255,0.6);}50%{box-shadow:0 0 28px rgba(0,200,255,0.45),0 0 10px rgba(0,200,255,0.25);border-color:rgba(0,200,255,1);}}
       @keyframes pct20Pulse{0%,100%{color:#ffffff;text-shadow:0 0 8px rgba(255,255,255,0.3);}50%{color:#34D399;text-shadow:0 0 20px rgba(52,211,153,0.8),0 0 40px rgba(52,211,153,0.3);}}
       @keyframes hiCardPulse{0%,100%{border-color:rgba(200,185,154,0.18);box-shadow:none;}50%{border-color:rgba(200,185,154,0.42);box-shadow:0 0 12px rgba(200,185,154,0.1);}}
       @keyframes guidePulse{0%,100%{opacity:0.5;transform:translateX(0);}50%{opacity:1;transform:translateX(3px);}}
@@ -693,7 +693,7 @@ export default function QuantumLiving({ onBack, archetype }) {
 
         {/* ── THE HEALING INTELLIGENCE ── */}
         <div style={{marginBottom:16,borderRadius:20,overflow:"hidden",background:"linear-gradient(160deg,rgba(0,200,255,0.04) 0%,rgba(0,200,255,0.02) 100%)",border:"1px solid rgba(0,200,255,0.15)",animation:"fadeUp .5s .22s ease both"}}>
-          <div style={{padding:"16px 20px",borderBottom:"1px solid rgba(0,200,255,0.1)",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+          <div onClick={()=>setHealingExpanded(v=>!v)} style={{padding:"16px 20px",borderBottom:healingExpanded?"1px solid rgba(0,200,255,0.1)":"none",display:"flex",alignItems:"center",justifyContent:"space-between",cursor:"pointer",transition:"all .2s"}}>
             <div style={{display:"flex",alignItems:"center",gap:12}}>
               <svg width="24" height="24" viewBox="0 0 28 28" fill="none"><line x1="14" y1="26" x2="14" y2="4" stroke="rgba(0,200,255,0.5)" strokeWidth="1.2" strokeLinecap="round"/><ellipse cx="14" cy="10" rx="4.5" ry="2.8" transform="rotate(-30 14 10)" fill="none" stroke="rgba(0,200,255,0.45)" strokeWidth="1"/><ellipse cx="14" cy="16" rx="4.5" ry="2.8" transform="rotate(30 14 16)" fill="none" stroke="rgba(0,200,255,0.45)" strokeWidth="1"/><circle cx="14" cy="4" r="1.2" fill="rgba(0,200,255,0.6)"/></svg>
               <div>
@@ -701,8 +701,9 @@ export default function QuantumLiving({ onBack, archetype }) {
                 <p style={{fontSize:15,fontWeight:700,color:"rgba(255,255,255,0.92)",letterSpacing:".03em"}}>The Healing Intelligence</p>
               </div>
             </div>
-            <p style={{fontFamily:"'Crimson Pro',serif",fontStyle:"italic",fontSize:14,color:"rgba(0,200,255,0.82)",textAlign:"right",lineHeight:1.6}}>Three principles<br/>of the body</p>
+            <span style={{fontSize:12,fontWeight:700,color:"rgba(0,200,255,0.6)",letterSpacing:".06em",flexShrink:0}}>{healingExpanded ? "↑ Close" : "Explore →"}</span>
           </div>
+          {healingExpanded && (<>
           <div style={{padding:"16px 20px 20px"}}>
             <p style={{fontFamily:"'Crimson Pro',serif",fontStyle:"italic",fontSize:15,color:"rgba(255,255,255,0.75)",lineHeight:1.8,borderLeft:"2px solid rgba(0,200,255,0.3)",paddingLeft:14}}>"The most sophisticated healing system ever known is not in any clinic or laboratory. It is in you."</p>
           </div>
@@ -747,7 +748,6 @@ export default function QuantumLiving({ onBack, archetype }) {
                   </div>
                 )}
                 {!active && (<p style={{textAlign:"center",fontSize:12,color:"rgba(0,200,255,0.55)",letterSpacing:".1em",textTransform:"uppercase",fontStyle:"italic"}}>Tap an orb to reveal</p>)}
-                <button onClick={()=>setShowRemedySearch(true)} style={{width:"100%",marginTop:16,border:"2px solid rgba(0,200,255,0.7)",borderRadius:100,padding:"15px",fontSize:16,fontWeight:800,background:"linear-gradient(135deg,rgba(0,200,255,0.15),rgba(0,200,255,0.08))",color:"#FFFFFF",cursor:"pointer",fontFamily:"'Space Grotesk',sans-serif",letterSpacing:".08em",boxShadow:"0 0 18px rgba(0,200,255,0.25), 0 0 6px rgba(0,200,255,0.15)",animation:"remedyPulse 2.5s ease-in-out infinite"}}>🌿 Natural Remedy Library →</button>
               </div>
             );
           })()}
@@ -755,23 +755,11 @@ export default function QuantumLiving({ onBack, archetype }) {
             <p style={{fontSize:13,color:"rgba(0,200,255,0.55)",lineHeight:1.7,fontStyle:"italic",marginBottom:6}}>A note on the source material</p>
             <p style={{fontSize:15,color:"rgba(255,255,255,0.82)",lineHeight:1.85}}>Back to Eden identifies eight laws of health: Nutrition, Exercise, Water, Sunlight, Temperance, Air, Rest, and Trust in Divine Power. The 5 Quantum Laws are a distillation of those principles into a daily practice framework — consolidating Water and Sunlight as supporting practices within Breath and Motion, and weaving spiritual grounding throughout Quantum Balance rather than separating it. The source is the same. The application is designed for modern life.</p>
           </div>
+          </>)}
         </div>
 
-        {/* ── QUANTUM HEALTH RANGE ── */}
-        <div onClick={()=>setActiveShop(true)} style={{marginBottom:16,borderRadius:18,overflow:"hidden",cursor:"pointer",background:"linear-gradient(135deg,rgba(52,211,153,0.10) 0%,rgba(52,211,153,0.03) 100%)",border:"1px solid rgba(52,211,153,0.3)",transition:"all .22s"}} onMouseEnter={e=>{e.currentTarget.style.background="linear-gradient(135deg,rgba(52,211,153,0.18) 0%,rgba(52,211,153,0.07) 100%)";e.currentTarget.style.borderColor="rgba(52,211,153,0.55)";}} onMouseLeave={e=>{e.currentTarget.style.background="linear-gradient(135deg,rgba(52,211,153,0.10) 0%,rgba(52,211,153,0.03) 100%)";e.currentTarget.style.borderColor="rgba(52,211,153,0.3)";}}>
-          <div style={{background:"linear-gradient(90deg,rgba(52,211,153,0.22),rgba(52,211,153,0.10))",borderBottom:"1px solid rgba(52,211,153,0.2)",padding:"10px 20px",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
-            <div style={{display:"flex",alignItems:"center",gap:8}}><span style={{fontSize:14}}>🌿</span><span style={{fontSize:11,fontWeight:700,color:GREEN,letterSpacing:".14em",textTransform:"uppercase"}}>Quantum Living Member Benefit</span></div>
-            <div style={{background:"rgba(52,211,153,0.2)",border:"1px solid rgba(52,211,153,0.5)",borderRadius:100,padding:"4px 12px"}}><span style={{fontSize:13,fontWeight:800,color:GREEN,letterSpacing:".04em",animation:"pct20Pulse 2.2s ease-in-out infinite"}}>20% OFF</span></div>
-          </div>
-          <div style={{padding:"20px 20px 18px",display:"flex",alignItems:"center",gap:16}}>
-            <div style={{flex:1}}>
-              <p style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:22,letterSpacing:2,color:WHITE,marginBottom:6,lineHeight:1.1}}>Discover Your Quantum Health Range</p>
-              <p style={{fontFamily:"'Crimson Pro',serif",fontStyle:"italic",fontSize:15,color:"rgba(255,255,255,0.6)",lineHeight:1.6,marginBottom:12}}>Five laws. Five product collections. Each formulation built from the same science that drives the law.</p>
-              <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>{["🌱 Natural","🔬 Science-backed","🌿 Plant-first","✓ QL Exclusive"].map(t=>(<span key={t} style={{fontSize:11,fontWeight:600,color:"rgba(52,211,153,0.7)",background:"rgba(52,211,153,0.08)",border:"1px solid rgba(52,211,153,0.2)",borderRadius:100,padding:"3px 10px"}}>{t}</span>))}</div>
-            </div>
-            <div style={{width:40,height:40,borderRadius:"50%",flexShrink:0,background:"rgba(52,211,153,0.12)",border:"1px solid rgba(52,211,153,0.35)",display:"flex",alignItems:"center",justifyContent:"center"}}><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M4 2l4 4-4 4" stroke={GREEN} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg></div>
-          </div>
-        </div>
+        {/* ── NATURAL REMEDY LIBRARY — always visible ── */}
+        <button onClick={()=>setShowRemedySearch(true)} style={{width:"100%",marginBottom:16,border:"1px solid rgba(0,200,255,0.35)",borderRadius:100,padding:"13px",fontSize:14,fontWeight:700,background:"rgba(0,200,255,0.06)",color:"#00C8FF",cursor:"pointer",fontFamily:"'Space Grotesk',sans-serif",letterSpacing:".06em"}}>🌿 Natural Remedy Library →</button>
 
         {/* Disclaimer */}
         <div style={{marginTop:8,padding:"14px 18px",background:"rgba(255,255,255,0.02)",border:`1px solid ${BORDER2}`,borderRadius:12}}>
