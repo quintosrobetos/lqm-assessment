@@ -2544,15 +2544,14 @@ function GuidedProtocol({ remedy, accentColor, onClose }) {
     return () => { clearInterval(timerRef.current); stop(); };
   }, []);
 
-  // Auto-scroll content to top on step change — reset both the inner div and window
+  // Auto-scroll content to top on step change
   useEffect(() => {
     if (contentRef.current) contentRef.current.scrollTop = 0;
-    window.scrollTo({ top: 0, behavior: "instant" });
   }, [step]);
 
   function goNext() {
     stop();
-    setShowTip(false);
+    setShowTip(true);
     setTimerActive(false);
     if (step < total - 1) {
       setStep(step + 1);
@@ -2567,7 +2566,7 @@ function GuidedProtocol({ remedy, accentColor, onClose }) {
 
   function goPrev() {
     stop();
-    setShowTip(false);
+    setShowTip(true);
     setTimerActive(false);
     if (step > 0) {
       setStep(step - 1);
@@ -2688,7 +2687,7 @@ function GuidedProtocol({ remedy, accentColor, onClose }) {
             onClick={() => {
               if (i !== step) {
                 stop();
-                setShowTip(false);
+                setShowTip(true);
                 setTimerActive(false);
                 setStep(i);
                 if (steps[i].timer) setTimer(steps[i].timer);
@@ -2719,7 +2718,7 @@ function GuidedProtocol({ remedy, accentColor, onClose }) {
       <div ref={contentRef} style={{
         flex: 1, display: "flex", flexDirection: "column",
         alignItems: "center", justifyContent: "flex-start",
-        padding: "12px 20px 16px", overflow: "auto",
+        padding: "16px 24px 20px", overflow: "auto",
         overflowX: "hidden",
       }}>
 
