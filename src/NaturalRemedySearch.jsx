@@ -20,6 +20,7 @@ const SOURCE_META = {
   BON: { label:"Barbara O'Neill", short:"BON", color:"#00C8FF", bg:"rgba(0,200,255,0.12)", border:"rgba(0,200,255,0.35)" },
   MJ:  { label:"Mary Jones", short:"MJ",  color:"#A78BFA", bg:"rgba(167,139,250,0.12)", border:"rgba(167,139,250,0.35)" },
   AE:  { label:"Arnold Ehret", short:"AE",  color:"#F59E0B", bg:"rgba(245,158,11,0.12)", border:"rgba(245,158,11,0.35)" },
+  Q:   { label:"Q — LQM Original", short:"Q",   color:"#F472B6", bg:"rgba(244,114,182,0.12)", border:"rgba(244,114,182,0.35)" },
 };
 
 const LAW_LABELS = {
@@ -639,6 +640,38 @@ const REMEDY_DATA = [
         },
       },
 
+      {
+        name: "Red Onion Flu Remedy Tonic",
+        tagline: "Q's family-tested whole-food immune tonic — 15 years of proven results",
+        sources: ["Q"],
+        lawLink: "05",
+        ingredients: [
+          "2 red onions — cut up, skin on (organic)",
+          "6–8 garlic cloves — cut through, skin on (organic)",
+          "1 thumb fresh ginger",
+          "1 thumb fresh turmeric",
+          "2 oranges — cut with skin (organic, unwaxed)",
+          "2 lemons — cut with skin (organic, unwaxed)",
+          "1 heaped teaspoon cayenne pepper",
+          "½ teaspoon black pepper",
+          "½ teaspoon turmeric powder",
+          "AT SERVING: 2 extra garlic cloves (crushed, rested 10 mins), 1 spoonful raw honey, juice of 1 lemon",
+        ],
+        steps: [
+          { instruction: "First — crush 2 fresh garlic cloves and set them aside to rest. Then add all pot ingredients to a large pan — red onions, 6–8 garlic cloves, ginger, turmeric, oranges, lemons, cayenne, black pepper and turmeric powder. Cover with water and bring to the boil.", tip: "Crush the garlic before you do anything else. Allicin — garlic's most potent antiviral compound — needs 10 minutes after crushing to fully activate. By the time the pot comes to the boil and simmers, the garlic will be ready. Everything goes in with the skin on — quercetin from the red onion skins and bioflavonoids from the citrus peel are key.", image: "red-onion-raw.jpg" },
+          { instruction: "Reduce to a simmer and cook for 10–15 minutes until the liquid turns deep red and fragrant.", timer: 900, tip: "The deep red colour tells you the quercetin from the onion skins has fully released. Do not rush this step. Your crushed garlic has been resting since the start — by now it is fully activated and ready.", image: "red-onion-boiling.jpg" },
+          { instruction: "Remove from heat. Let the mixture cool to warm — comfortable to hold in a cup but not burn your mouth.", tip: "Temperature matters. Too hot and you destroy the raw honey's active enzymes. Too cold and you lose the circulatory benefit. Warm is the target." },
+          { instruction: "Pour the warm mixture through a sieve into a mug until three-quarters full. Drop in your rested crushed garlic cloves.", tip: "The three-quarter measure leaves room for the honey and lemon without diluting the mixture. The garlic has been resting since step one — it is fully activated and ready." },
+          { instruction: "Add one generous spoonful of raw honey. Squeeze in the juice of one whole lemon. Stir gently and drink slowly.", tip: "Raw honey is antimicrobial and coats the throat. Lemon adds a final dose of vitamin C. Drink slowly — this is medicine. Repeat 3–4 times throughout the day.", image: "red-onion-done.jpg" },
+        ],
+        science: "Red onion skins are exceptionally high in quercetin — a flavonoid with well-documented antiviral, anti-inflammatory and immune-modulating properties. Combined with allicin from garlic, gingerol from ginger, curcumin from turmeric, and vitamin C from citrus, this tonic covers every major pathway of acute immune support. Q developed and refined this formula over 15 years within family and community health settings.",
+        method: "Boil all ingredients skin-on for 10–15 minutes until deep red. Cool to warm. Add fresh rested garlic, raw honey and lemon at serving. Drink three-quarters of a cup 3–4 times daily during illness.",
+        frequency: "3–4 times daily during cold or flu. Begin at first sign of symptoms.",
+        caution: "All ingredients must be organic and unwaxed where citrus is used. Do not give raw honey to infants under 12 months. If on blood thinners, consult your doctor before using large quantities of garlic.",
+        sources_detail: {
+          Q: "Developed, tested and refined by Q over 15 years of personal and community health practice. Combines classical naturopathic principles with personal observation of results across multiple generations.",
+        },
+      },
     ],
   },
 
@@ -978,6 +1011,36 @@ const REMEDY_DATA = [
           BON: "Barbara O'Neill demonstrates castor oil packs for joint conditions as one of her primary topical anti-inflammatory protocols.",
         },
       },
+      {
+        name: "Arthritis Anti-Inflammatory Juice",
+        tagline: "Q's bromelain and copper-rich juice protocol for joint inflammation",
+        sources: ["Q","BTE"],
+        lawLink: "05",
+        ingredients: [
+          "1 cup fresh pineapple — only source of bromelain enzyme (organic)",
+          "1 handful fresh parsley",
+          "1 handful broccoli florets",
+          "1 handful spinach",
+          "3 carrots",
+          "2 apples",
+          "1 inch fresh ginger",
+          "Optional: bilberry juice, celery juice, aloe vera juice",
+        ],
+        steps: [
+          { instruction: "Prepare all ingredients. Chop pineapple, carrots and apples. Keep parsley, broccoli and spinach whole.", tip: "Pineapple is the only food source of bromelain — a proteolytic enzyme that breaks down protein and reduces joint inflammation. Fresh only — canned contains no active bromelain." },
+          { instruction: "Juice pineapple first, then parsley, broccoli and spinach. Then carrots, apples and ginger.", tip: "Parsley, broccoli and spinach contain beta-carotene and copper — nutrients directly associated with joint tissue health." },
+          { instruction: "Drink immediately. Chew your juice — let it mix with saliva before swallowing.", tip: "Chewing juice activates salivary enzymes and improves nutrient absorption — an LQM principle especially important for joint conditions." },
+          { instruction: "For maximum benefit drink daily. On alternate days add bilberry, celery or aloe vera juice.", tip: "Bilberry and celery are well-documented anti-inflammatories. Aloe vera supports the gut lining — foundational to joint health." },
+        ],
+        science: "Bromelain from pineapple is the only food-derived enzyme shown to reduce joint inflammation through protein breakdown. Beta-carotene and copper from the vegetables address nutritional deficiencies most associated with rheumatoid arthritis.",
+        method: "Juice pineapple, parsley, broccoli, spinach, carrots, apples and ginger. Drink daily on empty stomach. Chew before swallowing.",
+        frequency: "Daily — morning, on an empty stomach",
+        caution: "All ingredients should be organic. Those on blood thinners should be cautious with large quantities of bromelain.",
+        sources_detail: {
+          Q: "Q developed this juice formula based on 15 years of research into natural joint health protocols.",
+          BTE: "Back to Eden identifies beta-carotene-rich vegetables as foundational for joint conditions.",
+        },
+      },
     ],
   },
 
@@ -1183,6 +1246,81 @@ const REMEDY_DATA = [
         },
       },
 
+      {
+        name: "Gut Cooling Juice",
+        tagline: "Q's original anti-inflammatory gut juice — reduces intestinal wall inflammation",
+        sources: ["Q"],
+        lawLink: "05",
+        ingredients: [
+          "1 whole cucumber — organic",
+          "1 head fennel",
+          "1-2 handfuls fresh mint leaves",
+          "1 inch fresh ginger",
+          "1 lemon (optional) — organic, unwaxed",
+          "All ingredients must be organic",
+        ],
+        steps: [
+          { instruction: "Wash all ingredients. Leave cucumber skin on if organic — it contains silica which supports the gut lining.", tip: "Go organic especially for this juice. Cucumber, kale, spinach and celery are among the highest pesticide-load foods. Pesticides directly damage the gut microbiome." },
+          { instruction: "Cut the cucumber and fennel into juicer-sized pieces. Feed through the juicer with mint leaves and ginger.", tip: "Fennel is one of the most effective natural antispasmodics — it relaxes the smooth muscle of the intestinal wall, which is often in chronic contraction in people with digestive issues." },
+          { instruction: "If using lemon, squeeze the juice in at the end. Stir and pour into a glass.", tip: "Adding lemon at the end preserves more vitamin C, which supports the gut lining and aids mineral absorption." },
+          { instruction: "Drink slowly on an empty stomach, 20-30 minutes before eating.", tip: "Most effective for bloating, cramping and IBS-type symptoms. The combination of cucumber, fennel and mint actively reduces inflammation in the intestinal walls." },
+        ],
+        science: "Cucumber contains fisetin and silica which reduce intestinal inflammation. Fennel is clinically documented to reduce intestinal spasm and gas. Mint reduces smooth muscle tension. Combined with ginger's anti-inflammatory gingerols, this juice addresses the four primary causes of gut wall irritation.",
+        method: "Juice cucumber, fennel, mint and ginger. Add lemon at end. Drink on empty stomach. All organic.",
+        frequency: "Daily — morning on empty stomach, or between meals during a gut reset",
+        caution: "All ingredients must be organic. If you have a fennel allergy, omit and use more cucumber.",
+        sources_detail: { Q: "Original formula developed by Q over 15 years, used as a primary gut-reset juice in family and community health settings." },
+      },
+      {
+        name: "Constipation Relief Protocol",
+        tagline: "Q's foundational constipation reset — water, food and gut cooling",
+        sources: ["Q"],
+        lawLink: "03",
+        ingredients: [
+          "Filtered water — minimum 3 large glasses on empty stomach every morning",
+          "Dark leafy greens, whole fruits, plant-based foods",
+          "AVOID: wheat, barley, rye, white flour, white sugar, high fat processed foods",
+        ],
+        steps: [
+          { instruction: "First thing every morning, drink 3 large glasses of filtered water on a completely empty stomach.", tip: "This triggers the gastrocolic reflex — a signal from the stomach to the large intestine to begin moving. Most constipation is simply the result of chronic dehydration of the colon." },
+          { instruction: "Remove all white flour products, white sugar, barley and processed foods. Replace with dark leafy greens, whole fruits and plant foods.", tip: "Refined flour creates a paste-like substance in the intestines — the primary dietary cause of chronic constipation." },
+          { instruction: "Reduce or eliminate high fat processed foods and animal products.", tip: "These slow gut motility significantly. Plant fats from avocado and nuts do not have the same effect." },
+          { instruction: "Make the Gut Cooling Juice daily. Add 1 inch fresh ginger or turmeric to vegetable juices throughout the day.", tip: "The gut cooling juice is Q's most effective addition to this protocol. Fennel specifically relaxes intestinal spasm." },
+          { instruction: "Maintain consistently for a minimum of 21 days.", tip: "Most people notice significant improvement within 7-10 days and full resolution within 21 days of consistent application." },
+        ],
+        science: "Chronic constipation is primarily a dietary and hydration problem. Water on empty stomach triggers the gastrocolic reflex. Removal of refined flour eliminates the primary mechanical cause.",
+        method: "3 glasses filtered water on empty stomach daily. Remove white flour and sugar. Add gut cooling juice and ginger to daily routine. Maintain 21 days.",
+        frequency: "Daily — this is a lifestyle change, not a one-time fix",
+        caution: "If you have not had a bowel movement for more than 5 days, or experience pain, fever or blood, seek medical attention immediately.",
+        sources_detail: { Q: "Developed and tested by Q over 15 years. Combines naturopathic hydration principles with dietary reform and the original Gut Cooling Juice formula." },
+      },
+      {
+        name: "Gut Health Foundation",
+        tagline: "The gut is the root of all disease — and all healing",
+        sources: ["Q","BON"],
+        lawLink: "03",
+        ingredients: [
+          "Raw cabbage juice — 1 cup daily, OR L-Glutamine supplement 5g in water",
+          "Filtered water — minimum 2 litres daily",
+          "Probiotic-rich fermented foods — sauerkraut, kimchi",
+          "Remove: refined sugar, alcohol, unnecessary antibiotics",
+        ],
+        steps: [
+          { instruction: "Understand this foundational principle: the gut lining houses over half the immune system and half the detoxification system. If the gut is not healthy, you cannot fully heal any other condition.", tip: "95% of serotonin is made in the gut, not the brain. Antidepressants cannot fully work if the gut is inflamed. Gut health comes first in the LQM protocol." },
+          { instruction: "Juice half a head of raw cabbage daily and drink on an empty stomach. Alternatively supplement with 5g L-Glutamine powder in water.", tip: "L-Glutamine is the primary fuel source for intestinal lining cells. Without it the gut lining cannot repair itself. Raw cabbage juice heals stomach ulcers within 10 days of consistent use." },
+          { instruction: "Remove all refined sugar. Sugar feeds Candida Albicans — yeast overgrowth that inflames the gut lining.", tip: "Low stomach acid leads to protein malnutrition and toxin accumulation in the intestines. Healing the gut means improving stomach acid levels, not suppressing them." },
+          { instruction: "Introduce probiotic-rich fermented foods gradually — sauerkraut, kimchi.", tip: "Gut microbiome diversity predicts immune response to illness better than almost any other single factor." },
+          { instruction: "Maintain for a minimum of 90 days.", tip: "Eventually, poor gut health leads to adrenal depletion and suppression of DHEA — the youth hormone — leading to premature ageing. Healing the gut is the foundation of long-term health." },
+        ],
+        science: "The gut-brain axis, microbiome immunity, and L-Glutamine in gut lining repair are among the most confirmed findings in modern medicine.",
+        method: "Daily raw cabbage juice or L-Glutamine. Remove refined sugar. Introduce fermented foods. Maintain 90 days minimum.",
+        frequency: "Daily — ongoing. The gut foundation underpins all other LQM healing work.",
+        caution: "Raw cabbage juice can cause temporary bloating. Start small and increase gradually. Thyroid conditions — consult your doctor before large quantities of raw cabbage.",
+        sources_detail: {
+          Q: "Q has researched and applied gut health principles for 15 years.",
+          BON: "Barbara O'Neill teaches that healing the gut is the first step in addressing any chronic health condition.",
+        },
+      },
     ],
   },
 
@@ -1682,6 +1820,37 @@ const REMEDY_DATA = [
         caution: "Hot chilis can irritate sensitive stomachs. Start with less chili and build up. Avoid if you have active stomach ulcers.",
         sources_detail: { BTE: "Turmeric, ginger, garlic, and chilis have been used as medicinal foods across every traditional healing system for thousands of years." },
       },
+      {
+        name: "Q's Chilli Slaw Dressing",
+        tagline: "Q's original fire dressing — fermented sun-dried tomato and scotch bonnet",
+        sources: ["Q"],
+        lawLink: "05",
+        ingredients: [
+          "Sun-dried tomatoes — prepped 2–3 days in advance (see preparation below)",
+          "Raw organic tomatoes",
+          "Juice of 2 green apples",
+          "10–14 scotch bonnet peppers — organic",
+          "Cold-pressed extra virgin olive oil",
+          "Pink Himalayan salt",
+          "1 spoonful cayenne pepper",
+          "1 spoonful turmeric",
+          "ALL ingredients must be organic",
+          "SERVE WITH: Detox Slaw base (purple cabbage, carrot, cucumber, avocado)",
+        ],
+        steps: [
+          { instruction: "2–3 days before making the dressing: place sun-dried tomatoes in a glass bowl. Squeeze the juice of a lemon over them generously — repeat this 4–6 times over the course of 2 days. Add pink Himalayan salt, cover the bowl and leave. The bowl can be placed in sunlight.", tip: "This 2–3 day lemon preparation is Q's original technique. The acid from the repeated lemon applications softens and activates the sun-dried tomatoes, drawing out their concentrated lycopene and creating a fermented-style base. The glass bowl is essential — never use plastic for this process." },
+          { instruction: "When the sun-dried tomatoes are ready (soft, fragrant, well-saturated with lemon), add them to a blender along with the raw tomatoes, green apple juice, scotch bonnets, cold-pressed olive oil, pink Himalayan salt, cayenne and turmeric.", tip: "Green apple juice provides natural pectin and malic acid, which balances the heat of the scotch bonnet and adds a subtle sweetness. This is Q's key modification to a traditional chilli dressing — the apple juice is not optional." },
+          { instruction: "Blend until smooth. Taste and adjust — if too hot, add a little more apple juice or olive oil. Refrigerate once blended.", tip: "Scotch bonnet peppers (10–14) make this dressing seriously hot. Start with fewer if you are heat-sensitive and build up. The capsaicin from scotch bonnets is one of the most potent natural anti-inflammatory and metabolism-boosting compounds available." },
+          { instruction: "Serve immediately over the Detox Slaw base (purple cabbage, shredded carrot, diced cucumber, avocado) — or use as a condiment with any food. This dressing makes everything medicinal.", tip: "The combination of scotch bonnet (capsaicin), turmeric (curcumin), cayenne (more capsaicin), olive oil (oleocanthal — the same anti-inflammatory mechanism as ibuprofen), and lycopene-rich tomatoes makes this dressing genuinely therapeutic, not just flavourful." },
+        ],
+        science: "Scotch bonnet peppers contain among the highest concentrations of capsaicin of any chilli variety — a compound with documented anti-inflammatory, metabolic and analgesic effects. Lycopene from sun-dried tomatoes is a powerful antioxidant associated with reduced risk of cardiovascular disease and certain cancers. Turmeric provides curcumin. Cold-pressed olive oil provides oleocanthal. The repeated lemon preparation technique is Q's original method for activating and concentrating the bioactive compounds in sun-dried tomatoes.",
+        method: "Prep sun-dried tomatoes in lemon and salt 2–3 days ahead. Blend with raw tomato, green apple juice, scotch bonnets, olive oil, pink salt, cayenne and turmeric. Refrigerate. Serve over slaw or as a condiment.",
+        frequency: "Use as a condiment with any meal. The sun-dried tomato prep needs 2–3 days advance preparation.",
+        caution: "Extremely hot — 10–14 scotch bonnets is not for heat-sensitive individuals. Reduce the quantity of scotch bonnet if needed. Avoid if you have active stomach ulcers or acid reflux. All ingredients must be organic.",
+        sources_detail: {
+          Q: "Q's original dressing recipe, developed and refined over years of personal use. The 2–3 day sun-dried tomato lemon preparation technique is Q's original method. Paired with the Detox Slaw base for a complete medicinal meal.",
+        },
+      }
     ],
   },
   {
@@ -1938,6 +2107,221 @@ const REMEDY_DATA = [
           BTE: "Alkalising the body's internal environment is a foundational principle in Back to Eden naturopathic practice.",
         },
       },
+      {
+        name: "Golden Spice Latte",
+        tagline: "Q's warming anti-inflammatory daily drink — 10 documented benefits",
+        sources: ["Q"],
+        lawLink: "05",
+        ingredients: [
+          "1/2 cup non-dairy milk — coconut or almond milk",
+          "1 tsp grated fresh ginger OR 1/2 tsp ginger powder",
+          "1/2 tsp ground cinnamon",
+          "1 tsp raw honey",
+          "1 tsp turmeric",
+          "Pinch of cayenne pepper — all organic",
+        ],
+        steps: [
+          { instruction: "Combine all ingredients in a small saucepan.", tip: "Non-dairy milk is specified because dairy can suppress curcumin absorption. Coconut milk is preferred — its fat content enhances curcumin bioavailability." },
+          { instruction: "Bring to the boil then immediately reduce to a gentle simmer for 10 minutes until fragrant.", timer: 600, tip: "The long simmer allows fat-soluble curcuminoids to incorporate into the milk fat, dramatically increasing bioavailability. This drink keeps 5 days in the fridge." },
+          { instruction: "Cool slightly to drinking temperature and drink slowly.", tip: "Q uses this formula daily. Make a larger batch and reheat gently each day — do not boil when reheating." },
+        ],
+        science: "Covers 10 documented health pathways: reduces inflammation, prevents cell damage, improves mood, supports brain function, helps prevent heart disease, possibly reduces cancer risk, lowers blood sugar, boosts immunity, improves bone health, aids digestion.",
+        method: "Combine non-dairy milk, ginger, cinnamon, honey, turmeric and cayenne. Bring to boil, simmer 10 mins. Drink warm. Keeps 5 days in fridge.",
+        frequency: "Daily — morning or evening",
+        caution: "Turmeric can interfere with blood-thinning medications at high doses. Consult your doctor if on anticoagulants.",
+        sources_detail: { Q: "Q's personal daily drink formula, developed and refined over years of personal use." },
+      },
+      {
+        name: "Seamoss Supplement Protocol",
+        tagline: "92 of 102 minerals — the body's foundational mineral supplement",
+        sources: ["Q"],
+        lawLink: "05",
+        ingredients: [
+          "Seamoss supplement — capsule or powder form (wild-crafted organic)",
+          "Gordon Watkins Seamoss or equivalent wild-crafted organic seamoss",
+        ],
+        steps: [
+          { instruction: "Take seamoss daily as directed — typically 1-2 capsules or 1 teaspoon powder per day.", tip: "Seamoss contains 92 of the 102 minerals the human body is made of. One of the most complete mineral foods available." },
+          { instruction: "Take with water in the morning with or after breakfast.", tip: "Supports thyroid function, boosts immunity, reduces inflammation, improves digestion, and supports hair, skin and nails." },
+          { instruction: "Take consistently for a minimum of 30 days before assessing the full effect.", tip: "Modern food processing has depleted mineral content in most foods. Seamoss restores comprehensive mineral levels in a single supplement." },
+        ],
+        science: "Documented to contain 92 of the 102 minerals the human body requires. Research supports thyroid support, immune modulation, anti-inflammatory action and digestive health.",
+        method: "Daily capsule or powder. Wild-crafted organic preferred. Minimum 30 days.",
+        frequency: "Daily — ongoing as a foundational mineral supplement",
+        caution: "High in iodine — do not use with hyperthyroidism or thyroid medication without doctor's guidance.",
+        sources_detail: { Q: "Q's personal daily supplement. Recommends wild-crafted organic seamoss as the LQM foundational mineral supplement." },
+      },
+      {
+        name: "Couchgrass Root Kidney Tea",
+        tagline: "Traditional kidney and urinary tract cleanse — certified organic",
+        sources: ["Q","BTE"],
+        lawLink: "03",
+        ingredients: [
+          "1-2 teaspoons dried Couchgrass Root (Agropyron repens) — certified organic",
+          "500ml filtered water",
+          "Raw honey to taste (optional)",
+        ],
+        steps: [
+          { instruction: "Place 1-2 teaspoons couchgrass root in a teapot. Pour 500ml boiled water.", tip: "Couchgrass root has been used in European naturopathic medicine for centuries as a kidney and urinary tract tonic — gentle diuretic without stripping electrolytes." },
+          { instruction: "Cover and steep for 10-15 minutes.", timer: 750, tip: "The active compounds — triticin, mucilage and volatile oils — are water-soluble. Longer steep extracts more soothing mucilaginous compounds." },
+          { instruction: "Strain and drink warm. Drink 2-3 cups daily during a kidney cleanse alongside 2 litres filtered water.", tip: "The diuretic action is most effective with adequate hydration — 2 litres minimum daily." },
+        ],
+        science: "Well-documented in European herbal medicine for diuretic, anti-inflammatory and demulcent properties in the urinary tract.",
+        method: "Steep 1-2 tsp in 500ml boiled water 10-15 mins. Drink 2-3 cups daily during cleanse.",
+        frequency: "2-3 cups daily during kidney cleanse (1-4 weeks). Occasionally as maintenance.",
+        caution: "Not in pregnancy. Consult doctor if you have kidney disease or take diuretics. Certified organic only.",
+        sources_detail: {
+          Q: "Q uses certified organic couchgrass root as part of the LQM kidney detox protocol.",
+          BTE: "Back to Eden identifies couchgrass as a traditional kidney and urinary tract remedy.",
+        },
+      },
+      {
+        name: "Corn Silk & Parsley Blend",
+        tagline: "Four-herb kidney and lymphatic support tea",
+        sources: ["Q"],
+        lawLink: "03",
+        ingredients: [
+          "Parsley & Cornsilk herbal blend — cornsilk, dandelion leaf, parsley leaf, juniper berry",
+          "Certified organic loose herb tea",
+          "1-2 teaspoons per cup, 500ml filtered water",
+        ],
+        steps: [
+          { instruction: "Place 1-2 teaspoons of herb blend in a teapot. Pour 500ml boiled water and cover.", tip: "This four-herb blend covers kidney support (cornsilk, juniper), lymphatic drainage (dandelion) and liver support (parsley) — comprehensive without being aggressive." },
+          { instruction: "Steep 8-10 minutes. Strain and drink warm. Drink 2 cups per day.", timer: 540, tip: "Dandelion provides potassium-sparing diuretic action — unlike pharmaceutical diuretics which deplete potassium." },
+          { instruction: "Pair with Couchgrass Root Tea on alternate days for comprehensive kidney support.", tip: "Together these two teas cover the full spectrum of kidney and urinary tract support." },
+        ],
+        science: "Each herb has documented applications in European and Ayurvedic medicine providing gentle, comprehensive support for the body's filtration and drainage systems.",
+        method: "Steep 1-2 tsp blend in 500ml boiled water 8-10 mins. Drink 2 cups daily.",
+        frequency: "2 cups daily during cleanse. Suitable for regular maintenance.",
+        caution: "Juniper berry is contraindicated in pregnancy and kidney disease.",
+        sources_detail: { Q: "Q uses this blend as part of the LQM kidney and lymphatic protocol." },
+      },
+      {
+        name: "Kola Nut & Kelp Protocol",
+        tagline: "Natural energy and thyroid support — without the crash",
+        sources: ["Q"],
+        lawLink: "04",
+        ingredients: [
+          "Kola Nut & Kelp Plus herbal tincture — 20-40 drops in water",
+          "Herba Sanus or equivalent quality supplier",
+        ],
+        steps: [
+          { instruction: "Take 20-40 drops in a small glass of water, 1-2 times daily. Morning and early afternoon only.", tip: "Kola nut contains natural caffeine and theobromine in a whole-food matrix — producing sustained, even energy without the sharp crash of coffee." },
+          { instruction: "Take consistently for 4-6 weeks to assess the thyroid-supporting effect from the kelp component.", tip: "Kelp provides iodine in whole-food form — essential for thyroid hormones T3 and T4. Iodine deficiency is a primary overlooked cause of fatigue, low mood and brain fog." },
+          { instruction: "Maintain at least 2 litres filtered water daily.", tip: "Many chronically tired people are simultaneously iodine-deficient and dehydrated. This protocol addresses both." },
+        ],
+        science: "Kola nut provides natural caffeine and theobromine. Kelp provides dietary iodine critical for thyroid hormone synthesis. Iodine deficiency affects up to 2 billion people globally.",
+        method: "20-40 drops in water twice daily (morning and afternoon). Minimum 4-6 weeks.",
+        frequency: "Twice daily — morning and early afternoon. Not within 6 hours of sleep.",
+        caution: "Not suitable if caffeine-sensitive, pregnant, breastfeeding, or if you have hyperthyroidism. Consult doctor if on thyroid medication.",
+        sources_detail: { Q: "Q uses Kola Nut and Kelp as a personal energy and thyroid support protocol within the LQM wellness stack." },
+      },
+      {
+        name: "Wheatgrass Daily Protocol",
+        tagline: "High chlorophyll, amino acids and antioxidants — daily green foundation",
+        sources: ["Q"],
+        lawLink: "05",
+        ingredients: [
+          "Certified organic wheatgrass powder (Natures Aid or equivalent)",
+          "1 teaspoon per serving, 200ml cold filtered water",
+        ],
+        steps: [
+          { instruction: "Add 1 teaspoon certified organic wheatgrass powder to 200ml cold water. Stir well and drink immediately.", tip: "Wheatgrass is one of the most chlorophyll-dense foods available. Chlorophyll is structurally almost identical to haemoglobin, supporting blood oxygenation." },
+          { instruction: "Alternatively add to your morning green juice.", tip: "Contains 17 amino acids including all essential amino acids, making it a complete protein. High in vitamins C and E, beta-carotene and glutathione." },
+          { instruction: "Take daily on an empty stomach in the morning for maximum absorption.", tip: "Q uses organic wheatgrass as a non-negotiable daily green foundation." },
+        ],
+        science: "High in chlorophyll, fibre, all essential amino acids, antioxidants and minerals. Research supports digestion, immune function and detoxification.",
+        method: "1 tsp certified organic wheatgrass in cold water or green juice. Daily, morning on empty stomach.",
+        frequency: "Daily — morning",
+        caution: "Certified organic only. Coeliac disease — source from a certified gluten-free producer.",
+        sources_detail: { Q: "Q uses certified organic wheatgrass daily as part of the LQM green nutrition foundation." },
+      },
+      {
+        name: "Barley Grass Juice Protocol",
+        tagline: "The ultimate complete food supplement — regenerative nutrition",
+        sources: ["Q"],
+        lawLink: "05",
+        ingredients: [
+          "Organic barley grass juice powder (Regenerative Nutrition or equivalent)",
+          "1 teaspoon per serving, 200ml cold filtered water",
+        ],
+        steps: [
+          { instruction: "Add 1 teaspoon organic barley grass juice powder to 200ml cold water. Stir and drink immediately. Never use hot water — heat destroys the enzymes.", tip: "Barley grass juice powder is the freeze-dried concentrated juice of young barley — significantly higher bioavailability than ground grass powder." },
+          { instruction: "Take on an empty stomach in the morning or 30 minutes before meals.", tip: "Contains chlorophyll, all essential amino acids, vitamins C, B12 and K, and SOD — superoxide dismutase, the body's master antioxidant enzyme." },
+          { instruction: "Use alongside wheatgrass powder for comprehensive green nutrition.", tip: "Where wheatgrass excels in chlorophyll, barley grass juice is superior for enzyme activity and B12. Together they provide complete green coverage." },
+        ],
+        science: "Among the most comprehensively studied green food supplements. Contains SOD — the body's most powerful endogenous antioxidant. Supports cellular regeneration, alkalinity and immune function.",
+        method: "1 tsp in cold water. Morning on empty stomach. Pair with wheatgrass.",
+        frequency: "Daily — morning",
+        caution: "Cold water only. Source organic.",
+        sources_detail: { Q: "Q uses barley grass juice powder as part of the daily LQM green foundation, sourced from Regenerative Nutrition." },
+      },
+      {
+        name: "Refined Sugar Education",
+        tagline: "Understanding what refined sugar actually does to your body",
+        sources: ["Q"],
+        lawLink: "03",
+        ingredients: [
+          "Natural alternatives: raw honey, maple syrup, medjool dates, coconut sugar",
+          "Awareness: sugar hides under 50+ names in processed foods",
+        ],
+        steps: [
+          { instruction: "Understand this: refined sugar contains no fibre, no minerals, no proteins, no enzymes. Your body must borrow calcium, sodium, potassium and magnesium from healthy cells to metabolise it.", tip: "These minerals are not replaced. Over time this mineral depletion contributes to bone loss, muscle weakness, heart rhythm issues and immune dysfunction." },
+          { instruction: "Toxic waste from incomplete sugar metabolism accumulates in the brain and nervous system. Cells die faster. The bloodstream becomes overloaded.", tip: "High glycaemic foods overwhelm the pancreas. This cycle repeated daily leads to insulin resistance and eventually type 2 diabetes." },
+          { instruction: "Begin replacing refined sugar with raw honey, maple syrup, medjool dates or coconut sugar.", tip: "Q's own words: 'We are a family that loves sugar. Let us try and do better.' Reducing is a win. Every gram avoided is a gram of mineral theft prevented." },
+          { instruction: "Read food labels. Sugar hides under 50+ names — sucrose, high fructose corn syrup, dextrose, maltose, cane syrup and more.", tip: "Most effective single change: remove all sugary drinks. They are the highest-volume sugar source and contribute nothing nutritionally." },
+        ],
+        science: "The role of refined sugar in mineral depletion, metabolic disruption, pancreatic stress and immune suppression is extensively documented in nutritional biochemistry.",
+        method: "Replace refined sugar with natural alternatives. Read labels. Remove sugary drinks first.",
+        frequency: "Ongoing lifestyle change",
+        caution: "Diabetics should consult their healthcare provider before making significant carbohydrate changes.",
+        sources_detail: { Q: "Q has taught this material in family and community settings for 15 years — original LQM health education content." },
+      },
+      {
+        name: "Forgiveness & Sleep Reset",
+        tagline: "The emotional and spiritual foundation of deep sleep",
+        sources: ["Q"],
+        lawLink: "01",
+        ingredients: [
+          "A willingness to release resentment and unforgiveness",
+          "A gratitude practice specific to you",
+          "Optional: scripture, prayer or meditation",
+        ],
+        steps: [
+          { instruction: "Before sleep, take 5 minutes to identify what you are carrying — resentment, anger, unforgiveness. Name it without suppressing it.", tip: "Johns Hopkins Medicine research confirms chronic anger elevates IL-6 and CRP — inflammatory markers directly linked to heart disease, cancer and accelerated ageing. What you carry emotionally, your body carries physically." },
+          { instruction: "Make a conscious decision to release it — not for the other person's sake but for your own body. Forgiveness is not agreement. It is removing a burden you carry alone.", tip: "Unresolved anger elevates cortisol even during sleep, disrupting delta-wave sleep where cellular repair, growth hormone release and immune regulation occur." },
+          { instruction: "Bring your spiritual practice if you have one — prayer, scripture or meditation have documented physiological effects on the nervous system.", tip: "Proverbs 17:22 — 'A merry heart doeth good like a medicine, but a broken spirit drieth the bones.' Q holds that spiritual and physical health are inseparable. Take what resonates and leave what doesn't." },
+          { instruction: "Close with gratitude. Identify 3 specific things you are grateful for today. Write them down if possible.", tip: "Gratitude activates the parasympathetic nervous system — the rest-and-digest state that allows sleep to begin. It is difficult to feel grateful and anxious at the same time. This is practical nervous system regulation." },
+        ],
+        science: "Forgiveness practices reduce cortisol, lower blood pressure and improve immune function in clinical studies. Gratitude practice activates parasympathetic nervous system dominance.",
+        method: "Before sleep: name what you're carrying. Choose to release it. Bring your spiritual practice. Close with 3 specific gratitudes.",
+        frequency: "Every night — pre-sleep ritual",
+        caution: "Not a replacement for professional support for those dealing with trauma or mental health conditions.",
+        sources_detail: { Q: "Q teaches forgiveness and emotional health as foundational to physical healing — original LQM principle integrating spiritual wisdom with neuroscience." },
+      },
+      {
+        name: "10PM Bedtime Protocol",
+        tagline: "The cellular repair window — why getting to bed before 10pm changes everything",
+        sources: ["Q"],
+        lawLink: "01",
+        ingredients: [
+          "Target: lights out by 10pm",
+          "Target sleep: 7-9 hours",
+          "Evening eating closed by 7pm",
+          "Screens reduced from 9pm",
+        ],
+        steps: [
+          { instruction: "Understand the repair window: peak cellular regeneration occurs between 2am and 4am — but only if you are already in deep delta-wave sleep before this window opens.", tip: "Growth hormone — which drives cellular repair, muscle recovery, fat metabolism and immune function — is released in its largest pulse in the first deep sleep cycle, typically between 11pm and 1am." },
+          { instruction: "Begin winding down at 9pm. Reduce screens (blue light delays melatonin by up to 90 mins), lower room temperature, stop eating by 7pm.", tip: "Screens off at 9pm can shift natural sleep onset earlier by almost two hours within one week." },
+          { instruction: "Be in bed and lights out by 10pm. Your first 90-minute sleep cycle contains the most delta-wave deep sleep and the largest growth hormone release.", tip: "Every hour of sleep before midnight is worth approximately twice the restorative value of an hour after midnight — in terms of cellular repair." },
+          { instruction: "Maintain for 21 days. Track your energy at 7am, mood, skin clarity and recovery time.", tip: "7-9 hours of quality sleep in the right window is the single most powerful health intervention available. Q places Quantum Rest first in the 5 Quantum Laws for this reason." },
+        ],
+        science: "Harvard Medical School research confirms deep sleep quality is higher early in the night and degrades significantly after midnight. Circadian regulation of growth hormone and cellular repair (autophagy) is extensively documented.",
+        method: "Lights out 10pm. Screens down 9pm. Eating closed 7pm. 7-9 hours sleep. Maintain 21 days.",
+        frequency: "Every night — lifestyle anchor",
+        caution: "Shift workers should work with their healthcare provider to optimise sleep within their constraints.",
+        sources_detail: { Q: "Q teaches the 10pm bedtime as the non-negotiable foundation of Quantum Rest — the first of the 5 Quantum Laws, based on 15 years of personal research and Harvard sleep science." },
+      },
     ],
   },
 ];
@@ -2052,6 +2436,24 @@ const AUDIO_PREFIX = {
   "Hibiscus Tea": "protocol-hibiscus-tea",
   "Mullein Leaf Tea": "protocol-mullein-tea",
   "Clove, Ginger & Cinnamon Tea": "protocol-clove-tea",
+  // Q Originals
+  "Red Onion Flu Remedy Tonic": "protocol-red-onion-tonic",
+  "Q\'s Chilli Slaw Dressing": "protocol-chilli-slaw",
+  "Gut Cooling Juice": "protocol-gut-cooling-juice",
+  "Arthritis Anti-Inflammatory Juice": "protocol-arthritis-juice",
+  "Golden Spice Latte": "protocol-golden-spice-latte",
+  "Seamoss Supplement Protocol": "protocol-seamoss",
+  "Couchgrass Root Kidney Tea": "protocol-couchgrass-tea",
+  "Corn Silk & Parsley Blend": "protocol-cornsilk-parsley",
+  "Kola Nut & Kelp Protocol": "protocol-kola-kelp",
+  "Wheatgrass Daily Protocol": "protocol-wheatgrass",
+  "Barley Grass Juice Protocol": "protocol-barley-grass",
+  "Constipation Relief Protocol": "protocol-constipation",
+  "Refined Sugar Education": "protocol-sugar-education",
+  "Gut Health Foundation": "protocol-gut-foundation",
+  "Forgiveness & Sleep Reset": "protocol-forgiveness-sleep",
+  "10PM Bedtime Protocol": "protocol-bedtime",
+
   "Activated Charcoal Protocol": "protocol-charcoal",
   "Coconut Oil Pulling": "protocol-oil-pulling",
 };
@@ -2142,9 +2544,10 @@ function GuidedProtocol({ remedy, accentColor, onClose }) {
     return () => { clearInterval(timerRef.current); stop(); };
   }, []);
 
-  // Auto-scroll content to top on step change
+  // Auto-scroll content to top on step change — reset both the inner div and window
   useEffect(() => {
     if (contentRef.current) contentRef.current.scrollTop = 0;
+    window.scrollTo({ top: 0, behavior: "instant" });
   }, [step]);
 
   function goNext() {
@@ -2274,42 +2677,78 @@ function GuidedProtocol({ remedy, accentColor, onClose }) {
         )}
       </div>
 
-      {/* Progress dots */}
+      {/* Progress dots — clickable to navigate to any visited step */}
       <div style={{
-        display: "flex", gap: 5, padding: "14px 24px 0",
+        display: "flex", gap: 5, padding: "10px 24px 0",
         justifyContent: "center", flexShrink: 0,
       }}>
         {steps.map((_, i) => (
-          <div key={i} style={{
-            height: 4, flex: 1, maxWidth: 48, borderRadius: 100,
-            background: i < step ? accentColor : i === step ? `${accentColor}` : "rgba(255,255,255,0.08)",
-            opacity: i < step ? 0.4 : 1,
-            transition: "all .3s",
-          }} />
+          <div
+            key={i}
+            onClick={() => {
+              if (i !== step) {
+                stop();
+                setShowTip(false);
+                setTimerActive(false);
+                setStep(i);
+                if (steps[i].timer) setTimer(steps[i].timer);
+                else setTimer(null);
+              }
+            }}
+            title={`Step ${i + 1}`}
+            style={{
+              height: i === step ? 6 : 4,
+              flex: 1, maxWidth: 48, borderRadius: 100,
+              background: i < step ? accentColor : i === step ? accentColor : "rgba(255,255,255,0.08)",
+              opacity: i < step ? 0.55 : i === step ? 1 : 0.25,
+              transition: "all .25s",
+              cursor: i <= step ? "pointer" : "default",
+              transform: i === step ? "scaleY(1.2)" : "none",
+            }}
+          />
         ))}
       </div>
+      {/* Step label under dots */}
+      <p style={{
+        textAlign: "center", fontSize: 11, color: "rgba(255,255,255,0.25)",
+        letterSpacing: ".1em", textTransform: "uppercase",
+        paddingTop: 6, flexShrink: 0,
+      }}>Tap a dot to navigate</p>
 
       {/* Main content area */}
       <div ref={contentRef} style={{
         flex: 1, display: "flex", flexDirection: "column",
-        alignItems: "center",
-        padding: "18px 28px 100px", overflow: "auto",
+        alignItems: "center", justifyContent: "flex-start",
+        padding: "12px 20px 16px", overflow: "auto",
+        overflowX: "hidden",
       }}>
 
         {/* Step number */}
         <div style={{
-          width: 38, height: 38, borderRadius: "50%", marginBottom: 14,
+          width: 36, height: 36, borderRadius: "50%", marginBottom: 12,
           background: `${accentColor}18`, border: `2px solid ${accentColor}55`,
           display: "flex", alignItems: "center", justifyContent: "center",
-          fontSize: 18, fontWeight: 800, color: accentColor,
+          fontSize: 17, fontWeight: 800, color: accentColor,
         }}>{step + 1}</div>
 
         {/* Instruction */}
         <p style={{
-          fontSize: "clamp(18px,4.5vw,24px)", color: WHITE,
-          textAlign: "center", lineHeight: 1.7, fontWeight: 500,
+          fontSize: "clamp(16px,4vw,21px)", color: WHITE,
+          textAlign: "center", lineHeight: 1.6, fontWeight: 500,
           maxWidth: 500, marginBottom: 14,
         }}>{current.instruction}</p>
+
+        {/* Step image — shown only if this step has an image */}
+        {current.image && (
+          <div style={{ width: "100%", maxWidth: 400, marginBottom: 20, borderRadius: 14, overflow: "hidden", border: `1px solid ${accentColor}22` }}>
+            <img
+              src={`/${current.image}`}
+              alt=""
+              style={{ width: "100%", display: "block", objectFit: "cover", maxHeight: 220 }}
+              onError={e => { e.currentTarget.style.display = "none"; }}
+            />
+          </div>
+        )}
 
         {/* Timer */}
         {hasTimer && (
@@ -2371,14 +2810,14 @@ function GuidedProtocol({ remedy, accentColor, onClose }) {
         )}
       </div>
 
-      {/* Bottom nav — fixed to bottom so Next is always visible */}
+      {/* Bottom nav — docked to bottom of flex column, always visible, no gap */}
       <div style={{
-        padding: "16px 24px", borderTop: `1px solid ${BORDER2}`,
+        padding: "16px 24px",
         paddingBottom: "max(16px, env(safe-area-inset-bottom, 16px))",
+        borderTop: `1px solid ${BORDER2}`,
         display: "flex", gap: 12, alignItems: "center",
         background: "rgba(7,15,30,0.97)", backdropFilter: "blur(14px)",
         flexShrink: 0,
-        position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 610,
       }}>
         <button onClick={goPrev} disabled={step === 0} style={{
           flex: 1, border: `1px solid ${step === 0 ? BORDER2 : accentColor+"55"}`,
@@ -2736,7 +3175,7 @@ export default function NaturalRemedySearch({ onBack }) {
               "Small shifts, consistently honoured, produce quantum results. The habit is not the destination — it is the vehicle."
             </p>
             <p style={{fontSize:12, fontWeight:700, color:"rgba(52,211,153,0.65)", letterSpacing:".12em", textTransform:"uppercase"}}>
-              — The Learning Quantum Method
+              — Q, Founder of LQM Method
             </p>
           </div>
         </div>
