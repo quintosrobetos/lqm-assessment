@@ -1032,7 +1032,7 @@ function Landing({onStart}){
             <div key={a.name} style={{
               display:"flex",alignItems:"center",gap:12,
               padding:"14px 16px",
-              background:`${a.color}15`,
+              background:`${a.color}22`,
               border:`1px solid ${a.color}44`,
               borderLeft:`3px solid ${a.color}88`,
               borderRadius:"0 12px 12px 0",
