@@ -1,7 +1,63 @@
 // api/send-report.js
 // Vercel serverless function — sends LQM report email via Resend
 // Environment variable required: RESEND_API_KEY
+//
+// RATE LIMITING (added May 2026):
+//   - Max 3 emails per IP per hour
+//   - Min 30 seconds between requests per IP
+//   - In-memory tracking (resets on cold start — self-cleaning)
+//   - Returns 429 with clear message if limit hit
 
+// ── Rate limiter ──────────────────────────────────────────────────────────
+const rateLimitMap = new Map(); // IP → { count, firstRequest, lastRequest }
+const RATE_LIMIT_WINDOW = 60 * 60 * 1000; // 1 hour in ms
+const RATE_LIMIT_MAX = 3;                  // max emails per window
+const RATE_LIMIT_BURST = 30 * 1000;        // min 30s between requests
+
+function checkRateLimit(ip) {
+  const now = Date.now();
+  const entry = rateLimitMap.get(ip);
+
+  if (!entry) {
+    rateLimitMap.set(ip, { count: 1, firstRequest: now, lastRequest: now });
+    return { allowed: true };
+  }
+
+  // Reset window if expired
+  if (now - entry.firstRequest > RATE_LIMIT_WINDOW) {
+    rateLimitMap.set(ip, { count: 1, firstRequest: now, lastRequest: now });
+    return { allowed: true };
+  }
+
+  // Burst protection — too fast
+  if (now - entry.lastRequest < RATE_LIMIT_BURST) {
+    const waitSecs = Math.ceil((RATE_LIMIT_BURST - (now - entry.lastRequest)) / 1000);
+    return { allowed: false, reason: `Please wait ${waitSecs} seconds before requesting another email.` };
+  }
+
+  // Hourly limit
+  if (entry.count >= RATE_LIMIT_MAX) {
+    const resetIn = Math.ceil((RATE_LIMIT_WINDOW - (now - entry.firstRequest)) / 60000);
+    return { allowed: false, reason: `Email limit reached. Please try again in ${resetIn} minutes.` };
+  }
+
+  // Allow and increment
+  entry.count++;
+  entry.lastRequest = now;
+  return { allowed: true };
+}
+
+// Clean up stale entries every 10 minutes (prevents memory leak on long-running instances)
+setInterval(() => {
+  const now = Date.now();
+  for (const [ip, entry] of rateLimitMap) {
+    if (now - entry.firstRequest > RATE_LIMIT_WINDOW * 2) {
+      rateLimitMap.delete(ip);
+    }
+  }
+}, 10 * 60 * 1000);
+
+// ── Handler ───────────────────────────────────────────────────────────────
 export default async function handler(req, res) {
   // CORS headers — allow requests from your domain
   res.setHeader("Access-Control-Allow-Origin", "*");
@@ -10,6 +66,17 @@ export default async function handler(req, res) {
 
   if (req.method === "OPTIONS") return res.status(200).end();
   if (req.method !== "POST")    return res.status(405).json({ error: "Method not allowed" });
+
+  // ── Rate limit check ────────────────────────────────────────────────────
+  const clientIP = req.headers["x-forwarded-for"]?.split(",")[0]?.trim()
+                || req.headers["x-real-ip"]
+                || req.socket?.remoteAddress
+                || "unknown";
+
+  const rateCheck = checkRateLimit(clientIP);
+  if (!rateCheck.allowed) {
+    return res.status(429).json({ error: rateCheck.reason });
+  }
 
   const {
     email,
