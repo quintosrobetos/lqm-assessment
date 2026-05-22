@@ -165,6 +165,7 @@ export default function LilQVideo({
             style={{
               width: "100%", height: "100%",
               objectFit: "cover",
+              objectPosition: "center 25%",
               display: "block",
             }}
           />
@@ -182,6 +183,7 @@ export default function LilQVideo({
             style={{
               width: "100%", height: "100%",
               objectFit: "cover",
+              objectPosition: "center 25%",
               display: playing ? "block" : "none",
             }}
           />
@@ -191,7 +193,7 @@ export default function LilQVideo({
         {!playing && (
           <div style={{
             position: "absolute",
-            bottom: Math.max(4, s.bubble * 0.03), right: Math.max(4, s.bubble * 0.03),
+            bottom: Math.max(8, s.bubble * 0.06), left: "50%", transform: "translateX(-50%)",
             width: s.icon + 6, height: s.icon + 6,
             borderRadius: "50%",
             background: "rgba(0,200,255,0.85)",
@@ -207,7 +209,7 @@ export default function LilQVideo({
         {playing && (
           <div style={{
             position: "absolute",
-            bottom: Math.max(4, s.bubble * 0.03), right: Math.max(4, s.bubble * 0.03),
+            bottom: Math.max(8, s.bubble * 0.06), left: "50%", transform: "translateX(-50%)",
             width: s.icon + 6, height: s.icon + 6,
             borderRadius: "50%",
             background: "rgba(0,200,255,0.85)",
