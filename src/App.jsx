@@ -913,25 +913,6 @@ function Hub({type, unlocks, onOpenNeural, onOpenVital, onViewReport, onUnlockNe
   );
 }
 
-function RotatingStrapline() {
-  const lines = ["Know your type. Train your mind. Live by design.","Daily brain challenges. Real cognitive gains.","Five laws of health. One daily practice."];
-  const [idx, setIdx] = useState(0);
-  const [visible, setVisible] = useState(true);
-  useEffect(() => {
-    const cycle = setInterval(() => {
-      setVisible(false);
-      setTimeout(() => { setIdx(i => (i+1)%lines.length); setVisible(true); }, 600);
-    }, 4000);
-    return () => clearInterval(cycle);
-  }, []);
-  return (
-    <div style={{textAlign:"center",height:36,marginBottom:24,overflow:"hidden"}}>
-      <p style={{fontFamily:"'Crimson Pro',serif",fontStyle:"italic",fontSize:20,color:"rgba(255,255,255,0.72)",letterSpacing:".03em",lineHeight:1.6,transition:"opacity .65s ease, transform .65s ease",opacity:visible?1:0,transform:visible?"translateY(0)":"translateY(8px)"}}>{lines[idx]}</p>
-    </div>
-  );
-}
-
-
 // ── FAQ component ─────────────────────────────────────────────────────────
 function LandingFAQ() {
   const [openIdx, setOpenIdx] = useState(null);
@@ -1003,6 +984,13 @@ function LandingFAQ() {
 
 // CHANGE 12: New Landing with archetype teaser, science strip, micro-preview
 function Landing({onStart}){
+  const [showMore, setShowMore] = useState(false);
+  const [showSticky, setShowSticky] = useState(false);
+  useEffect(() => {
+    function onScroll() { setShowSticky(window.scrollY > 400); }
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
   return(
     <div>
       {/* Logo */}
@@ -1021,7 +1009,7 @@ function Landing({onStart}){
         <h2 style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"clamp(24px,5vw,40px)",lineHeight:1,letterSpacing:2,color:"rgba(255,255,255,0.28)",marginBottom:20}}>
           You Have A Systems Problem.
         </h2>
-        <RotatingStrapline/>
+        <p style={{fontFamily:"'Crimson Pro',serif",fontStyle:"italic",fontSize:20,color:"rgba(255,255,255,0.72)",letterSpacing:".03em",lineHeight:1.6,textAlign:"center",marginBottom:24}}>Know your type. Train your mind. Live by design.</p>
       </div>
 
       {/* Philosophy quote */}
@@ -1063,125 +1051,149 @@ function Landing({onStart}){
         </p>
       </div>
 
-      {/* ── SCIENCE CREDIBILITY STRIP ────────────────────────────── */}
-      <div className="fu3" style={{
-        marginBottom:28,padding:"20px 22px",
-        background:"rgba(0,200,255,0.04)",
-        border:`1px solid ${BORDER}`,
-        borderRadius:14,
-      }}>
-        <p style={{fontSize:12,fontWeight:700,color:E_BLUE,letterSpacing:".16em",textTransform:"uppercase",marginBottom:14,textAlign:"center"}}>
-          Built on behavioural science
-        </p>
-        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
-          {[
-            ["◈","Cognitive flexibility","How the brain adapts between tasks and rules"],
-            ["△","Decision architecture","How environment shapes the choices you make"],
-            ["⟁","Habit formation research","How behaviours become automatic through systems"],
-            ["⬡","Systems-based design","How small structural changes compound over time"],
-          ].map(([sym,title,desc])=>(
-            <div key={title} style={{display:"flex",gap:10,alignItems:"flex-start"}}>
-              <span style={{color:E_BLUE,fontSize:14,flexShrink:0,marginTop:2}}>{sym}</span>
-              <div>
-                <p style={{fontSize:13,fontWeight:700,color:WHITE,marginBottom:2}}>{title}</p>
-                <p style={{fontSize:12,color:DIMMED,lineHeight:1.5}}>{desc}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-        <p style={{fontSize:12,color:DIMMED,textAlign:"center",marginTop:14,lineHeight:1.7}}>
-          LQM is not a personality quiz. It is a diagnostic tool built on how people actually decide, act, and perform.
-        </p>
-      </div>
-
-      {/* ── MICRO-PREVIEW EXAMPLE CARD ───────────────────────────── */}
-      <div className="fu3" style={{marginBottom:28}}>
-        <p style={{textAlign:"center",fontSize:14,fontWeight:700,color:MUTED,letterSpacing:".14em",textTransform:"uppercase",marginBottom:14}}>
-          Your result will look like this
-        </p>
-        <div style={{
-          background:`linear-gradient(145deg,${DARK2},${DARK})`,
-          border:`1px solid rgba(0,200,255,0.35)`,
-          borderTop:`2px solid #00C8FF`,
-          borderRadius:16,padding:"20px 22px",
-          position:"relative",overflow:"hidden",
+      {/* ── WHAT MAKES LQM DIFFERENT — collapsible ─────────────── */}
+      <div style={{marginBottom:28}}>
+        <button onClick={()=>setShowMore(v=>!v)} style={{
+          width:"100%",
+          background:showMore?"rgba(0,200,255,0.06)":"rgba(255,255,255,0.03)",
+          border:`1px solid ${showMore?"rgba(0,200,255,0.35)":"rgba(255,255,255,0.09)"}`,
+          borderRadius:14, padding:"16px 20px",
+          display:"flex", alignItems:"center", justifyContent:"space-between",
+          cursor:"pointer", fontFamily:"'Space Grotesk',sans-serif",
+          transition:"all .2s",
         }}>
-          {/* Example badge */}
-          <div style={{
-            position:"absolute",top:12,right:12,
-            background:"rgba(251,191,36,0.12)",
-            border:"1px solid rgba(251,191,36,0.35)",
-            borderRadius:100,padding:"3px 10px",
-            fontSize:11,fontWeight:700,color:AMBER,letterSpacing:".1em",
-          }}>EXAMPLE ONLY</div>
-
-          {/* Archetype header */}
-          <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:14}}>
-            <span style={{fontSize:30,color:"#00C8FF"}}>◈</span>
-            <div>
-              <p style={{fontSize:12,fontWeight:700,color:"#00C8FF",letterSpacing:".12em",textTransform:"uppercase",marginBottom:3}}>Your LQM Archetype</p>
-              <p style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:26,letterSpacing:2,color:WHITE,lineHeight:1}}>The Systems Architect</p>
-            </div>
+          <div style={{textAlign:"left"}}>
+            <p style={{fontSize:14,fontWeight:700,color:E_BLUE,letterSpacing:".08em",marginBottom:3}}>What makes LQM different?</p>
+            <p style={{fontSize:13,color:DIMMED}}>Built on behavioural science. See what your report includes.</p>
           </div>
+          <span style={{fontSize:12,fontWeight:700,color:E_BLUE,flexShrink:0}}>{showMore ? "↑ Close" : "Explore →"}</span>
+        </button>
+        {showMore && (
+          <div style={{marginTop:12,animation:"fadeUp .3s ease both"}}>
 
-          {/* Tag */}
-          <p style={{fontFamily:"'Crimson Pro',serif",fontStyle:"italic",fontSize:17,color:"rgba(0,200,255,0.9)",marginBottom:16,lineHeight:1.6}}>
-            "You don't chase motivation. You engineer it."
-          </p>
-
-          {/* Behavioural pattern */}
-          <div style={{
-            background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.12)",
-            borderRadius:10,padding:"14px 16px",marginBottom:14,
+          {/* ── SCIENCE CREDIBILITY STRIP ────────────────────────────── */}
+          <div className="fu3" style={{
+            marginBottom:28,padding:"20px 22px",
+            background:"rgba(0,200,255,0.04)",
+            border:`1px solid ${BORDER}`,
+            borderRadius:14,
           }}>
-            <p style={{fontSize:11,fontWeight:700,color:"rgba(255,255,255,0.55)",letterSpacing:".1em",textTransform:"uppercase",marginBottom:5}}>
-              Behavioural tendency
+            <p style={{fontSize:12,fontWeight:700,color:E_BLUE,letterSpacing:".16em",textTransform:"uppercase",marginBottom:14,textAlign:"center"}}>
+              Built on behavioural science
             </p>
-            <p style={{fontSize:16,color:WHITE,fontWeight:700,marginBottom:4}}>Structure orientation</p>
-            <p style={{fontSize:14,color:MUTED,lineHeight:1.65}}>You prioritise frameworks and clarity before committing to action — and sometimes that delay costs you.</p>
-          </div>
-
-          {/* Strength + blind spot */}
-          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:16}}>
-            <div style={{background:"rgba(0,200,255,0.06)",border:"1px solid rgba(0,200,255,0.25)",borderRadius:10,padding:"12px 14px"}}>
-              <p style={{fontSize:11,fontWeight:700,color:"#00C8FF",letterSpacing:".1em",textTransform:"uppercase",marginBottom:4}}>Strength</p>
-              <p style={{fontSize:14,color:WHITE,fontWeight:600,lineHeight:1.4}}>Systems Design</p>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
+              {[
+                ["◈","Cognitive flexibility","How the brain adapts between tasks and rules"],
+                ["△","Decision architecture","How environment shapes the choices you make"],
+                ["⟁","Habit formation research","How behaviours become automatic through systems"],
+                ["⬡","Systems-based design","How small structural changes compound over time"],
+              ].map(([sym,title,desc])=>(
+                <div key={title} style={{display:"flex",gap:10,alignItems:"flex-start"}}>
+                  <span style={{color:E_BLUE,fontSize:14,flexShrink:0,marginTop:2}}>{sym}</span>
+                  <div>
+                    <p style={{fontSize:13,fontWeight:700,color:WHITE,marginBottom:2}}>{title}</p>
+                    <p style={{fontSize:12,color:DIMMED,lineHeight:1.5}}>{desc}</p>
+                  </div>
+                </div>
+              ))}
             </div>
-            <div style={{background:"rgba(255,160,40,0.06)",border:"1px solid rgba(255,160,40,0.25)",borderRadius:10,padding:"12px 14px"}}>
-              <p style={{fontSize:11,fontWeight:700,color:"rgba(255,180,50,0.9)",letterSpacing:".1em",textTransform:"uppercase",marginBottom:4}}>Blind spot</p>
-              <p style={{fontSize:14,color:WHITE,fontWeight:600,lineHeight:1.4}}>Perfectionism delays launch</p>
+            <p style={{fontSize:12,color:DIMMED,textAlign:"center",marginTop:14,lineHeight:1.7}}>
+              LQM is not a personality quiz. It is a diagnostic tool built on how people actually decide, act, and perform.
+            </p>
+          </div>
+    
+          {/* ── MICRO-PREVIEW EXAMPLE CARD ───────────────────────────── */}
+          <div className="fu3" style={{marginBottom:28}}>
+            <p style={{textAlign:"center",fontSize:14,fontWeight:700,color:MUTED,letterSpacing:".14em",textTransform:"uppercase",marginBottom:14}}>
+              Your result will look like this
+            </p>
+            <div style={{
+              background:`linear-gradient(145deg,${DARK2},${DARK})`,
+              border:`1px solid rgba(0,200,255,0.35)`,
+              borderTop:`2px solid #00C8FF`,
+              borderRadius:16,padding:"20px 22px",
+              position:"relative",overflow:"hidden",
+            }}>
+              {/* Example badge */}
+              <div style={{
+                position:"absolute",top:12,right:12,
+                background:"rgba(251,191,36,0.12)",
+                border:"1px solid rgba(251,191,36,0.35)",
+                borderRadius:100,padding:"3px 10px",
+                fontSize:11,fontWeight:700,color:AMBER,letterSpacing:".1em",
+              }}>EXAMPLE ONLY</div>
+    
+              {/* Archetype header */}
+              <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:14}}>
+                <span style={{fontSize:30,color:"#00C8FF"}}>◈</span>
+                <div>
+                  <p style={{fontSize:12,fontWeight:700,color:"#00C8FF",letterSpacing:".12em",textTransform:"uppercase",marginBottom:3}}>Your LQM Archetype</p>
+                  <p style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:26,letterSpacing:2,color:WHITE,lineHeight:1}}>The Systems Architect</p>
+                </div>
+              </div>
+    
+              {/* Tag */}
+              <p style={{fontFamily:"'Crimson Pro',serif",fontStyle:"italic",fontSize:17,color:"rgba(0,200,255,0.9)",marginBottom:16,lineHeight:1.6}}>
+                "You don't chase motivation. You engineer it."
+              </p>
+    
+              {/* Behavioural pattern */}
+              <div style={{
+                background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.12)",
+                borderRadius:10,padding:"14px 16px",marginBottom:14,
+              }}>
+                <p style={{fontSize:11,fontWeight:700,color:"rgba(255,255,255,0.55)",letterSpacing:".1em",textTransform:"uppercase",marginBottom:5}}>
+                  Behavioural tendency
+                </p>
+                <p style={{fontSize:16,color:WHITE,fontWeight:700,marginBottom:4}}>Structure orientation</p>
+                <p style={{fontSize:14,color:MUTED,lineHeight:1.65}}>You prioritise frameworks and clarity before committing to action — and sometimes that delay costs you.</p>
+              </div>
+    
+              {/* Strength + blind spot */}
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:16}}>
+                <div style={{background:"rgba(0,200,255,0.06)",border:"1px solid rgba(0,200,255,0.25)",borderRadius:10,padding:"12px 14px"}}>
+                  <p style={{fontSize:11,fontWeight:700,color:"#00C8FF",letterSpacing:".1em",textTransform:"uppercase",marginBottom:4}}>Strength</p>
+                  <p style={{fontSize:14,color:WHITE,fontWeight:600,lineHeight:1.4}}>Systems Design</p>
+                </div>
+                <div style={{background:"rgba(255,160,40,0.06)",border:"1px solid rgba(255,160,40,0.25)",borderRadius:10,padding:"12px 14px"}}>
+                  <p style={{fontSize:11,fontWeight:700,color:"rgba(255,180,50,0.9)",letterSpacing:".1em",textTransform:"uppercase",marginBottom:4}}>Blind spot</p>
+                  <p style={{fontSize:14,color:WHITE,fontWeight:600,lineHeight:1.4}}>Perfectionism delays launch</p>
+                </div>
+              </div>
+    
+              <p style={{fontSize:14,color:MUTED,textAlign:"center",fontStyle:"italic",lineHeight:1.6}}>
+                Your report includes 3 personalised strategy cards built for your specific profile
+              </p>
             </div>
           </div>
-
-          <p style={{fontSize:14,color:MUTED,textAlign:"center",fontStyle:"italic",lineHeight:1.6}}>
-            Your report includes 3 personalised strategy cards built for your specific profile
-          </p>
-        </div>
-      </div>
-
-      {/* ── WHAT'S INSIDE ──────────────────────────────────────────── */}
-      <div style={{background:PANEL,border:`1px solid ${BORDER2}`,borderRadius:16,padding:"26px",marginBottom:24,borderTop:`2px solid rgba(0,200,255,0.18)`}}>
-        <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:16}}>
-          <p style={{fontSize:16,fontWeight:700,letterSpacing:".14em",textTransform:"uppercase",color:E_BLUE,whiteSpace:"nowrap"}}>
-            What's inside your report
-          </p>
-          <div style={{flex:1,height:1,background:`linear-gradient(90deg,${E_BLUE}44,transparent)`}}/>
-        </div>
-        {[
-          ["⚛","Your Behavioural Archetype","Deep analysis of your unique motivation architecture — how you're wired to learn, decide and perform"],
-          ["◈","Strengths & Blind Spot Analysis","An honest breakdown of your psychological edge and the patterns that are quietly holding you back"],
-          ["△","3 LQM Quantum Strategy Cards","Scenario-based systems designed specifically for your profile — not generic advice you've already tried"],
-          ["⬡","Your Identity Statement","The single sentence that, when repeated, rewires how you show up every day"],
-          ["◎","Behavioural Pattern Profile","How your answers distributed across structure, analysis, relational and creative tendencies — new in 2026"],
-        ].map(([ic,ti,de])=>(
-          <div key={ti} style={{display:"flex",gap:14,marginBottom:16,alignItems:"flex-start"}}>
-            <span style={{color:E_BLUE,fontSize:17,flexShrink:0,marginTop:2}}>{ic}</span>
-            <div>
-              <p style={{fontSize:14,fontWeight:600,color:WHITE,marginBottom:3}}>{ti}</p>
-              <p style={{fontSize:16,color:MUTED,fontWeight:300,lineHeight:1.6}}>{de}</p>
+    
+          {/* ── WHAT'S INSIDE ──────────────────────────────────────────── */}
+          <div style={{background:PANEL,border:`1px solid ${BORDER2}`,borderRadius:16,padding:"26px",marginBottom:24,borderTop:`2px solid rgba(0,200,255,0.18)`}}>
+            <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:16}}>
+              <p style={{fontSize:16,fontWeight:700,letterSpacing:".14em",textTransform:"uppercase",color:E_BLUE,whiteSpace:"nowrap"}}>
+                What's inside your report
+              </p>
+              <div style={{flex:1,height:1,background:`linear-gradient(90deg,${E_BLUE}44,transparent)`}}/>
             </div>
+            {[
+              ["⚛","Your Behavioural Archetype","Deep analysis of your unique motivation architecture — how you're wired to learn, decide and perform"],
+              ["◈","Strengths & Blind Spot Analysis","An honest breakdown of your psychological edge and the patterns that are quietly holding you back"],
+              ["△","3 LQM Quantum Strategy Cards","Scenario-based systems designed specifically for your profile — not generic advice you've already tried"],
+              ["⬡","Your Identity Statement","The single sentence that, when repeated, rewires how you show up every day"],
+              ["◎","Behavioural Pattern Profile","How your answers distributed across structure, analysis, relational and creative tendencies — new in 2026"],
+            ].map(([ic,ti,de])=>(
+              <div key={ti} style={{display:"flex",gap:14,marginBottom:16,alignItems:"flex-start"}}>
+                <span style={{color:E_BLUE,fontSize:17,flexShrink:0,marginTop:2}}>{ic}</span>
+                <div>
+                  <p style={{fontSize:14,fontWeight:600,color:WHITE,marginBottom:3}}>{ti}</p>
+                  <p style={{fontSize:16,color:MUTED,fontWeight:300,lineHeight:1.6}}>{de}</p>
+                </div>
+              </div>
+            ))}
           </div>
-        ))}
+    
+          </div>
+        )}
       </div>
 
 
@@ -1201,11 +1213,18 @@ function Landing({onStart}){
 
       {/* ── CTA ──────────────────────────────────────────────────────── */}
       <div className="fu4" style={{textAlign:"center"}}>
-        <PrimaryBtn onClick={onStart}>⚡ Begin My Free Assessment →</PrimaryBtn>
+        <button onClick={onStart} style={{width:"100%",border:"none",borderRadius:100,padding:"20px",fontSize:18,fontWeight:800,fontFamily:"'Space Grotesk',sans-serif",cursor:"pointer",letterSpacing:".06em",transition:"all .2s ease",display:"block",background:`linear-gradient(135deg,${E_BLUE2},${E_BLUE})`,color:BG,boxShadow:`0 6px 28px rgba(0,200,255,0.30)`,animation:"ctaGlow 2.5s ease-in-out infinite"}} onMouseEnter={e=>{e.currentTarget.style.transform="translateY(-2px)";e.currentTarget.style.boxShadow="0 12px 40px rgba(0,200,255,0.45)";}} onMouseLeave={e=>{e.currentTarget.style.transform="translateY(0)";e.currentTarget.style.boxShadow="0 6px 28px rgba(0,200,255,0.30)";}}>⚡ Begin My Free Assessment</button>
         <p style={{marginTop:10,fontSize:15,color:DIMMED}}>
           Takes 3 minutes · See your result before paying
         </p>
       </div>
+
+      {/* ── STICKY MOBILE CTA ───────────────────────────────────────── */}
+      {showSticky && (
+        <div style={{position:"fixed",bottom:0,left:0,right:0,zIndex:200,background:"rgba(7,15,30,0.95)",backdropFilter:"blur(12px)",borderTop:`1px solid ${BORDER}`,padding:"12px 20px",display:"flex",alignItems:"center",justifyContent:"center",gap:12,animation:"fadeUp .3s ease both"}}>
+          <button onClick={onStart} style={{flex:1,maxWidth:400,border:"none",borderRadius:100,padding:"14px",fontSize:15,fontWeight:800,fontFamily:"'Space Grotesk',sans-serif",cursor:"pointer",letterSpacing:".05em",background:`linear-gradient(135deg,${E_BLUE2},${E_BLUE})`,color:BG,boxShadow:`0 4px 20px rgba(0,200,255,0.25)`}}>⚡ Begin Free Assessment</button>
+        </div>
+      )}
     </div>
   );
 }
@@ -1487,7 +1506,7 @@ function ResultReveal({type, patterns, onExplore}) {
           letterSpacing:".04em", transition:"all .2s",
         }}
       >⚛ Explore My Full Profile →</button>
-<LilQVideo archetype={patterns?.primary} size="lg" label="Tap to hear Lil'Q" />
+<LilQVideo archetype={patterns?.primary} context="guide" size="lg" label="Tap to hear Lil'Q" />
       {/* Share action */}
       <button
         onClick={() => setShareOpen(v => !v)}
