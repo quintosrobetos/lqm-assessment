@@ -46,6 +46,15 @@ const SIZES = {
   xl: { bubble: 180, border: 4, icon: 26, labelSize: 14 },
 };
 
+const ARCHETYPE_COLORS = {
+  A: { r: 0, g: 200, b: 255 },   // Systems Architect — cyan
+  B: { r: 56, g: 189, b: 248 },  // Deep Learner — sky blue
+  C: { r: 52, g: 211, b: 153 },  // Relational Catalyst — emerald
+  D: { r: 167, g: 139, b: 250 }, // Visionary Pioneer — purple
+};
+
+const ARCHETYPE_SYMS = { A: "◈", B: "◉", C: "◎", D: "◇" };
+
 export default function LilQVideo({
   size = "md",
   archetype = null,
@@ -62,6 +71,11 @@ export default function LilQVideo({
   const [currentSrc, setCurrentSrc] = useState(null);
   const talkRef = useRef(null);
   const s = SIZES[size] || SIZES.md;
+
+  // Archetype colour — falls back to cyan if no archetype
+  const ac = ARCHETYPE_COLORS[archetype] || { r: 0, g: 200, b: 255 };
+  const acHex = `rgb(${ac.r},${ac.g},${ac.b})`;
+  const acSym = ARCHETYPE_SYMS[archetype] || null;
 
   // Build ordered list of video URLs to try
   // First choice: custom override or context-specific
@@ -130,7 +144,7 @@ export default function LilQVideo({
     bottom: 90,
     right: 16,
     zIndex: 500,
-    filter: "drop-shadow(0 4px 20px rgba(0,200,255,0.25))",
+    filter: `drop-shadow(0 4px 20px rgba(${ac.r},${ac.g},${ac.b},0.25))`,
   } : {};
 
   return (
@@ -146,10 +160,10 @@ export default function LilQVideo({
           width: s.bubble, height: s.bubble,
           borderRadius: "50%",
           overflow: "hidden",
-          border: `${s.border}px solid ${playing ? "rgba(0,200,255,0.7)" : "rgba(0,200,255,0.3)"}`,
+          border: `${s.border}px solid ${playing ? `rgba(${ac.r},${ac.g},${ac.b},0.7)` : `rgba(${ac.r},${ac.g},${ac.b},0.3)`}`,
           boxShadow: playing
-            ? "0 0 20px rgba(0,200,255,0.35), 0 0 40px rgba(0,200,255,0.1)"
-            : "0 0 12px rgba(0,200,255,0.15)",
+            ? `0 0 20px rgba(${ac.r},${ac.g},${ac.b},0.35), 0 0 40px rgba(${ac.r},${ac.g},${ac.b},0.1)`
+            : `0 0 12px rgba(${ac.r},${ac.g},${ac.b},0.15)`,
           cursor: "pointer",
           position: "relative",
           transition: "border-color 0.3s, box-shadow 0.3s",
@@ -196,7 +210,7 @@ export default function LilQVideo({
             bottom: Math.max(8, s.bubble * 0.06), left: "50%", transform: "translateX(-50%)",
             width: s.icon + 6, height: s.icon + 6,
             borderRadius: "50%",
-            background: "rgba(0,200,255,0.85)",
+            background: `rgba(${ac.r},${ac.g},${ac.b},0.85)`,
             display: "flex", alignItems: "center", justifyContent: "center",
             fontSize: s.icon - 4,
             boxShadow: "0 2px 8px rgba(0,0,0,0.3)",
@@ -212,19 +226,35 @@ export default function LilQVideo({
             bottom: Math.max(8, s.bubble * 0.06), left: "50%", transform: "translateX(-50%)",
             width: s.icon + 6, height: s.icon + 6,
             borderRadius: "50%",
-            background: "rgba(0,200,255,0.85)",
+            background: `rgba(${ac.r},${ac.g},${ac.b},0.85)`,
             display: "flex", alignItems: "center", justifyContent: "center",
             fontSize: s.icon - 4,
           }}>
             <span style={{ animation: "lilqSpeaking 0.8s ease-in-out infinite" }}>🔊</span>
           </div>
         )}
+
+        {/* Archetype badge */}
+        {acSym && (
+          <div style={{
+            position: "absolute",
+            top: Math.max(4, s.bubble * 0.16), right: Math.max(4, s.bubble * 0.16),
+            width: s.icon + 2, height: s.icon + 2,
+            borderRadius: "50%",
+            background: `rgba(${ac.r},${ac.g},${ac.b},0.9)`,
+            display: "flex", alignItems: "center", justifyContent: "center",
+            fontSize: s.icon - 6,
+            color: "#070F1E",
+            fontWeight: 800,
+            boxShadow: `0 1px 6px rgba(0,0,0,0.3)`,
+          }}>{acSym}</div>
+        )}
       </div>
 
       {label && (
         <p style={{
           fontSize: s.labelSize,
-          color: playing ? "rgba(0,200,255,0.9)" : "rgba(255,255,255,0.5)",
+          color: playing ? `rgba(${ac.r},${ac.g},${ac.b},0.9)` : "rgba(255,255,255,0.5)",
           fontFamily: "'Space Grotesk',sans-serif",
           fontWeight: 600, letterSpacing: ".04em",
           textAlign: "center",
@@ -235,8 +265,8 @@ export default function LilQVideo({
 
       <style>{`
         @keyframes lilqPulse {
-          0%, 100% { border-color: rgba(0,200,255,0.3); box-shadow: 0 0 12px rgba(0,200,255,0.15); }
-          50% { border-color: rgba(0,200,255,0.6); box-shadow: 0 0 24px rgba(0,200,255,0.3), 0 0 48px rgba(0,200,255,0.08); }
+          0%, 100% { border-color: rgba(${ac.r},${ac.g},${ac.b},0.3); box-shadow: 0 0 12px rgba(${ac.r},${ac.g},${ac.b},0.15); }
+          50% { border-color: rgba(${ac.r},${ac.g},${ac.b},0.6); box-shadow: 0 0 24px rgba(${ac.r},${ac.g},${ac.b},0.3), 0 0 48px rgba(${ac.r},${ac.g},${ac.b},0.08); }
         }
         @keyframes lilqSpeaking {
           0%, 100% { transform: scale(1); }
